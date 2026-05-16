@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>سلة الطلبات — OZEL CAFE</title>
+  <title>Shopping Cart — OZEL CAFE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet"/>
@@ -63,7 +63,7 @@
       color: var(--red);
       cursor: pointer;
       font-size: 1.2rem;
-      margin-right: 1rem;
+      margin-left: 1rem;
     }
     .cart-summary {
       background: var(--bg2);
@@ -117,31 +117,31 @@
     <span class="nav-logo-en">OZEL CAFE </span>
   </div>
   <div class="nav-links">
-    <a href="/#about">القصة</a>
-    <a href="/#menu">القائمة</a>
-    <a href="/#offers">عروض اليوم</a>
-    <a href="/#contact">تواصل</a>
+    <a href="/#about">Story</a>
+    <a href="/#menu">Menu</a>
+    <a href="/#offers">Offers</a>
+    <a href="/#contact">Contact</a>
   </div>
   <div style="display:flex;gap:.7rem;align-items:center">
     <div id="nav-user-area">
       <a href="/login" class="nav-user-btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-        <span>دخول</span>
+        <span>Login</span>
       </a>
     </div>
-    <button class="nav-cta" onclick="location.href='/#menu'">اطلب الآن</button>
+    <button class="nav-cta" onclick="location.href='/#menu'">Order Now</button>
   </div>
 </nav>
 
 <div class="cart-page">
   <div class="cart-header">
-    <h1>سلة طلباتك</h1>
-    <p style="color:var(--muted)">راجع طلباتك قبل التأكيد</p>
+    <h1>Your Shopping Cart</h1>
+    <p style="color:var(--muted)">Review your orders before confirmation</p>
   </div>
 
   <div id="emptyCartMsg" style="display:none; text-align:center; padding:3rem; color:var(--muted);">
-    <p style="font-size:1.2rem; margin-bottom:1.5rem;">سلة مشترياتك فارغة حالياً</p>
-    <a href="/#menu" class="btn-gold" style="display:inline-flex; text-decoration:none;">تصفح المنيو</a>
+    <p style="font-size:1.2rem; margin-bottom:1.5rem;">Your cart is currently empty</p>
+    <a href="/#menu" class="btn-gold" style="display:inline-flex; text-decoration:none;">Browse Menu</a>
   </div>
 
   <div id="cartContentArea">
@@ -151,26 +151,26 @@
 
     <div class="cart-summary">
       <div class="form-group">
-        <label>رقم الطاولة</label>
-        <input type="number" id="tableNum" placeholder="أدخل رقم طاولتك"/>
+        <label>Table Number</label>
+        <input type="number" id="tableNum" placeholder="Enter your table number"/>
       </div>
       
       <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1.5rem;">
         <input type="checkbox" id="isTakeaway" style="width:auto; cursor:pointer;" onchange="document.getElementById('tableNum').disabled = this.checked; if(this.checked) document.getElementById('tableNum').value='';"/>
-        <label for="isTakeaway" style="margin-bottom:0; cursor:pointer; font-size:.8rem; color:var(--muted); letter-spacing:.1em;">طلب تيك اواي (خارجي)</label>
+        <label for="isTakeaway" style="margin-bottom:0; cursor:pointer; font-size:.8rem; color:var(--muted); letter-spacing:.1em;">Takeaway order</label>
       </div>
 
       <div class="form-group">
-        <label>ملاحظات خاصة</label>
-        <textarea id="orderNotes" placeholder="اكتب أي طلبات خاصة هنا..."></textarea>
+        <label>Special Notes</label>
+        <textarea id="orderNotes" placeholder="Write any special requests here..."></textarea>
       </div>
 
       <div class="summary-row total">
-        <span>المجموع الكلي</span>
+        <span>Total</span>
         <span id="cartTotal">0 EGP</span>
       </div>
 
-      <button class="btn-gold" style="width:100%; justify-content:center; margin-top:1.5rem" onclick="submitOrder()">تأكيد الطلب ✦</button>
+      <button class="btn-gold" style="width:100%; justify-content:center; margin-top:1.5rem" onclick="submitOrder()">Confirm Order ✦</button>
     </div>
   </div>
 </div>
@@ -209,8 +209,8 @@
       el.className = 'cart-item-row';
       el.innerHTML = `
         <div class="ci-details">
-          <h4>${item.name_ar || item.name}</h4>
-          <p>سكر: ${item.sugar} · إضافات: ${item.extra}</p>
+          <h4>${item.name}</h4>
+          <p>Sugar: ${item.sugar} · Extras: ${item.extra}</p>
         </div>
         <div style="display:flex; align-items:center;">
           <div class="ci-price">${item.price} EGP</div>
@@ -234,14 +234,14 @@
   }
 
   async function submitOrder() {
-    if (cart.length === 0) return alert('السلة فارغة!');
+    if (cart.length === 0) return alert('Cart is empty!');
     
     const isTakeaway = document.getElementById('isTakeaway').checked;
     const tableNum = document.getElementById('tableNum').value;
     const notes = document.getElementById('orderNotes').value.trim();
     
     if (!isTakeaway && !tableNum) {
-      return alert('يرجى إدخال رقم الطاولة أو اختيار تيك اواي');
+      return alert('Please enter table number or select takeaway');
     }
 
     const total_price = cart.reduce((s, i) => s + i.price, 0);
@@ -262,14 +262,14 @@
       const data = await res.json();
       
       if (data.success) {
-        alert('تم إرسال طلبك بنجاح! شكراً لك.');
+        alert('Your order has been sent successfully! Thank you.');
         localStorage.removeItem('ozel_cart');
         location.href = '/';
       } else {
-        alert(data.error || 'فشل إرسال الطلب');
+        alert(data.error || 'Failed to send order');
       }
     } catch (e) {
-      alert('خطأ في الاتصال بالسيرفر');
+      alert('Connection error with server');
     }
   }
 

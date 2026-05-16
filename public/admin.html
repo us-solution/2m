@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>لوحة الإدارة — OZEL CAFE</title>
+<title>Admin Panel — OZEL CAFE</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet"/>
 <style>
 :root {
@@ -21,16 +21,16 @@
   --red:       #C0392B;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:rtl;}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:ltr;}
 header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
 .hlogo{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--gold);letter-spacing:.3em;}
 .hbtn{background:transparent;border:1px solid var(--line);color:var(--muted);padding:.4rem .9rem;font-family:'Tajawal',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s;}
 .hbtn:hover{border-color:var(--gold);color:var(--gold);}
 .layout{display:grid;grid-template-columns:200px 1fr;}
-nav{background:var(--bg2);border-left:1px solid var(--line);min-height:calc(100vh - 60px);padding:1.5rem 0;}
-.nav-item{display:block;padding:.75rem 1.5rem;color:var(--muted);cursor:pointer;transition:all .2s;font-size:.9rem;border-right:2px solid transparent;}
+nav{background:var(--bg2);border-right:1px solid var(--line);min-height:calc(100vh - 60px);padding:1.5rem 0;}
+.nav-item{display:block;padding:.75rem 1.5rem;color:var(--muted);cursor:pointer;transition:all .2s;font-size:.9rem;border-left:2px solid transparent;}
 .nav-item:hover{color:var(--gold);}
-.nav-item.active{color:var(--gold);border-right-color:var(--gold);background:rgba(194,159,67,.05);}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(194,159,67,.05);}
 .page{display:none;padding:2rem;}
 .page.active{display:block;}
 .page-title{font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--text);margin-bottom:.5rem;font-weight:400;}
@@ -44,12 +44,12 @@ nav{background:var(--bg2);border-left:1px solid var(--line);min-height:calc(100v
 
 /* Tables */
 table{width:100%;border-collapse:collapse;}
-th{font-size:.65rem;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;font-family:'Montserrat',sans-serif;padding:.8rem 1rem;border-bottom:1px solid var(--line);text-align:right;font-weight:400;}
+th{font-size:.65rem;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;font-family:'Montserrat',sans-serif;padding:.8rem 1rem;border-bottom:1px solid var(--line);text-align:left;font-weight:400;}
 td{padding:.9rem 1rem;border-bottom:1px solid var(--line);font-size:.9rem;vertical-align:middle;color:var(--text);}
 tr:hover td{background:rgba(0,0,0,.01);}
 .tbl-price{font-family:'Montserrat',sans-serif;color:var(--gold);font-size:1.1rem;font-weight:700;}
 .badge{padding:.2rem .6rem;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;font-family:'Montserrat',sans-serif;border-radius:1px;}
-.badge-featured{background:rgba(194,159,67,.15);color:var(--gold);}
+.badge-featured{background:rgba(194,159,67,15);color:var(--gold);}
 .badge-hidden{background:rgba(192,57,43,.1);color:var(--red);}
 .badge-admin{background:rgba(194,159,67,.15);color:var(--gold);}
 .badge-cashier{background:rgba(39,174,96,.1);color:var(--green);}
@@ -151,7 +151,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
   }
   nav {
     min-height: auto;
-    border-left: none;
+    border-right: none;
     border-bottom: 1px solid var(--line);
     padding: 0;
   }
@@ -182,116 +182,116 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
 </head>
 <body>
 <header>
-  <div><span style="font-size:.7rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase">لوحة الإدارة — </span><span class="hlogo">OZEL</span></div>
+  <div><span style="font-size:.7rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase">Admin Panel — </span><span class="hlogo">OZEL</span></div>
   <div style="display:flex;gap:.8rem">
-    <button class="hbtn" onclick="location.href='/cashier'">الكاشير</button>
-    <button class="hbtn" onclick="logout()">خروج</button>
+    <button class="hbtn" onclick="location.href='/cashier'">Cashier</button>
+    <button class="hbtn" onclick="logout()">Logout</button>
   </div>
 </header>
 <div class="layout">
   <nav>
     <select id="mobile-nav-select" class="mobile-nav" onchange="showPage(this.value, this)" style="display: none; width: 90%; margin: 1rem auto; padding: 0.8rem; background: var(--bg2); border: 1px solid var(--line); border-radius: 4px; font-family: 'Tajawal', sans-serif; font-size: 1rem; color: var(--text);">
-      <option value="dashboard">الرئيسية</option>
-      <option value="menu">إدارة القائمة</option>
-      <option value="offers">العروض</option>
-      <option value="orders">الطلبات</option>
-      <option value="users">المستخدمون</option>
+      <option value="dashboard">Dashboard</option>
+      <option value="menu">Menu Management</option>
+      <option value="offers">Offers</option>
+      <option value="orders">Orders</option>
+      <option value="users">Users</option>
     </select>
-    <div class="nav-item active" onclick="showPage('dashboard',this)">الرئيسية</div>
-    <div class="nav-item" onclick="showPage('menu',this)">إدارة القائمة</div>
-    <div class="nav-item" onclick="showPage('offers',this)">العروض</div>
-    <div class="nav-item" onclick="showPage('orders',this)">الطلبات</div>
-    <div class="nav-item" onclick="showPage('users',this)">المستخدمون</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)">Dashboard</div>
+    <div class="nav-item" onclick="showPage('menu',this)">Menu Management</div>
+    <div class="nav-item" onclick="showPage('offers',this)">Offers</div>
+    <div class="nav-item" onclick="showPage('orders',this)">Orders</div>
+    <div class="nav-item" onclick="showPage('users',this)">Users</div>
   </nav>
   <div style="overflow-y:auto;max-height:calc(100vh - 60px)">
 
     <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
-      <h1 class="page-title">لوحة التحكم</h1>
-      <p class="page-sub">نظرة عامة على أداء اليوم</p>
-      <div class="stats-grid" id="statsGrid"><p style="color:var(--muted)">جاري التحميل...</p></div>
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-sub">Overview of today's performance</p>
+      <div class="stats-grid" id="statsGrid"><p style="color:var(--muted)">Loading...</p></div>
       <div id="cashierStatsArea" style="margin-top: 2rem;"></div>
     </div>
 
     <!-- MENU MANAGEMENT -->
     <div class="page" id="page-menu">
-      <h1 class="page-title">إدارة القائمة</h1>
-      <p class="page-sub">اضغط على السعر أو الاسم لتعديله مباشرة</p>
+      <h1 class="page-title">Menu Management</h1>
+      <p class="page-sub">Click on price or name to edit directly</p>
       
       <div style="background:var(--bg2); padding: 1rem; border: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-        <input type="text" id="nd-name" placeholder="الاسم (EN)" class="edit-input" style="width:120px; padding:.4rem">
-        <input type="text" id="nd-name-ar" placeholder="الاسم (AR)" class="edit-input" style="width:120px; padding:.4rem">
-        <input type="number" id="nd-price" placeholder="السعر" class="edit-input" style="width:80px; padding:.4rem">
-        <input type="number" id="nd-cat" placeholder="رقم الفئة" class="edit-input" style="width:80px; padding:.4rem">
+        <input type="text" id="nd-name" placeholder="Name (EN)" class="edit-input" style="width:120px; padding:.4rem">
+        <input type="text" id="nd-name-ar" placeholder="Name (AR)" class="edit-input" style="width:120px; padding:.4rem">
+        <input type="number" id="nd-price" placeholder="Price" class="edit-input" style="width:80px; padding:.4rem">
+        <input type="number" id="nd-cat" placeholder="Category ID" class="edit-input" style="width:80px; padding:.4rem">
         <div style="display:flex; flex-direction:column; gap:0.2rem;">
-          <label style="font-size:0.7rem; color:var(--muted);">صورة المشروب</label>
+          <label style="font-size:0.7rem; color:var(--muted);">Drink Image</label>
           <input type="file" id="nd-img" class="edit-input" style="width:150px; padding:.2rem" accept="image/*">
         </div>
-        <button class="hbtn" onclick="addDrink()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.4rem 1rem; font-weight:700;">إضافة صنف +</button>
+        <button class="hbtn" onclick="addDrink()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.4rem 1rem; font-weight:700;">Add Item +</button>
       </div>
 
       <div class="search-bar">
-        <input id="menu-search" type="text" placeholder="ابحث عن صنف..." oninput="filterMenuTable()"/>
+        <input id="menu-search" type="text" placeholder="Search for an item..." oninput="filterMenuTable()"/>
       </div>
       <table><thead><tr>
-        <th>الصورة</th><th>الاسم</th><th>الفئة</th><th>السعر</th><th>متاح</th><th>مميز</th><th>إجراء</th>
+        <th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Available</th><th>Featured</th><th>Action</th>
       </tr></thead>
       <tbody id="menuTable"></tbody></table>
     </div>
 
     <!-- ORDERS -->
     <div class="page" id="page-orders">
-      <h1 class="page-title">كل الطلبات</h1>
-      <p class="page-sub">سجل كامل لجميع الطلبات</p>
+      <h1 class="page-title">All Orders</h1>
+      <p class="page-sub">Full log of all orders</p>
       <table><thead><tr>
-        <th>#</th><th>الطاولة</th><th>العميل</th><th>الإجمالي</th><th>النقاط</th><th>الحالة</th><th>الوقت</th><th>إجراء</th>
+        <th>#</th><th>Table</th><th>Customer</th><th>Total</th><th>Points</th><th>Status</th><th>Time</th><th>Action</th>
       </tr></thead>
       <tbody id="ordersTable"></tbody></table>
     </div>
 
     <!-- USERS -->
     <div class="page" id="page-users">
-      <h1 class="page-title">المستخدمون</h1>
-      <p class="page-sub">إدارة حسابات العملاء والموظفين</p>
+      <h1 class="page-title">Users</h1>
+      <p class="page-sub">Manage customer and employee accounts</p>
       
       <div style="background:var(--bg2); padding: 1rem; border: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-        <input type="text" id="nu-name" placeholder="الاسم" class="edit-input" style="width:120px; padding:.4rem">
-        <input type="tel" id="nu-phone" placeholder="رقم الهاتف" class="edit-input" style="width:120px; padding:.4rem">
-        <input type="password" id="nu-pass" placeholder="كلمة المرور" class="edit-input" style="width:120px; padding:.4rem">
+        <input type="text" id="nu-name" placeholder="Name" class="edit-input" style="width:120px; padding:.4rem">
+        <input type="tel" id="nu-phone" placeholder="Phone Number" class="edit-input" style="width:120px; padding:.4rem">
+        <input type="password" id="nu-pass" placeholder="Password" class="edit-input" style="width:120px; padding:.4rem">
         <select id="nu-role" class="edit-input" style="width:auto; padding:.4rem">
-          <option value="customer">عميل</option>
-          <option value="cashier">كاشير</option>
-          <option value="admin">أدمن</option>
+          <option value="customer">Customer</option>
+          <option value="cashier">Cashier</option>
+          <option value="admin">Admin</option>
         </select>
-        <button class="hbtn" onclick="addUser()" style="color:var(--gold); border-color:var(--gold); padding:.4rem 1rem">إضافة مستخدم +</button>
+        <button class="hbtn" onclick="addUser()" style="color:var(--gold); border-color:var(--gold); padding:.4rem 1rem">Add User +</button>
       </div>
 
       <table><thead><tr>
-        <th>الاسم</th><th>الهاتف</th><th>الدور</th><th>النقاط</th><th>الإجمالي المُنفَق</th><th>تاريخ التسجيل</th><th>إجراء</th>
+        <th>Name</th><th>Phone</th><th>Role</th><th>Points</th><th>Total Spent</th><th>Join Date</th><th>Action</th>
       </tr></thead>
       <tbody id="usersTable"></tbody></table>
     </div>
 
     <!-- OFFERS -->
     <div class="page" id="page-offers">
-      <h1 class="page-title">إدارة العروض اليومية</h1>
-      <p class="page-sub">أضف عروضاً وخصومات على المشروبات</p>
+      <h1 class="page-title">Manage Daily Offers</h1>
+      <p class="page-sub">Add offers and discounts on drinks</p>
 
       <!-- Add Offer Form -->
       <div style="background:var(--bg2); padding: 1rem; border: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
         <select id="no-drink" class="edit-input" style="width:150px; padding:.4rem">
-          <option value="">اختر المشروب...</option>
+          <option value="">Choose drink...</option>
         </select>
-        <input type="number" id="no-discount" placeholder="الخصم %" class="edit-input" style="width:80px; padding:.4rem">
+        <input type="number" id="no-discount" placeholder="Discount %" class="edit-input" style="width:80px; padding:.4rem">
         <div style="display:flex; flex-direction:column; gap:0.2rem;">
-          <label style="font-size:0.7rem; color:var(--muted);">تاريخ انتهاء العرض</label>
+          <label style="font-size:0.7rem; color:var(--muted);">Offer Expiry Date</label>
           <input type="datetime-local" id="no-expiry" class="edit-input" style="width:180px; padding:.2rem">
         </div>
-        <button class="hbtn" onclick="addOffer()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.4rem 1rem; font-weight:700;">إضافة عرض +</button>
+        <button class="hbtn" onclick="addOffer()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.4rem 1rem; font-weight:700;">Add Offer +</button>
       </div>
 
       <table><thead><tr>
-        <th>المشروب</th><th>السعر الأصلي</th><th>الخصم</th><th>السعر بعد الخصم</th><th>إجراء</th>
+        <th>Drink</th><th>Original Price</th><th>Discount</th><th>Final Price</th><th>Action</th>
       </tr></thead>
       <tbody id="offersTable"></tbody></table>
     </div>
@@ -329,20 +329,20 @@ async function loadStats() {
   const s = await res.json();
   
   document.getElementById('statsGrid').innerHTML = `
-    <div class="stat-card"><span class="stat-n">${s.today_orders}</span><span class="stat-l">طلبات اليوم</span></div>
-    <div class="stat-card"><span class="stat-n">${Math.round(s.today_revenue)}</span><span class="stat-l">إيراد اليوم (EGP)</span></div>
-    <div class="stat-card"><span class="stat-n">${Math.round(s.monthly_revenue || 0)}</span><span class="stat-l">إيراد الشهر (EGP)</span></div>
-    <div class="stat-card"><span class="stat-n">${s.pending_orders}</span><span class="stat-l">طلبات معلقة</span></div>
-    <div class="stat-card"><span class="stat-n">${s.total_orders}</span><span class="stat-l">إجمالي الطلبات</span></div>
-    <div class="stat-card"><span class="stat-n">${Math.round(s.total_revenue)}</span><span class="stat-l">إجمالي الإيراد</span></div>
+    <div class="stat-card"><span class="stat-n">${s.today_orders}</span><span class="stat-l">Today's Orders</span></div>
+    <div class="stat-card"><span class="stat-n">${Math.round(s.today_revenue)}</span><span class="stat-l">Today's Revenue (EGP)</span></div>
+    <div class="stat-card"><span class="stat-n">${Math.round(s.monthly_revenue || 0)}</span><span class="stat-l">Monthly Revenue (EGP)</span></div>
+    <div class="stat-card"><span class="stat-n">${s.pending_orders}</span><span class="stat-l">Pending Orders</span></div>
+    <div class="stat-card"><span class="stat-n">${s.total_orders}</span><span class="stat-l">Total Orders</span></div>
+    <div class="stat-card"><span class="stat-n">${Math.round(s.total_revenue)}</span><span class="stat-l">Total Revenue</span></div>
   `;
 
   let cashierHTML = '';
   if (s.cashier_stats && s.cashier_stats.length > 0) {
     cashierHTML = `
-      <h2 style="font-family:'Cormorant Garamond',serif; color:var(--gold); margin-bottom:1rem; font-size:1.5rem;">مبيعات الكاشير اليوم</h2>
+      <h2 style="font-family:'Cormorant Garamond',serif; color:var(--gold); margin-bottom:1rem; font-size:1.5rem;">Cashier Sales Today</h2>
       <table><thead><tr>
-        <th>اسم الكاشير</th><th>عدد الطلبات</th><th>إجمالي المبيعات</th>
+        <th>Cashier Name</th><th>Order Count</th><th>Total Sales</th>
       </tr></thead><tbody>
         ${s.cashier_stats.map(c => `
           <tr>
@@ -354,7 +354,7 @@ async function loadStats() {
       </tbody></table>
     `;
   } else {
-    cashierHTML = `<p style="color:var(--muted)">لا توجد مبيعات مسجلة للكاشير اليوم</p>`;
+    cashierHTML = `<p style="color:var(--muted)">No recorded sales for cashier today</p>`;
   }
   
   const area = document.getElementById('cashierStatsArea');
@@ -373,27 +373,27 @@ function renderMenuTable(data) {
       <td>
         <div style="display:flex; flex-direction:column; align-items:center; gap:0.2rem;">
           <img src="${d.image_emoji}" class="img-thumb" onerror="this.style.display='none'"/>
-          <span class="editable" onclick="editField(${d.id},'image_emoji','${(d.image_emoji||'').replace(/'/g,"\\'")}',this)" style="font-size:.7rem; color:var(--muted)">تعديل</span>
+          <span class="editable" onclick="editField(${d.id},'image_emoji','${(d.image_emoji||'').replace(/'/g,"\\'")}',this)" style="font-size:.7rem; color:var(--muted)">Edit</span>
         </div>
       </td>
       <td>
         <span class="editable" onclick="editField(${d.id},'name','${d.name.replace(/'/g,"\\'")}',this)">${d.name}</span><br/>
-        <small style="color:var(--muted); cursor:pointer;" class="editable" onclick="editField(${d.id},'name_ar','${(d.name_ar||'').replace(/'/g,"\\'")}',this)">${d.name_ar || 'أضف اسم عربي'}</small>
+        <small style="color:var(--muted); cursor:pointer;" class="editable" onclick="editField(${d.id},'name_ar','${(d.name_ar||'').replace(/'/g,"\\'")}',this)">${d.name_ar || 'Add Arabic name'}</small>
       </td>
       <td style="color:var(--muted);font-size:.8rem">${d.cat_name}</td>
       <td><span class="editable tbl-price" onclick="editPrice(${d.id},${d.price},this)">${d.price} EGP</span></td>
       <td>
         <button class="btn-toggle-status ${d.is_available ? 'active-available' : 'inactive-available'}" onclick="toggleDrinkStatus(${d.id}, 'is_available', ${d.is_available})">
-          ${d.is_available ? 'متاح' : 'غير متاح'}
+          ${d.is_available ? 'Available' : 'Unavailable'}
         </button>
       </td>
       <td>
         <button class="btn-toggle-status ${d.is_featured ? 'active-featured' : 'inactive-featured'}" onclick="toggleDrinkStatus(${d.id}, 'is_featured', ${d.is_featured})">
-          ${d.is_featured ? 'مميز' : 'عادي'}
+          ${d.is_featured ? 'Featured' : 'Normal'}
         </button>
       </td>
       <td>
-        <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteDrink(${d.id})">حذف</button>
+        <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteDrink(${d.id})">Delete</button>
       </td>
     </tr>
   `).join('');
@@ -462,7 +462,7 @@ async function addDrink() {
     });
   }
   
-  if(!name || isNaN(price) || isNaN(category_id)) { showModal('تنبيه', 'يرجى ملء الاسم والسعر والفئة'); return; }
+  if(!name || isNaN(price) || isNaN(category_id)) { showModal('Alert', 'Please fill name, price and category'); return; }
   
   try {
     const res = await fetch('/api/admin/drinks', { method:'POST', headers: authH, body: JSON.stringify({name, name_ar, price, category_id, image_emoji}) });
@@ -474,17 +474,17 @@ async function addDrink() {
       document.getElementById('nd-cat').value = '';
       document.getElementById('nd-img').value = '';
       loadMenu();
-      showModal('نجاح', 'تم الإضافة بنجاح');
-    } else { showModal('خطأ', data.error); }
-  } catch(e) { showModal('خطأ', 'خطأ في الإضافة'); }
+      showModal('Success', 'Added successfully');
+    } else { showModal('Error', data.error); }
+  } catch(e) { showModal('Error', 'Error adding'); }
 }
 
 async function deleteDrink(id) {
-  if(!await showModal('تأكيد', 'هل أنت متأكد من حذف هذا الصنف؟', true)) return;
+  if(!await showModal('Confirm', 'Are you sure you want to delete this item?', true)) return;
   const res = await fetch(`/api/admin/drinks/${id}`, { method:'DELETE', headers: authH });
   const data = await res.json();
   if(data.success) loadMenu();
-  else alert('خطأ في الحذف');
+  else alert('Error deleting');
 }
 
 async function loadOffers() {
@@ -494,7 +494,7 @@ async function loadOffers() {
     
     const resD = await fetch('/api/admin/drinks', { headers: authH });
     if (!resD.ok) {
-      showModal('خطأ', 'فشل تحميل المشروبات. تأكد من صلاحية الجلسة.');
+      showModal('Error', 'Failed to load drinks. Check session validity.');
       return;
     }
     menuData = await resD.json();
@@ -502,11 +502,11 @@ async function loadOffers() {
     const select = document.getElementById('no-drink');
     if (select) {
       if (Array.isArray(menuData)) {
-        select.innerHTML = '<option value="">اختر المشروب...</option>' + menuData.map(d => `
+        select.innerHTML = '<option value="">Choose drink...</option>' + menuData.map(d => `
           <option value="${d.id}">${d.name_ar || d.name}</option>
         `).join('');
       } else {
-        select.innerHTML = '<option value="">خطأ في تحميل المشروبات</option>';
+        select.innerHTML = '<option value="">Error loading drinks</option>';
       }
     }
 
@@ -524,19 +524,19 @@ async function loadOffers() {
               <td style="color:var(--red)">${discount}%</td>
               <td style="color:var(--gold); font-weight:700;">${finalPrice.toFixed(2)} EGP</td>
               <td>
-                <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteOffer(${o.id})">حذف</button>
+                <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteOffer(${o.id})">Delete</button>
               </td>
             </tr>
           `;
         }).join('');
       } else {
         console.error('Offers is not an array:', offers);
-        table.innerHTML = `<tr><td colspan="5" style="color:var(--red); text-align:center;">فشل تحميل العروض: ${offers.error || 'استجابة غير متوقعة'}</td></tr>`;
+        table.innerHTML = `<tr><td colspan="5" style="color:var(--red); text-align:center;">Failed to load offers: ${offers.error || 'Unexpected response'}</td></tr>`;
       }
     }
   } catch (e) {
     console.error(e);
-    showModal('خطأ', 'حدث خطأ أثناء تحميل صفحة العروض: ' + e.message);
+    showModal('Error', 'An error occurred while loading offers page: ' + e.message);
   }
 }
 
@@ -546,7 +546,7 @@ async function addOffer() {
   const expires_at = document.getElementById('no-expiry').value;
   
   if (!drink_id || !discount_percent) {
-    showModal('تنبيه', 'يرجى اختيار المشروب ونسبة الخصم');
+    showModal('Alert', 'Please choose drink and discount percentage');
     return;
   }
   
@@ -561,45 +561,45 @@ async function addOffer() {
       document.getElementById('no-discount').value = '';
       document.getElementById('no-expiry').value = '';
       loadOffers();
-      showModal('نجاح', 'تم الإضافة بنجاح');
+      showModal('Success', 'Added successfully');
     } else {
-      showModal('خطأ', data.error);
+      showModal('Error', data.error);
     }
   } catch(e) {
-    showModal('خطأ', 'خطأ في الإضافة');
+    showModal('Error', 'Error adding');
   }
 }
 
 async function deleteOffer(id) {
-  if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذا العرض؟', true)) return;
+  if (!await showModal('Confirm', 'Are you sure you want to delete this offer?', true)) return;
   const res = await fetch(`/api/admin/offers/${id}`, { method: 'DELETE', headers: authH });
   const data = await res.json();
   if (data.success) loadOffers();
-  else showModal('خطأ', 'خطأ في الحذف');
+  else showModal('Error', 'Error deleting');
 }
 
 async function loadOrders() {
   const res = await fetch('/api/orders', { headers: authH });
   ordersData = await res.json();
   document.getElementById('ordersTable').innerHTML = ordersData.map(o => {
-    const statusMap = { pending:'معلق', ready:'جاهز', served:'تم التقديم', cancelled:'ملغي' };
+    const statusMap = { pending:'Pending', ready:'Ready', served:'Served', cancelled:'Cancelled' };
     return `<tr>
       <td style="color:var(--muted);font-size:.8rem">#${o.id}</td>
-      <td style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--white)">طاولة ${o.table_number}</td>
-      <td>${o.customer_name||'زائر'}</td>
+      <td style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--white)">Table ${o.table_number}</td>
+      <td>${o.customer_name||'Guest'}</td>
       <td class="tbl-price">${o.total_price} EGP</td>
       <td class="points-badge">+${o.points_earned||0}</td>
       <td><span class="badge badge-${o.status==='pending'?'hidden':o.status==='ready'?'cashier':o.status==='cancelled'?'red':'customer'}">${statusMap[o.status]||o.status}</span></td>
-      <td style="color:var(--muted);font-size:.78rem">${new Date(o.created_at).toLocaleString('ar-EG')}</td>
+      <td style="color:var(--muted);font-size:.78rem">${new Date(o.created_at).toLocaleString('en-US')}</td>
       <td>
-        ${o.status !== 'served' && o.status !== 'cancelled' ? `<button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="cancelOrderAdmin(${o.id})">إلغاء</button>` : ''}
+        ${o.status !== 'served' && o.status !== 'cancelled' ? `<button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="cancelOrderAdmin(${o.id})">Cancel</button>` : ''}
       </td>
     </tr>`;
   }).join('');
 }
 
 async function cancelOrderAdmin(id) {
-  if (!await showModal('تأكيد', 'هل أنت متأكد من إلغاء هذا الطلب؟', true)) return;
+  if (!await showModal('Confirm', 'Are you sure you want to cancel this order?', true)) return;
   const res = await fetch(`/api/orders/${id}/status`, { 
     method: 'PATCH', 
     headers: authH, 
@@ -607,7 +607,7 @@ async function cancelOrderAdmin(id) {
   });
   const data = await res.json();
   if (data.success) loadOrders();
-  else showModal('خطأ', 'فشل إلغاء الطلب');
+  else showModal('Error', 'Failed to cancel order');
 }
 
 async function loadUsers() {
@@ -619,17 +619,17 @@ async function loadUsers() {
       <td style="font-size:.8rem;color:var(--muted)"><span class="editable" onclick="editUserField(${u.id},'phone','${u.phone}',this)">${u.phone}</span></td>
       <td>
         <select onchange="changeRole(${u.id},this.value)" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.3rem;font-family:'Tajawal',sans-serif;font-size:.8rem;">
-          <option value="customer" ${u.role==='customer'?'selected':''}>عميل</option>
-          <option value="cashier" ${u.role==='cashier'?'selected':''}>كاشير</option>
-          <option value="admin" ${u.role==='admin'?'selected':''}>أدمن</option>
+          <option value="customer" ${u.role==='customer'?'selected':''}>Customer</option>
+          <option value="cashier" ${u.role==='cashier'?'selected':''}>Cashier</option>
+          <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
         </select>
       </td>
       <td class="points-badge"><span class="editable" onclick="editUserPoints(${u.id},${u.points},this)">${u.points}</span></td>
       <td style="color:var(--gold);font-size:.9rem">${Math.round(u.total_spent)} EGP</td>
-      <td style="color:var(--muted);font-size:.78rem">${new Date(u.created_at).toLocaleDateString('ar-EG')}</td>
+      <td style="color:var(--muted);font-size:.78rem">${new Date(u.created_at).toLocaleDateString('en-US')}</td>
       <td>
-        <button class="action-btn2" onclick="editUserPassword(${u.id})">السر</button>
-        <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteUser(${u.id})">حذف</button>
+        <button class="action-btn2" onclick="editUserPassword(${u.id})">Pass</button>
+        <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteUser(${u.id})">Delete</button>
       </td>
     </tr>
   `).join('');
@@ -640,7 +640,7 @@ async function addUser() {
   const phone = document.getElementById('nu-phone').value.trim();
   const password = document.getElementById('nu-pass').value;
   const role = document.getElementById('nu-role').value;
-  if(!name || !phone || !password) { showModal('تنبيه', 'يرجى ملء جميع الحقول'); return; }
+  if(!name || !phone || !password) { showModal('Alert', 'Please fill all fields'); return; }
   try {
     const res = await fetch('/api/admin/users', { method:'POST', headers: authH, body: JSON.stringify({name, phone, password, role}) });
     const data = await res.json();
@@ -650,7 +650,7 @@ async function addUser() {
       document.getElementById('nu-pass').value = '';
       loadUsers();
     } else { alert(data.error); }
-  } catch(e) { alert('خطأ في الإضافة'); }
+  } catch(e) { alert('Error adding'); }
 }
 
 function editUserField(id, field, current, el) {
@@ -682,12 +682,12 @@ function editUserPoints(id, current, el) {
 }
 
 async function editUserPassword(id) {
-  const newPass = await showModal('تغيير كلمة المرور', 'أدخل كلمة المرور الجديدة:', false, true);
+  const newPass = await showModal('Change Password', 'Enter new password:', false, true);
   if(newPass && newPass.trim().length >= 4) {
     await patchUser(id, { password: newPass.trim() });
-    showModal('نجاح', 'تم تغيير كلمة المرور بنجاح');
+    showModal('Success', 'Password changed successfully');
   } else if (newPass !== null) { 
-    showModal('تنبيه', 'كلمة المرور قصيرة جداً (أقل من 4 حروف)'); 
+    showModal('Alert', 'Password too short (less than 4 characters)'); 
   }
 }
 
@@ -696,11 +696,11 @@ async function patchUser(id, data) {
 }
 
 async function deleteUser(id) {
-  if(!await showModal('تأكيد', 'هل أنت متأكد من الحذف النهائي للمستخدم؟', true)) return;
+  if(!await showModal('Confirm', 'Are you sure you want to permanently delete the user?', true)) return;
   const res = await fetch(`/api/admin/users/${id}`, { method:'DELETE', headers: authH });
   const data = await res.json();
   if(data.success) loadUsers();
-  else showModal('خطأ', data.error || 'خطأ في الحذف');
+  else showModal('Error', data.error || 'Error deleting');
 }
 
 async function changeRole(id, role) {
@@ -754,12 +754,12 @@ loadStats();
 
 <div id="custom-modal" class="c-modal">
   <div class="c-modal-content">
-    <h2 id="cm-title">تنبيه</h2>
+    <h2 id="cm-title">Alert</h2>
     <p id="cm-text"></p>
     <input type="text" id="cm-input" class="edit-input" style="width:100%; display:none; margin-bottom:1.5rem; text-align:center;">
     <div class="c-modal-actions">
-      <button id="cm-cancel" class="hbtn">إلغاء</button>
-      <button id="cm-ok" class="hbtn" style="color:var(--gold); border-color:var(--gold);">حسناً</button>
+      <button id="cm-cancel" class="hbtn">Cancel</button>
+      <button id="cm-ok" class="hbtn" style="color:var(--gold); border-color:var(--gold);">OK</button>
     </div>
   </div>
 </div>

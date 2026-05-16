@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>الكاشير — OZEL CAFE</title>
+<title>Cashier — OZEL CAFE</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet"/>
 <style>
 :root {
@@ -22,7 +22,7 @@
   --orange:    #E67E22;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:rtl;}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:ltr;}
 header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
 .hlogo{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--gold);letter-spacing:.3em;}
 .htag{font-size:.7rem;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-right:.5rem;}
@@ -36,17 +36,17 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
 .main{display:grid;grid-template-columns:240px 1fr;gap:0;min-height:calc(100vh - 64px);}
 
 /* Sidebar */
-.sidebar{background:var(--bg2);border-left:1px solid var(--line);padding:1.5rem 1rem;}
+.sidebar{background:var(--bg2);border-right:1px solid var(--line);padding:1.5rem 1rem;}
 .sb-title{font-size:.65rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-bottom:1rem;font-family:'Montserrat',sans-serif;}
 .sb-stats{display:flex;flex-direction:column;gap:.8rem;margin-bottom:2rem;}
 .sstat{background:var(--bg3);padding:1rem;border:1px solid var(--line);border-radius:4px;}
 .sstat-n{font-family:'Montserrat',sans-serif;font-size:2rem;color:var(--gold);font-weight:700;display:block;}
 .sstat-l{font-size:.72rem;color:var(--muted);}
 .filter-btns{display:flex;flex-direction:column;gap:.4rem;}
-.fbtn{background:transparent;border:1px solid var(--line);color:var(--muted);padding:.55rem .8rem;font-family:'Tajawal',sans-serif;font-size:.85rem;cursor:pointer;transition:all .2s;text-align:right;border-radius:4px;}
+.fbtn{background:transparent;border:1px solid var(--line);color:var(--muted);padding:.55rem .8rem;font-family:'Tajawal',sans-serif;font-size:.85rem;cursor:pointer;transition:all .2s;text-align:left;border-radius:4px;}
 .fbtn.active{background:var(--gold);color:#FFFFFF;border-color:var(--gold);font-weight:700;}
 .fbtn:hover:not(.active){border-color:var(--gold);color:var(--gold);}
-.dot-status{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:.4rem;}
+.dot-status{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:.4rem;}
 .dot-pending{background:var(--orange);}
 .dot-ready{background:var(--green);}
 .dot-served{background:var(--muted);}
@@ -71,7 +71,7 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
 .oc-item:last-child{border:none;}
 .oc-item-name{flex:1;}
 .oc-item-mods{font-size:.72rem;color:var(--muted);margin-top:.2rem;}
-.oc-item-price{color:var(--gold);font-size:.9rem;margin-right:.5rem;font-family:'Montserrat',sans-serif;font-weight:700;}
+.oc-item-price{color:var(--gold);font-size:.9rem;margin-left:0.5rem;font-family:'Montserrat',sans-serif;font-weight:700;}
 .oc-footer{padding:1rem;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
 .oc-total{font-family:'Montserrat',sans-serif;font-size:1.2rem;color:var(--gold);font-weight:700;}
 .oc-time{font-size:.7rem;color:var(--muted);}
@@ -81,14 +81,14 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
 .action-btn.served-btn:hover{background:rgba(110,102,89,.1);border-color:var(--text);color:var(--text);}
 .empty-msg{grid-column:1/-1;text-align:center;padding:4rem;color:var(--muted);}
 .oc-customer{font-size:.75rem;color:var(--muted);margin-top:.3rem;}
-.new-badge{background:var(--gold);color:#FFFFFF;font-size:.55rem;padding:.1rem .4rem;font-family:'Montserrat',sans-serif;letter-spacing:.1em;vertical-align:middle;margin-right:.3rem;border-radius:2px;}
+.new-badge{background:var(--gold);color:#FFFFFF;font-size:.55rem;padding:.1rem .4rem;font-family:'Montserrat',sans-serif;letter-spacing:.1em;vertical-align:middle;margin-left:0.3rem;border-radius:2px;}
 
 @media (max-width: 768px) {
   .main {
     grid-template-columns: 1fr;
   }
   .sidebar {
-    border-left: none;
+    border-right: none;
     border-bottom: 1px solid var(--line);
     padding: 1rem;
   }
@@ -119,39 +119,39 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
 <body>
 <header>
   <div>
-    <span class="htag">نظام الكاشير</span>
+    <span class="htag">Cashier System</span>
     <span class="hlogo">OZEL</span>
   </div>
   <div class="hright">
-    <div class="hlive"><div class="hdot"></div><span>مباشر — يتحدث كل 5 ثواني</span></div>
-    <button class="hbtn" onclick="logout()">خروج</button>
+    <div class="hlive"><div class="hdot"></div><span>Live — Updates every 5 seconds</span></div>
+    <button class="hbtn" onclick="logout()">Logout</button>
   </div>
 </header>
 <div class="main">
   <div class="sidebar">
-    <div class="sb-title">الإحصاءات</div>
+    <div class="sb-title">Statistics</div>
     <div class="sb-stats">
-      <div class="sstat"><span class="sstat-n" id="st-pending">0</span><span class="sstat-l">طلبات معلقة</span></div>
-      <div class="sstat"><span class="sstat-n" id="st-today">0</span><span class="sstat-l">طلبات اليوم</span></div>
-      <div class="sstat"><span class="sstat-n" id="st-rev">0</span><span class="sstat-l">إيراد اليوم (EGP)</span></div>
+      <div class="sstat"><span class="sstat-n" id="st-pending">0</span><span class="sstat-l">Pending Orders</span></div>
+      <div class="sstat"><span class="sstat-n" id="st-today">0</span><span class="sstat-l">Today's Orders</span></div>
+      <div class="sstat"><span class="sstat-n" id="st-rev">0</span><span class="sstat-l">Today's Revenue (EGP)</span></div>
     </div>
-    <div class="sb-title">فلتر</div>
+    <div class="sb-title">Filter</div>
     <select id="mobile-filter-select" onchange="filterOrders(this.value, this)" style="display: none; width: 100%; padding: 0.8rem; background: var(--bg3); border: 1px solid var(--line); border-radius: 4px; font-family: 'Tajawal', sans-serif; font-size: 1rem; color: var(--text); margin-bottom: 1rem;">
-      <option value="all">كل الطلبات</option>
-      <option value="pending">معلقة</option>
-      <option value="ready">جاهزة</option>
-      <option value="served">تم التقديم</option>
+      <option value="all">All Orders</option>
+      <option value="pending">Pending</option>
+      <option value="ready">Ready</option>
+      <option value="served">Served</option>
     </select>
     <div class="filter-btns">
-      <button class="fbtn active" onclick="filterOrders('all',this)">كل الطلبات</button>
-      <button class="fbtn" onclick="filterOrders('pending',this)"><span class="dot-status dot-pending"></span>معلقة</button>
-      <button class="fbtn" onclick="filterOrders('ready',this)"><span class="dot-status dot-ready"></span>جاهزة</button>
-      <button class="fbtn" onclick="filterOrders('served',this)"><span class="dot-status dot-served"></span>تم التقديم</button>
+      <button class="fbtn active" onclick="filterOrders('all',this)">All Orders</button>
+      <button class="fbtn" onclick="filterOrders('pending',this)"><span class="dot-status dot-pending"></span>Pending</button>
+      <button class="fbtn" onclick="filterOrders('ready',this)"><span class="dot-status dot-ready"></span>Ready</button>
+      <button class="fbtn" onclick="filterOrders('served',this)"><span class="dot-status dot-served"></span>Served</button>
     </div>
   </div>
   <div class="orders-area">
     <div class="orders-grid" id="ordersGrid">
-      <div class="empty-msg">جاري التحميل...</div>
+      <div class="empty-msg">Loading...</div>
     </div>
   </div>
 </div>
@@ -171,8 +171,8 @@ async function fetchOrders() {
     const newOrders = data.filter(o => !knownIds.has(o.id) && o.status === 'pending');
     if (knownIds.size > 0 && newOrders.length > 0) {
       new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA').play().catch(()=>{});
-      document.title = `(${newOrders.length}) طلب جديد — الكاشير`;
-    } else { document.title = 'الكاشير — OZEL CAFE'; }
+      document.title = `(${newOrders.length}) New Order — Cashier`;
+    } else { document.title = 'Cashier — OZEL CAFE'; }
     data.forEach(o => knownIds.add(o.id));
     allOrders = data;
     renderOrders();
@@ -193,7 +193,7 @@ function updateStats() {
 function renderOrders() {
   const grid = document.getElementById('ordersGrid');
   const filtered = currentFilter === 'all' ? allOrders : allOrders.filter(o => o.status === currentFilter);
-  if (!filtered.length) { grid.innerHTML = '<div class="empty-msg">لا توجد طلبات</div>'; return; }
+  if (!filtered.length) { grid.innerHTML = '<div class="empty-msg">No orders found</div>'; return; }
   grid.innerHTML = filtered.map(o => {
     let items = [];
     try { items = JSON.parse(o.items); } catch(e) {}
@@ -202,35 +202,35 @@ function renderOrders() {
       <div class="order-card ${o.status}">
         <div class="oc-header">
           <div>
-            ${isNew ? '<span class="new-badge">جديد</span>' : ''}
-            <div class="oc-table">طاولة ${o.table_number}</div>
-            <div class="oc-customer">${o.customer_name ? o.customer_name : 'زائر'}</div>
+            ${isNew ? '<span class="new-badge">New</span>' : ''}
+            <div class="oc-table">Table ${o.table_number}</div>
+            <div class="oc-customer">${o.customer_name ? o.customer_name : 'Guest'}</div>
           </div>
-          <span class="oc-status ${o.status}">${o.status === 'pending' ? 'معلق' : o.status === 'ready' ? 'جاهز' : o.status === 'cancelled' ? 'تم الإلغاء' : 'تم التقديم'}</span>
+          <span class="oc-status ${o.status}">${o.status === 'pending' ? 'Pending' : o.status === 'ready' ? 'Ready' : o.status === 'cancelled' ? 'Cancelled' : 'Served'}</span>
         </div>
         <div class="oc-body">
           ${items.map(i => `
             <div class="oc-item">
               <div class="oc-item-name">
                 ${i.name}
-                <div class="oc-item-mods">سكر: ${i.sugar || '-'} · ${i.extra || 'بدون'}</div>
-                ${i.notes ? `<div style="color:var(--gold); font-size:0.75rem; margin-top:0.2rem;">📌 ملحوظة: ${i.notes}</div>` : ''}
+                <div class="oc-item-mods">Sugar: ${i.sugar || '-'} · ${i.extra || 'None'}</div>
+                ${i.notes ? `<div style="color:var(--gold); font-size:0.75rem; margin-top:0.2rem;">📌 Note: ${i.notes}</div>` : ''}
               </div>
               <div class="oc-item-price">${i.price} EGP</div>
             </div>
           `).join('')}
-          ${o.notes ? `<div class="oc-notes" style="margin-top:0.8rem; padding-top:0.5rem; border-top:1px dashed var(--line); font-size:0.8rem; color:var(--text);"><strong>📝 ملاحظات العميل:</strong> ${o.notes}</div>` : ''}
+          ${o.notes ? `<div class="oc-notes" style="margin-top:0.8rem; padding-top:0.5rem; border-top:1px dashed var(--line); font-size:0.8rem; color:var(--text);"><strong>📝 Customer Notes:</strong> ${o.notes}</div>` : ''}
         </div>
         <div class="oc-footer">
           <div>
             <div class="oc-total">${o.total_price} EGP</div>
-            <div class="oc-time">${new Date(o.created_at).toLocaleTimeString('ar-EG')}</div>
+            <div class="oc-time">${new Date(o.created_at).toLocaleTimeString('en-US')}</div>
           </div>
         </div>
         <div class="oc-actions" style="padding:.8rem 1rem 1rem; display:flex; gap:0.5rem;">
-          ${o.status === 'pending' ? `<button class="action-btn ready-btn" onclick="updateStatus('${o.id}','ready')">جاهز للتسليم</button>` : ''}
-          ${o.status === 'ready' ? `<button class="action-btn served-btn" onclick="updateStatus('${o.id}','served')">تم التقديم</button>` : ''}
-          ${o.status !== 'served' && o.status !== 'cancelled' ? `<button class="action-btn" style="background:transparent; border:1px solid #C0392B; color:#C0392B; cursor:pointer; padding:0.4rem 0.8rem; border-radius:4px;" onclick="if(confirm('هل أنت متأكد من إلغاء الطلب؟')) updateStatus('${o.id}','cancelled')">إلغاء</button>` : ''}
+          ${o.status === 'pending' ? `<button class="action-btn ready-btn" onclick="updateStatus('${o.id}','ready')">Ready for Delivery</button>` : ''}
+          ${o.status === 'ready' ? `<button class="action-btn served-btn" onclick="updateStatus('${o.id}','served')">Served</button>` : ''}
+          ${o.status !== 'served' && o.status !== 'cancelled' ? `<button class="action-btn" style="background:transparent; border:1px solid #C0392B; color:#C0392B; cursor:pointer; padding:0.4rem 0.8rem; border-radius:4px;" onclick="if(confirm('Are you sure you want to cancel this order?')) updateStatus('${o.id}','cancelled')">Cancel</button>` : ''}
         </div>
       </div>
     `;
