@@ -175,8 +175,8 @@ function renderMenu(drinks) {
         ${priceHTML}
       </div>
       <div class="lmi-actions">
-        <button class="lmi-btn lmi-details" onclick="openDrink(${d.id})">التفاصيل</button>
-        <button class="lmi-btn lmi-add" onclick="quickAddToCart(${d.id})">إضافة ✦</button>
+        <button class="lmi-btn lmi-details" onclick="openDrink('${d.id}')">التفاصيل</button>
+        <button class="lmi-btn lmi-add" onclick="quickAddToCart('${d.id}')">إضافة ✦</button>
       </div>
     `;
     grid.appendChild(item);
@@ -358,7 +358,7 @@ async function renderOffersCards() {
                 <div class="poc-price-new">${finalPrice.toFixed(0)} <span class="poc-currency">EGP</span></div>
               </div>
               
-              <button class="poc-btn" onclick="openDrinkModal(${d.id})">
+              <button class="poc-btn" onclick="openDrink('${d.id}')">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                 <span>إضافة للسلة</span>
               </button>
