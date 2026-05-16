@@ -541,7 +541,7 @@ async function loadOffers() {
 }
 
 async function addOffer() {
-  const drink_id = parseInt(document.getElementById('no-drink').value);
+  const drink_id = document.getElementById('no-drink').value;
   const discount_percent = parseInt(document.getElementById('no-discount').value);
   const expires_at = document.getElementById('no-expiry').value;
   
