@@ -19,9 +19,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ── Database (MongoDB) ───────────────────────────────────────────
 const MONGO_URI = 'mongodb+srv://m16565680_db_user:MCFFg12%405@cluster0.zwr8bzd.mongodb.net/ozel_cafe?retryWrites=true&w=majority&appName=Cluster0';
 
-mongoose.connect(MONGO_URI)
-  .then(() => console.log('Connected to MongoDB Atlas'))
-  .catch(err => console.error('MongoDB connection error:', err));
+async function dbMiddleware(req, res, next) {
+  if (mongoose.connection.readyState >= 1) return next();
+  try {
+    await mongoose.connect(MONGO_URI, {
+      serverSelectionTimeoutMS: 5000,
+    });
+    console.log('Connected to MongoDB Atlas (via middleware)');
+    next();
+  } catch (err) {
+    console.error('MongoDB connection error:', err);
+    return res.status(500).json({ error: 'Database connection failed' });
+  }
+}
+app.use('/api', dbMiddleware);
 
 // ── Mongoose Schemas ─────────────────────────────────────────────
 const categorySchema = new mongoose.Schema({
