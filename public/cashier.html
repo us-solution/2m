@@ -82,6 +82,38 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
 .empty-msg{grid-column:1/-1;text-align:center;padding:4rem;color:var(--muted);}
 .oc-customer{font-size:.75rem;color:var(--muted);margin-top:.3rem;}
 .new-badge{background:var(--gold);color:#FFFFFF;font-size:.55rem;padding:.1rem .4rem;font-family:'Montserrat',sans-serif;letter-spacing:.1em;vertical-align:middle;margin-right:.3rem;border-radius:2px;}
+
+@media (max-width: 768px) {
+  .main {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    border-left: none;
+    border-bottom: 1px solid var(--line);
+    padding: 1rem;
+  }
+  .sb-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+  .sstat {
+    padding: 0.5rem;
+    text-align: center;
+  }
+  .sstat-n {
+    font-size: 1.5rem;
+  }
+  .filter-btns {
+    display: none;
+  }
+  #mobile-filter-select {
+    display: block !important;
+  }
+  .orders-area {
+    padding: 1rem;
+  }
+}
 </style>
 </head>
 <body>
@@ -104,6 +136,12 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
       <div class="sstat"><span class="sstat-n" id="st-rev">0</span><span class="sstat-l">إيراد اليوم (EGP)</span></div>
     </div>
     <div class="sb-title">فلتر</div>
+    <select id="mobile-filter-select" onchange="filterOrders(this.value, this)" style="display: none; width: 100%; padding: 0.8rem; background: var(--bg3); border: 1px solid var(--line); border-radius: 4px; font-family: 'Tajawal', sans-serif; font-size: 1rem; color: var(--text); margin-bottom: 1rem;">
+      <option value="all">كل الطلبات</option>
+      <option value="pending">معلقة</option>
+      <option value="ready">جاهزة</option>
+      <option value="served">تم التقديم</option>
+    </select>
     <div class="filter-btns">
       <button class="fbtn active" onclick="filterOrders('all',this)">كل الطلبات</button>
       <button class="fbtn" onclick="filterOrders('pending',this)"><span class="dot-status dot-pending"></span>معلقة</button>
@@ -207,7 +245,11 @@ async function updateStatus(id, status) {
 function filterOrders(f, btn) {
   currentFilter = f;
   document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  if (btn && btn.classList && btn.classList.contains('fbtn')) btn.classList.add('active');
+  
+  const sel = document.getElementById('mobile-filter-select');
+  if (sel) sel.value = f;
+
   renderOrders();
 }
 
