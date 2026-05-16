@@ -228,9 +228,9 @@ function renderOrders() {
           </div>
         </div>
         <div class="oc-actions" style="padding:.8rem 1rem 1rem; display:flex; gap:0.5rem;">
-          ${o.status === 'pending' ? `<button class="action-btn ready-btn" onclick="updateStatus(${o.id},'ready')">جاهز للتسليم</button>` : ''}
-          ${o.status === 'ready' ? `<button class="action-btn served-btn" onclick="updateStatus(${o.id},'served')">تم التقديم</button>` : ''}
-          ${o.status !== 'served' && o.status !== 'cancelled' ? `<button class="action-btn" style="background:transparent; border:1px solid #C0392B; color:#C0392B; cursor:pointer; padding:0.4rem 0.8rem; border-radius:4px;" onclick="if(confirm('هل أنت متأكد من إلغاء الطلب؟')) updateStatus(${o.id},'cancelled')">إلغاء</button>` : ''}
+          ${o.status === 'pending' ? `<button class="action-btn ready-btn" onclick="updateStatus('${o.id}','ready')">جاهز للتسليم</button>` : ''}
+          ${o.status === 'ready' ? `<button class="action-btn served-btn" onclick="updateStatus('${o.id}','served')">تم التقديم</button>` : ''}
+          ${o.status !== 'served' && o.status !== 'cancelled' ? `<button class="action-btn" style="background:transparent; border:1px solid #C0392B; color:#C0392B; cursor:pointer; padding:0.4rem 0.8rem; border-radius:4px;" onclick="if(confirm('هل أنت متأكد من إلغاء الطلب؟')) updateStatus('${o.id}','cancelled')">إلغاء</button>` : ''}
         </div>
       </div>
     `;
