@@ -65,6 +65,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);dir
       <div class="field"><label>رقم الهاتف</label><input id="l-phone" type="tel" placeholder="01xxxxxxxxx"/></div>
       <div class="field"><label>كلمة المرور</label><input id="l-pass" type="password" placeholder="••••••••"/></div>
       <button class="btn" onclick="doLogin()">دخول</button>
+      <span class="skip" style="margin-top:0.8rem; font-size:0.75rem;" onclick="forgotPassword()">نسيت كلمة المرور؟</span>
       <p class="err" id="l-err"></p>
     </div>
 
@@ -86,14 +87,27 @@ function switchTab(t){
   document.getElementById('tab-login').classList.toggle('active',t==='login');
   document.getElementById('tab-register').classList.toggle('active',t==='register');
 }
+function translateError(msg) {
+  if (msg === 'Invalid credentials') return 'رقم الهاتف أو كلمة المرور غير صحيحة';
+  if (msg === 'User not found') return 'الحساب غير موجود';
+  if (msg === 'Phone already registered') return 'رقم الهاتف مستخدم بالفعل';
+  if (msg === 'All fields required') return 'يرجى إكمال جميع الحقول';
+  return 'حدث خطأ، يرجى المحاولة مرة أخرى';
+}
+
+function forgotPassword() {
+  alert('لاستعادة كلمة المرور، يرجى التوجه لموظف الكاشير في الكافيه لعمل إعادة تعيين لحسابك.');
+}
+
 async function doLogin(){
   const phone=document.getElementById('l-phone').value.trim();
   const pass=document.getElementById('l-pass').value;
   const err=document.getElementById('l-err');
   err.textContent='';
+  if(!phone || !pass) { err.textContent = 'يرجى كتابة رقم الهاتف وكلمة المرور'; return; }
   const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,password:pass})});
   const data=await res.json();
-  if(!res.ok){err.textContent=data.error||'خطأ في تسجيل الدخول';return;}
+  if(!res.ok){err.textContent=translateError(data.error);return;}
   localStorage.setItem('ozel_token',data.token);
   localStorage.setItem('ozel_user',JSON.stringify(data.user));
   if(data.user.role==='admin') location.href='/admin';
@@ -106,9 +120,11 @@ async function doRegister(){
   const pass=document.getElementById('r-pass').value;
   const err=document.getElementById('r-err');
   err.textContent='';
+  if(!name || !phone || !pass) { err.textContent = 'يرجى إكمال جميع الحقول'; return; }
+  if(phone.length < 10) { err.textContent = 'رقم الهاتف غير صحيح'; return; }
   const res=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,phone,password:pass})});
   const data=await res.json();
-  if(!res.ok){err.textContent=data.error||'خطأ في إنشاء الحساب';return;}
+  if(!res.ok){err.textContent=translateError(data.error);return;}
   localStorage.setItem('ozel_token',data.token);
   localStorage.setItem('ozel_user',JSON.stringify(data.user));
   location.href=redirect;
