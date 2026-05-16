@@ -185,9 +185,7 @@ function renderMenu(drinks) {
 
 window.quickAddToCart = function(drinkId) {
   window.currentPuzzle = { sugar: 'عادي', extra: 'بدون' };
-  const drink = allDrinks.find(d => d.id === drinkId);
   addToCart(drinkId);
-  alert(`تم إضافة ${drink.name_ar || drink.name} إلى السلة بالخيارات الافتراضية`);
 };
 
 // ── Drink Modal ───────────────────────────
@@ -230,7 +228,7 @@ async function openDrink(id) {
         `).join('')}
       </div>
 
-      <button class="puzzle-add-btn" onclick="addToCart(${drink.id})">
+      <button class="puzzle-add-btn" onclick="addToCart('${drink.id}')">
         ✦ أضف للسلة
       </button>
     </div>

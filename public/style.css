@@ -80,7 +80,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);dir
 /* ── BUTTONS ── */
 .btn-gold{display:inline-flex;align-items:center;gap:.6rem;background:var(--gold);color:var(--white);border:none;padding:.75rem 2rem;font-family:'Tajawal',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;border-radius:2px;transition:all .3s;letter-spacing:.03em;}
 .btn-gold:hover{background:var(--gold2);transform:translateY(-2px);box-shadow:0 10px 30px var(--gold-glow);}
-.btn-outline{display:inline-flex;align-items:center;gap:.6rem;background:transparent;color:var(--white);border:1px solid rgba(255,255,255,.2);padding:.75rem 2rem;font-family:'Tajawal',sans-serif;font-size:.95rem;cursor:pointer;border-radius:2px;transition:all .3s;}
+.btn-outline{display:inline-flex;align-items:center;gap:.6rem;background:transparent;color:#FFFFFF;border:1px solid rgba(255,255,255,.2);padding:.75rem 2rem;font-family:'Tajawal',sans-serif;font-size:.95rem;cursor:pointer;border-radius:2px;transition:all .3s;}
 .btn-outline:hover{border-color:var(--gold);color:var(--gold);}
 
 /* ── MARQUEE ── */
