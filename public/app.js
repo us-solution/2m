@@ -5,7 +5,7 @@
 let allDrinks = [], allCategories = [], currentCat = 'all', cart = JSON.parse(localStorage.getItem('ozel_cart') || '[]');
 const urlParams  = new URLSearchParams(window.location.search);
 const tableParam = urlParams.get('table');
-window.currentPuzzle = { sugar: 'عادي', extra: 'بدون' };
+window.currentPuzzle = { sugar: 'Normal', extra: 'None' };
 
 // ── Auth State ───────────────────────────
 const TOKEN = localStorage.getItem('ozel_token');
@@ -34,7 +34,7 @@ function renderNavUser() {
     area.innerHTML = `
       <a href="/login" class="nav-user-btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-        <span>دخول</span>
+        <span>Login</span>
       </a>
     `;
   }
@@ -63,12 +63,12 @@ async function openProfileModal() {
     
     const listEl = document.getElementById('topDrinksList');
     if (topDrinks.length === 0) {
-      listEl.innerHTML = `<p style="color: var(--muted); font-size: 0.85rem; text-align: center;">لا توجد طلبات سابقة بعد</p>`;
+      listEl.innerHTML = `<p style="color: var(--muted); font-size: 0.85rem; text-align: center;">No previous orders yet</p>`;
     } else {
       listEl.innerHTML = topDrinks.map(([name, count]) => `
         <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg2); padding: 0.8rem 1rem; border-radius: var(--rad);">
           <span style="color: var(--white); font-size: 0.95rem;">${name}</span>
-          <span style="color: var(--gold); font-size: 0.85rem; font-weight: 700;">${count} مرات</span>
+          <span style="color: var(--gold); font-size: 0.85rem; font-weight: 700;">${count} times</span>
         </div>
       `).join('');
     }
@@ -110,14 +110,14 @@ async function fetchMenu() {
     renderMenu(allDrinks);
   } catch(err) {
     console.error('Error fetching menu:', err);
-    document.getElementById('menuGrid').innerHTML = `<p style="color:#C0392B;text-align:center;grid-column:1/-1;padding:4rem">تعذّر تحميل القائمة. تأكد من تشغيل الخادم.</p>`;
+    document.getElementById('menuGrid').innerHTML = `<p style="color:#C0392B;text-align:center;grid-column:1/-1;padding:4rem">Failed to load menu. Make sure the server is running.</p>`;
   }
 }
 
 // ── Category Tabs ─────────────────────────
 function buildCatTabs() {
   const bar = document.getElementById('catTabs');
-  bar.innerHTML = '<button class="cat-btn active" data-cat="all">الكل</button>';
+  bar.innerHTML = '<button class="cat-btn active" data-cat="all">All</button>';
   
   renderOffersCards();
 
@@ -125,7 +125,7 @@ function buildCatTabs() {
     const btn = document.createElement('button');
     btn.className = 'cat-btn';
     btn.dataset.cat = cat.id;
-    btn.textContent = cat.name_ar;
+    btn.textContent = cat.name;
     btn.addEventListener('click', () => {
       currentCat = String(cat.id);
       bar.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
@@ -148,7 +148,7 @@ function renderMenu(drinks) {
   const grid = document.getElementById('menuGrid');
   grid.innerHTML = '';
   if (!drinks.length) {
-    grid.innerHTML = `<p style="text-align:center;color:var(--muted);grid-column:1/-1;padding:4rem">لا توجد أصناف في هذه الفئة</p>`;
+    grid.innerHTML = `<p style="text-align:center;color:var(--muted);grid-column:1/-1;padding:4rem">No items in this category</p>`;
     return;
   }
   drinks.forEach((d, i) => {
@@ -170,13 +170,13 @@ function renderMenu(drinks) {
     item.className = 'luxury-menu-item';
     item.innerHTML = `
       <div class="lmi-top">
-        <span class="lmi-name">${d.name_ar || d.name}</span>
+        <span class="lmi-name">${d.name}</span>
         <span class="lmi-dots"></span>
         ${priceHTML}
       </div>
       <div class="lmi-actions">
-        <button class="lmi-btn lmi-details" onclick="openDrink('${d.id}')">التفاصيل</button>
-        <button class="lmi-btn lmi-add" onclick="quickAddToCart('${d.id}')">إضافة ✦</button>
+        <button class="lmi-btn lmi-details" onclick="openDrink('${d.id}')">Details</button>
+        <button class="lmi-btn lmi-add" onclick="quickAddToCart('${d.id}')">Add ✦</button>
       </div>
     `;
     grid.appendChild(item);
@@ -184,7 +184,7 @@ function renderMenu(drinks) {
 }
 
 window.quickAddToCart = function(drinkId) {
-  window.currentPuzzle = { sugar: 'عادي', extra: 'بدون' };
+  window.currentPuzzle = { sugar: 'Normal', extra: 'None' };
   addToCart(drinkId);
 };
 
@@ -193,43 +193,42 @@ async function openDrink(id) {
   const drink = allDrinks.find(d => d.id === id) || await fetch(`/api/drinks/${id}`).then(r => r.json());
   const modal   = document.getElementById('drinkModal');
   const content = document.getElementById('modalContent');
-  window.currentPuzzle = { sugar: 'عادي', extra: 'بدون' };
+  window.currentPuzzle = { sugar: 'Normal', extra: 'None' };
 
   content.innerHTML = `
     <div class="modal-hero-img">
       <img src="${drink.image_emoji}" alt="${drink.name}" onerror="this.parentElement.style.background='var(--bg4)';this.style.display='none';"/>
     </div>
     <div class="modal-body">
-      <div class="modal-cat-label">${drink.category_name_ar || drink.category_name}</div>
+      <div class="modal-cat-label">${drink.category_name}</div>
       <div class="modal-name">${drink.name}</div>
-      <div class="modal-name-ar">${drink.name_ar || drink.name}</div>
       <div class="modal-badges">
         <span class="mbadge mbadge-gold">${drink.price} EGP</span>
-        <span class="mbadge mbadge-${drink.temperature}">${drink.temperature === 'hot' ? 'ساخن' : 'بارد'}</span>
+        <span class="mbadge mbadge-${drink.temperature}">${drink.temperature === 'hot' ? 'Hot' : 'Cold'}</span>
       </div>
 
-      <div class="msec-title">ابنِ مشروبك — نظام البازل</div>
+      <div class="msec-title">Build your drink — Puzzle System</div>
 
-      <span class="puzzle-label">① مستوى الحلاوة</span>
+      <span class="puzzle-label">① Sweetness Level</span>
       <div class="puzzle-chips" id="chips-sugar">
-        ${['عادي','مضبوط','قليل','بدون سكر'].map((v,i) => `
+        ${['Normal','Medium','Less','No Sugar'].map((v,i) => `
           <button class="chip ${i===0?'active':''}" onclick="selectChip('sugar','${v}',this)">${v}</button>
         `).join('')}
       </div>
 
-      <span class="puzzle-label">② الإضافات الخاصة</span>
+      <span class="puzzle-label">② Special Extras</span>
       <div class="puzzle-chips" id="chips-extra">
         ${[
-          ['بدون','بدون'],['شوت إسبريسو','إسبريسو +15'],['حليب لوز','لوز +20'],
-          ['صوص كراميل','كراميل +10'],['Boba Bubbles','بوبا +15'],
-          ['Ice Cream','آيس كريم +20'],['Marshmello','مارشميلو +10'],['Nuts','مكسرات +15']
+          ['None','None'],['Espresso Shot','Espresso +15'],['Almond Milk','Almond +20'],
+          ['Caramel Sauce','Caramel +10'],['Boba Bubbles','Boba +15'],
+          ['Ice Cream','Ice Cream +20'],['Marshmallow','Marshmallow +10'],['Nuts','Nuts +15']
         ].map((v,i) => `
           <button class="chip ${i===0?'active':''}" onclick="selectChip('extra','${v[0]}',this)">${v[1]}</button>
         `).join('')}
       </div>
 
       <button class="puzzle-add-btn" onclick="addToCart('${drink.id}')">
-        ✦ أضف للسلة
+        ✦ Add to Cart
       </button>
     </div>
   `;
@@ -256,13 +255,13 @@ function addToCart(drinkId) {
   const sugar = window.currentPuzzle.sugar;
   const extra = window.currentPuzzle.extra;
   let price = drink.price;
-  if (extra.includes('إسبريسو') || extra.includes('Boba') || extra.includes('Nuts')) price += 15;
-  if (extra.includes('لوز') || extra.includes('Ice Cream')) price += 20;
-  if (extra.includes('كراميل') || extra.includes('Marshmello')) price += 10;
+  if (extra.includes('Espresso') || extra.includes('Boba') || extra.includes('Nuts')) price += 15;
+  if (extra.includes('Almond') || extra.includes('Ice Cream')) price += 20;
+  if (extra.includes('Caramel') || extra.includes('Marshmallow')) price += 10;
   cart.push({ drink_id: drink.id, name: drink.name, name_ar: drink.name_ar, sugar, extra, price });
   localStorage.setItem('ozel_cart', JSON.stringify(cart));
   updateCartUI();
-  alert('تم إضافة ' + (drink.name_ar || drink.name) + ' إلى السلة بنجاح');
+  alert('Added ' + drink.name + ' to cart successfully');
   closeModal();
 }
 
@@ -280,21 +279,21 @@ function removeFromCart(idx) {
 }
 
 async function submitOrder() {
-  if (!cart.length) return alert('السلة فارغة!');
+  if (!cart.length) return alert('Cart is empty!');
   const isTakeaway = document.getElementById('isTakeaway').checked;
   const table = isTakeaway ? 'Takeaway' : document.getElementById('tableNum').value;
-  if (!isTakeaway && !table) return alert('برجاء إدخال رقم الطاولة');
+  if (!isTakeaway && !table) return alert('Please enter table number');
   const notes = document.getElementById('orderNotes').value;
   const total = cart.reduce((s, i) => s + i.price, 0);
   try {
     const res  = await fetch('/api/orders', { method:'POST', headers: authHeaders, body: JSON.stringify({ table_number: table, items: cart, total_price: total, notes: notes }) });
     const data = await res.json();
     if (data.success) {
-      const pts = CUSER ? `\nكسبت ${data.points_earned} نقطة!` : '\n\nسجّل الدخول لتكسب نقاط مع كل طلب!';
-      alert('تم إرسال طلبك! سيُحضَّر قريباً.' + pts);
+      const pts = CUSER ? `\nYou earned ${data.points_earned} points!` : '\n\nLogin to earn points with every order!';
+      alert('Your order has been sent! It will be prepared soon.' + pts);
       cart = []; document.getElementById('orderNotes').value = ''; updateCartUI(); toggleCart();
     }
-  } catch(e) { alert('حدث خطأ، حاول مرة أخرى.'); }
+  } catch(e) { alert('An error occurred, try again.'); }
 }
 
 function handleContact(e) {
@@ -303,7 +302,7 @@ function handleContact(e) {
   const phone = document.getElementById('contact-phone').value.trim();
   const msg = document.getElementById('contact-msg').value.trim();
   
-  const text = `✦ *تواصل جديد — OZEL CAFE* ✦\n\n✦ *الاسم:* ${name}\n✦ *رقم الهاتف:* ${phone}\n\n✦ *الرسالة:*\n${msg}\n\n— *تم الإرسال من الموقع الإلكتروني*`;
+  const text = `✦ *New Contact — OZEL CAFE* ✦\n\n✦ *Name:* ${name}\n✦ *Phone Number:* ${phone}\n\n✦ *Message:*\n${msg}\n\n— *Sent from website*`;
   const encodedText = encodeURIComponent(text);
   const whatsappUrl = `https://wa.me/201060161839?text=${encodedText}`;
   
@@ -324,7 +323,7 @@ async function renderOffersCards() {
         <div class="offers-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; padding:0 1rem;">
           <h3 style="color:var(--gold); font-size:1.4rem; font-family:'Cormorant Garamond',serif; display:flex; align-items:center; gap:0.5rem;">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z"/></svg>
-            عروض مميزة
+            Special Offers
           </h3>
           <span style="color:var(--muted); font-size:0.8rem; letter-spacing:0.1em; text-transform:uppercase;">Limited Time</span>
         </div>
@@ -342,14 +341,14 @@ async function renderOffersCards() {
             <div class="poc-image-wrapper">
               <img src="${d.image_emoji || 'imgs/default.png'}" class="poc-img" alt="${d.name_ar}">
               <div class="poc-badge">
-                <span>خصم</span>
+                <span>OFF</span>
                 <strong>${offer.discount_percent}%</strong>
               </div>
               <div class="poc-overlay"></div>
             </div>
             <div class="poc-content">
-              <h4 class="poc-title">${d.name_ar || d.name}</h4>
-              <p class="poc-desc">${d.tagline || 'تجربة فريدة ومذاق لا يُنسى'}</p>
+              <h4 class="poc-title">${d.name}</h4>
+              <p class="poc-desc">${d.tagline || 'A unique experience and unforgettable taste'}</p>
               
               <div class="poc-price-row">
                 <div class="poc-price-old">${d.price} <span class="poc-currency">EGP</span></div>
@@ -358,7 +357,7 @@ async function renderOffersCards() {
               
               <button class="poc-btn" onclick="openDrink('${d.id}')">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-                <span>إضافة للسلة</span>
+                <span>Add to Cart</span>
               </button>
             </div>
           </div>
@@ -384,7 +383,7 @@ async function changePassword() {
   const msgEl = document.getElementById('cp-msg');
   
   if (!oldPassword || !newPassword) {
-    msgEl.textContent = 'يرجى ملء جميع الحقول';
+    msgEl.textContent = 'Please fill all fields';
     msgEl.style.color = '#C0392B';
     return;
   }
@@ -402,17 +401,17 @@ async function changePassword() {
     const data = await res.json();
     
     if (res.ok) {
-      msgEl.textContent = 'تم تغيير كلمة المرور بنجاح';
+      msgEl.textContent = 'Password changed successfully';
       msgEl.style.color = '#27AE60';
       document.getElementById('old-pass').value = '';
       document.getElementById('new-pass').value = '';
     } else {
-      msgEl.textContent = data.error || 'حدث خطأ ما';
+      msgEl.textContent = data.error || 'Something went wrong';
       msgEl.style.color = '#C0392B';
     }
   } catch (e) {
     console.error(e);
-    msgEl.textContent = 'تعذر الاتصال بالسيرفر';
+    msgEl.textContent = 'Failed to connect to server';
     msgEl.style.color = '#C0392B';
   }
 }
