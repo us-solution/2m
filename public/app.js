@@ -25,13 +25,9 @@ function renderNavUser() {
   if (CUSER) {
     const initial = CUSER.name.charAt(0).toUpperCase();
     area.innerHTML = `
-      <div class="nav-user-logged">
-        <div class="user-avatar" onclick="openProfileModal()">${initial}</div>
-        <div class="user-info-brief" onclick="openProfileModal()">
-          <span class="user-name">${CUSER.name}</span>
-          <span class="user-points">${CUSER.points || 0} نقطة</span>
-        </div>
-        <button class="logout-btn" onclick="logoutUser()" title="خروج">✕</button>
+      <div class="nav-user-logged" onclick="openProfileModal()" style="cursor:pointer; display:flex; align-items:center; gap:0.5rem; background:rgba(212,175,55,0.1); padding:0.4rem 0.8rem; border-radius:50px; border:1px solid rgba(212,175,55,0.2);">
+        <div class="user-avatar" style="background:var(--gold); color:var(--bg); width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem;">${initial}</div>
+        <span class="user-name" style="color:var(--white); font-size:0.85rem; max-width:70px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:'Tajawal',sans-serif;">${CUSER.name}</span>
       </div>
     `;
   } else {
