@@ -22,8 +22,8 @@
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{scroll-behavior:smooth;font-size:16px;}
-body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:rtl;overflow-x:hidden;}
+html{scroll-behavior:smooth;font-size:16px;overflow-x:hidden;}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:rtl;overflow-x:hidden;width:100%;max-width:100vw;}
 
 /* ── LOADER ── */
 #loader{position:fixed;inset:0;z-index:9000;background:var(--olive);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;transition:transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);}
