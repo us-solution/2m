@@ -264,6 +264,7 @@ function addToCart(drinkId) {
   cart.push({ drink_id: drink.id, name: drink.name, name_ar: drink.name_ar, sugar, extra, price });
   localStorage.setItem('ozel_cart', JSON.stringify(cart));
   updateCartUI();
+  alert('تم إضافة ' + (drink.name_ar || drink.name) + ' إلى السلة بنجاح');
   closeModal();
 }
 

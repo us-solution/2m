@@ -429,6 +429,7 @@ async function addDrink() {
       document.getElementById('nd-cat').value = '';
       document.getElementById('nd-img').value = '';
       loadMenu();
+      showModal('نجاح', 'تم الإضافة بنجاح');
     } else { showModal('خطأ', data.error); }
   } catch(e) { showModal('خطأ', 'خطأ في الإضافة'); }
 }
@@ -515,6 +516,7 @@ async function addOffer() {
       document.getElementById('no-discount').value = '';
       document.getElementById('no-expiry').value = '';
       loadOffers();
+      showModal('نجاح', 'تم الإضافة بنجاح');
     } else {
       showModal('خطأ', data.error);
     }
