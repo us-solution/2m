@@ -112,10 +112,9 @@
 <body>
 
 <!-- NAV -->
-<nav id="nav" class="scrolled" style="background: white;">
+<nav id="nav" class="scrolled">
   <div class="nav-logo">
-    <span class="logo-sub">HIDDEN GEM</span>
-    <span class="logo-main" onclick="location.href='/'" style="cursor:pointer;">OZEL</span>
+    <span class="nav-logo-en">OZEL CAFE </span>
   </div>
   <div class="nav-links">
     <a href="/#about">القصة</a>
@@ -123,8 +122,14 @@
     <a href="/#offers">عروض اليوم</a>
     <a href="/#contact">تواصل</a>
   </div>
-  <div class="nav-user" id="navUser">
-    <a href="/login" class="nav-login-btn">دخول</a>
+  <div style="display:flex;gap:.7rem;align-items:center">
+    <div id="nav-user-area">
+      <a href="/login" class="nav-user-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>دخول</span>
+      </a>
+    </div>
+    <button class="nav-cta" onclick="location.href='/#menu'">اطلب الآن</button>
   </div>
 </nav>
 
@@ -272,7 +277,7 @@
   if (user) {
     const points = user.points || 0;
     const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
-    document.getElementById('navUser').innerHTML = `
+    document.getElementById('nav-user-area').innerHTML = `
       <div class="nav-user-logged" style="display:flex; align-items:center; gap:0.5rem; background:rgba(212,175,55,0.1); padding:0.4rem 0.8rem; border-radius:50px; border:1px solid rgba(212,175,55,0.2);">
         <div class="user-avatar" style="background:var(--gold); color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem;">${initial}</div>
         <span class="user-name" style="color:var(--text); font-size:0.85rem; max-width:70px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:'Tajawal',sans-serif;">${user.name}</span>
