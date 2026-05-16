@@ -125,7 +125,7 @@ function buildCatTabs() {
     const btn = document.createElement('button');
     btn.className = 'cat-btn';
     btn.dataset.cat = cat.id;
-    btn.textContent = `${cat.icon} ${cat.name_ar}`;
+    btn.textContent = cat.name_ar;
     btn.addEventListener('click', () => {
       currentCat = String(cat.id);
       bar.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
