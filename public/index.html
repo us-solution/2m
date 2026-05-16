@@ -210,6 +210,16 @@
           <p style="color: var(--muted); font-size: 0.85rem; text-align: center;">لا توجد طلبات سابقة بعد</p>
         </div>
       </div>
+
+      <div style="background: var(--bg3); padding: 1.5rem; border-radius: var(--rad); border: 1px solid var(--line); margin-top: 1.5rem;">
+        <h4 style="color: var(--white); font-size: 1rem; margin-bottom: 1rem; font-family: 'Tajawal', sans-serif;">تغيير كلمة المرور</h4>
+        <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+          <input id="old-pass" type="password" placeholder="كلمة المرور الحالية" style="width:100%; background:var(--bg); border:1px solid var(--line); color:var(--white); padding:.7rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.95rem; outline:none;"/>
+          <input id="new-pass" type="password" placeholder="كلمة المرور الجديدة" style="width:100%; background:var(--bg); border:1px solid var(--line); color:var(--white); padding:.7rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.95rem; outline:none;"/>
+          <button class="btn-gold" style="width:100%; justify-content:center" onclick="changePassword()">حفظ ✦</button>
+          <p id="cp-msg" style="font-size:0.85rem; text-align:center; margin-top:0.5rem;"></p>
+        </div>
+      </div>
     </div>
   </div>
 </div>

@@ -382,3 +382,42 @@ async function renderOffersCards() {
     container.style.display = 'none';
   }
 }
+
+async function changePassword() {
+  const oldPassword = document.getElementById('old-pass').value;
+  const newPassword = document.getElementById('new-pass').value;
+  const msgEl = document.getElementById('cp-msg');
+  
+  if (!oldPassword || !newPassword) {
+    msgEl.textContent = 'يرجى ملء جميع الحقول';
+    msgEl.style.color = '#C0392B';
+    return;
+  }
+  
+  try {
+    const res = await fetch('/api/auth/change-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + localStorage.getItem('ozel_token')
+      },
+      body: JSON.stringify({ oldPassword, newPassword })
+    });
+    
+    const data = await res.json();
+    
+    if (res.ok) {
+      msgEl.textContent = 'تم تغيير كلمة المرور بنجاح';
+      msgEl.style.color = '#27AE60';
+      document.getElementById('old-pass').value = '';
+      document.getElementById('new-pass').value = '';
+    } else {
+      msgEl.textContent = data.error || 'حدث خطأ ما';
+      msgEl.style.color = '#C0392B';
+    }
+  } catch (e) {
+    console.error(e);
+    msgEl.textContent = 'تعذر الاتصال بالسيرفر';
+    msgEl.style.color = '#C0392B';
+  }
+}

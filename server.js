@@ -176,6 +176,20 @@ app.get('/api/auth/me', authMiddleware(), (req, res) => {
   res.json({ ...safe, id: req.user._id });
 });
 
+app.post('/api/auth/change-password', authMiddleware(), async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  if (!oldPassword || !newPassword) return res.status(400).json({ error: 'يرجى إدخال كلمة المرور القديمة والجديدة' });
+  try {
+    const user = await User.findById(req.user.id);
+    if (!bcrypt.compareSync(oldPassword, user.password_hash)) {
+      return res.status(401).json({ error: 'كلمة المرور القديمة غير صحيحة' });
+    }
+    user.password_hash = bcrypt.hashSync(newPassword, 10);
+    await user.save();
+    res.json({ success: true, message: 'تم تغيير كلمة المرور بنجاح' });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── Menu Routes ──────────────────────────────────────────────────
 app.get('/api/categories', async (req, res) => {
   try {
