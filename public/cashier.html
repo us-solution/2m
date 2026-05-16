@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>الكاشير — OZEL CAFE</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --gold:      #C29F43;
+  --gold2:     #D9B968;
+  --olive:     #3D4F3E;
+  --bg:        #FFFFFF;
+  --bg2:       #F9FBF9;
+  --bg3:       #F0F3F0;
+  --bg4:       #E4EAE4;
+  --line:      rgba(0,0,0,.08);
+  --text:      #2C352E;
+  --muted:     #6A736B;
+  --white:     #141A15;
+  --green:     #27AE60;
+  --red:       #C0392B;
+  --orange:    #E67E22;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:rtl;}
+header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+.hlogo{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--gold);letter-spacing:.3em;}
+.htag{font-size:.7rem;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-right:.5rem;}
+.hright{display:flex;align-items:center;gap:1rem;}
+.hlive{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--green);}
+.hdot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hbtn{background:transparent;border:1px solid var(--line);color:var(--muted);padding:.4rem .9rem;font-family:'Tajawal',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s;border-radius:2px;}
+.hbtn:hover{border-color:var(--gold);color:var(--gold);}
+
+.main{display:grid;grid-template-columns:240px 1fr;gap:0;min-height:calc(100vh - 64px);}
+
+/* Sidebar */
+.sidebar{background:var(--bg2);border-left:1px solid var(--line);padding:1.5rem 1rem;}
+.sb-title{font-size:.65rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-bottom:1rem;font-family:'Montserrat',sans-serif;}
+.sb-stats{display:flex;flex-direction:column;gap:.8rem;margin-bottom:2rem;}
+.sstat{background:var(--bg3);padding:1rem;border:1px solid var(--line);border-radius:4px;}
+.sstat-n{font-family:'Montserrat',sans-serif;font-size:2rem;color:var(--gold);font-weight:700;display:block;}
+.sstat-l{font-size:.72rem;color:var(--muted);}
+.filter-btns{display:flex;flex-direction:column;gap:.4rem;}
+.fbtn{background:transparent;border:1px solid var(--line);color:var(--muted);padding:.55rem .8rem;font-family:'Tajawal',sans-serif;font-size:.85rem;cursor:pointer;transition:all .2s;text-align:right;border-radius:4px;}
+.fbtn.active{background:var(--gold);color:#FFFFFF;border-color:var(--gold);font-weight:700;}
+.fbtn:hover:not(.active){border-color:var(--gold);color:var(--gold);}
+.dot-status{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:.4rem;}
+.dot-pending{background:var(--orange);}
+.dot-ready{background:var(--green);}
+.dot-served{background:var(--muted);}
+
+/* Orders Grid */
+.orders-area{padding:2rem;overflow-y:auto;max-height:calc(100vh - 64px);}
+.orders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;}
+.order-card{background:var(--bg2);border:1px solid var(--line);overflow:hidden;transition:all .3s;border-radius:8px;box-shadow: 0 4px 15px rgba(0,0,0,0.03);}
+.order-card.pending{border-color:rgba(230,126,34,.3);}
+.order-card.ready{border-color:rgba(39,174,96,.3);}
+.order-card.served{opacity:.5;}
+.order-card.cancelled{opacity:.6; border-color:rgba(192,57,43,.3); background: rgba(192,57,43,.02);}
+.oc-header{padding:1rem;background:var(--bg3);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);}
+.oc-table{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--text);font-weight:600;}
+.oc-status{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .6rem;font-family:'Montserrat',sans-serif;border-radius:2px;}
+.oc-status.pending{background:rgba(230,126,34,.15);color:var(--orange);}
+.oc-status.ready{background:rgba(39,174,96,.15);color:var(--green);}
+.oc-status.served{background:rgba(110,102,89,.15);color:var(--muted);}
+.oc-status.cancelled{background:rgba(192,57,43,.15);color:var(--red);}
+.oc-body{padding:1rem;}
+.oc-item{display:flex;justify-content:space-between;align-items:flex-start;padding:.4rem 0;border-bottom:1px solid var(--line);font-size:.88rem;color:var(--text);}
+.oc-item:last-child{border:none;}
+.oc-item-name{flex:1;}
+.oc-item-mods{font-size:.72rem;color:var(--muted);margin-top:.2rem;}
+.oc-item-price{color:var(--gold);font-size:.9rem;margin-right:.5rem;font-family:'Montserrat',sans-serif;font-weight:700;}
+.oc-footer{padding:1rem;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
+.oc-total{font-family:'Montserrat',sans-serif;font-size:1.2rem;color:var(--gold);font-weight:700;}
+.oc-time{font-size:.7rem;color:var(--muted);}
+.oc-actions{display:flex;gap:.4rem;margin-top:.8rem;}
+.action-btn{flex:1;border:1px solid var(--line);background:var(--bg);color:var(--muted);padding:.5rem;font-family:'Tajawal',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s;border-radius:4px;}
+.action-btn.ready-btn:hover{background:rgba(39,174,96,.1);border-color:var(--green);color:var(--green);}
+.action-btn.served-btn:hover{background:rgba(110,102,89,.1);border-color:var(--text);color:var(--text);}
+.empty-msg{grid-column:1/-1;text-align:center;padding:4rem;color:var(--muted);}
+.oc-customer{font-size:.75rem;color:var(--muted);margin-top:.3rem;}
+.new-badge{background:var(--gold);color:#FFFFFF;font-size:.55rem;padding:.1rem .4rem;font-family:'Montserrat',sans-serif;letter-spacing:.1em;vertical-align:middle;margin-right:.3rem;border-radius:2px;}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <span class="htag">نظام الكاشير</span>
+    <span class="hlogo">OZEL</span>
+  </div>
+  <div class="hright">
+    <div class="hlive"><div class="hdot"></div><span>مباشر — يتحدث كل 5 ثواني</span></div>
+    <button class="hbtn" onclick="logout()">خروج</button>
+  </div>
+</header>
+<div class="main">
+  <div class="sidebar">
+    <div class="sb-title">الإحصاءات</div>
+    <div class="sb-stats">
+      <div class="sstat"><span class="sstat-n" id="st-pending">0</span><span class="sstat-l">طلبات معلقة</span></div>
+      <div class="sstat"><span class="sstat-n" id="st-today">0</span><span class="sstat-l">طلبات اليوم</span></div>
+      <div class="sstat"><span class="sstat-n" id="st-rev">0</span><span class="sstat-l">إيراد اليوم (EGP)</span></div>
+    </div>
+    <div class="sb-title">فلتر</div>
+    <div class="filter-btns">
+      <button class="fbtn active" onclick="filterOrders('all',this)">كل الطلبات</button>
+      <button class="fbtn" onclick="filterOrders('pending',this)"><span class="dot-status dot-pending"></span>معلقة</button>
+      <button class="fbtn" onclick="filterOrders('ready',this)"><span class="dot-status dot-ready"></span>جاهزة</button>
+      <button class="fbtn" onclick="filterOrders('served',this)"><span class="dot-status dot-served"></span>تم التقديم</button>
+    </div>
+  </div>
+  <div class="orders-area">
+    <div class="orders-grid" id="ordersGrid">
+      <div class="empty-msg">جاري التحميل...</div>
+    </div>
+  </div>
+</div>
+<script>
+const token = localStorage.getItem('ozel_token');
+const user  = JSON.parse(localStorage.getItem('ozel_user') || 'null');
+if (!user || !['cashier','admin'].includes(user.role)) { location.href = '/login?from=/cashier'; }
+
+let allOrders = [], currentFilter = 'all', knownIds = new Set();
+
+async function fetchOrders() {
+  try {
+    const res = await fetch('/api/orders', { headers: { Authorization: 'Bearer ' + token } });
+    const data = await res.json();
+    
+    // Check for new orders
+    const newOrders = data.filter(o => !knownIds.has(o.id) && o.status === 'pending');
+    if (knownIds.size > 0 && newOrders.length > 0) {
+      new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA').play().catch(()=>{});
+      document.title = `(${newOrders.length}) طلب جديد — الكاشير`;
+    } else { document.title = 'الكاشير — OZEL CAFE'; }
+    data.forEach(o => knownIds.add(o.id));
+    allOrders = data;
+    renderOrders();
+    updateStats();
+  } catch(e) { console.error(e); }
+}
+
+function updateStats() {
+  const today = new Date().toISOString().split('T')[0];
+  const pending = allOrders.filter(o => o.status === 'pending').length;
+  const todayOrders = allOrders.filter(o => o.created_at && o.created_at.startsWith(today));
+  const rev = todayOrders.reduce((s,o) => o.status !== 'cancelled' ? s + o.total_price : s, 0);
+  document.getElementById('st-pending').textContent = pending;
+  document.getElementById('st-today').textContent = todayOrders.length;
+  document.getElementById('st-rev').textContent = Math.round(rev);
+}
+
+function renderOrders() {
+  const grid = document.getElementById('ordersGrid');
+  const filtered = currentFilter === 'all' ? allOrders : allOrders.filter(o => o.status === currentFilter);
+  if (!filtered.length) { grid.innerHTML = '<div class="empty-msg">لا توجد طلبات</div>'; return; }
+  grid.innerHTML = filtered.map(o => {
+    let items = [];
+    try { items = JSON.parse(o.items); } catch(e) {}
+    const isNew = (Date.now() - new Date(o.created_at).getTime()) < 60000 && o.status === 'pending';
+    return `
+      <div class="order-card ${o.status}">
+        <div class="oc-header">
+          <div>
+            ${isNew ? '<span class="new-badge">جديد</span>' : ''}
+            <div class="oc-table">طاولة ${o.table_number}</div>
+            <div class="oc-customer">${o.customer_name ? o.customer_name : 'زائر'}</div>
+          </div>
+          <span class="oc-status ${o.status}">${o.status === 'pending' ? 'معلق' : o.status === 'ready' ? 'جاهز' : o.status === 'cancelled' ? 'تم الإلغاء' : 'تم التقديم'}</span>
+        </div>
+        <div class="oc-body">
+          ${items.map(i => `
+            <div class="oc-item">
+              <div class="oc-item-name">
+                ${i.name}
+                <div class="oc-item-mods">سكر: ${i.sugar || '-'} · ${i.extra || 'بدون'}</div>
+                ${i.notes ? `<div style="color:var(--gold); font-size:0.75rem; margin-top:0.2rem;">📌 ملحوظة: ${i.notes}</div>` : ''}
+              </div>
+              <div class="oc-item-price">${i.price} EGP</div>
+            </div>
+          `).join('')}
+          ${o.notes ? `<div class="oc-notes" style="margin-top:0.8rem; padding-top:0.5rem; border-top:1px dashed var(--line); font-size:0.8rem; color:var(--text);"><strong>📝 ملاحظات العميل:</strong> ${o.notes}</div>` : ''}
+        </div>
+        <div class="oc-footer">
+          <div>
+            <div class="oc-total">${o.total_price} EGP</div>
+            <div class="oc-time">${new Date(o.created_at).toLocaleTimeString('ar-EG')}</div>
+          </div>
+        </div>
+        <div class="oc-actions" style="padding:.8rem 1rem 1rem; display:flex; gap:0.5rem;">
+          ${o.status === 'pending' ? `<button class="action-btn ready-btn" onclick="updateStatus(${o.id},'ready')">جاهز للتسليم</button>` : ''}
+          ${o.status === 'ready' ? `<button class="action-btn served-btn" onclick="updateStatus(${o.id},'served')">تم التقديم</button>` : ''}
+          ${o.status !== 'served' && o.status !== 'cancelled' ? `<button class="action-btn" style="background:transparent; border:1px solid #C0392B; color:#C0392B; cursor:pointer; padding:0.4rem 0.8rem; border-radius:4px;" onclick="if(confirm('هل أنت متأكد من إلغاء الطلب؟')) updateStatus(${o.id},'cancelled')">إلغاء</button>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function updateStatus(id, status) {
+  await fetch(`/api/orders/${id}/status`, { method:'PATCH', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({ status }) });
+  fetchOrders();
+}
+
+function filterOrders(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOrders();
+}
+
+function logout() { localStorage.clear(); location.href = '/login'; }
+
+fetchOrders();
+setInterval(fetchOrders, 5000);
+</script>
+</body>
+</html>

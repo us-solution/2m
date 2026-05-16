@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>سلة الطلبات — OZEL CAFE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    /* Custom styles for cart page */
+    .cart-page {
+      padding: 120px 2rem 5rem;
+      max-width: 800px;
+      margin: 0 auto;
+      min-height: 80vh;
+    }
+    .cart-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .cart-header h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3rem;
+      color: var(--olive);
+      margin-bottom: 0.5rem;
+    }
+    .cart-items-list {
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .cart-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .cart-item-row:last-child {
+      border-bottom: none;
+    }
+    .ci-details h4 {
+      font-size: 1.1rem;
+      color: var(--text);
+      margin-bottom: 0.2rem;
+    }
+    .ci-details p {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .ci-price {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .ci-remove-btn {
+      background: transparent;
+      border: none;
+      color: var(--red);
+      cursor: pointer;
+      font-size: 1.2rem;
+      margin-right: 1rem;
+    }
+    .cart-summary {
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      color: var(--text);
+    }
+    .summary-row.total {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--gold);
+      border-top: 1px solid var(--line);
+      padding-top: 1rem;
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .form-group input, .form-group textarea {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 0.8rem;
+      font-family: 'Tajawal', sans-serif;
+      border-radius: 4px;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: var(--gold);
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav" class="scrolled" style="background: white;">
+  <div class="nav-logo">
+    <span class="logo-sub">HIDDEN GEM</span>
+    <span class="logo-main" onclick="location.href='/'" style="cursor:pointer;">OZEL</span>
+  </div>
+  <div class="nav-links">
+    <a href="/#about">القصة</a>
+    <a href="/#menu">القائمة</a>
+    <a href="/#offers">عروض اليوم</a>
+    <a href="/#contact">تواصل</a>
+  </div>
+  <div class="nav-user" id="navUser">
+    <a href="/login" class="nav-login-btn">دخول</a>
+  </div>
+</nav>
+
+<div class="cart-page">
+  <div class="cart-header">
+    <h1>سلة طلباتك</h1>
+    <p style="color:var(--muted)">راجع طلباتك قبل التأكيد</p>
+  </div>
+
+  <div id="emptyCartMsg" style="display:none; text-align:center; padding:3rem; color:var(--muted);">
+    <p style="font-size:1.2rem; margin-bottom:1.5rem;">سلة مشترياتك فارغة حالياً</p>
+    <a href="/#menu" class="btn-gold" style="display:inline-flex; text-decoration:none;">تصفح المنيو</a>
+  </div>
+
+  <div id="cartContentArea">
+    <div class="cart-items-list" id="cartItemsList">
+      <!-- Items will be loaded here -->
+    </div>
+
+    <div class="cart-summary">
+      <div class="form-group">
+        <label>رقم الطاولة</label>
+        <input type="number" id="tableNum" placeholder="أدخل رقم طاولتك"/>
+      </div>
+      
+      <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1.5rem;">
+        <input type="checkbox" id="isTakeaway" style="width:auto; cursor:pointer;" onchange="document.getElementById('tableNum').disabled = this.checked; if(this.checked) document.getElementById('tableNum').value='';"/>
+        <label for="isTakeaway" style="margin-bottom:0; cursor:pointer; font-size:.8rem; color:var(--muted); letter-spacing:.1em;">طلب تيك اواي (خارجي)</label>
+      </div>
+
+      <div class="form-group">
+        <label>ملاحظات خاصة</label>
+        <textarea id="orderNotes" placeholder="اكتب أي طلبات خاصة هنا..."></textarea>
+      </div>
+
+      <div class="summary-row total">
+        <span>المجموع الكلي</span>
+        <span id="cartTotal">0 EGP</span>
+      </div>
+
+      <button class="btn-gold" style="width:100%; justify-content:center; margin-top:1.5rem" onclick="submitOrder()">تأكيد الطلب ✦</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const token = localStorage.getItem('ozel_token');
+  const user  = JSON.parse(localStorage.getItem('ozel_user') || 'null');
+  const authH = token ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token } : { 'Content-Type': 'application/json' };
+  
+  const urlParams  = new URLSearchParams(window.location.search);
+  const tableParam = urlParams.get('table');
+
+  let cart = JSON.parse(localStorage.getItem('ozel_cart') || '[]');
+
+  function loadCart() {
+    const list = document.getElementById('cartItemsList');
+    const totalEl = document.getElementById('cartTotal');
+    const emptyMsg = document.getElementById('emptyCartMsg');
+    const contentArea = document.getElementById('cartContentArea');
+
+    if (cart.length === 0) {
+      emptyMsg.style.display = 'block';
+      contentArea.style.display = 'none';
+      return;
+    }
+
+    emptyMsg.style.display = 'none';
+    contentArea.style.display = 'block';
+
+    let sum = 0;
+    list.innerHTML = '';
+    
+    cart.forEach((item, idx) => {
+      sum += item.price;
+      const el = document.createElement('div');
+      el.className = 'cart-item-row';
+      el.innerHTML = `
+        <div class="ci-details">
+          <h4>${item.name_ar || item.name}</h4>
+          <p>سكر: ${item.sugar} · إضافات: ${item.extra}</p>
+        </div>
+        <div style="display:flex; align-items:center;">
+          <div class="ci-price">${item.price} EGP</div>
+          <button class="ci-remove-btn" onclick="removeFromCart(${idx})">✕</button>
+        </div>
+      `;
+      list.appendChild(el);
+    });
+
+    totalEl.textContent = `${sum} EGP`;
+    
+    if (tableParam) {
+      document.getElementById('tableNum').value = tableParam;
+    }
+  }
+
+  function removeFromCart(idx) {
+    cart.splice(idx, 1);
+    localStorage.setItem('ozel_cart', JSON.stringify(cart));
+    loadCart();
+  }
+
+  async function submitOrder() {
+    if (cart.length === 0) return alert('السلة فارغة!');
+    
+    const isTakeaway = document.getElementById('isTakeaway').checked;
+    const tableNum = document.getElementById('tableNum').value;
+    const notes = document.getElementById('orderNotes').value.trim();
+    
+    if (!isTakeaway && !tableNum) {
+      return alert('يرجى إدخال رقم الطاولة أو اختيار تيك اواي');
+    }
+
+    const total_price = cart.reduce((s, i) => s + i.price, 0);
+
+    const orderData = {
+      table_number: isTakeaway ? 0 : parseInt(tableNum),
+      items: cart,
+      total_price,
+      notes
+    };
+
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: authH,
+        body: JSON.stringify(orderData)
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        alert('تم إرسال طلبك بنجاح! شكراً لك.');
+        localStorage.removeItem('ozel_cart');
+        location.href = '/';
+      } else {
+        alert(data.error || 'فشل إرسال الطلب');
+      }
+    } catch (e) {
+      alert('خطأ في الاتصال بالسيرفر');
+    }
+  }
+
+  // Load Nav User
+  if (user) {
+    const points = user.points || 0;
+    const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
+    document.getElementById('navUser').innerHTML = `
+      <div class="nav-user-pill">
+        <div class="nav-avatar">${initial}</div>
+        <span class="nav-pts">${points} pts</span>
+      </div>
+    `;
+  }
+
+  // Initial Load
+  loadCart();
+</script>
+
+</body>
+</html>

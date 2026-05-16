@@ -1,0 +1,4 @@
+node_modules/
+.env
+ozel_cafe.db
+.DS_Store
