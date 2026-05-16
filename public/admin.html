@@ -222,7 +222,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
         <input type="text" id="nd-name" placeholder="Name (EN)" class="edit-input" style="width:120px; padding:.4rem">
         <input type="text" id="nd-name-ar" placeholder="Name (AR)" class="edit-input" style="width:120px; padding:.4rem">
         <input type="number" id="nd-price" placeholder="Price" class="edit-input" style="width:80px; padding:.4rem">
-        <input type="number" id="nd-cat" placeholder="Category ID" class="edit-input" style="width:80px; padding:.4rem">
+        <input type="text" id="nd-cat" placeholder="Category ID" class="edit-input" style="width:120px; padding:.4rem">
         <div style="display:flex; flex-direction:column; gap:0.2rem;">
           <label style="font-size:0.7rem; color:var(--muted);">Drink Image</label>
           <input type="file" id="nd-img" class="edit-input" style="width:150px; padding:.2rem" accept="image/*">
@@ -373,27 +373,27 @@ function renderMenuTable(data) {
       <td>
         <div style="display:flex; flex-direction:column; align-items:center; gap:0.2rem;">
           <img src="${d.image_emoji}" class="img-thumb" onerror="this.style.display='none'"/>
-          <span class="editable" onclick="editField(${d.id},'image_emoji','${(d.image_emoji||'').replace(/'/g,"\\'")}',this)" style="font-size:.7rem; color:var(--muted)">Edit</span>
+          <span class="editable" onclick="editField('${d.id}','image_emoji','${(d.image_emoji||'').replace(/'/g,"\\'")}',this)" style="font-size:.7rem; color:var(--muted)">Edit</span>
         </div>
       </td>
       <td>
-        <span class="editable" onclick="editField(${d.id},'name','${d.name.replace(/'/g,"\\'")}',this)">${d.name}</span><br/>
-        <small style="color:var(--muted); cursor:pointer;" class="editable" onclick="editField(${d.id},'name_ar','${(d.name_ar||'').replace(/'/g,"\\'")}',this)">${d.name_ar || 'Add Arabic name'}</small>
+        <span class="editable" onclick="editField('${d.id}','name','${d.name.replace(/'/g,"\\'")}',this)">${d.name}</span><br/>
+        <small style="color:var(--muted); cursor:pointer;" class="editable" onclick="editField('${d.id}','name_ar','${(d.name_ar||'').replace(/'/g,"\\'")}',this)">${d.name_ar || 'Add Arabic name'}</small>
       </td>
       <td style="color:var(--muted);font-size:.8rem">${d.cat_name}</td>
-      <td><span class="editable tbl-price" onclick="editPrice(${d.id},${d.price},this)">${d.price} EGP</span></td>
+      <td><span class="editable tbl-price" onclick="editPrice('${d.id}',${d.price},this)">${d.price} EGP</span></td>
       <td>
-        <button class="btn-toggle-status ${d.is_available ? 'active-available' : 'inactive-available'}" onclick="toggleDrinkStatus(${d.id}, 'is_available', ${d.is_available})">
+        <button class="btn-toggle-status ${d.is_available ? 'active-available' : 'inactive-available'}" onclick="toggleDrinkStatus('${d.id}', 'is_available', ${d.is_available})">
           ${d.is_available ? 'Available' : 'Unavailable'}
         </button>
       </td>
       <td>
-        <button class="btn-toggle-status ${d.is_featured ? 'active-featured' : 'inactive-featured'}" onclick="toggleDrinkStatus(${d.id}, 'is_featured', ${d.is_featured})">
+        <button class="btn-toggle-status ${d.is_featured ? 'active-featured' : 'inactive-featured'}" onclick="toggleDrinkStatus('${d.id}', 'is_featured', ${d.is_featured})">
           ${d.is_featured ? 'Featured' : 'Normal'}
         </button>
       </td>
       <td>
-        <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteDrink(${d.id})">Delete</button>
+        <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteDrink('${d.id}')">Delete</button>
       </td>
     </tr>
   `).join('');
@@ -449,7 +449,7 @@ async function addDrink() {
   const name = document.getElementById('nd-name').value.trim();
   const name_ar = document.getElementById('nd-name-ar').value.trim();
   const price = parseFloat(document.getElementById('nd-price').value);
-  const category_id = parseInt(document.getElementById('nd-cat').value);
+  const category_id = document.getElementById('nd-cat').value.trim();
   
   const imgFile = document.getElementById('nd-img').files[0];
   let image_emoji = '';
@@ -615,21 +615,21 @@ async function loadUsers() {
   usersData = await res.json();
   document.getElementById('usersTable').innerHTML = usersData.map(u => `
     <tr>
-      <td><span class="editable" onclick="editUserField(${u.id},'name','${u.name.replace(/'/g,"\\'")}',this)">${u.name}</span></td>
-      <td style="font-size:.8rem;color:var(--muted)"><span class="editable" onclick="editUserField(${u.id},'phone','${u.phone}',this)">${u.phone}</span></td>
+      <td><span class="editable" onclick="editUserField('${u.id}','name','${u.name.replace(/'/g,"\\'")}',this)">${u.name}</span></td>
+      <td style="font-size:.8rem;color:var(--muted)"><span class="editable" onclick="editUserField('${u.id}','phone','${u.phone}',this)">${u.phone}</span></td>
       <td>
-        <select onchange="changeRole(${u.id},this.value)" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.3rem;font-family:'Tajawal',sans-serif;font-size:.8rem;">
+        <select onchange="changeRole('${u.id}',this.value)" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.3rem;font-family:'Outfit',sans-serif;font-size:.8rem;">
           <option value="customer" ${u.role==='customer'?'selected':''}>Customer</option>
           <option value="cashier" ${u.role==='cashier'?'selected':''}>Cashier</option>
           <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
         </select>
       </td>
-      <td class="points-badge"><span class="editable" onclick="editUserPoints(${u.id},${u.points},this)">${u.points}</span></td>
+      <td class="points-badge"><span class="editable" onclick="editUserPoints('${u.id}',${u.points},this)">${u.points}</span></td>
       <td style="color:var(--gold);font-size:.9rem">${Math.round(u.total_spent)} EGP</td>
       <td style="color:var(--muted);font-size:.78rem">${new Date(u.created_at).toLocaleDateString('en-US')}</td>
       <td>
-        <button class="action-btn2" onclick="editUserPassword(${u.id})">Pass</button>
-        <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteUser(${u.id})">Delete</button>
+        <button class="action-btn2" onclick="editUserPassword('${u.id}')">Pass</button>
+        <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteUser('${u.id}')">Delete</button>
       </td>
     </tr>
   `).join('');
