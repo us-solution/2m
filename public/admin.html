@@ -144,6 +144,40 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
   gap: 1rem;
   justify-content: center;
 }
+
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  nav {
+    min-height: auto;
+    border-left: none;
+    border-bottom: 1px solid var(--line);
+    padding: 0;
+  }
+  .nav-item {
+    display: none;
+  }
+  #mobile-nav-select {
+    display: block !important;
+  }
+  .page {
+    padding: 1rem;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+  header {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+}
 </style>
 </head>
 <body>
@@ -156,6 +190,13 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
 </header>
 <div class="layout">
   <nav>
+    <select id="mobile-nav-select" class="mobile-nav" onchange="showPage(this.value, this)" style="display: none; width: 90%; margin: 1rem auto; padding: 0.8rem; background: var(--bg2); border: 1px solid var(--line); border-radius: 4px; font-family: 'Tajawal', sans-serif; font-size: 1rem; color: var(--text);">
+      <option value="dashboard">الرئيسية</option>
+      <option value="menu">إدارة القائمة</option>
+      <option value="offers">العروض</option>
+      <option value="orders">الطلبات</option>
+      <option value="users">المستخدمون</option>
+    </select>
     <div class="nav-item active" onclick="showPage('dashboard',this)">الرئيسية</div>
     <div class="nav-item" onclick="showPage('menu',this)">إدارة القائمة</div>
     <div class="nav-item" onclick="showPage('offers',this)">العروض</div>
@@ -269,7 +310,11 @@ function showPage(name, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
-  el.classList.add('active');
+  if (el && el.classList && el.classList.contains('nav-item')) el.classList.add('active');
+  
+  const sel = document.getElementById('mobile-nav-select');
+  if (sel) sel.value = name;
+
   if (name === 'dashboard') loadStats();
   if (name === 'menu') loadMenu();
   if (name === 'offers') loadOffers();
