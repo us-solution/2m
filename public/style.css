@@ -216,6 +216,13 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);dir
 .ci span{font-size:1.3rem;}
 .ci strong{display:block;color:var(--white);margin-bottom:.2rem;font-size:.9rem;}
 .ci p{color:var(--muted);font-size:.85rem;line-height:1.6;}
+.contact-form {
+  background: var(--bg);
+  padding: 2.5rem;
+  border-radius: var(--rad-lg);
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+}
 .contact-form h3{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--white);margin-bottom:1.5rem;font-weight:400;}
 .form-field{margin-bottom:1.2rem;}
 .form-field label{display:block;font-size:.75rem;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-bottom:.5rem;font-family:'Montserrat',sans-serif;}
