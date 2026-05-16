@@ -390,7 +390,9 @@ app.get('/api/offers', async (req, res) => {
 
 app.post('/api/admin/offers', authMiddleware('admin'), async (req, res) => {
   try {
-    const o = await Offer.create(req.body);
+    const data = { ...req.body };
+    if (!data.expires_at) delete data.expires_at;
+    const o = await Offer.create(data);
     res.json({ success: true, id: o._id });
   } catch(e) { res.status(400).json({ error: e.message }); }
 });
