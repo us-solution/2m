@@ -303,7 +303,7 @@ function handleContact(e) {
   const phone = document.getElementById('contact-phone').value.trim();
   const msg = document.getElementById('contact-msg').value.trim();
   
-  const text = `مرحباً أوزيل كافيه، أنا ${name}. رقم هاتفي: ${phone}. ${msg}`;
+  const text = `✦ *تواصل جديد — OZEL CAFE* ✦\n\n👤 *الاسم:* ${name}\n📱 *رقم الهاتف:* ${phone}\n\n💬 *الرسالة:*\n${msg}\n\n— *تم الإرسال من الموقع الإلكتروني*`;
   const encodedText = encodeURIComponent(text);
   const whatsappUrl = `https://wa.me/201060161839?text=${encodedText}`;
   
