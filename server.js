@@ -234,7 +234,7 @@ app.get('/api/drinks/:id', async (req, res) => {
 // ── Order Routes ─────────────────────────────────────────────────
 app.post('/api/orders', async (req, res) => {
   const { table_number, items, total_price, notes } = req.body;
-  if (!table_number || !items || !total_price) return res.status(400).json({ error: 'Missing fields' });
+  if (table_number === undefined || !items || !total_price) return res.status(400).json({ error: 'Missing fields' });
 
   let userId = null;
   const token = req.headers.authorization?.split(' ')[1];
