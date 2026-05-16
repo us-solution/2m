@@ -424,20 +424,21 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);dir
 /* ── PREMIUM OFFERS CARDS ── */
 .offers-scroll-track {
   display: flex;
-  gap: 1.5rem;
+  gap: 1.2rem;
   overflow-x: auto;
-  padding: 0.5rem 1rem 2rem 1rem;
+  padding: 0.5rem 0.5rem 2rem 0.5rem;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 .offers-scroll-track::-webkit-scrollbar {
   display: none;
 }
 .premium-offer-card {
-  min-width: 300px;
-  max-width: 320px;
+  width: 75vw;
+  max-width: 300px;
   flex-shrink: 0;
-  scroll-snap-align: start;
+  scroll-snap-align: center;
   background: rgba(20, 20, 20, 0.6);
   border: 1px solid rgba(212, 175, 55, 0.2);
   border-radius: 20px;
