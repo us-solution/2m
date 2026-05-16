@@ -415,8 +415,12 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);dir
   #nav.scrolled{padding:.8rem 1.5rem;}
   .nav-links{display:none;}
   .about-inner,.contact-wrap{grid-template-columns:1fr;gap:3rem;}
-  .about-frame{width:100%;height:250px;}
-  .about-card-float{left:1rem;bottom:-1rem;}
+  .abstract-design{width:100%;height:350px;}
+  .glass-card{width:80%;max-width:240px;height:300px;}
+  .circle-1{width:140px;height:140px;top:10px;left:10px;}
+  .circle-2{width:120px;height:120px;bottom:10px;right:10px;}
+  .about-card-float{left:5%;bottom:-2rem;padding:0.8rem 1.2rem;}
+  .acf-val{font-size:1.5rem;}
   #about,#menu,#contact{padding:5rem 1.5rem;}
   .hero-stats{display:none;}
 }
