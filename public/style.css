@@ -148,7 +148,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);dire
 
 /* ── MARQUEE ── */
 .marquee-wrap{overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg2);padding:.9rem 0;}
-.marquee-track{display:flex;gap:2rem;white-space:nowrap;animation:marquee 28s linear infinite;}
+.marquee-track{display:flex;gap:2rem;white-space:nowrap;animation:marquee 16s linear infinite;}
 .marquee-track span{font-family:'Outfit',sans-serif;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
 .marquee-track .sep{color:var(--gold);}
 @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
