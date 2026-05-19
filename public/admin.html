@@ -6,21 +6,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet"/>
 <style>
 :root {
-  --gold:      #b53c3c;
-  --gold2:     #cc5252;
-  --olive:     #0b0404;
-  --bg:        #0b0404;
-  --bg2:       #170c0c;
-  --bg3:       #241414;
-  --bg4:       #361f1f;
-  --line:      rgba(245, 237, 233, 0.12);
-  --text:      #f6efe9;
-  --muted:     rgba(245, 237, 233, 0.6);
+  --gold:      #9c2e2e;
+  --gold2:     #b53c3c;
+  --olive:     #fcfaf7;
+  --bg:        #fdfcfb;
+  --bg2:       #ffffff;
+  --bg3:       #f7f3ed;
+  --bg4:       #ebdcd0;
+  --line:      rgba(156, 46, 46, 0.08);
+  --text:      #2c201e;
+  --muted:     rgba(44, 32, 30, 0.65);
   --white:     #ffffff;
   --green:     #2ecc71;
   --red:       #e74c3c;
-  --accent-warm: #d96b6b;
-  --accent-emerald: #7ea393;
+  --accent-warm: #c55757;
+  --accent-emerald: #476a59;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:ltr;}
@@ -32,7 +32,7 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
 nav{background:var(--bg2);border-right:1px solid var(--line);min-height:calc(100vh - 60px);padding:1.5rem 0;}
 .nav-item{display:block;padding:.75rem 1.5rem;color:var(--muted);cursor:pointer;transition:all .2s;font-size:.9rem;border-left:2px solid transparent;}
 .nav-item:hover{color:var(--gold);}
-.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(194,159,67,.05);}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(156,46,46,.04);}
 .page{display:none;padding:2rem;}
 .page.active{display:block;}
 .page-title{font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--text);margin-bottom:.5rem;font-weight:400;}
@@ -48,12 +48,12 @@ nav{background:var(--bg2);border-right:1px solid var(--line);min-height:calc(100
 table{width:100%;border-collapse:collapse;}
 th{font-size:.65rem;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;font-family:'Montserrat',sans-serif;padding:.8rem 1rem;border-bottom:1px solid var(--line);text-align:left;font-weight:400;}
 td{padding:.9rem 1rem;border-bottom:1px solid var(--line);font-size:.9rem;vertical-align:middle;color:var(--text);}
-tr:hover td{background:rgba(255,255,255,.02);}
+tr:hover td{background:rgba(0,0,0,.015);}
 .tbl-price{font-family:'Montserrat',sans-serif;color:var(--gold);font-size:1.1rem;font-weight:700;}
 .badge{padding:.2rem .6rem;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;font-family:'Montserrat',sans-serif;border-radius:1px;}
-.badge-featured{background:rgba(194,159,67,15);color:var(--gold);}
+.badge-featured{background:rgba(156,46,46,.1);color:var(--gold);}
 .badge-hidden{background:rgba(192,57,43,.1);color:var(--red);}
-.badge-admin{background:rgba(194,159,67,.15);color:var(--gold);}
+.badge-admin{background:rgba(156,46,46,.1);color:var(--gold);}
 .badge-cashier{background:rgba(39,174,96,.1);color:var(--green);}
 .badge-customer{background:rgba(110,102,89,.1);color:var(--muted);}
 
@@ -68,7 +68,7 @@ tr:hover td{background:rgba(255,255,255,.02);}
 .toggle input{display:none;}
 .toggle-slider{position:absolute;inset:0;background:var(--bg4);border:1px solid var(--line);transition:.2s;}
 .toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:2px;top:2px;background:var(--muted);transition:.2s;}
-input:checked + .toggle-slider{background:rgba(194,159,67,.2);border-color:var(--gold);}
+input:checked + .toggle-slider{background:rgba(156,46,46,.15);border-color:var(--gold);}
 input:checked + .toggle-slider::before{transform:translateX(18px);background:var(--gold);}
 
 /* Status Buttons */
@@ -114,7 +114,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
 .c-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(44,32,30,0.4);
   display: none;
   align-items: center;
   justify-content: center;
