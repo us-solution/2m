@@ -4,30 +4,32 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 
 :root {
-  --gold:      #9c2e2e; /* Deeper burgundy red accent for better contrast on white background */
-  --gold2:     #b53c3c; /* Brand burgundy red */
-  --gold-glow: rgba(156, 46, 46, 0.08);
+  --burgundy:      #8c1c1c; /* Deep luxury wine/burgundy red */
+  --burgundy2:     #a82c2c;
+  --burgundy-glow: rgba(140, 28, 28, 0.06);
   
-  --olive:     #fcfaf7; /* Soft cream/ivory background */
-  --olive-glow: rgba(156, 46, 46, 0.04);
-  --bg:        #fdfcfb; /* Soft warm light background */
-  --bg2:       #ffffff; /* Pure white for clean card/sections */
-  --bg3:       #f7f3ed; /* Soft warm sand/cream for inner buttons, badges, chips */
-  --bg4:       #ebdcd0; /* Slightly darker sand border */
+  --accent-emerald:       #2a4b3d; /* Elegant forest/emerald green from the logo */
+  --accent-emerald-light: #3d6b57;
+  --accent-emerald-glow:  rgba(42, 75, 61, 0.05);
+
+  --gold:          #c29f43; /* Sophisticated warm metallic gold */
+  --gold2:         #d4af37;
+  --gold-glow:     rgba(194, 159, 67, 0.08);
+
+  /* Neutrals for light theme */
+  --bg:            #F7F4EF; /* Premium warm linen/alabaster background */
+  --bg2:           #ffffff; /* Pure white for clean separation of cards */
+  --bg3:           #EFEBE4; /* Warm sand for badges, input fields, tags */
+  --bg4:           #E5DEC9; /* Warm gold-tinted sand for borders/dividers */
+
+  --line:          rgba(42, 75, 61, 0.08); /* Soft emerald/sand line */
+  --text:          #1A1715; /* Espresso roast black for premium contrast text */
+  --muted:         rgba(26, 23, 21, 0.65); /* Roasted coffee-muted text */
+  --white:         #ffffff;
+  --red:           #C0392B;
   
-  --line:      rgba(156, 46, 46, 0.08); /* Soft warm burgundy/cream line */
-  --text:      #2c201e; /* Deep rich dark roasted coffee text */
-  --muted:     rgba(44, 32, 30, 0.65); /* Soft coffee-muted text */
-  --white:     #ffffff; /* True white */
-  --red:       #c0392b; /* Red color for removal/danger actions */
-  
-  /* Additional Premium Accents */
-  --accent-warm: #c55757; /* Richer warm rose for light theme */
-  --accent-emerald: #476a59; /* Sage green adjusted for light background */
-  --accent-emerald-glow: rgba(71, 106, 89, 0.08);
-  
-  --rad:       4px;
-  --rad-lg:    12px;
+  --rad:           4px;
+  --rad-lg:        12px;
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -67,7 +69,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);dire
   font-size: 1.3rem;
   font-weight: 500;
   letter-spacing: 0.4em;
-  color: var(--text);
+  color: var(--burgundy);
   text-transform: uppercase;
   margin-bottom: 1.5rem;
   opacity: 0;
@@ -85,7 +87,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);dire
 .loader-progress-bar {
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, var(--accent-emerald), var(--gold));
+  background: linear-gradient(90deg, var(--accent-emerald), var(--gold), var(--burgundy));
   position: absolute;
   left: -100%;
   animation: loaderProgress 1.4s cubic-bezier(0.1, 0.6, 0.6, 1) forwards;
@@ -102,7 +104,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);dire
 
 /* ── NAV ── */
 #nav{position:fixed;top:0;inset-inline:0;z-index:800;padding:1.4rem 4rem;display:flex;align-items:center;justify-content:space-between;transition:all .4s;}
-#nav.scrolled{background:rgba(253,252,251,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--line);padding:1rem 4rem;}
+#nav.scrolled{background:rgba(247,244,239,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--line);padding:1rem 4rem;}
 .nav-logo{display:flex;align-items:center;gap:.6rem;}
 .nav-logo-img{height:60px;width:auto;object-fit:contain;margin-right:0.4rem;}
 .nav-logo-en{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:600;color:var(--gold);letter-spacing:.2em;}
@@ -111,26 +113,26 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);dire
 #nav.scrolled .nav-logo-ar{color:var(--text);}
 .nav-links{display:flex;gap:2.5rem;}
 .nav-links a{color:rgba(44,32,30,0.8);text-decoration:none;font-size:.95rem;letter-spacing:.05em;transition:all .3s;font-family:'Outfit',sans-serif;font-weight:600;}
-.nav-links a:hover{color:var(--gold);}
+.nav-links a:hover{color:var(--accent-emerald);}
 #nav.scrolled .nav-links a{color:var(--text);}
-#nav.scrolled .nav-links a:hover{color:var(--gold);}
+#nav.scrolled .nav-links a:hover{color:var(--accent-emerald);}
 .nav-cta{background:transparent;border:1px solid var(--accent-emerald);color:var(--accent-emerald);padding:.5rem 1.5rem;font-family:'Outfit',sans-serif;font-size:.85rem;letter-spacing:.05em;cursor:pointer;transition:all .3s;border-radius:2px;}
 .nav-cta:hover{background:var(--accent-emerald);color:var(--white);}
 
 /* ── HERO ── */
 #hero{position:relative;height:100vh;min-height:700px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-.hero-bg{position:absolute;inset:0;background:var(--olive);}
+.hero-bg{position:absolute;inset:0;background:var(--bg);}
 .hero-grain{position:absolute;inset:0;opacity:.04;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px;}
-.hero-vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(253,252,251,.85) 100%);}
+.hero-vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(247,244,239,.85) 100%);}
 .hero-content{position:relative;z-index:2;text-align:center;padding:0 2rem;}
 .hero-eyebrow{font-family:'Outfit',sans-serif;font-size:.7rem;letter-spacing:.5em;color:var(--gold);text-transform:uppercase;margin-bottom:2rem;opacity:0;animation:fadeUp .8s .3s forwards;}
 .hero-headline{font-family:'Playfair Display',serif;font-size:clamp(5rem,14vw,13rem);font-weight:300;line-height:.85;color:var(--text);letter-spacing:.08em;margin-bottom:.5rem;opacity:0;animation:fadeUp .9s .4s forwards;}
-.hero-headline .headline-line{position:relative;display:inline-block;background:linear-gradient(135deg,var(--text),var(--gold2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.hero-ar-name{font-family:'Outfit',sans-serif;font-size:clamp(1.2rem,3vw,2rem);font-weight:300;color:var(--gold2);letter-spacing:.3em;margin-bottom:1.2rem;opacity:0;animation:fadeUp .9s .5s forwards;}
+.hero-headline .headline-line{position:relative;display:inline-block;background:linear-gradient(135deg,var(--text),var(--burgundy),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero-ar-name{font-family:'Outfit',sans-serif;font-size:clamp(1.2rem,3vw,2rem);font-weight:300;color:var(--burgundy);letter-spacing:.3em;margin-bottom:1.2rem;opacity:0;animation:fadeUp .9s .5s forwards;}
 .hero-tagline{color:var(--muted);font-size:1rem;margin-bottom:3rem;letter-spacing:.05em;opacity:0;animation:fadeUp .9s .6s forwards;}
 .hero-actions{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;opacity:0;animation:fadeUp .9s .7s forwards;}
 .hero-scroll{position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.6rem;color:var(--muted);font-size:.65rem;letter-spacing:.3em;text-transform:uppercase;}
-.hero-scroll-line{width:1px;height:50px;background:linear-gradient(to bottom,var(--gold),transparent);animation:growLine 2s ease-in-out infinite;}
+.hero-scroll-line{width:1px;height:50px;background:linear-gradient(to bottom,var(--accent-emerald),transparent);animation:growLine 2s ease-in-out infinite;}
 @keyframes growLine{0%,100%{height:30px;opacity:.3}50%{height:60px;opacity:1}}
 .hero-stats{position:absolute;bottom:3rem;left:0;right:0;display:flex;justify-content:center;gap:2rem;align-items:center;opacity:0;animation:fadeUp .9s .9s forwards;}
 .hstat{text-align:center;}
