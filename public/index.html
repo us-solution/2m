@@ -20,7 +20,7 @@
   <div id="loader">
     <div class="loader-content">
       <img src="imgs/ozel-logo-vertical.png" alt="OZEL Logo" class="loader-logo" />
-      <div class="loader-sub">OZEL CAFE</div>
+      <div class="loader-sub">Hidden Gem</div>
       <div class="loader-progress-wrap">
         <div class="loader-progress-bar"></div>
       </div>
@@ -40,7 +40,8 @@
     </div>
     <div style="display:flex;gap:.7rem;align-items:center">
       <div id="nav-user-area"></div>
-      <button class="nav-cta" onclick="document.getElementById('menu').scrollIntoView({behavior:'smooth'})">Order Now</button>
+      <button class="nav-cta" onclick="document.getElementById('menu').scrollIntoView({behavior:'smooth'})">Order
+        Now</button>
     </div>
   </nav>
 
@@ -63,8 +64,8 @@
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>
         </button>
-        <button class="btn-outline"
-          onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})">Our Story</button>
+        <button class="btn-outline" onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})">Our
+          Story</button>
       </div>
     </div>
     <div class="hero-scroll">
@@ -121,7 +122,9 @@
         <p class="section-eyebrow">/ Our Story /</p>
         <h2 class="section-heading">An exceptional haven...<br /><em>discovered only by lovers of beauty</em></h2>
         <p class="about-para">
-          At "Ozel Cafe", we don't just make coffee, we craft it as a masterpiece worthy of your taste. Every bean we choose, and every drop we pour, is the result of true passion aimed at giving you an experience immersed in tranquility, and unforgettable moments of pure pleasure.
+          At "Ozel Cafe", we don't just make coffee, we craft it as a masterpiece worthy of your taste. Every bean we
+          choose, and every drop we pour, is the result of true passion aimed at giving you an experience immersed in
+          tranquility, and unforgettable moments of pure pleasure.
         </p>
         <div class="about-features">
           <div class="af-item"><span class="af-icon">✦</span>
@@ -178,7 +181,11 @@
   <a href="/cart.html" class="cart-fab" id="cartFab"
     style="display: flex; align-items: center; justify-content: center; text-decoration: none;">
     <span class="cart-fab-icon">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4H6z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4H6z"></path>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <path d="M16 10a4 4 0 0 1-8 0"></path>
+      </svg>
     </span>
     <span class="cart-fab-badge" id="cartCount">0</span>
   </a>
@@ -221,44 +228,67 @@
 
   <!-- PROFILE MODAL -->
   <div class="modal-overlay" id="profileModal">
-    <div class="modal-panel" style="max-width: 500px;">
+    <div class="modal-panel" style="max-width: 480px; border-radius: var(--rad-lg);">
       <div class="modal-x" onclick="closeProfileModal()">✕</div>
-      <div class="modal-body">
-        <div class="modal-name" style="text-align: center; margin-bottom: 2rem;">Customer Profile</div>
+      <div class="modal-body" style="padding: 1.5rem 2rem 2rem 2rem;">
+        <div class="modal-name" style="text-align: center; margin-bottom: 1.5rem; font-family: 'Playfair Display', serif; font-size: 1.8rem;">حسابك الشخصي</div>
 
-        <div
-          style="background: var(--bg3); padding: 1.5rem; border-radius: var(--rad); border: 1px solid var(--line); text-align: center; margin-bottom: 1.5rem;">
-          <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 0.5rem;">Your Current Points</p>
-          <div id="profilePoints"
-            style="font-family: 'Cormorant Garamond', serif; font-size: 3rem; color: var(--gold); font-weight: 700;">0
-          </div>
-          <p style="color: var(--muted); font-size: 0.75rem; margin-top: 0.5rem;">Every 100 points = 10 EGP discount</p>
-        </div>
+        <!-- PREMIUM VIP LOYALTY CARD -->
+        <div class="vip-card" style="position: relative; overflow: hidden; background: linear-gradient(135deg, var(--accent-emerald), #1a3026); padding: 1.8rem; border-radius: var(--rad-lg); border: 1px solid rgba(194, 159, 67, 0.3); box-shadow: 0 12px 30px rgba(42, 75, 61, 0.15); color: var(--white); margin-bottom: 1.5rem;">
+          <div style="position: absolute; inset: 0; opacity: 0.08; background-image: url('data:image/svg+xml,%3Csvg viewBox=%270 0 200 200%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.9%27 numOctaves=%274%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23n)%27/%3E%3C/svg%3E'); pointer-events: none;"></div>
+          <div style="position: absolute; top: -50px; right: -50px; width: 140px; height: 140px; background: radial-gradient(circle, var(--gold) 0%, transparent 70%); opacity: 0.3; filter: blur(20px); pointer-events: none;"></div>
+          
+          <div style="position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+              <div>
+                <span style="font-family: 'Outfit', sans-serif; font-size: 0.65rem; letter-spacing: 0.25rem; text-transform: uppercase; color: rgba(255,255,255,0.7); display: block; margin-bottom: 0.2rem;">OZEL CAFE MEMBER</span>
+                <span style="font-family: 'Playfair Display', serif; font-size: 1rem; font-style: italic; color: var(--gold); letter-spacing: 0.05em;">VIP Club ✦</span>
+              </div>
+              <span style="font-size: 1.5rem; color: var(--gold); filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));">👑</span>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+              <span style="font-family: 'Outfit', sans-serif; font-size: 0.7rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); display: block; margin-bottom: 0.3rem; font-weight: 500;">نقاطك الحالية / BALANCE</span>
+              <div style="display: flex; align-items: baseline; gap: 0.4rem;">
+                <span id="profilePoints" style="font-family: 'Montserrat', sans-serif; font-size: 2.8rem; font-weight: 700; color: var(--gold); line-height: 1;">0</span>
+                <span style="font-family: 'Tajawal', sans-serif; font-size: 0.8rem; letter-spacing: 0.05em; font-weight: 700; color: rgba(255,255,255,0.8);">نقطة</span>
+              </div>
+            </div>
 
-        <div style="background: var(--bg3); padding: 1.5rem; border-radius: var(--rad); border: 1px solid var(--line);">
-          <h4 style="color: var(--text); font-size: 1rem; margin-bottom: 1rem; font-family: 'Tajawal', sans-serif;">
-            Your Most Ordered Drinks</h4>
-          <div id="topDrinksList" style="display: flex; flex-direction: column; gap: 0.8rem;">
-            <p style="color: var(--muted); font-size: 0.85rem; text-align: center;">No previous orders yet</p>
-          </div>
-        </div>
-
-        <div
-          style="background: var(--bg3); padding: 1.5rem; border-radius: var(--rad); border: 1px solid var(--line); margin-top: 1.5rem;">
-          <h4 style="color: var(--text); font-size: 1rem; margin-bottom: 1rem; font-family: 'Tajawal', sans-serif;">
-            Change Password</h4>
-          <div style="display: flex; flex-direction: column; gap: 0.8rem;">
-            <input id="old-pass" type="password" placeholder="Current Password"
-              style="width:100%; background:var(--bg2); border:1px solid var(--line); color:var(--text); padding:.7rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.95rem; outline:none;" />
-            <input id="new-pass" type="password" placeholder="New Password"
-              style="width:100%; background:var(--bg2); border:1px solid var(--line); color:var(--text); padding:.7rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.95rem; outline:none;" />
-            <button class="btn-gold" style="width:100%; justify-content:center" onclick="changePassword()">Save ✦</button>
-            <p id="cp-msg" style="font-size:0.85rem; text-align:center; margin-top:0.5rem;"></p>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.8rem; font-size: 0.7rem; color: rgba(255,255,255,0.5); font-family: 'Tajawal', sans-serif;">
+              <span>كل 100 نقطة = 10 جنيه خصم</span>
+              <span id="profileMemberName" style="text-transform: uppercase; font-weight: 700; color: var(--white); font-size: 0.75rem; font-family: 'Tajawal', sans-serif;">MEMBER</span>
+            </div>
           </div>
         </div>
 
-        <div style="margin-top: 1.5rem;">
-          <button class="btn" style="width:100%; background:#C0392B; color:#FFFFFF; padding:.9rem; border:none; border-radius:var(--rad); font-family:'Tajawal',sans-serif; cursor:pointer;" onclick="logoutUser()">Logout</button>
+        <!-- MOST ORDERED DRINKS -->
+        <div style="background: var(--bg2); padding: 1.25rem 1.5rem; border-radius: var(--rad-lg); border: 1px solid var(--line); box-shadow: 0 4px 15px rgba(0,0,0,0.01); margin-bottom: 1.25rem;">
+          <h4 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;">
+            <span style="color: var(--accent-emerald); font-size: 1.1rem;">☕</span> الأكثر طلباً
+          </h4>
+          <div id="topDrinksList" style="display: flex; flex-direction: column; gap: 0.6rem;">
+            <p style="color: var(--muted); font-size: 0.8rem; text-align: center; font-family: 'Tajawal', sans-serif;">لا يوجد طلبات سابقة بعد</p>
+          </div>
+        </div>
+
+        <!-- CHANGE PASSWORD -->
+        <div style="background: var(--bg2); padding: 1.25rem 1.5rem; border-radius: var(--rad-lg); border: 1px solid var(--line); box-shadow: 0 4px 15px rgba(0,0,0,0.01); margin-bottom: 1.25rem;">
+          <h4 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;">
+            <span style="color: var(--accent-emerald); font-size: 1.1rem;">🔐</span> تغيير كلمة المرور
+          </h4>
+          <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+            <input id="old-pass" type="password" placeholder="كلمة المرور الحالية"
+              style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
+            <input id="new-pass" type="password" placeholder="كلمة المرور الجديدة"
+              style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
+            <button class="btn-gold" style="width:100%; justify-content:center; padding:0.6rem;" onclick="changePassword()">حفظ التغييرات ✦</button>
+            <p id="cp-msg" style="font-size:0.8rem; text-align:center; margin-top:0.4rem; font-family: 'Tajawal', sans-serif;"></p>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.25rem;">
+          <button class="logout-btn" onclick="logoutUser()">تسجيل الخروج</button>
         </div>
       </div>
     </div>
