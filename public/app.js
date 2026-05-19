@@ -66,9 +66,9 @@ async function openProfileModal() {
       listEl.innerHTML = `<p style="color: var(--muted); font-size: 0.85rem; text-align: center;">No previous orders yet</p>`;
     } else {
       listEl.innerHTML = topDrinks.map(([name, count]) => `
-        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg2); padding: 0.8rem 1rem; border-radius: var(--rad);">
-          <span style="color: var(--white); font-size: 0.95rem;">${name}</span>
-          <span style="color: var(--gold); font-size: 0.85rem; font-weight: 700;">${count} times</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg2); padding: 0.8rem 1rem; border-radius: var(--rad); border: 1px solid var(--line);">
+          <span style="color: var(--text); font-size: 0.95rem;">${name}</span>
+          <span style="color: var(--accent-emerald); font-size: 0.85rem; font-weight: 700;">${count} times</span>
         </div>
       `).join('');
     }
