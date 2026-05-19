@@ -16,6 +16,7 @@
   --text:      #2c201e;
   --muted:     rgba(44, 32, 30, 0.65);
   --white:     #ffffff;
+  --accent-emerald: #476a59;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:ltr;min-height:100vh;display:flex;align-items:center;justify-content:center;}
@@ -35,15 +36,15 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);dir
 .card{background:var(--bg2);border:1px solid var(--line);box-shadow: 0 10px 30px rgba(0,0,0,0.05);padding:2.5rem;border-radius:8px;}
 .tabs{display:flex;gap:0;margin-bottom:2rem;border-bottom:1px solid var(--line);}
 .tab{flex:1;background:none;border:none;color:var(--muted);padding:.8rem;font-family:'Tajawal',sans-serif;font-size:.95rem;cursor:pointer;transition:all .2s;border-bottom:2px solid transparent;margin-bottom:-1px;}
-.tab.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:700;}
+.tab.active{color:var(--accent-emerald);border-bottom-color:var(--accent-emerald);font-weight:700;}
 .form-section{display:none;}
 .form-section.active{display:block;}
 .field{margin-bottom:1.2rem;}
 .field label{display:block;font-size:.7rem;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:.5rem;font-family:'Montserrat',sans-serif;}
 .field input{width:100%;background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.85rem 1rem;font-family:'Tajawal',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s;border-radius:4px;}
-.field input:focus{border-color:var(--gold);}
-.btn{width:100%;background:var(--gold);color:#FFFFFF;border:none;padding:.9rem;font-family:'Tajawal',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .3s;margin-top:.5rem;letter-spacing:.05em;border-radius:4px;}
-.btn:hover{background:var(--gold2);}
+.field input:focus{border-color:var(--accent-emerald);}
+.btn{width:100%;background:var(--accent-emerald);color:#FFFFFF;border:none;padding:.9rem;font-family:'Tajawal',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .3s;margin-top:.5rem;letter-spacing:.05em;border-radius:4px;}
+.btn:hover{background:#3a5c4d;}
 .err{color:#C0392B;font-size:.85rem;margin-top:.8rem;text-align:center;}
 .ok{color:#27AE60;font-size:.85rem;margin-top:.8rem;text-align:center;}
 .skip{display:block;text-align:center;margin-top:1.5rem;color:var(--muted);font-size:.85rem;cursor:pointer;transition:color .2s;}

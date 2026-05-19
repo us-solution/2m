@@ -233,7 +233,7 @@ async function openDrink(id) {
         <button class="puzzle-add-btn" onclick="addToCart('${drink.id}', 'continue')" style="flex: 1;">
           Continue Ordering
         </button>
-        <button class="puzzle-add-btn" onclick="addToCart('${drink.id}', 'finish')" style="flex: 1; background: var(--gold); color: var(--bg);">
+        <button class="puzzle-add-btn" onclick="addToCart('${drink.id}', 'finish')" style="flex: 1; background: var(--accent-emerald); color: var(--bg);">
           Finish Order
         </button>
       </div>

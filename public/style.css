@@ -114,8 +114,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);dire
 .nav-links a:hover{color:var(--gold);}
 #nav.scrolled .nav-links a{color:var(--text);}
 #nav.scrolled .nav-links a:hover{color:var(--gold);}
-.nav-cta{background:transparent;border:1px solid var(--gold);color:var(--gold);padding:.5rem 1.5rem;font-family:'Outfit',sans-serif;font-size:.85rem;letter-spacing:.05em;cursor:pointer;transition:all .3s;border-radius:2px;}
-.nav-cta:hover{background:var(--gold);color:var(--white);}
+.nav-cta{background:transparent;border:1px solid var(--accent-emerald);color:var(--accent-emerald);padding:.5rem 1.5rem;font-family:'Outfit',sans-serif;font-size:.85rem;letter-spacing:.05em;cursor:pointer;transition:all .3s;border-radius:2px;}
+.nav-cta:hover{background:var(--accent-emerald);color:var(--white);}
 
 /* ── HERO ── */
 #hero{position:relative;height:100vh;min-height:700px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
@@ -139,10 +139,10 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);dire
 .hstat-sep{width:1px;height:40px;background:var(--line);}
 
 /* ── BUTTONS ── */
-.btn-gold{display:inline-flex;align-items:center;gap:.6rem;background:linear-gradient(135deg, var(--gold), var(--gold2));color:var(--white);border:none;padding:.75rem 2rem;font-family:'Outfit',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;border-radius:50px;transition:all .3s cubic-bezier(0.165, 0.84, 0.44, 1);letter-spacing:.03em;box-shadow:0 4px 15px rgba(181, 60, 60, 0.25);}
-.btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(181, 60, 60, 0.4);filter:brightness(1.15);}
+.btn-gold{display:inline-flex;align-items:center;gap:.6rem;background:linear-gradient(135deg, var(--accent-emerald), #2e4d3f);color:var(--white);border:none;padding:.75rem 2rem;font-family:'Outfit',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;border-radius:50px;transition:all .3s cubic-bezier(0.165, 0.84, 0.44, 1);letter-spacing:.03em;box-shadow:0 4px 15px rgba(71, 106, 89, 0.25);}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(71, 106, 89, 0.4);filter:brightness(1.15);}
 .btn-outline{display:inline-flex;align-items:center;gap:.6rem;background:transparent;color:var(--text);border:1px solid rgba(44,32,30,.2);padding:.75rem 2rem;font-family:'Outfit',sans-serif;font-size:.95rem;cursor:pointer;border-radius:50px;transition:all .3s;}
-.btn-outline:hover{border-color:var(--gold);color:var(--gold);background:rgba(156, 46, 46, 0.05);}
+.btn-outline:hover{border-color:var(--accent-emerald);color:var(--accent-emerald);background:var(--accent-emerald-glow);}
 
 /* ── MARQUEE ── */
 .marquee-wrap{overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg2);padding:.9rem 0;}
@@ -238,11 +238,11 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);dire
 .chip{background:var(--bg3);border:1px solid var(--line);color:var(--muted);padding:.45rem 1rem;border-radius:2px;font-family:'Outfit',sans-serif;font-size:.85rem;cursor:pointer;transition:all .25s;}
 .chip:hover{border-color:var(--gold);color:var(--gold);}
 .chip.active{background:var(--gold);color:var(--bg);border-color:var(--gold);font-weight:700;}
-.puzzle-add-btn{width:100%;margin-top:1.5rem;padding:1rem;background:var(--gold);color:var(--bg);border:none;font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;border-radius:2px;transition:all .3s;letter-spacing:.05em;}
-.puzzle-add-btn:hover{background:var(--gold2);box-shadow:0 8px 25px var(--gold-glow);}
+.puzzle-add-btn{width:100%;margin-top:1.5rem;padding:1rem;background:var(--accent-emerald);color:var(--bg);border:none;font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;border-radius:2px;transition:all .3s;letter-spacing:.05em;}
+.puzzle-add-btn:hover{background:#3a5c4d;box-shadow:0 8px 25px var(--accent-emerald-glow);}
 
 /* ── CART ── */
-.cart-fab{position:fixed;bottom:2rem;left:2rem;z-index:700;background:var(--gold);color:var(--bg);border:none;width:58px;height:58px;border-radius:50%;font-size:1.4rem;cursor:pointer;transition:all .3s;transform:scale(0);box-shadow:0 4px 20px var(--gold-glow);}
+.cart-fab{position:fixed;bottom:2rem;left:2rem;z-index:700;background:var(--accent-emerald);color:var(--bg);border:none;width:58px;height:58px;border-radius:50%;font-size:1.4rem;cursor:pointer;transition:all .3s;transform:scale(0);box-shadow:0 4px 20px var(--accent-emerald-glow);}
 .cart-fab:hover{transform:scale(1.1) translateY(-3px) !important;}
 .cart-fab-badge{position:absolute;top:-5px;right:-5px;background:#C0392B;color:#fff;font-size:.7rem;font-weight:700;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;}
 .cart-drawer{position:fixed;top:0;left:0;height:100vh;width:100%;max-width:400px;background:var(--bg2);border-right:1px solid var(--line);z-index:900;transform:translateX(-100%);transition:transform .4s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;}
@@ -369,13 +369,13 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);dire
 }
 
 .lmi-add {
-  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  background: linear-gradient(135deg, var(--accent-emerald), #2e4d3f);
   color: var(--white);
   border: none;
 }
 .lmi-add:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(181, 60, 60, 0.35);
+  box-shadow: 0 4px 12px rgba(71, 106, 89, 0.35);
   filter: brightness(1.15);
 }
 
@@ -385,9 +385,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);dire
   border: 1px solid var(--line);
 }
 .lmi-details:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-  background: rgba(181, 60, 60, 0.05);
+  border-color: var(--accent-emerald);
+  color: var(--accent-emerald);
+  background: var(--accent-emerald-glow);
 }
 
 /* ── ANIMATIONS ── */
@@ -410,9 +410,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);dire
 }
 
 .nav-user-btn:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-  background: rgba(181, 60, 60, 0.05);
+  border-color: var(--accent-emerald);
+  color: var(--accent-emerald);
+  background: var(--accent-emerald-glow);
 }
 
 .nav-user-logged {
