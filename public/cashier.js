@@ -13,7 +13,7 @@ function renderOrders(orders) {
   grid.innerHTML = '';
   
   if(orders.length === 0) {
-    grid.innerHTML = '<p style="text-align:center; width:100%; color:var(--text-dim)">لا توجد طلبات حالية.</p>';
+    grid.innerHTML = '<p style="text-align:center; width:100%; color:var(--text-dim)">No current orders.</p>';
     return;
   }
   
@@ -27,21 +27,21 @@ function renderOrders(orders) {
     card.className = 'order-card';
     card.innerHTML = `
       <div class="order-header">
-        <div class="order-table">طاولة: ${order.table_number}</div>
-        <div class="order-status ${order.status}">${order.status === 'pending' ? 'قيد التحضير 🕒' : 'مكتمل ✅'}</div>
+        <div class="order-table">Table: ${order.table_number}</div>
+        <div class="order-status ${order.status}">${order.status === 'pending' ? 'Preparing 🕒' : 'Completed ✅'}</div>
       </div>
       <div class="order-body">
         ${items.map(item => `
           <div class="order-item">
             <strong>${item.name}</strong><br/>
-            <small style="color:var(--text-dim)">سكر: ${item.sugar} | إضافات: ${item.extra}</small>
+            <small style="color:var(--text-dim)">Sugar: ${item.sugar} | Extras: ${item.extra}</small>
           </div>
         `).join('')}
       </div>
-      <div class="order-total">الإجمالي: ${order.total_price} EGP</div>
+      <div class="order-total">Total: ${order.total_price} EGP</div>
       ${order.status === 'pending' ? `
         <div class="order-actions">
-          <button class="btn-complete" onclick="markComplete(${order.id})">تحديد كمكتمل</button>
+          <button class="btn-complete" onclick="markComplete(${order.id})">Mark as Completed</button>
         </div>
       ` : ''}
     `;

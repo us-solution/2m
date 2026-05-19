@@ -6,20 +6,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet"/>
 <style>
 :root {
-  --gold:      #C29F43;
-  --gold2:     #D9B968;
-  --olive:     #3D4F3E;
-  --bg:        #FFFFFF;
-  --bg2:       #F9FBF9;
-  --bg3:       #F0F3F0;
-  --bg4:       #E4EAE4;
-  --line:      rgba(0,0,0,.08);
-  --text:      #2C352E;
-  --muted:     #6A736B;
-  --white:     #141A15;
-  --green:     #27AE60;
-  --red:       #C0392B;
-  --orange:    #E67E22;
+  --gold:      #b53c3c;
+  --gold2:     #cc5252;
+  --olive:     #0b0404;
+  --bg:        #0b0404;
+  --bg2:       #170c0c;
+  --bg3:       #241414;
+  --bg4:       #361f1f;
+  --line:      rgba(245, 237, 233, 0.12);
+  --text:      #f6efe9;
+  --muted:     rgba(245, 237, 233, 0.6);
+  --white:     #ffffff;
+  --green:     #2ecc71;
+  --red:       #e74c3c;
+  --orange:    #e67e22;
+  --accent-warm: #d96b6b;
+  --accent-emerald: #7ea393;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:ltr;}
@@ -118,7 +120,8 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
 </head>
 <body>
 <header>
-  <div>
+  <div style="display:flex;align-items:center;gap:.6rem;">
+    <img src="imgs/ozel-logo.png" alt="OZEL CAFE Logo" style="height:32px; width:auto; object-fit:contain;" />
     <span class="htag">Cashier System</span>
     <span class="hlogo">OZEL</span>
   </div>

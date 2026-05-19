@@ -6,19 +6,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet"/>
 <style>
 :root {
-  --gold:      #C29F43;
-  --gold2:     #D9B968;
-  --olive:     #3D4F3E;
-  --bg:        #FFFFFF;
-  --bg2:       #F9FBF9;
-  --bg3:       #F0F3F0;
-  --bg4:       #E4EAE4;
-  --line:      rgba(0,0,0,.08);
-  --text:      #2C352E;
-  --muted:     #6A736B;
-  --white:     #141A15;
-  --green:     #27AE60;
-  --red:       #C0392B;
+  --gold:      #b53c3c;
+  --gold2:     #cc5252;
+  --olive:     #0b0404;
+  --bg:        #0b0404;
+  --bg2:       #170c0c;
+  --bg3:       #241414;
+  --bg4:       #361f1f;
+  --line:      rgba(245, 237, 233, 0.12);
+  --text:      #f6efe9;
+  --muted:     rgba(245, 237, 233, 0.6);
+  --white:     #ffffff;
+  --green:     #2ecc71;
+  --red:       #e74c3c;
+  --accent-warm: #d96b6b;
+  --accent-emerald: #7ea393;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:ltr;}
@@ -46,7 +48,7 @@ nav{background:var(--bg2);border-right:1px solid var(--line);min-height:calc(100
 table{width:100%;border-collapse:collapse;}
 th{font-size:.65rem;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;font-family:'Montserrat',sans-serif;padding:.8rem 1rem;border-bottom:1px solid var(--line);text-align:left;font-weight:400;}
 td{padding:.9rem 1rem;border-bottom:1px solid var(--line);font-size:.9rem;vertical-align:middle;color:var(--text);}
-tr:hover td{background:rgba(0,0,0,.01);}
+tr:hover td{background:rgba(255,255,255,.02);}
 .tbl-price{font-family:'Montserrat',sans-serif;color:var(--gold);font-size:1.1rem;font-weight:700;}
 .badge{padding:.2rem .6rem;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;font-family:'Montserrat',sans-serif;border-radius:1px;}
 .badge-featured{background:rgba(194,159,67,15);color:var(--gold);}
@@ -182,7 +184,11 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
 </head>
 <body>
 <header>
-  <div><span style="font-size:.7rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase">Admin Panel — </span><span class="hlogo">OZEL</span></div>
+  <div style="display:flex;align-items:center;gap:.6rem;">
+    <img src="imgs/ozel-logo.png" alt="OZEL CAFE Logo" style="height:32px; width:auto; object-fit:contain;" />
+    <span style="font-size:.7rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase">Admin Panel — </span>
+    <span class="hlogo">OZEL</span>
+  </div>
   <div style="display:flex;gap:.8rem">
     <button class="hbtn" onclick="location.href='/cashier'">Cashier</button>
     <button class="hbtn" onclick="logout()">Logout</button>

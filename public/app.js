@@ -176,7 +176,7 @@ function renderMenu(drinks) {
       </div>
       <div class="lmi-actions">
         <button class="lmi-btn lmi-details" onclick="openDrink('${d.id}')">Details</button>
-        <button class="lmi-btn lmi-add" onclick="quickAddToCart('${d.id}')">Add ✦</button>
+        <button class="lmi-btn lmi-add" onclick="openDrink('${d.id}')">Add ✦</button>
       </div>
     `;
     grid.appendChild(item);
@@ -227,9 +227,16 @@ async function openDrink(id) {
         `).join('')}
       </div>
 
-      <button class="puzzle-add-btn" onclick="addToCart('${drink.id}')">
-        ✦ Add to Cart
-      </button>
+      <textarea id="drinkNotes" placeholder="Add your notes here..." style="width:100%; background:var(--bg); border:1px solid var(--line); color:var(--white); padding:.7rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.95rem; outline:none; margin-top: 1rem; height: 60px;"></textarea>
+
+      <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+        <button class="puzzle-add-btn" onclick="addToCart('${drink.id}', 'continue')" style="flex: 1;">
+          Continue Ordering
+        </button>
+        <button class="puzzle-add-btn" onclick="addToCart('${drink.id}', 'finish')" style="flex: 1; background: var(--gold); color: var(--bg);">
+          Finish Order
+        </button>
+      </div>
     </div>
   `;
   modal.classList.add('open');
@@ -250,19 +257,28 @@ function closeModal(e) {
 }
 
 // ── Cart ──────────────────────────────────
-function addToCart(drinkId) {
+function addToCart(drinkId, behavior = 'continue') {
   const drink = allDrinks.find(d => d.id === drinkId);
   const sugar = window.currentPuzzle.sugar;
   const extra = window.currentPuzzle.extra;
+  const notesElement = document.getElementById('drinkNotes');
+  const notes = notesElement ? notesElement.value : '';
+  
   let price = drink.price;
   if (extra.includes('Espresso') || extra.includes('Boba') || extra.includes('Nuts')) price += 15;
   if (extra.includes('Almond') || extra.includes('Ice Cream')) price += 20;
   if (extra.includes('Caramel') || extra.includes('Marshmallow')) price += 10;
-  cart.push({ drink_id: drink.id, name: drink.name, name_ar: drink.name_ar, sugar, extra, price });
+  
+  cart.push({ drink_id: drink.id, name: drink.name, name_ar: drink.name_ar, sugar, extra, price, notes });
   localStorage.setItem('ozel_cart', JSON.stringify(cart));
   updateCartUI();
-  alert('Added ' + drink.name + ' to cart successfully');
-  closeModal();
+  
+  if (behavior === 'finish') {
+    window.location.href = '/cart.html';
+  } else {
+    alert('Added ' + drink.name + ' to cart successfully');
+    closeModal();
+  }
 }
 
 function updateCartUI() {

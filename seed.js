@@ -162,9 +162,9 @@ const drinks = [
 for (const d of drinks) {
   insertDrink.run(
     ids[d[0]], d[1], d[2],
-    'تجربة لا تُنسى',
-    'مشروب فاخر من أجود المكونات',
-    'مكونات مختارة', '',
+    'An unforgettable experience',
+    'A premium drink crafted with the finest ingredients',
+    'Selected ingredients', '',
     d[3], 150, 'Medium', d[4], d[5], d[6]
   );
 }

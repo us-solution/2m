@@ -23,7 +23,7 @@
     .cart-header h1 {
       font-family: 'Cormorant Garamond', serif;
       font-size: 3rem;
-      color: var(--olive);
+      color: var(--gold);
       margin-bottom: 0.5rem;
     }
     .cart-items-list {
@@ -114,7 +114,8 @@
 <!-- NAV -->
 <nav id="nav" class="scrolled">
   <div class="nav-logo">
-    <span class="nav-logo-en">OZEL CAFE </span>
+    <img src="imgs/ozel-logo.png" alt="OZEL CAFE Logo" class="nav-logo-img" />
+    <span class="nav-logo-en">OZEL CAFE</span>
   </div>
   <div class="nav-links">
     <a href="/#about">Story</a>
@@ -210,7 +211,7 @@
       el.innerHTML = `
         <div class="ci-details">
           <h4>${item.name}</h4>
-          <p>Sugar: ${item.sugar} · Extras: ${item.extra}</p>
+          <p>Sugar: ${item.sugar} · Extras: ${item.extra}${item.notes ? ` · Notes: ${item.notes}` : ''}</p>
         </div>
         <div style="display:flex; align-items:center;">
           <div class="ci-price">${item.price} EGP</div>

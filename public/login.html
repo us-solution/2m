@@ -6,16 +6,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@300;400&display=swap" rel="stylesheet"/>
 <style>
 :root {
-  --gold:      #C29F43;
-  --gold2:     #D9B968;
-  --olive:     #3D4F3E;
-  --bg:        #FFFFFF;
-  --bg2:       #F9FBF9;
-  --bg3:       #F0F3F0;
-  --line:      rgba(0,0,0,.08);
-  --text:      #2C352E;
-  --muted:     #6A736B;
-  --white:     #141A15;
+  --gold:      #b53c3c;
+  --gold2:     #cc5252;
+  --olive:     #0b0404;
+  --bg:        #0b0404;
+  --bg2:       #170c0c;
+  --bg3:       #241414;
+  --line:      rgba(245, 237, 233, 0.12);
+  --text:      #f6efe9;
+  --muted:     rgba(245, 237, 233, 0.6);
+  --white:     #ffffff;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:ltr;min-height:100vh;display:flex;align-items:center;justify-content:center;}
@@ -24,8 +24,13 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);dir
 .wrap{position:relative;z-index:2;width:100%;max-width:460px;padding:1.5rem;}
 
 .logo{text-align:center;margin-bottom:2.5rem;}
-.logo-en{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:300;color:var(--gold);letter-spacing:.4em;display:block;}
+.login-logo-img{width:110px;height:auto;margin:0 auto 1rem;display:block;animation:pulseLogo 2s infinite ease-in-out;}
+.logo-en{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:300;color:var(--gold);letter-spacing:.4em;display:block;}
 .logo-tag{font-size:.65rem;letter-spacing:.5em;color:var(--muted);text-transform:uppercase;margin-top:.3rem;}
+@keyframes pulseLogo {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
 
 .card{background:var(--bg2);border:1px solid var(--line);box-shadow: 0 10px 30px rgba(0,0,0,0.05);padding:2.5rem;border-radius:8px;}
 .tabs{display:flex;gap:0;margin-bottom:2rem;border-bottom:1px solid var(--line);}
@@ -51,6 +56,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);dir
 <div class="grain"></div>
 <div class="wrap">
   <div class="logo">
+    <img src="imgs/ozel-logo.png" alt="OZEL Logo" class="login-logo-img" />
     <span class="logo-en">OZEL</span>
     <span class="logo-tag">Hidden Gem Café</span>
   </div>

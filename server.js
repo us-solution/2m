@@ -189,15 +189,15 @@ app.get('/api/auth/me', authMiddleware(), (req, res) => {
 
 app.post('/api/auth/change-password', authMiddleware(), async (req, res) => {
   const { oldPassword, newPassword } = req.body;
-  if (!oldPassword || !newPassword) return res.status(400).json({ error: 'يرجى إدخال كلمة المرور القديمة والجديدة' });
+  if (!oldPassword || !newPassword) return res.status(400).json({ error: 'Please enter old and new passwords' });
   try {
     const user = await User.findById(req.user.id);
     if (!bcrypt.compareSync(oldPassword, user.password_hash)) {
-      return res.status(401).json({ error: 'كلمة المرور القديمة غير صحيحة' });
+      return res.status(401).json({ error: 'Incorrect old password' });
     }
     user.password_hash = bcrypt.hashSync(newPassword, 10);
     await user.save();
-    res.json({ success: true, message: 'تم تغيير كلمة المرور بنجاح' });
+    res.json({ success: true, message: 'Password changed successfully' });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -593,8 +593,8 @@ app.get('/api/migrate-db', async (req, res) => {
         category_id: catIds[d[0]],
         name: d[1],
         name_ar: d[2],
-        tagline: 'تجربة لا تُنسى',
-        description: 'مشروب فاخر من أجود المكونات',
+        tagline: 'An unforgettable experience',
+        description: 'A premium drink crafted with the finest ingredients',
         price: d[3],
         temperature: d[4],
         image_emoji: d[5],
@@ -603,7 +603,7 @@ app.get('/api/migrate-db', async (req, res) => {
       });
     }
 
-    res.json({ success: true, message: 'تم ملء قاعدة البيانات بنجاح بالأنواع والمشروبات.' });
+    res.json({ success: true, message: 'Database populated successfully with categories and drinks.' });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
