@@ -788,7 +788,7 @@ def migrate_db_view(request):
 # ── Page Rendering Views ───────────────────────────────────────────
 def _serve_html(filename):
     """Serve an HTML file directly from the public folder."""
-    file_path = os.path.join(settings.BASE_DIR, 'public', filename)
+    file_path = os.path.join(settings.BASE_DIR, 'frontend', filename)
     if os.path.exists(file_path):
         return FileResponse(open(file_path, 'rb'), content_type='text/html; charset=utf-8')
     raise Http404(f"{filename} not found")
@@ -810,7 +810,7 @@ def index_page(request):
 
 # ── Generic File Server ────────────────────────────────────────────
 def serve_public_file(request, path_name):
-    file_path = os.path.join(settings.BASE_DIR, 'public', path_name)
+    file_path = os.path.join(settings.BASE_DIR, 'frontend', path_name)
     if os.path.exists(file_path) and os.path.isfile(file_path):
         return FileResponse(open(file_path, 'rb'))
     raise Http404("File not found")
