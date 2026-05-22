@@ -4128,37 +4128,55 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
     font-size: 0.75rem;
   }
 
-  /* Lounge */
+  /* Lounge — full mobile fix */
   #lounge {
-    padding: 3rem 0.8rem;
+    padding: 3rem 0.5rem;
   }
   .lounge-container {
-    padding: 1rem 0.8rem;
+    padding: 0.8rem;
     border-radius: var(--rad);
+    overflow: hidden;
+  }
+  .lounge-content {
+    padding: 1.5rem 0.8rem;
+    min-height: auto;
   }
   .lounge-cards-grid {
     grid-template-columns: 1fr;
-    gap: 0.6rem;
+    gap: 0.5rem;
+    padding: 0.8rem;
   }
   .lounge-game-card {
-    padding: 1rem;
+    padding: 0.8rem;
+    flex-direction: row;
+    gap: 0.8rem;
+    text-align: start;
   }
   .lounge-game-card h3 {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
   .lounge-game-card p {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+    display: none;
   }
   .lgc-icon {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
+    margin-bottom: 0;
   }
 
-  /* Spin the Cup */
+  /* Spin the Cup — mobile */
   .spin-game-wrap {
     padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    grid-template-columns: 1fr !important;
   }
   .player-manager-wrap {
-    padding: 0;
+    padding: 1rem;
+  }
+  .pm-title {
+    font-size: 0.8rem;
   }
   .player-input-row {
     flex-direction: column;
@@ -4167,86 +4185,142 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   .player-input-row input {
     width: 100%;
   }
+  .wheel-game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
   .cup-spinner-container {
-    width: 240px;
-    height: 240px;
-    margin: 1rem auto;
+    width: 200px !important;
+    height: 200px !important;
+    margin: 0.5rem auto;
   }
   #wheel-svg {
-    width: 240px;
-    height: 240px;
+    width: 200px !important;
+    height: 200px !important;
+  }
+  .cup-center-spinner {
+    width: 60px;
+    height: 60px;
+  }
+  .spinning-cup-img-v2 {
+    width: 38px;
+    height: 38px;
+  }
+  .spin-result-box {
+    max-width: 100%;
+    font-size: 0.85rem;
+    padding: 1rem;
+    min-height: 60px;
   }
 
-  /* Imposter game */
+  /* Imposter game — mobile */
+  .imposter-setup-panel,
+  .imposter-gameplay-panel,
+  .imposter-result-panel {
+    padding: 0 !important;
+  }
+  .imposter-game-wrap {
+    overflow-x: hidden;
+  }
   .imposter-title {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
   }
   .imposter-desc {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    line-height: 1.6;
   }
   .imposter-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.6rem;
-  }
-  .imposter-card {
-    padding: 0.8rem 0.5rem;
-  }
-  .imposter-card-name {
-    font-size: 0.8rem;
-  }
-
-  /* Glass panels (imposter modals/panels) */
-  .glass-hero-panel {
-    padding: 1.5rem 1rem;
-    margin: 0;
-    width: 100%;
-    max-width: 100%;
-  }
-  .glass-card-panel {
-    padding: 1.5rem 1rem;
-    margin: 0;
-    width: 100%;
-    max-width: 100%;
-  }
-
-  /* Imposter Add Player — stack vertically on mobile */
-  .glass-input-row {
-    flex-direction: column;
-    border-radius: var(--rad-lg);
-    padding: 0.5rem;
     gap: 0.5rem;
   }
-  .glass-input {
-    width: 100%;
-    text-align: center;
-    padding: 0.7rem 1rem;
-    border-radius: 20px;
-    background: var(--bg2);
-    border: 1px solid var(--line);
+  .imposter-card {
+    padding: 0.6rem 0.4rem;
   }
-  .glass-btn-gold {
-    width: 100%;
-    justify-content: center;
-    padding: 0.7rem 1rem;
-    font-size: 0.9rem;
-    white-space: nowrap;
+  .imposter-card-name {
+    font-size: 0.75rem;
   }
 
-  /* TicTacToe */
-  .ttt-board-wrapper {
+  /* Glass panels — mobile */
+  .glass-hero-panel {
+    padding: 1.2rem 0.8rem;
+    margin: 0 0 0.8rem 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .glass-card-panel {
+    padding: 1.2rem 0.8rem;
+    margin: 0 0 0.8rem 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .glass-action-area {
+    margin: 0;
     padding: 0;
   }
-  .ttt-board {
-    width: 260px;
-    height: 260px;
+  .glass-btn-massive {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
   }
-  .ttt-cell {
-    font-size: 1.8rem;
+  .glass-title {
+    font-size: 1.4rem;
+  }
+  .glass-desc {
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+  .glass-panel-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .glass-chips-container {
+    gap: 0.4rem;
+  }
+  .glass-player-chip {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  /* TicTacToe — mobile */
+  .ttt-game-wrap {
+    max-width: 100%;
+    margin: 0 auto;
   }
   .ttt-modes-row {
     flex-direction: column;
     gap: 0.5rem;
   }
+  .ttt-mode-selectors {
+    width: 100%;
+  }
+  .ttt-mode-btn {
+    flex: 1;
+    padding: 0.45rem 0.4rem;
+    font-size: 0.8rem;
+  }
+  .ttt-board-wrapper {
+    padding: 0;
+    display: flex;
+    justify-content: center;
+  }
+  .ttt-board {
+    width: 240px;
+    height: 240px;
+    grid-template-columns: repeat(3, 1fr) !important;
+    grid-template-rows: repeat(3, 1fr) !important;
+  }
+  .ttt-cell {
+    font-size: 1.6rem;
+  }
+  .ttt-info {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
 
   /* Contact */
   #contact {
