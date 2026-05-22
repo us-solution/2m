@@ -784,21 +784,29 @@ def migrate_db_view(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+
 # ── Page Rendering Views ───────────────────────────────────────────
+def _serve_html(filename):
+    """Serve an HTML file directly from the public folder."""
+    file_path = os.path.join(settings.BASE_DIR, 'public', filename)
+    if os.path.exists(file_path):
+        return FileResponse(open(file_path, 'rb'), content_type='text/html; charset=utf-8')
+    raise Http404(f"{filename} not found")
+
 def cashier_page(request):
-    return render(request, 'cashier.html')
+    return _serve_html('cashier.html')
 
 def admin_page(request):
-    return render(request, 'admin.html')
+    return _serve_html('admin.html')
 
 def login_page(request):
-    return render(request, 'login.html')
+    return _serve_html('login.html')
 
 def cart_page(request):
-    return render(request, 'cart.html')
+    return _serve_html('cart.html')
 
 def index_page(request):
-    return render(request, 'index.html')
+    return _serve_html('index.html')
 
 # ── Generic File Server ────────────────────────────────────────────
 def serve_public_file(request, path_name):
@@ -806,3 +814,4 @@ def serve_public_file(request, path_name):
     if os.path.exists(file_path) and os.path.isfile(file_path):
         return FileResponse(open(file_path, 'rb'))
     raise Http404("File not found")
+
