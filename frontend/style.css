@@ -79,7 +79,7 @@ body {
   background: var(--gold);
 }
 
-/* ── LOADER (Cinematic Glassmorphism) ── */
+/* ── LOADER (Full-screen Dark Splash) ── */
 #loader {
   position: fixed;
   inset: 0;
@@ -87,20 +87,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), visibility 1s;
+  background: #1a0e0a;
+  transition: transform 1s cubic-bezier(0.76, 0, 0.24, 1);
+}
+#loader.hidden {
+  transform: translateY(-100%);
+  pointer-events: none;
 }
 .loader-glass {
   position: absolute;
   inset: 0;
-  background: rgba(253, 251, 247, 0.85);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
+  background: radial-gradient(circle at center, rgba(84, 26, 26, 0.15) 0%, #1a0e0a 70%);
   z-index: 1;
-}
-#loader.hidden {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
 }
 .loader-content {
   position: relative;
@@ -112,16 +110,18 @@ body {
   text-align: center;
 }
 .loader-logo-cinematic {
-  width: 110px;
+  width: 55vw;
+  max-width: 320px;
+  min-width: 180px;
   height: auto;
   margin-bottom: 2.5rem;
-  filter: drop-shadow(0 10px 25px rgba(84, 26, 26, 0.15));
-  animation: floatCinematic 3s ease-in-out infinite;
+  filter: drop-shadow(0 15px 40px rgba(84, 26, 26, 0.4)) brightness(1.1);
+  animation: loaderPulse 2.5s ease-in-out infinite;
 }
 .loader-ring {
-  width: 60px;
-  height: 60px;
-  border: 1px solid rgba(84, 26, 26, 0.1);
+  width: 50px;
+  height: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 50%;
   position: relative;
 }
@@ -131,12 +131,12 @@ body {
   inset: -2px;
   border-radius: 50%;
   border: 2px solid transparent;
-  border-top-color: var(--gold);
+  border-top-color: rgba(255, 255, 255, 0.6);
   animation: spin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
 }
-@keyframes floatCinematic {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+@keyframes loaderPulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.04); opacity: 1; }
 }
 @keyframes spin {
   to { transform: rotate(360deg); }
@@ -4092,40 +4092,65 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
 
   /* Menu layout — single column on mobile */
   .menu-layout-split {
-    grid-template-columns: 1fr;
-    gap: 0;
+    display: block !important;
+    grid-template-columns: unset !important;
   }
   .menu-right-deck {
-    display: none;
+    display: none !important;
+  }
+  .menu-left-main {
+    width: 100% !important;
   }
   #menu {
-    padding: 3rem 1rem;
+    padding: 3rem 0.8rem;
+    overflow-x: hidden;
   }
   .menu-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    max-width: 100%;
   }
 
-  /* Luxury Menu Item */
+  /* Luxury Menu Item — proper mobile display */
   .luxury-menu-item {
-    padding: 1rem;
+    padding: 1rem 0.5rem;
+    border-bottom: 1px solid var(--line);
+    width: 100%;
+    box-sizing: border-box;
   }
   .lmi-top {
-    gap: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    align-items: center;
   }
   .lmi-name {
-    font-size: 0.95rem;
+    font-size: 1rem;
+    flex: 1;
+    min-width: 0;
+  }
+  .lmi-dots {
+    display: none;
   }
   .lmi-price {
-    font-size: 1rem;
+    font-size: 1.05rem;
+    white-space: nowrap;
+  }
+  .lmi-currency {
+    font-size: 0.65rem;
   }
   .lmi-actions {
-    gap: 0.4rem;
+    display: flex;
+    gap: 0.5rem;
     margin-top: 0.5rem;
+    width: 100%;
   }
   .lmi-btn {
-    padding: 0.3rem 0.7rem;
-    font-size: 0.75rem;
+    flex: 1;
+    text-align: center;
+    padding: 0.45rem 0.5rem;
+    font-size: 0.8rem;
   }
 
   /* Lounge — full mobile fix */
