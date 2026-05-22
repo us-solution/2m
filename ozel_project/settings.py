@@ -75,10 +75,14 @@ WSGI_APPLICATION = 'ozel_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+import os as _os
+_IS_VERCEL = bool(_os.environ.get('VERCEL') or _os.environ.get('VERCEL_ENV'))
+_DB_PATH = '/tmp/db.sqlite3' if _IS_VERCEL else str(BASE_DIR / 'db.sqlite3')
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': _DB_PATH,
     }
 }
 
