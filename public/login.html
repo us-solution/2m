@@ -6,22 +6,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@300;400&display=swap" rel="stylesheet"/>
 <style>
 :root {
-  --burgundy:      #8c1c1c;
-  --burgundy2:     #a82c2c;
-  --burgundy-glow: rgba(140, 28, 28, 0.06);
-  --accent-emerald:       #2a4b3d;
-  --accent-emerald-light: #3d6b57;
-  --accent-emerald-glow:  rgba(42, 75, 61, 0.05);
-  --gold:          #c29f43;
-  --gold2:         #d4af37;
-  --gold-glow:     rgba(194, 159, 67, 0.08);
-  --bg:            #F7F4EF;
-  --bg2:           #ffffff;
-  --bg3:           #EFEBE4;
-  --bg4:           #E5DEC9;
-  --line:          rgba(42, 75, 61, 0.08);
-  --text:          #1A1715;
-  --muted:         rgba(26, 23, 21, 0.65);
+  --burgundy:      #541a1a;
+  --burgundy2:     #702424;
+  --burgundy-glow: rgba(84, 26, 26, 0.08);
+  --accent-emerald:       #5c766d;
+  --accent-emerald-light: #759288;
+  --accent-emerald-glow:  rgba(92, 118, 109, 0.08);
+  --gold:          #541a1a;
+  --gold2:         #702424;
+  --gold-glow:     rgba(84, 26, 26, 0.12);
+  --bg:            #FDFBF7;
+  --bg2:           #FFFFFF;
+  --bg3:           #F5F2EC;
+  --bg4:           #EAE5DA;
+  --line:          rgba(92, 118, 109, 0.16);
+  --text:          #241E1A;
+  --muted:         rgba(36, 30, 26, 0.65);
   --white:         #ffffff;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -39,18 +39,18 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);dir
   50% { transform: scale(1.05); opacity: 1; }
 }
 
-.card{background:var(--bg2);border:1px solid var(--line);box-shadow: 0 10px 30px rgba(0,0,0,0.05);padding:2.5rem;border-radius:8px;}
+.card{background:var(--bg2);border:1px solid var(--line);box-shadow: 0 10px 30px rgba(36, 30, 26, 0.05);padding:2.5rem;border-radius:8px;}
 .tabs{display:flex;gap:0;margin-bottom:2rem;border-bottom:1px solid var(--line);}
 .tab{flex:1;background:none;border:none;color:var(--muted);padding:.8rem;font-family:'Tajawal',sans-serif;font-size:.95rem;cursor:pointer;transition:all .2s;border-bottom:2px solid transparent;margin-bottom:-1px;}
-.tab.active{color:var(--accent-emerald);border-bottom-color:var(--accent-emerald);font-weight:700;}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:700;}
 .form-section{display:none;}
 .form-section.active{display:block;}
 .field{margin-bottom:1.2rem;}
 .field label{display:block;font-size:.7rem;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:.5rem;font-family:'Montserrat',sans-serif;}
 .field input{width:100%;background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.85rem 1rem;font-family:'Tajawal',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s;border-radius:4px;}
-.field input:focus{border-color:var(--accent-emerald);}
-.btn{width:100%;background:var(--accent-emerald);color:#FFFFFF;border:none;padding:.9rem;font-family:'Tajawal',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .3s;margin-top:.5rem;letter-spacing:.05em;border-radius:4px;}
-.btn:hover{background:#3a5c4d;}
+.field input:focus{border-color:var(--gold);}
+.btn{width:100%;background:var(--gold);color:var(--white);border:none;padding:.9rem;font-family:'Tajawal',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .3s;margin-top:.5rem;letter-spacing:.05em;border-radius:4px;}
+.btn:hover{background:var(--gold2);}
 .err{color:#C0392B;font-size:.85rem;margin-top:.8rem;text-align:center;}
 .ok{color:#27AE60;font-size:.85rem;margin-top:.8rem;text-align:center;}
 .skip{display:block;text-align:center;margin-top:1.5rem;color:var(--muted);font-size:.85rem;cursor:pointer;transition:color .2s;}
@@ -62,62 +62,73 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);dir
 <div class="bg-img"></div>
 <div class="grain"></div>
 <div class="wrap">
+  <div style="display:flex; justify-content:flex-end; margin-bottom:1rem;">
+    <button id="lang-toggle" style="background:none; border:1px solid var(--line); padding:0.4rem 0.8rem; border-radius:30px; color:var(--gold); font-family:'Tajawal',sans-serif; cursor:pointer;" onclick="toggleLanguage()">العربية</button>
+  </div>
   <div class="logo">
     <img src="imgs/ozel-logo-vertical.png" alt="OZEL Logo" class="login-logo-img" />
     <span class="logo-en">OZEL</span>
-    <span class="logo-tag">Hidden Gem Café</span>
+    <span class="logo-tag" data-en="Hidden Gem Café" data-ar="الجوهرة المخفية">Hidden Gem Café</span>
   </div>
   <div class="card">
     <div class="tabs">
-      <button class="tab active" onclick="switchTab('login')">Login</button>
-      <button class="tab" onclick="switchTab('register')">Register</button>
+      <button class="tab active" onclick="switchTab('login')" data-en="Login" data-ar="تسجيل الدخول">Login</button>
+      <button class="tab" onclick="switchTab('register')" data-en="Register" data-ar="تسجيل حساب">Register</button>
     </div>
 
     <!-- LOGIN -->
     <div class="form-section active" id="tab-login">
-      <div class="field"><label>Phone Number</label><input id="l-phone" type="tel" placeholder="01xxxxxxxxx"/></div>
-      <div class="field"><label>Password</label><input id="l-pass" type="password" placeholder="••••••••"/></div>
-      <button class="btn" onclick="doLogin()">Login</button>
-      <span class="skip" style="margin-top:0.8rem; font-size:0.75rem;" onclick="forgotPassword()">Forgot Password?</span>
+      <div class="field"><label data-en="Phone Number" data-ar="رقم الهاتف">Phone Number</label><input id="l-phone" type="tel" data-placeholder-en="01xxxxxxxxx" data-placeholder-ar="٠١xxxxxxxxx" placeholder="01xxxxxxxxx"/></div>
+      <div class="field"><label data-en="Password" data-ar="كلمة المرور">Password</label><input id="l-pass" type="password" data-placeholder-en="••••••••" data-placeholder-ar="••••••••" placeholder="••••••••"/></div>
+      <button class="btn" onclick="doLogin()" data-en="Login" data-ar="تسجيل الدخول">Login</button>
+      <span class="skip" style="margin-top:0.8rem; font-size:0.75rem;" onclick="forgotPassword()" data-en="Forgot Password?" data-ar="نسيت كلمة المرور؟">Forgot Password?</span>
       <p class="err" id="l-err"></p>
     </div>
 
     <!-- REGISTER -->
     <div class="form-section" id="tab-register">
-      <div class="field"><label>Name</label><input id="r-name" type="text" placeholder="Your Name"/></div>
-      <div class="field"><label>Phone Number</label><input id="r-phone" type="tel" placeholder="01xxxxxxxxx"/></div>
-      <div class="field"><label>Password</label><input id="r-pass" type="password" placeholder="Choose a password"/></div>
-      <button class="btn" onclick="doRegister()">Create Account</button>
+      <div class="field"><label data-en="Name" data-ar="الاسم">Name</label><input id="r-name" type="text" data-placeholder-en="Your Name" data-placeholder-ar="الاسم الكريم" placeholder="Your Name"/></div>
+      <div class="field"><label data-en="Phone Number" data-ar="رقم الهاتف">Phone Number</label><input id="r-phone" type="tel" data-placeholder-en="01xxxxxxxxx" data-placeholder-ar="٠١xxxxxxxxx" placeholder="01xxxxxxxxx"/></div>
+      <div class="field"><label data-en="Password" data-ar="كلمة المرور">Password</label><input id="r-pass" type="password" data-placeholder-en="Choose a password" data-placeholder-ar="اختر كلمة مرور" placeholder="Choose a password"/></div>
+      <button class="btn" onclick="doRegister()" data-en="Create Account" data-ar="إنشاء حساب">Create Account</button>
       <p class="err" id="r-err"></p>
     </div>
   </div>
-  <span class="skip" onclick="skipLogin()">Skip and browse menu without login</span>
+  <span class="skip" onclick="skipLogin()" data-en="Skip and browse menu without login" data-ar="تخطى وتصفح المنيو بدون تسجيل الدخول">Skip and browse menu without login</span>
 </div>
 <script>
 const redirect = new URLSearchParams(location.search).get('from') || '/';
+let currentLang = localStorage.getItem('ozel_lang') || 'en';
+
 function switchTab(t){
   document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',i===(t==='login'?0:1)));
   document.getElementById('tab-login').classList.toggle('active',t==='login');
   document.getElementById('tab-register').classList.toggle('active',t==='register');
 }
+
 function translateError(msg) {
-  if (msg === 'Invalid credentials') return 'Incorrect phone number or password';
-  if (msg === 'User not found') return 'Account not found';
-  if (msg === 'Phone already registered') return 'Phone number already registered';
-  if (msg === 'All fields required') return 'Please complete all fields';
-  return 'An error occurred, please try again';
+  const isAr = currentLang === 'ar';
+  if (msg === 'Invalid credentials') return isAr ? 'رقم الهاتف أو كلمة المرور غير صحيحة' : 'Incorrect phone number or password';
+  if (msg === 'User not found') return isAr ? 'الحساب غير موجود' : 'Account not found';
+  if (msg === 'Phone already registered') return isAr ? 'رقم الهاتف مسجل بالفعل' : 'Phone number already registered';
+  if (msg === 'All fields required') return isAr ? 'يرجى إكمال جميع الحقول' : 'Please complete all fields';
+  return isAr ? 'حدث خطأ، يرجى المحاولة مرة أخرى' : 'An error occurred, please try again';
 }
 
 function forgotPassword() {
-  alert('To restore your password, please see the cashier at the cafe to reset your account.');
+  const isAr = currentLang === 'ar';
+  alert(isAr 
+    ? 'لاستعادة كلمة المرور، يرجى مراجعة الكاشير في الكافيه لإعادة تعيين حسابك.' 
+    : 'To restore your password, please see the cashier at the cafe to reset your account.');
 }
 
 async function doLogin(){
+  const isAr = currentLang === 'ar';
   const phone=document.getElementById('l-phone').value.trim();
   const pass=document.getElementById('l-pass').value;
   const err=document.getElementById('l-err');
   err.textContent='';
-  if(!phone || !pass) { err.textContent = 'Please enter phone number and password'; return; }
+  if(!phone || !pass) { err.textContent = isAr ? 'يرجى إدخال رقم الهاتف وكلمة المرور' : 'Please enter phone number and password'; return; }
   const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,password:pass})});
   const data=await res.json();
   if(!res.ok){err.textContent=translateError(data.error);return;}
@@ -127,14 +138,16 @@ async function doLogin(){
   else if(data.user.role==='cashier') location.href='/cashier';
   else location.href=redirect;
 }
+
 async function doRegister(){
+  const isAr = currentLang === 'ar';
   const name=document.getElementById('r-name').value.trim();
   const phone=document.getElementById('r-phone').value.trim();
   const pass=document.getElementById('r-pass').value;
   const err=document.getElementById('r-err');
   err.textContent='';
-  if(!name || !phone || !pass) { err.textContent = 'Please complete all fields'; return; }
-  if(phone.length < 10) { err.textContent = 'Invalid phone number'; return; }
+  if(!name || !phone || !pass) { err.textContent = isAr ? 'يرجى إكمال جميع الحقول' : 'Please complete all fields'; return; }
+  if(phone.length < 10) { err.textContent = isAr ? 'رقم هاتف غير صالح' : 'Invalid phone number'; return; }
   const res=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,phone,password:pass})});
   const data=await res.json();
   if(!res.ok){err.textContent=translateError(data.error);return;}
@@ -142,10 +155,45 @@ async function doRegister(){
   localStorage.setItem('ozel_user',JSON.stringify(data.user));
   location.href=redirect;
 }
+
 function skipLogin(){location.href=redirect;}
+
+function toggleLanguage() {
+  currentLang = currentLang === 'en' ? 'ar' : 'en';
+  localStorage.setItem('ozel_lang', currentLang);
+  applyLanguage(currentLang);
+}
+
+function applyLanguage(lang) {
+  const isAr = lang === 'ar';
+  document.documentElement.lang = lang;
+  document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+  document.body.style.direction = isAr ? 'rtl' : 'ltr';
+  
+  const toggleBtn = document.getElementById('lang-toggle');
+  if (toggleBtn) {
+    toggleBtn.textContent = isAr ? 'English' : 'العربية';
+  }
+  
+  document.querySelectorAll('[data-en]').forEach(el => {
+    el.textContent = isAr ? el.getAttribute('data-ar') : el.getAttribute('data-en');
+  });
+  
+  document.querySelectorAll('[data-placeholder-en]').forEach(el => {
+    el.placeholder = isAr ? el.getAttribute('data-placeholder-ar') : el.getAttribute('data-placeholder-en');
+  });
+}
+
 // Auto redirect if already logged in
 const u=JSON.parse(localStorage.getItem('ozel_user')||'null');
-if(u){if(u.role==='admin')location.href='/admin';else if(u.role==='cashier')location.href='/cashier';else location.href=redirect;}
+if(u){
+  if(u.role==='admin') location.href='/admin';
+  else if(u.role==='cashier') location.href='/cashier';
+  else location.href=redirect;
+}
+
+// Initial Load
+applyLanguage(currentLang);
 </script>
 </body>
 </html>

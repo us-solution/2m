@@ -18,12 +18,10 @@
 <body>
 
   <div id="loader">
+    <div class="loader-glass"></div>
     <div class="loader-content">
-      <img src="imgs/ozel-logo-vertical.png" alt="OZEL Logo" class="loader-logo" />
-      <div class="loader-sub">Hidden Gem</div>
-      <div class="loader-progress-wrap">
-        <div class="loader-progress-bar"></div>
-      </div>
+      <img src="imgs/ozel-logo-vertical.png" alt="OZEL Logo" class="loader-logo-cinematic" />
+      <div class="loader-ring"></div>
     </div>
   </div>
 
@@ -33,15 +31,21 @@
       <img src="imgs/ozel-logo-horizontal.png" alt="OZEL Logo" class="nav-logo-img" />
     </div>
     <div class="nav-links">
-      <a href="#about">Story</a>
-      <a href="#menu">Menu</a>
-      <a href="#offers">Offers</a>
-      <a href="#contact">Contact</a>
+      <a href="#about" data-en="Story" data-ar="حكايتنا">Story</a>
+      <a href="#lounge" data-en="Table Games" data-ar="ركن التسلية">Table Games</a>
+      <a href="#menu" data-en="Menu" data-ar="المنيو">Menu</a>
+      <a href="#contact" data-en="Contact" data-ar="تواصل معنا">Contact</a>
     </div>
-    <div style="display:flex;gap:.7rem;align-items:center">
+    <div style="display:flex;gap:1.5rem;align-items:center">
+      <div class="lang-switch-wrapper" onclick="toggleLanguage()" id="langToggleSwitch">
+        <span class="lang-switch-text en-text">EN</span>
+        <div class="lang-switch-pill">
+          <div class="lang-switch-thumb"></div>
+        </div>
+        <span class="lang-switch-text ar-text">ع</span>
+      </div>
       <div id="nav-user-area"></div>
-      <button class="nav-cta" onclick="document.getElementById('menu').scrollIntoView({behavior:'smooth'})">Order
-        Now</button>
+      <button class="nav-cta" onclick="document.getElementById('menu').scrollIntoView({behavior:'smooth'})" data-en="Order Now" data-ar="اطلب الآن">Order Now</button>
     </div>
   </nav>
 
@@ -51,33 +55,29 @@
     <div class="hero-grain"></div>
     <div class="hero-vignette"></div>
     <div class="hero-content">
-      <div class="hero-eyebrow">— Hidden Gem Café —</div>
+      <div class="hero-eyebrow" data-en="— Hidden Gem Café —" data-ar="— الجوهرة المخفية —">— Hidden Gem Café —</div>
       <h1 class="hero-headline">
         <div class="headline-line" data-text="OZEL">OZEL</div>
       </h1>
-      <p class="hero-ar-name">OZEL CAFE</p>
-      <p class="hero-tagline">Where beauty is crafted in every cup</p>
+      <p class="hero-ar-name" data-en="OZEL CAFE" data-ar="أوزيل كافيه">OZEL CAFE</p>
+      <p class="hero-tagline" data-en="Where beauty is crafted in every cup" data-ar="حيث يُصنع الجمال في كل كوب">Where beauty is crafted in every cup</p>
       <div class="hero-actions">
         <button class="btn-gold" onclick="document.getElementById('menu').scrollIntoView({behavior:'smooth'})">
-          <span>Discover Menu</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
+          <span data-en="Discover Menu" data-ar="تصفح المنيو">Discover Menu</span>
         </button>
-        <button class="btn-outline" onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})">Our
-          Story</button>
+        <button class="btn-outline" onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})" data-en="Our Story" data-ar="حكايتنا">Our Story</button>
       </div>
     </div>
     <div class="hero-scroll">
-      <span>Scroll</span>
+      <span data-en="Scroll" data-ar="اسحب لأسفل">Scroll</span>
       <div class="hero-scroll-line"></div>
     </div>
     <div class="hero-stats">
-      <div class="hstat"><strong>+80</strong><span>Items</span></div>
+      <div class="hstat"><strong>+80</strong><span data-en="Items" data-ar="صنف">Items</span></div>
       <div class="hstat-sep"></div>
-      <div class="hstat"><strong>100%</strong><span>Fresh</span></div>
+      <div class="hstat"><strong>100%</strong><span data-en="Fresh" data-ar="طازج">Fresh</span></div>
       <div class="hstat-sep"></div>
-      <div class="hstat"><strong>★ 4.9</strong><span>Rating</span></div>
+      <div class="hstat"><strong>★ 4.9</strong><span data-en="Rating" data-ar="تقييم">Rating</span></div>
     </div>
   </section>
 
@@ -119,27 +119,27 @@
         </div>
       </div>
       <div class="about-text">
-        <p class="section-eyebrow">/ Our Story /</p>
-        <h2 class="section-heading">An exceptional haven...<br /><em>discovered only by lovers of beauty</em></h2>
-        <p class="about-para">
+        <p class="section-eyebrow" data-en="/ Our Story /" data-ar="/ قصتنا /">/ Our Story /</p>
+        <h2 class="section-heading" data-en="An exceptional haven...<br /><em>discovered only by lovers of beauty</em>" data-ar="ملاذ استثنائي...<br /><em>لا يكتشفه إلا عشاق الجمال</em>">An exceptional haven...<br /><em>discovered only by lovers of beauty</em></h2>
+        <p class="about-para" data-en="At 'Ozel Cafe', we don't just make coffee, we craft it as a masterpiece worthy of your taste. Every bean we choose, and every drop we pour, is the result of true passion aimed at giving you an experience immersed in tranquility, and unforgettable moments of pure pleasure." data-ar="في 'أوزيل كافيه'، نحن لا نصنع القهوة فحسب، بل نصنعها كتحفة فنية تليق بذوقك. كل حبة نختارها، وكل قطرة نصبها، هي نتاج شغف حقيقي يهدف لمنحك تجربة مغمورة بالهدوء، ولحظات لا تنسى من المتعة الخالصة.">
           At "Ozel Cafe", we don't just make coffee, we craft it as a masterpiece worthy of your taste. Every bean we
           choose, and every drop we pour, is the result of true passion aimed at giving you an experience immersed in
           tranquility, and unforgettable moments of pure pleasure.
         </p>
         <div class="about-features">
           <div class="af-item"><span class="af-icon">✦</span>
-            <div><strong>Authentic Origin</strong>
-              <p>Premium Arabica beans, carefully selected from the world's most ancient farms.</p>
+            <div><strong data-en="Authentic Origin" data-ar="أصل أصيل">Authentic Origin</strong>
+              <p data-en="Premium Arabica beans, carefully selected from the world's most ancient farms." data-ar="حبوب أرابيكا ممتازة، تم اختيارها بعناية من أعرق المزارع حول العالم.">Premium Arabica beans, carefully selected from the world's most ancient farms.</p>
             </div>
           </div>
           <div class="af-item"><span class="af-icon">✦</span>
-            <div><strong>Pure Taste</strong>
-              <p>Fresh ingredients daily, completely free of any artificial additives to enjoy nature.</p>
+            <div><strong data-en="Pure Taste" data-ar="طعم نقي">Pure Taste</strong>
+              <p data-en="Fresh ingredients daily, completely free of any artificial additives to enjoy nature." data-ar="مكونات طازجة يومياً، خالية تماماً من أي إضافات صناعية للاستمتاع بالطبيعة.">Fresh ingredients daily, completely free of any artificial additives to enjoy nature.</p>
             </div>
           </div>
           <div class="af-item"><span class="af-icon">✦</span>
-            <div><strong>Art in Every Cup</strong>
-              <p>Latte art translates our passion into visual paintings that delight the eye before the taste.</p>
+            <div><strong data-en="Art in Every Cup" data-ar="فن في كل كوب">Art in Every Cup</strong>
+              <p data-en="Latte art translates our passion into visual paintings that delight the eye before the taste." data-ar="فن اللاتيه يترجم شغفنا إلى لوحات بصرية تبهج العين قبل المذاق.">Latte art translates our passion into visual paintings that delight the eye before the taste.</p>
             </div>
           </div>
         </div>
@@ -147,24 +147,159 @@
     </div>
   </section>
 
+  <!-- TABLE LOUNGE -->
+  <section id="lounge">
+    <div class="section-head-center">
+      <p class="section-eyebrow" data-en="/ Table Lounge /" data-ar="/ ركن التسلية /">/ Table Lounge /</p>
+      <h2 class="section-heading" data-en="Table Lounge ✦ <em>Games</em>" data-ar="ركن التسلية ✦ <em>وقت المرح</em>">Table Lounge ✦ <em>Games</em></h2>
+      <p class="section-sub" data-en="Fun multiplayer games to play with friends at the table while waiting for your coffee" data-ar="ألعاب جماعية ممتعة لتلعبها مع أصدقائك على الطاولة أثناء انتظار قهوتك">Fun multiplayer games to play with friends at the table while waiting for your coffee</p>
+    </div>
+
+    <div class="lounge-container">
+      <div class="lounge-cards-grid">
+        <div class="lounge-game-card" id="btn-tab-spin" onclick="switchLoungeTab('spin')">
+          <div class="lgc-icon">☕</div>
+          <h3 data-en="Spin the Cup" data-ar="عجلة الحظ">Spin the Cup</h3>
+          <p data-en="Test your luck!" data-ar="جرب حظك!">Test your luck!</p>
+        </div>
+        <div class="lounge-game-card active" id="btn-tab-imposter" onclick="switchLoungeTab('imposter')">
+          <div class="lgc-icon">🕵️</div>
+          <h3 data-en="Who is the Imposter?" data-ar="مين الدخيل؟">Who is the Imposter?</h3>
+          <p data-en="Find the spy among you." data-ar="اكتشف الجاسوس بينكم.">Find the spy among you.</p>
+        </div>
+        <div class="lounge-game-card" id="btn-tab-ttt" onclick="switchLoungeTab('ttt')">
+          <div class="lgc-icon">❌⭕</div>
+          <h3 data-en="Tic-Tac-Coffee" data-ar="إكس أو">Tic-Tac-Coffee</h3>
+          <p data-en="Classic fun." data-ar="لعبة كلاسيكية.">Classic fun.</p>
+        </div>
+      </div>
+
+      <div class="lounge-content">
+        <!-- SPIN THE CUP -->
+        <div id="lounge-spin" class="lounge-panel">
+          <div class="spin-game-wrap">
+            <div class="player-manager-wrap">
+              <p class="pm-title" data-en="Add players sitting at the table (2 to 8 players):" data-ar="إضافة اللاعبين الجالسين على الطاولة (من 2 إلى 8 لاعبين):">Add players sitting at the table (2 to 8 players):</p>
+              <div class="player-input-row">
+                <input type="text" id="player-name-input" data-placeholder-en="Player name..." data-placeholder-ar="اسم اللاعب..." placeholder="Player name..." maxlength="12" onkeydown="if(event.key==='Enter') addLoungePlayer()" />
+                <button class="btn-gold" onclick="addLoungePlayer()" style="padding: 0.6rem 1.2rem; font-size: 0.85rem;" data-en="Add +" data-ar="إضافة +">Add +</button>
+              </div>
+              <div class="player-chips-list" id="player-chips-container">
+                <!-- Player chips loaded dynamically -->
+              </div>
+            </div>
+
+            <div class="wheel-game-container">
+              <div class="cup-spinner-container">
+                <svg id="wheel-svg" viewBox="0 0 300 300">
+                  <!-- Slices loaded dynamically -->
+                </svg>
+                <div class="cup-center-spinner" id="cup-center-spinner">
+                  <img src="imgs/espresso.png" alt="Coffee Cup" class="spinning-cup-img-v2" />
+                  <div class="cup-pointer-dot"></div>
+                </div>
+                <div class="cup-spinner-arrow-v2">✦</div>
+              </div>
+              <button class="btn-gold" id="spin-btn" onclick="spinTheCupV2()" style="margin: 0 auto; display: block; padding: 0.8rem 2rem; font-size: 0.95rem; font-weight: 700; letter-spacing: 0.05em; border-radius: 50px;" data-en="✦ SPIN THE CUP ✦" data-ar="✦ لف الفنجان ✦">✦ SPIN THE CUP ✦</button>
+              <div class="spin-result-box" id="spin-result" data-en="Add players then click 'Spin the Cup'!" data-ar="أضف لاعبين ثم انقر على 'لف الفنجان'!">Add players then click 'Spin the Cup'!</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- IMPOSTER -->
+        <div id="lounge-imposter" class="lounge-panel active">
+          <div class="imposter-game-wrap" style="width: 100%;">
+            <div id="imposter-setup" class="imposter-setup-panel" style="text-align: center; padding: 2rem 0;">
+              <!-- Setup state populated dynamically -->
+            </div>
+            
+            <div id="imposter-gameplay" class="imposter-gameplay-panel" style="display: none; width: 100%;">
+              <!-- Gameplay cards populated dynamically -->
+            </div>
+
+            <div id="imposter-result" class="imposter-result-panel" style="display: none; text-align: center; padding: 2rem 0;">
+              <!-- Result state populated dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- TIC-TAC-COFFEE -->
+        <div id="lounge-ttt" class="lounge-panel">
+          <div class="ttt-game-wrap">
+            <div class="ttt-modes-row">
+              <div class="ttt-mode-selectors">
+                <button class="ttt-mode-btn active" id="ttt-btn-local" onclick="setTTTMode('local')" data-en="Player vs Player" data-ar="لاعب ضد لاعب">Player vs Player</button>
+                <button class="ttt-mode-btn" id="ttt-btn-ai" onclick="setTTTMode('ai')" data-en="Vs Smart Barista" data-ar="ضد الباريستا الذكي">Vs Smart Barista</button>
+              </div>
+              <div class="ttt-difficulty-wrap" id="ttt-difficulty-container" style="display: none;">
+                <select id="ttt-difficulty" class="ttt-select" onchange="resetTTT()">
+                  <option value="easy" data-en="Easy" data-ar="مبتدئ">Easy</option>
+                  <option value="smart" selected data-en="Smart AI" data-ar="محترف">Smart AI</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="ttt-info" style="margin-top: 1rem;">
+              <span id="ttt-status" style="font-weight:700; color:var(--accent-emerald);" data-en="Player O's Turn" data-ar="دور اللاعب الأول (اللاعب O)">Player O's Turn</span>
+              <button class="btn-outline" onclick="resetTTT()" style="padding: 0.35rem 0.9rem; font-size: 0.8rem; border-color: var(--line); border-radius: 30px;" data-en="Reset" data-ar="إعادة البدء">Reset</button>
+            </div>
+
+            <div class="ttt-board-wrapper">
+              <div class="ttt-board" id="ttt-board">
+                <div class="ttt-cell" data-idx="0" onclick="playTTT(0)"></div>
+                <div class="ttt-cell" data-idx="1" onclick="playTTT(1)"></div>
+                <div class="ttt-cell" data-idx="2" onclick="playTTT(2)"></div>
+                <div class="ttt-cell" data-idx="3" onclick="playTTT(3)"></div>
+                <div class="ttt-cell" data-idx="4" onclick="playTTT(4)"></div>
+                <div class="ttt-cell" data-idx="5" onclick="playTTT(5)"></div>
+                <div class="ttt-cell" data-idx="6" onclick="playTTT(6)"></div>
+                <div class="ttt-cell" data-idx="7" onclick="playTTT(7)"></div>
+                <div class="ttt-cell" data-idx="8" onclick="playTTT(8)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
   <!-- MENU -->
   <section id="menu">
     <div class="section-head-center">
-      <p class="section-eyebrow">/ What We Offer /</p>
-      <h2 class="section-heading">Full Menu</h2>
-      <p class="section-sub">Build your own experience — each item is a unique puzzle piece</p>
+      <p class="section-eyebrow" data-en="/ Ozel Menu /" data-ar="/ قائمة أوزيل /">/ Ozel Menu /</p>
+      <h2 class="section-heading" data-en="Ozel Menu ✦ <em>Menu</em>" data-ar="قائمة أوزيل ✦ <em>Menu</em>">Ozel Menu ✦ <em>Menu</em></h2>
+      <p class="section-sub" data-en="Click on any drink to customize and order instantly without leaving the page!" data-ar="اضغط على أي مشروب لتخصيصه وطلبه فوراً دون مغادرة الصفحة!">Click on any drink to customize and order instantly without leaving the page!</p>
     </div>
 
     <div id="offersContainer" class="offers-container"></div>
 
-    <div class="cat-bar" id="catTabs">
-      <button class="cat-btn active" data-cat="all">All</button>
-    </div>
+    <div class="menu-layout-split">
+      <div class="menu-left-main">
+        <div class="cat-bar" id="catTabs">
+          <button class="cat-btn active" data-cat="all">All</button>
+        </div>
 
-    <div class="menu-grid" id="menuGrid">
-      <div class="menu-loading">
-        <div class="menu-loading-ring"></div>
-        <p>Loading menu...</p>
+        <div class="menu-grid" id="menuGrid">
+          <div class="menu-loading">
+            <div class="menu-loading-ring"></div>
+            <p>Loading menu...</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-right-deck" id="alchemyDeck">
+        <div class="alchemy-deck-sticky">
+          <div class="deck-header">
+            <span class="deck-eyebrow" data-en="✦ Ozel Customization ✦" data-ar="✦ تخصيص المشروب ✦">✦ Ozel Customization ✦</span>
+            <h3 class="deck-title" data-en="Coffee Customization & Extras" data-ar="تخصيص وإضافات القهوة">Coffee Customization & Extras</h3>
+          </div>
+          <div id="deckContent" class="deck-content-wrap">
+            <div class="deck-placeholder">
+              <p style="font-family: 'Tajawal', sans-serif; font-size: 0.95rem; line-height: 1.6;" data-en="Select any drink from the menu to customize and order instantly without leaving the page!" data-ar="اختر أي مشروب من القائمة لتخصيصه وطلبه فوراً دون مغادرة الصفحة!">Select any drink from the menu to customize and order instantly without leaving the page!</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -179,40 +314,40 @@
 
   <!-- CART BUTTON -->
   <a href="/cart.html" class="cart-fab" id="cartFab"
-    style="display: flex; align-items: center; justify-content: center; text-decoration: none;">
-    <span class="cart-fab-icon">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4H6z"></path>
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <path d="M16 10a4 4 0 0 1-8 0"></path>
-      </svg>
-    </span>
-    <span class="cart-fab-badge" id="cartCount">0</span>
+    style="display: flex; align-items: center; justify-content: center; text-decoration: none; padding: 0.5rem 1rem; border-radius: 30px; gap: 0.4rem;">
+    <span class="cart-fab-text" style="font-family: 'Tajawal', sans-serif; font-weight: 700; font-size: 0.85rem; color: var(--white);" data-en="Cart" data-ar="الطلب">Cart</span>
+    <span class="cart-fab-badge" id="cartCount" style="position: static; transform: none;">0</span>
   </a>
 
   <!-- CONTACT -->
   <section id="contact">
     <div class="contact-wrap">
       <div class="contact-info">
-        <p class="section-eyebrow">/ Visit Us /</p>
-        <h2 class="section-heading">Always Welcome</h2>
+        <p class="section-eyebrow" data-en="/ Visit Us /" data-ar="/ تفضل بزيارتنا /">/ Visit Us /</p>
+        <h2 class="section-heading" data-en="Always Welcome" data-ar="مرحباً بكم دائماً">Always Welcome</h2>
         <div class="contact-items">
           <div class="ci"><span>✦</span>
-            <div><strong>Location</strong>
-              <p>Sadat City, Green Park</p>
+            <div><strong data-en="Location" data-ar="الموقع">Location</strong>
+              <p data-en="Sadat City, Green Park" data-ar="مدينة السادات، جرين بارك">Sadat City, Green Park</p>
             </div>
           </div>
         </div>
       </div>
       <form class="contact-form" onsubmit="handleContact(event)">
-        <h3>Contact Us</h3>
-        <div class="form-field"><label>Name</label><input type="text" id="contact-name" placeholder="Your Name"
-            required /></div>
-        <div class="form-field"><label>Phone Number</label><input type="tel" id="contact-phone"
-            placeholder="+20 100 000 0000" required /></div>
-        <div class="form-field"><label>Message</label><textarea id="contact-msg" placeholder="How can we help you?"
-            rows="4"></textarea></div>
-        <button type="submit" class="btn-gold" style="width:100%;justify-content:center">Send ✦</button>
+        <h3 data-en="Contact Us" data-ar="تواصل معنا">Contact Us</h3>
+        <div class="form-field">
+          <label data-en="Name" data-ar="الاسم">Name</label>
+          <input type="text" id="contact-name" data-placeholder-en="Your Name" data-placeholder-ar="الاسم الكريم" placeholder="Your Name" required />
+        </div>
+        <div class="form-field">
+          <label data-en="Phone Number" data-ar="رقم الهاتف">Phone Number</label>
+          <input type="tel" id="contact-phone" data-placeholder-en="+20 100 000 0000" data-placeholder-ar="٠١٠٠٠٠٠٠٠٠٠" placeholder="+20 100 000 0000" required />
+        </div>
+        <div class="form-field">
+          <label data-en="Message" data-ar="الرسالة">Message</label>
+          <textarea id="contact-msg" data-placeholder-en="How can we help you?" data-placeholder-ar="كيف يمكننا مساعدتك؟" placeholder="How can we help you?" rows="4"></textarea>
+        </div>
+        <button type="submit" class="btn-gold" style="width:100%;justify-content:center" data-en="Send ✦" data-ar="إرسال ✦">Send ✦</button>
         <p class="form-msg" id="formNote"></p>
       </form>
     </div>
@@ -222,8 +357,8 @@
   <footer id="footer">
     <img src="imgs/ozel-logo.png" alt="OZEL Logo" class="footer-logo-img" />
     <div class="footer-logo">OZEL <span>CAFE</span></div>
-    <p class="footer-tag">Hidden Gem ✦ An unforgettable experience</p>
-    <p class="footer-copy">© 2025 OZEL CAFE — All rights reserved</p>
+    <p class="footer-tag" data-en="Hidden Gem ✦ An unforgettable experience" data-ar="الجوهرة الخفية ✦ تجربة لا تنسى">Hidden Gem ✦ An unforgettable experience</p>
+    <p class="footer-copy" data-en="© 2025 OZEL CAFE — All rights reserved" data-ar="© 2025 أوزيل كافيه — جميع الحقوق محفوظة">© 2025 OZEL CAFE — All rights reserved</p>
   </footer>
 
   <!-- PROFILE MODAL -->
@@ -231,7 +366,7 @@
     <div class="modal-panel" style="max-width: 480px; border-radius: var(--rad-lg);">
       <div class="modal-x" onclick="closeProfileModal()">✕</div>
       <div class="modal-body" style="padding: 1.5rem 2rem 2rem 2rem;">
-        <div class="modal-name" style="text-align: center; margin-bottom: 1.5rem; font-family: 'Playfair Display', serif; font-size: 1.8rem;">حسابك الشخصي</div>
+        <div class="modal-name" style="text-align: center; margin-bottom: 1.5rem; font-family: 'Playfair Display', serif; font-size: 1.8rem;" data-en="Your Profile" data-ar="حسابك الشخصي">Your Profile</div>
 
         <!-- PREMIUM VIP LOYALTY CARD -->
         <div class="vip-card" style="position: relative; overflow: hidden; background: linear-gradient(135deg, var(--accent-emerald), #1a3026); padding: 1.8rem; border-radius: var(--rad-lg); border: 1px solid rgba(194, 159, 67, 0.3); box-shadow: 0 12px 30px rgba(42, 75, 61, 0.15); color: var(--white); margin-bottom: 1.5rem;">
@@ -242,21 +377,20 @@
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
               <div>
                 <span style="font-family: 'Outfit', sans-serif; font-size: 0.65rem; letter-spacing: 0.25rem; text-transform: uppercase; color: rgba(255,255,255,0.7); display: block; margin-bottom: 0.2rem;">OZEL CAFE MEMBER</span>
-                <span style="font-family: 'Playfair Display', serif; font-size: 1rem; font-style: italic; color: var(--gold); letter-spacing: 0.05em;">VIP Club ✦</span>
+                <span style="font-family: 'Playfair Display', serif; font-size: 1rem; font-style: italic; color: var(--gold); letter-spacing: 0.05em;" data-en="VIP Club ✦" data-ar="نادي كبار الشخصيات ✦">VIP Club ✦</span>
               </div>
-              <span style="font-size: 1.5rem; color: var(--gold); filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));">👑</span>
             </div>
             
             <div style="margin-bottom: 1.5rem;">
-              <span style="font-family: 'Outfit', sans-serif; font-size: 0.7rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); display: block; margin-bottom: 0.3rem; font-weight: 500;">نقاطك الحالية / BALANCE</span>
+              <span style="font-family: 'Outfit', sans-serif; font-size: 0.7rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); display: block; margin-bottom: 0.3rem; font-weight: 500;" data-en="YOUR CURRENT POINTS / BALANCE" data-ar="نقاطك الحالية / BALANCE">YOUR CURRENT POINTS / BALANCE</span>
               <div style="display: flex; align-items: baseline; gap: 0.4rem;">
                 <span id="profilePoints" style="font-family: 'Montserrat', sans-serif; font-size: 2.8rem; font-weight: 700; color: var(--gold); line-height: 1;">0</span>
-                <span style="font-family: 'Tajawal', sans-serif; font-size: 0.8rem; letter-spacing: 0.05em; font-weight: 700; color: rgba(255,255,255,0.8);">نقطة</span>
+                <span style="font-family: 'Tajawal', sans-serif; font-size: 0.8rem; letter-spacing: 0.05em; font-weight: 700; color: rgba(255,255,255,0.8);" data-en="pts" data-ar="نقطة">pts</span>
               </div>
             </div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.8rem; font-size: 0.7rem; color: rgba(255,255,255,0.5); font-family: 'Tajawal', sans-serif;">
-              <span>كل 100 نقطة = 10 جنيه خصم</span>
+              <span data-en="Every 100 points = 10 EGP discount" data-ar="كل 100 نقطة = 10 جنيه خصم">Every 100 points = 10 EGP discount</span>
               <span id="profileMemberName" style="text-transform: uppercase; font-weight: 700; color: var(--white); font-size: 0.75rem; font-family: 'Tajawal', sans-serif;">MEMBER</span>
             </div>
           </div>
@@ -264,31 +398,31 @@
 
         <!-- MOST ORDERED DRINKS -->
         <div style="background: var(--bg2); padding: 1.25rem 1.5rem; border-radius: var(--rad-lg); border: 1px solid var(--line); box-shadow: 0 4px 15px rgba(0,0,0,0.01); margin-bottom: 1.25rem;">
-          <h4 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;">
-            <span style="color: var(--accent-emerald); font-size: 1.1rem;">☕</span> الأكثر طلباً
+          <h4 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;" data-en="Most Ordered" data-ar="الأكثر طلباً">
+            Most Ordered
           </h4>
           <div id="topDrinksList" style="display: flex; flex-direction: column; gap: 0.6rem;">
-            <p style="color: var(--muted); font-size: 0.8rem; text-align: center; font-family: 'Tajawal', sans-serif;">لا يوجد طلبات سابقة بعد</p>
+            <p style="color: var(--muted); font-size: 0.8rem; text-align: center; font-family: 'Tajawal', sans-serif;" data-en="No previous orders yet" data-ar="لا يوجد طلبات سابقة بعد">No previous orders yet</p>
           </div>
         </div>
 
         <!-- CHANGE PASSWORD -->
         <div style="background: var(--bg2); padding: 1.25rem 1.5rem; border-radius: var(--rad-lg); border: 1px solid var(--line); box-shadow: 0 4px 15px rgba(0,0,0,0.01); margin-bottom: 1.25rem;">
-          <h4 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;">
-            <span style="color: var(--accent-emerald); font-size: 1.1rem;">🔐</span> تغيير كلمة المرور
+          <h4 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;" data-en="Change Password" data-ar="تغيير كلمة المرور">
+            Change Password
           </h4>
           <div style="display: flex; flex-direction: column; gap: 0.6rem;">
-            <input id="old-pass" type="password" placeholder="كلمة المرور الحالية"
+            <input id="old-pass" type="password" data-placeholder-en="Current Password" data-placeholder-ar="كلمة المرور الحالية" placeholder="Current Password"
               style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
-            <input id="new-pass" type="password" placeholder="كلمة المرور الجديدة"
+            <input id="new-pass" type="password" data-placeholder-en="New Password" data-placeholder-ar="كلمة المرور الجديدة" placeholder="New Password"
               style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
-            <button class="btn-gold" style="width:100%; justify-content:center; padding:0.6rem;" onclick="changePassword()">حفظ التغييرات ✦</button>
+            <button class="btn-gold" style="width:100%; justify-content:center; padding:0.6rem;" onclick="changePassword()" data-en="Save Changes ✦" data-ar="حفظ التغييرات ✦">Save Changes ✦</button>
             <p id="cp-msg" style="font-size:0.8rem; text-align:center; margin-top:0.4rem; font-family: 'Tajawal', sans-serif;"></p>
           </div>
         </div>
 
         <div style="margin-top: 1.25rem;">
-          <button class="logout-btn" onclick="logoutUser()">تسجيل الخروج</button>
+          <button class="logout-btn" onclick="logoutUser()" data-en="Logout" data-ar="تسجيل الخروج">Logout</button>
         </div>
       </div>
     </div>

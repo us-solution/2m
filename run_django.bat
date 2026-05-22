@@ -1,0 +1,3 @@
+@echo off
+echo Starting OZEL Cafe Django Server...
+python manage.py runserver 8000
