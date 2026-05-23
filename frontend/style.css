@@ -79,7 +79,7 @@ body {
   background: var(--gold);
 }
 
-/* ── LOADER (Warm Luxury Splash) ── */
+/* ── LOADER (Dark Luxury Cinematic Splash) ── */
 #loader {
   position: fixed;
   inset: 0;
@@ -88,21 +88,55 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #F5F0E8;
-  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #0a0a0a;
+  transition: opacity 1.2s ease, transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 #loader.hidden {
   opacity: 0;
-  transform: scale(1.08);
+  transform: scale(1.05);
   pointer-events: none;
 }
+/* Ambient luxury glow spots */
 .loader-glass {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 30% 20%, rgba(84, 26, 26, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 80%, rgba(92, 118, 109, 0.05) 0%, transparent 50%);
+    radial-gradient(ellipse 600px 400px at 25% 30%, rgba(84, 26, 26, 0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 350px at 75% 70%, rgba(92, 118, 109, 0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 300px 300px at 50% 50%, rgba(194, 159, 67, 0.06) 0%, transparent 60%);
   z-index: 1;
+  animation: glassBreath 4s ease-in-out infinite alternate;
+}
+@keyframes glassBreath {
+  0%   { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+/* Grain overlay for texture */
+#loader::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px;
+  z-index: 1;
+  pointer-events: none;
+}
+/* Animated shimmer line across the top */
+.loader-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(194, 159, 67, 0.6), rgba(255, 255, 255, 0.3), rgba(194, 159, 67, 0.6), transparent);
+  z-index: 4;
+  animation: shimmerSlide 3s ease-in-out 0.5s infinite;
+}
+@keyframes shimmerSlide {
+  0%   { left: -60%; }
+  100% { left: 120%; }
 }
 .loader-content {
   position: relative;
@@ -112,44 +146,149 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  animation: loaderReveal 1s ease-out forwards;
+}
+/* ÖZEL text — gold gradient with drop-in */
+.loader-ozel-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3.5rem, 14vw, 7rem);
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  background: linear-gradient(135deg, #c2a04a 0%, #e8d5a0 40%, #c2a04a 60%, #a07830 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 30px rgba(194, 159, 67, 0.25));
+  opacity: 0;
+  transform: translateY(-80px) scale(0.85);
+  animation: ozelDropIn 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s forwards;
+  margin-bottom: 0.6rem;
+}
+/* Decorative line under text */
+.loader-ozel-line {
+  width: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(194, 159, 67, 0.7), transparent);
+  animation: lineExpand 0.8s ease-out 1.1s forwards;
+  margin-bottom: 0.8rem;
+}
+@keyframes lineExpand {
+  0%   { width: 0; opacity: 0; }
+  100% { width: 120px; opacity: 1; }
+}
+.loader-ozel-subtitle {
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(0.6rem, 1.8vw, 0.85rem);
+  font-weight: 300;
+  letter-spacing: 0.6em;
+  text-transform: uppercase;
+  color: rgba(194, 159, 67, 0.55);
+  opacity: 0;
+  transform: translateY(15px);
+  animation: subtitleFadeUp 0.8s ease-out 1.3s forwards;
+  margin-bottom: 2.5rem;
+}
+/* Logo with golden ring pulse */
+.loader-logo-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .loader-logo-cinematic {
   width: 45vw;
-  max-width: 260px;
-  min-width: 150px;
+  max-width: 240px;
+  min-width: 140px;
   height: auto;
-  margin-bottom: 3rem;
-  filter: drop-shadow(0 8px 25px rgba(84, 26, 26, 0.12));
+  filter: drop-shadow(0 0 40px rgba(194, 159, 67, 0.15)) brightness(1.1);
   opacity: 0;
-  animation: logoZoomIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+  transform: scale(0.7);
+  animation: logoRevealIn 1.4s cubic-bezier(0.16, 1, 0.3, 1) 1.6s forwards;
+  position: relative;
+  z-index: 2;
 }
+/* Golden ring behind logo */
 .loader-ring {
-  display: none;
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  border: 1px solid rgba(194, 159, 67, 0.15);
+  opacity: 0;
+  animation: ringPulse 2s ease-out 2s forwards;
+  z-index: 1;
 }
-/* Golden progress bar */
+.loader-ring::after {
+  content: '';
+  position: absolute;
+  inset: -15px;
+  border-radius: 50%;
+  border: 1px solid rgba(194, 159, 67, 0.06);
+}
+@keyframes ringPulse {
+  0%   { opacity: 0; transform: scale(0.5); }
+  50%  { opacity: 1; }
+  100% { opacity: 0.4; transform: scale(1); }
+}
+/* Floating particles */
+.loader-particles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.loader-particles span {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: rgba(194, 159, 67, 0.4);
+  border-radius: 50%;
+  animation: particleFloat linear infinite;
+}
+.loader-particles span:nth-child(1) { left: 15%; animation-duration: 6s; animation-delay: 0s; }
+.loader-particles span:nth-child(2) { left: 35%; animation-duration: 8s; animation-delay: 1s; width: 3px; height: 3px; }
+.loader-particles span:nth-child(3) { left: 55%; animation-duration: 7s; animation-delay: 0.5s; }
+.loader-particles span:nth-child(4) { left: 75%; animation-duration: 9s; animation-delay: 2s; width: 1.5px; height: 1.5px; }
+.loader-particles span:nth-child(5) { left: 90%; animation-duration: 5s; animation-delay: 1.5s; }
+.loader-particles span:nth-child(6) { left: 25%; animation-duration: 10s; animation-delay: 3s; width: 1px; height: 1px; }
+@keyframes particleFloat {
+  0%   { bottom: -5%; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { bottom: 105%; opacity: 0; }
+}
+/* Gold gradient progress bar */
 #loader::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--gold), #c09f4a, var(--gold2));
-  animation: loaderProgress 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  z-index: 3;
-  border-radius: 0 3px 3px 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #c2a04a, #e8d5a0, #c2a04a, transparent);
+  animation: loaderProgress 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  z-index: 5;
 }
-@keyframes logoZoomIn {
-  0% { opacity: 0; transform: scale(0.7); }
-  100% { opacity: 1; transform: scale(1); }
+@keyframes ozelDropIn {
+  0%   { opacity: 0; transform: translateY(-80px) scale(0.85); }
+  60%  { opacity: 1; transform: translateY(5px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes subtitleFadeUp {
+  0%   { opacity: 0; transform: translateY(15px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes logoRevealIn {
+  0%   { opacity: 0; transform: scale(0.7); filter: drop-shadow(0 0 40px rgba(194, 159, 67, 0.15)) brightness(1.1); }
+  60%  { opacity: 1; transform: scale(1.03); filter: drop-shadow(0 0 50px rgba(194, 159, 67, 0.3)) brightness(1.15); }
+  100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 35px rgba(194, 159, 67, 0.2)) brightness(1.1); }
 }
 @keyframes loaderReveal {
-  0% { opacity: 0; }
+  0%   { opacity: 0; }
   100% { opacity: 1; }
 }
 @keyframes loaderProgress {
-  0% { width: 0%; }
-  60% { width: 70%; }
+  0%   { width: 0%; }
+  50%  { width: 65%; }
   100% { width: 100%; }
 }
 @keyframes spin {
@@ -235,7 +374,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text { color: var(--gold); }
   gap: .6rem;
 }
 .nav-logo-img {
-  height: 65px;
+  height: 90px;
   width: auto;
   object-fit: contain;
   margin-right: 0.4rem;
@@ -511,8 +650,8 @@ body[dir="ltr"] .lang-switch-wrapper .en-text { color: var(--gold); }
 }
 .abstract-design {
   position: relative;
-  width: 380px;
-  height: 480px;
+  width: 420px;
+  height: 520px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -540,8 +679,8 @@ body[dir="ltr"] .lang-switch-wrapper .en-text { color: var(--gold); }
 .glass-card {
   position: relative;
   z-index: 2;
-  width: 280px;
-  height: 380px;
+  width: 320px;
+  height: 420px;
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(15px);
   border: 1px solid rgba(181, 145, 59, 0.2);
@@ -560,7 +699,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text { color: var(--gold); }
   border-color: rgba(181, 145, 59, 0.5);
 }
 .about-card-logo {
-  width: 140px;
+  width: 200px;
   height: auto;
   object-fit: contain;
   margin-bottom: 0.5rem;
@@ -1766,13 +1905,13 @@ body[dir="ltr"] .lang-switch-wrapper .en-text { color: var(--gold); }
   animation: pulseLogo 2s infinite ease-in-out;
 }
 .about-card-logo {
-  width: 130px;
+  width: 200px;
   height: auto;
   object-fit: contain;
   margin-bottom: 0.5rem;
 }
 .footer-logo-img {
-  width: 70px;
+  width: 120px;
   height: auto;
   margin-bottom: 1.2rem;
   display: block;
