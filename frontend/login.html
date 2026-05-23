@@ -56,6 +56,73 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);dir
 .skip{display:block;text-align:center;margin-top:1.5rem;color:var(--muted);font-size:.85rem;cursor:pointer;transition:color .2s;}
 .skip:hover{color:var(--gold);}
 .skip a{color:var(--gold);text-decoration:none;}
+/* ── LANGUAGE SWITCH (Premium Floating Pill) ── */
+.lang-switch-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  padding: 0.35rem 0.7rem;
+  border-radius: 40px;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(194, 159, 67, 0.18);
+  box-shadow: 
+    0 4px 15px rgba(36, 30, 26, 0.02),
+    inset 0 1px 3px rgba(255, 255, 255, 0.6);
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  user-select: none;
+  direction: ltr; /* Always layout LTR */
+}
+.lang-switch-wrapper:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(194, 159, 67, 0.4);
+  box-shadow: 
+    0 6px 20px rgba(194, 159, 67, 0.08),
+    inset 0 1px 3px rgba(255, 255, 255, 0.8);
+  transform: translateY(-1px);
+}
+.lang-switch-text {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+  transition: color 0.3s ease;
+  letter-spacing: 0.05em;
+}
+.lang-switch-text.ar-text {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.lang-switch-pill {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  background: rgba(92, 118, 109, 0.15);
+  border-radius: 20px;
+  transition: background 0.3s ease;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+}
+.lang-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, #c2a04a, #e8d5a0);
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(194, 159, 67, 0.35);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+body[dir="rtl"] .lang-switch-thumb {
+  transform: translateX(16px);
+}
+body[dir="rtl"] .lang-switch-wrapper .ar-text {
+  color: #a07830;
+}
+body[dir="ltr"] .lang-switch-wrapper .en-text {
+  color: #a07830;
+}
 </style>
 </head>
 <body>
@@ -63,7 +130,13 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);dir
 <div class="grain"></div>
 <div class="wrap">
   <div style="display:flex; justify-content:flex-end; margin-bottom:1rem;">
-    <button id="lang-toggle" style="background:none; border:1px solid var(--line); padding:0.4rem 0.8rem; border-radius:30px; color:var(--gold); font-family:'Tajawal',sans-serif; cursor:pointer;" onclick="toggleLanguage()">العربية</button>
+    <div class="lang-switch-wrapper" onclick="toggleLanguage()" id="langToggleSwitch">
+      <span class="lang-switch-text en-text">EN</span>
+      <div class="lang-switch-pill">
+        <div class="lang-switch-thumb"></div>
+      </div>
+      <span class="lang-switch-text ar-text">ع</span>
+    </div>
   </div>
   <div class="logo">
     <img src="imgs/Ozel-Logo--02.png" alt="OZEL Logo" class="login-logo-img" />
@@ -169,11 +242,6 @@ function applyLanguage(lang) {
   document.documentElement.lang = lang;
   document.documentElement.dir = isAr ? 'rtl' : 'ltr';
   document.body.style.direction = isAr ? 'rtl' : 'ltr';
-  
-  const toggleBtn = document.getElementById('lang-toggle');
-  if (toggleBtn) {
-    toggleBtn.textContent = isAr ? 'English' : 'العربية';
-  }
   
   document.querySelectorAll('[data-en]').forEach(el => {
     el.textContent = isAr ? el.getAttribute('data-ar') : el.getAttribute('data-en');

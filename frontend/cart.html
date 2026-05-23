@@ -122,8 +122,14 @@
     <a href="/#offers" data-en="Offers" data-ar="العروض">Offers</a>
     <a href="/#contact" data-en="Contact" data-ar="تواصل معنا">Contact</a>
   </div>
-  <div style="display:flex;gap:.7rem;align-items:center">
-    <button id="lang-toggle" class="lang-toggle-btn" onclick="toggleLanguage()">العربية</button>
+  <div style="display:flex;gap:1.5rem;align-items:center">
+    <div class="lang-switch-wrapper" onclick="toggleLanguage()" id="langToggleSwitch">
+      <span class="lang-switch-text en-text">EN</span>
+      <div class="lang-switch-pill">
+        <div class="lang-switch-thumb"></div>
+      </div>
+      <span class="lang-switch-text ar-text">ع</span>
+    </div>
     <div id="nav-user-area">
       <a href="/login" class="nav-user-btn">
         <span data-en="Login" data-ar="تسجيل الدخول">Login</span>
@@ -219,11 +225,6 @@
     document.documentElement.lang = lang;
     document.documentElement.dir = isAr ? 'rtl' : 'ltr';
     document.body.style.direction = isAr ? 'rtl' : 'ltr';
-    
-    const toggleBtn = document.getElementById('lang-toggle');
-    if (toggleBtn) {
-      toggleBtn.textContent = isAr ? 'English' : 'العربية';
-    }
     
     document.querySelectorAll('[data-en]').forEach(el => {
       el.textContent = isAr ? el.getAttribute('data-ar') : el.getAttribute('data-en');
