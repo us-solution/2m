@@ -4809,8 +4809,17 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   .nav-hamburger {
     display: flex;
   }
-  #nav > div:last-child {
+  #langToggleSwitch {
     display: none !important;
+  }
+  #nav-user-area .nav-user-btn {
+    display: none !important;
+  }
+  #nav-user-area .user-info-brief {
+    display: none !important;
+  }
+  .nav-right-sec {
+    gap: 0.65rem !important;
   }
 }
 
