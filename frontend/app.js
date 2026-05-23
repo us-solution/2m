@@ -88,12 +88,14 @@ window.addEventListener('load', () => {
 
 function renderNavUser() {
   const area = document.getElementById('nav-user-area');
-  if (!area) return;
+  const drawerArea = document.getElementById('drawer-user-area');
   const isAr = currentLang === 'ar';
+  
+  let html = '';
   if (CUSER) {
     const initial = CUSER.name.charAt(0).toUpperCase();
     const ptsLabel = isAr ? 'نقاط' : 'pts';
-    area.innerHTML = `
+    html = `
       <div class="nav-user-logged" onclick="openProfileModal()">
         <div class="user-avatar">${initial}</div>
         <div class="user-info-brief">
@@ -104,13 +106,27 @@ function renderNavUser() {
     `;
   } else {
     const loginText = isAr ? 'تسجيل الدخول' : 'Login';
-    area.innerHTML = `
+    html = `
       <a href="/login" class="nav-user-btn">
         <span>${loginText}</span>
       </a>
     `;
   }
+
+  if (area) area.innerHTML = html;
+  if (drawerArea) drawerArea.innerHTML = html;
 }
+
+window.toggleMobileMenu = function() {
+  const drawer = document.getElementById('mobileDrawer');
+  const hamburger = document.getElementById('navHamburger');
+  if (drawer) {
+    drawer.classList.toggle('open');
+  }
+  if (hamburger) {
+    hamburger.classList.toggle('active');
+  }
+};
 
 function logoutUser() { localStorage.clear(); location.reload(); }
 

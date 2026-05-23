@@ -54,7 +54,50 @@
       <div id="nav-user-area"></div>
       <button class="nav-cta" onclick="document.getElementById('menu').scrollIntoView({behavior:'smooth'})" data-en="Order Now" data-ar="اطلب الآن">Order Now</button>
     </div>
+    <!-- Hamburger Button (Mobile Only) -->
+    <button class="nav-hamburger" id="navHamburger" aria-label="Menu" onclick="toggleMobileMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
   </nav>
+
+  <!-- MOBILE DRAWER MENU -->
+  <div class="mobile-drawer" id="mobileDrawer">
+    <div class="drawer-overlay" onclick="toggleMobileMenu()"></div>
+    <div class="drawer-content">
+      <div class="drawer-header">
+        <img src="imgs/Ozel-Logo--01.png" alt="OZEL Logo" class="drawer-logo" />
+        <button class="drawer-close" onclick="toggleMobileMenu()">✕</button>
+      </div>
+      <div class="drawer-links">
+        <a href="#about" onclick="toggleMobileMenu()" data-en="Story" data-ar="حكايتنا">Story</a>
+        <a href="#lounge" onclick="toggleMobileMenu()" data-en="Table Games" data-ar="ركن التسلية">Table Games</a>
+        <a href="#menu" onclick="toggleMobileMenu()" data-en="Menu" data-ar="المنيو">Menu</a>
+        <a href="#contact" onclick="toggleMobileMenu()" data-en="Contact" data-ar="تواصل معنا">Contact</a>
+      </div>
+      <div class="drawer-divider"></div>
+      <div class="drawer-footer">
+        <!-- Language Switcher in Drawer -->
+        <div class="drawer-lang-wrapper">
+          <span style="font-size:0.75rem; color:var(--muted);" data-en="Language" data-ar="اللغة">Language</span>
+          <div class="lang-switch-wrapper" onclick="toggleLanguage()">
+            <span class="lang-switch-text en-text">EN</span>
+            <div class="lang-switch-pill">
+              <div class="lang-switch-thumb"></div>
+            </div>
+            <span class="lang-switch-text ar-text">ع</span>
+          </div>
+        </div>
+        
+        <!-- User Area in Drawer -->
+        <div id="drawer-user-area"></div>
+        
+        <!-- Order Now CTA in Drawer -->
+        <button class="drawer-cta" onclick="toggleMobileMenu(); document.getElementById('menu').scrollIntoView({behavior:'smooth'})" data-en="Order Now ✦" data-ar="اطلب الآن ✦">Order Now ✦</button>
+      </div>
+    </div>
+  </div>
 
   <!-- HERO -->
   <section id="hero">

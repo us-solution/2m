@@ -137,7 +137,50 @@
     </div>
     <button class="nav-cta" onclick="location.href='/#menu'" data-en="Order Now" data-ar="اطلب الآن">Order Now</button>
   </div>
+  <!-- Hamburger Button (Mobile Only) -->
+  <button class="nav-hamburger" id="navHamburger" aria-label="Menu" onclick="toggleMobileMenu()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
 </nav>
+
+<!-- MOBILE DRAWER MENU -->
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="drawer-overlay" onclick="toggleMobileMenu()"></div>
+  <div class="drawer-content">
+    <div class="drawer-header">
+      <img src="imgs/Ozel-Logo--01.png" alt="OZEL Logo" class="drawer-logo" />
+      <button class="drawer-close" onclick="toggleMobileMenu()">✕</button>
+    </div>
+    <div class="drawer-links">
+      <a href="/#about" onclick="toggleMobileMenu()" data-en="Story" data-ar="حكايتنا">Story</a>
+      <a href="/#menu" onclick="toggleMobileMenu()" data-en="Menu" data-ar="المنيو">Menu</a>
+      <a href="/#offers" onclick="toggleMobileMenu()" data-en="Offers" data-ar="العروض">Offers</a>
+      <a href="/#contact" onclick="toggleMobileMenu()" data-en="Contact" data-ar="تواصل معنا">Contact</a>
+    </div>
+    <div class="drawer-divider"></div>
+    <div class="drawer-footer">
+      <!-- Language Switcher in Drawer -->
+      <div class="drawer-lang-wrapper">
+        <span style="font-size:0.75rem; color:var(--muted);" data-en="Language" data-ar="اللغة">Language</span>
+        <div class="lang-switch-wrapper" onclick="toggleLanguage()">
+          <span class="lang-switch-text en-text">EN</span>
+          <div class="lang-switch-pill">
+            <div class="lang-switch-thumb"></div>
+          </div>
+          <span class="lang-switch-text ar-text">ع</span>
+        </div>
+      </div>
+      
+      <!-- User Area in Drawer -->
+      <div id="drawer-user-area"></div>
+      
+      <!-- Order Now CTA in Drawer -->
+      <button class="drawer-cta" onclick="toggleMobileMenu(); location.href='/#menu'" data-en="Order Now ✦" data-ar="اطلب الآن ✦">Order Now ✦</button>
+    </div>
+  </div>
+</div>
 
 <div class="cart-page">
   <div class="cart-header">
@@ -241,12 +284,14 @@
   function renderNavUser() {
     const isAr = currentLang === 'ar';
     const area = document.getElementById('nav-user-area');
-    if (!area) return;
+    const drawerArea = document.getElementById('drawer-user-area');
+    
+    let html = '';
     if (user) {
       const points = user.points || 0;
       const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
       const ptsLabel = isAr ? 'نقطة' : 'pts';
-      area.innerHTML = `
+      html = `
         <div class="nav-user-logged" onclick="location.href='/'">
           <div class="user-avatar">${initial}</div>
           <div class="user-info-brief">
@@ -257,13 +302,27 @@
       `;
     } else {
       const loginText = isAr ? 'تسجيل الدخول' : 'Login';
-      area.innerHTML = `
+      html = `
         <a href="/login" class="nav-user-btn">
           <span>${loginText}</span>
         </a>
       `;
     }
+
+    if (area) area.innerHTML = html;
+    if (drawerArea) drawerArea.innerHTML = html;
   }
+
+  window.toggleMobileMenu = function() {
+    const drawer = document.getElementById('mobileDrawer');
+    const hamburger = document.getElementById('navHamburger');
+    if (drawer) {
+      drawer.classList.toggle('open');
+    }
+    if (hamburger) {
+      hamburger.classList.toggle('active');
+    }
+  };
 
   function loadCart() {
     const list = document.getElementById('cartItemsList');
