@@ -309,7 +309,7 @@ function getExtraChipText(value, displayVal, isAr) {
 
 // ── Drink Modal ───────────────────────────
 async function openDrink(id) {
-  const drink = allDrinks.find(d => d.id === id) || await fetch(`/api/drinks/${id}`).then(r => r.json());
+  const drink = allDrinks.find(d => d.id == id) || await fetch(`/api/drinks/${id}`).then(r => r.json());
   window.currentPuzzle = { sugar: 'Normal', extra: 'None' };
   const isAr = currentLang === 'ar';
   const displayName = isAr ? (drink.name_ar || drink.name) : drink.name;
@@ -476,7 +476,7 @@ function closeModal(e) {
 
 // ── Cart ──────────────────────────────────
 function addToCart(drinkId, behavior = 'continue') {
-  const drink = allDrinks.find(d => d.id === drinkId);
+  const drink = allDrinks.find(d => d.id == drinkId);
   const sugar = window.currentPuzzle.sugar;
   const extra = window.currentPuzzle.extra;
   const notesElement = document.getElementById('drinkNotes');
@@ -2072,7 +2072,7 @@ window.selectDeckChip = function(type, value, btn) {
 };
 
 window.addDeckToCart = function(drinkId) {
-  const drink = allDrinks.find(d => d.id === drinkId);
+  const drink = allDrinks.find(d => d.id == drinkId);
   if (!drink) return;
   const sugar = window.currentPuzzle.sugar;
   const extra = window.currentPuzzle.extra;
