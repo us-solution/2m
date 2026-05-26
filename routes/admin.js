@@ -367,10 +367,13 @@ router.get('/offers', authenticateToken, requireRole('admin'), async (req, res) 
     const serialized = offers.map(o => ({
       id: o._id,
       drink_id: o.drinkId ? o.drinkId._id : null,
-      drink_name: o.drinkId ? o.drinkId.name : 'Deleted',
       discount_percent: o.discount_percent,
       expires_at: o.expires_at ? o.expires_at.toISOString() : null,
-      created_at: o.created_at.toISOString()
+      created_at: o.created_at.toISOString(),
+      name: o.drinkId ? o.drinkId.name : 'Deleted',
+      name_ar: o.drinkId ? o.drinkId.name_ar : '',
+      price: o.drinkId ? parseFloat(o.drinkId.price) : 0,
+      image_emoji: o.drinkId ? o.drinkId.image_emoji : null
     }));
     res.json(serialized);
   } catch (err) {

@@ -363,8 +363,10 @@ function showPage(name, el) {
 }
 
 async function loadStats() {
-  const res = await fetch('/api/admin/stats', { headers: getAuthH() });
-  const s = await res.json();
+  try {
+    const res = await fetch('/api/admin/stats', { headers: getAuthH() });
+    if (!res.ok) throw new Error('Failed to load stats');
+    const s = await res.json();
   
   document.getElementById('statsGrid').innerHTML = `
     <div class="stat-card"><span class="stat-n">${s.today_orders}</span><span class="stat-l">Today's Orders</span></div>
@@ -384,7 +386,7 @@ async function loadStats() {
       </tr></thead><tbody>
         ${s.cashier_stats.map(c => `
           <tr>
-            <td style="color:var(--white)">${c.cashier_name}</td>
+            <td style="color:var(--text)">${c.cashier_name}</td>
             <td>${c.order_count}</td>
             <td class="tbl-price">${c.total_rev} EGP</td>
           </tr>
@@ -397,6 +399,9 @@ async function loadStats() {
   
   const area = document.getElementById('cashierStatsArea');
   if (area) area.innerHTML = cashierHTML;
+  } catch (err) {
+    document.getElementById('statsGrid').innerHTML = `<p style="color:var(--muted);text-align:center;padding:2rem;">Failed to load stats — ${err.message}</p>`;
+  }
 }
 
 async function loadMenu() {
@@ -540,7 +545,7 @@ async function deleteDrink(id) {
 
 async function loadOffers() {
   try {
-    const res = await fetch('/api/offers');
+    const res = await fetch('/api/admin/offers', { headers: getAuthH() });
     const offers = await res.json();
     
     const resD = await fetch('/api/admin/drinks', { headers: getAuthH() });
