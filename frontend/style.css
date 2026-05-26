@@ -3960,17 +3960,26 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   }
   .lmi-top {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 0.3rem;
-    align-items: center;
+    align-items: baseline;
+    width: 100%;
   }
   .lmi-name {
     font-size: 1rem;
-    flex: 1;
+    flex-shrink: 0;
     min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .lmi-dots {
-    display: none;
+    display: block !important;
+    flex: 1;
+    border-bottom: 1px dotted var(--muted);
+    margin: 0 0.3rem;
+    opacity: 0.25;
+    min-width: 10px;
   }
   .lmi-price {
     font-size: 1.05rem;
@@ -3986,7 +3995,6 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
     width: 100%;
   }
   .lmi-btn {
-    flex: 1;
     text-align: center;
     padding: 0.45rem 0.5rem;
     font-size: 0.8rem;
@@ -4206,6 +4214,76 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   .premium-offer-card {
     width: 70vw;
     max-width: 260px;
+  }
+
+  /* UNO game — mobile */
+  #uno-board .uno-card {
+    width: 56px;
+    height: 80px;
+    font-size: 1rem;
+  }
+  #uno-board .uno-card-label {
+    font-size: 0.85rem;
+  }
+  #uno-my-hand {
+    gap: 0.4rem;
+    padding: 0.3rem;
+    justify-content: center;
+  }
+  #uno-other-players {
+    gap: 0.6rem;
+  }
+  #uno-other-players > div {
+    min-width: 70px;
+    padding: 0.4rem 0.6rem;
+  }
+  #uno-other-players strong {
+    font-size: 0.75rem;
+  }
+  #uno-other-players span {
+    font-size: 0.65rem;
+  }
+  #uno-board > div:first-child {
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  #uno-board > div:first-child > div {
+    font-size: 0.75rem;
+  }
+  #uno-deck {
+    width: 56px !important;
+    height: 80px !important;
+    font-size: 1.2rem !important;
+  }
+  #uno-top-card {
+    width: 56px !important;
+    height: 80px !important;
+  }
+  #uno-board > div:nth-child(3) {
+    gap: 1.5rem;
+    padding: 1rem !important;
+  }
+  #uno-deck-count, #uno-current-color {
+    font-size: 0.65rem !important;
+  }
+  #uno-draw-btn, #uno-pass-btn, #uno-uno-btn {
+    flex: 1;
+    font-size: 0.75rem !important;
+    padding: 0.5rem 0.6rem !important;
+  }
+
+  /* UNO waiting/lobby mobile */
+  #uno-code-display {
+    font-size: 2.5rem !important;
+  }
+
+  /* Lounge panels — general mobile fixes */
+  .lounge-panel {
+    overflow-x: hidden;
+  }
+  .lounge-panel input.field {
+    font-size: 0.9rem;
+    padding: 0.7rem 0.8rem;
   }
 }
 
