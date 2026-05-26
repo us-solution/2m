@@ -2,6 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8"/>
+  <script src="api-override.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Shopping Cart — OZEL CAFE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -117,10 +118,10 @@
     <img src="imgs/Ozel-Logo--01.png" alt="OZEL CAFE Logo" class="nav-logo-img" />
   </div>
   <div class="nav-links">
-    <a href="/#about" data-en="Story" data-ar="حكايتنا">Story</a>
-    <a href="/#menu" data-en="Menu" data-ar="المنيو">Menu</a>
-    <a href="/#offers" data-en="Offers" data-ar="العروض">Offers</a>
-    <a href="/#contact" data-en="Contact" data-ar="تواصل معنا">Contact</a>
+    <a href="index.html#about" data-en="Story" data-ar="حكايتنا">Story</a>
+    <a href="index.html#menu" data-en="Menu" data-ar="المنيو">Menu</a>
+    <a href="index.html#offers" data-en="Offers" data-ar="العروض">Offers</a>
+    <a href="index.html#contact" data-en="Contact" data-ar="تواصل معنا">Contact</a>
   </div>
   <div class="nav-right-sec" style="display:flex;gap:1.5rem;align-items:center">
     <div class="lang-switch-wrapper" onclick="toggleLanguage()" id="langToggleSwitch">
@@ -131,11 +132,11 @@
       <span class="lang-switch-text ar-text">ع</span>
     </div>
     <div id="nav-user-area">
-      <a href="/login" class="nav-user-btn">
+      <a href="login.html" class="nav-user-btn">
         <span data-en="Login" data-ar="تسجيل الدخول">Login</span>
       </a>
     </div>
-    <button class="nav-cta" onclick="location.href='/#menu'" data-en="Order Now" data-ar="اطلب الآن">Order Now</button>
+    <button class="nav-cta" onclick="location.href='index.html#menu'" data-en="Order Now" data-ar="اطلب الآن">Order Now</button>
   </div>
   <!-- Hamburger Button (Mobile Only) -->
   <button class="nav-hamburger" id="navHamburger" aria-label="Menu" onclick="toggleMobileMenu()">
@@ -154,10 +155,10 @@
       <button class="drawer-close" onclick="toggleMobileMenu()">✕</button>
     </div>
     <div class="drawer-links">
-      <a href="/#about" onclick="toggleMobileMenu()" data-en="Story" data-ar="حكايتنا">Story</a>
-      <a href="/#menu" onclick="toggleMobileMenu()" data-en="Menu" data-ar="المنيو">Menu</a>
-      <a href="/#offers" onclick="toggleMobileMenu()" data-en="Offers" data-ar="العروض">Offers</a>
-      <a href="/#contact" onclick="toggleMobileMenu()" data-en="Contact" data-ar="تواصل معنا">Contact</a>
+      <a href="index.html#about" onclick="toggleMobileMenu()" data-en="Story" data-ar="حكايتنا">Story</a>
+      <a href="index.html#menu" onclick="toggleMobileMenu()" data-en="Menu" data-ar="المنيو">Menu</a>
+      <a href="index.html#offers" onclick="toggleMobileMenu()" data-en="Offers" data-ar="العروض">Offers</a>
+      <a href="index.html#contact" onclick="toggleMobileMenu()" data-en="Contact" data-ar="تواصل معنا">Contact</a>
     </div>
     <div class="drawer-divider"></div>
     <div class="drawer-footer">
@@ -177,7 +178,7 @@
       <div id="drawer-user-area"></div>
       
       <!-- Order Now CTA in Drawer -->
-      <button class="drawer-cta" onclick="toggleMobileMenu(); location.href='/#menu'" data-en="Order Now ✦" data-ar="اطلب الآن ✦">Order Now ✦</button>
+      <button class="drawer-cta" onclick="toggleMobileMenu(); location.href='index.html#menu'" data-en="Order Now ✦" data-ar="اطلب الآن ✦">Order Now ✦</button>
     </div>
   </div>
 </div>
@@ -190,7 +191,7 @@
 
   <div id="emptyCartMsg" style="display:none; text-align:center; padding:3rem; color:var(--muted);">
     <p style="font-size:1.2rem; margin-bottom:1.5rem;" data-en="Your cart is currently empty" data-ar="سلة مشترياتك فارغة حالياً">Your cart is currently empty</p>
-    <a href="/#menu" class="btn-gold" style="display:inline-flex; text-decoration:none;" data-en="Browse Menu" data-ar="تصفح المنيو">Browse Menu</a>
+    <a href="index.html#menu" class="btn-gold" style="display:inline-flex; text-decoration:none;" data-en="Browse Menu" data-ar="تصفح المنيو">Browse Menu</a>
   </div>
 
   <div id="cartContentArea">
@@ -221,6 +222,24 @@
 
       <button class="btn-gold" style="width:100%; justify-content:center; margin-top:1.5rem" onclick="submitOrder()" data-en="Confirm Order ✦" data-ar="تأكيد الطلب ✦">Confirm Order ✦</button>
     </div>
+  </div>
+</div>
+
+<!-- QR CONFIRMATION MODAL -->
+<div class="modal-overlay" id="qrModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); justify-content:center; align-items:center; z-index:9999; padding:1.5rem;">
+  <div class="modal-panel" style="max-width:400px; width:100%; background:var(--bg2); border:1px solid var(--gold); border-radius:12px; padding:2rem; text-align:center; box-shadow:0 12px 30px rgba(0,0,0,0.3); position:relative;">
+    <h3 style="font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--gold); margin-bottom:1rem;" data-en="Order Placed!" data-ar="تم تسجيل طلبك!">Order Placed!</h3>
+    <p style="font-size:0.9rem; color:var(--muted); margin-bottom:1.5rem;" data-en="Show this QR code to the cashier to confirm your order:" data-ar="اعرض هذا الـ QR Code على الكاشير لتأكيد وتفعيل طلبك:">Show this QR code to the cashier to confirm your order:</p>
+    
+    <div style="background:var(--white); padding:1rem; border-radius:8px; display:inline-block; margin-bottom:1.5rem; box-shadow:0 8px 20px rgba(0,0,0,0.15);">
+      <img id="qrCodeImg" src="" alt="QR Code" style="width:200px; height:200px; display:block;"/>
+    </div>
+    
+    <div style="font-size:0.85rem; color:var(--text); margin-bottom:1.5rem; font-family:'Tajawal',sans-serif;">
+      <span data-en="Order ID:" data-ar="رقم الطلب:">Order ID:</span> <strong id="qrOrderId" style="color:var(--gold)">#--</strong>
+    </div>
+    
+    <button class="btn-gold" style="width:100%; justify-content:center;" onclick="closeQrModal()" data-en="Done" data-ar="تم">Done</button>
   </div>
 </div>
 
@@ -292,7 +311,7 @@
       const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
       const ptsLabel = isAr ? 'نقطة' : 'pts';
       html = `
-        <div class="nav-user-logged" onclick="location.href='/'">
+        <div class="nav-user-logged" onclick="location.href='index.html'">
           <div class="user-avatar">${initial}</div>
           <div class="user-info-brief">
             <span class="user-name">${user.name}</span>
@@ -303,7 +322,7 @@
     } else {
       const loginText = isAr ? 'تسجيل الدخول' : 'Login';
       html = `
-        <a href="/login" class="nav-user-btn">
+        <a href="login.html" class="nav-user-btn">
           <span>${loginText}</span>
         </a>
       `;
@@ -415,15 +434,20 @@
       const data = await res.json();
       
       if (data.success) {
-        alert(isAr ? 'تم إرسال طلبك بنجاح! شكراً لك.' : 'Your order has been sent successfully! Thank you.');
+        document.getElementById('qrCodeImg').src = data.qrCodeUrl;
+        document.getElementById('qrOrderId').textContent = `#${data.order_id}`;
+        document.getElementById('qrModal').style.display = 'flex';
         localStorage.removeItem('ozel_cart');
-        location.href = '/';
       } else {
         alert(data.error || (isAr ? 'فشل إرسال الطلب' : 'Failed to send order'));
       }
     } catch (e) {
       alert(isAr ? 'فشل الاتصال بالخادم' : 'Connection error with server');
     }
+  }
+
+  function closeQrModal() {
+    location.href = 'index.html';
   }
 
   // Initial Load

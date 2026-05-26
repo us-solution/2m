@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta charset="UTF-8"/>
+<script src="api-override.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Admin Panel — OZEL CAFE</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet"/>
 <style>
@@ -194,7 +196,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
     <span class="hlogo">OZEL</span>
   </div>
   <div style="display:flex;gap:.8rem">
-    <button class="hbtn" onclick="location.href='/cashier'">Cashier</button>
+    <button class="hbtn" onclick="location.href='cashier.html'">Cashier</button>
     <button class="hbtn" onclick="logout()">Logout</button>
   </div>
 </header>
@@ -312,7 +314,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
 <script>
 const token = localStorage.getItem('ozel_token');
 const user  = JSON.parse(localStorage.getItem('ozel_user') || 'null');
-if (!user || user.role !== 'admin') { location.href = '/login?from=/admin'; }
+if (!user || user.role !== 'admin') { location.href = 'login.html?from=admin.html'; }
 
 let menuData = [], usersData = [], ordersData = [];
 
@@ -717,7 +719,7 @@ async function changeRole(id, role) {
   await fetch(`/api/admin/users/${id}`, { method:'PATCH', headers: authH, body: JSON.stringify({ role }) });
 }
 
-function logout() { localStorage.clear(); location.href = '/login'; }
+function logout() { localStorage.clear(); location.href = 'login.html'; }
 
 function showModal(title, text, isConfirm = false, isPrompt = false) {
   return new Promise((resolve) => {

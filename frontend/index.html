@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
+  <script src="api-override.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OZEL CAFE — Hidden Gem</title>
   <meta name="description" content="OZEL CAFE — Hidden Gem. An exceptional coffee experience in a special place." />
@@ -13,6 +14,7 @@
     rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+  <script src="https://js.pusher.com/8.0.1/pusher.min.js"></script>
 </head>
 
 <body>
@@ -207,11 +209,6 @@
 
     <div class="lounge-container">
       <div class="lounge-cards-grid">
-        <div class="lounge-game-card" id="btn-tab-spin" onclick="switchLoungeTab('spin')">
-          <div class="lgc-icon">☕</div>
-          <h3 data-en="Spin the Cup" data-ar="عجلة الحظ">Spin the Cup</h3>
-          <p data-en="Test your luck!" data-ar="جرب حظك!">Test your luck!</p>
-        </div>
         <div class="lounge-game-card active" id="btn-tab-imposter" onclick="switchLoungeTab('imposter')">
           <div class="lgc-icon">🕵️</div>
           <h3 data-en="Who is the Imposter?" data-ar="مين الدخيل؟">Who is the Imposter?</h3>
@@ -222,40 +219,14 @@
           <h3 data-en="Tic-Tac-Coffee" data-ar="إكس أو">Tic-Tac-Coffee</h3>
           <p data-en="Classic fun." data-ar="لعبة كلاسيكية.">Classic fun.</p>
         </div>
+        <div class="lounge-game-card" id="btn-tab-screw" onclick="switchLoungeTab('screw')">
+          <div class="lgc-icon">🃏</div>
+          <h3 data-en="Screw Card Game" data-ar="لعبة اسكرو">Screw Card Game</h3>
+          <p data-en="Online multiplayer" data-ar="لعب جماعي أونلاين">Online multiplayer</p>
+        </div>
       </div>
 
       <div class="lounge-content">
-        <!-- SPIN THE CUP -->
-        <div id="lounge-spin" class="lounge-panel">
-          <div class="spin-game-wrap">
-            <div class="player-manager-wrap">
-              <p class="pm-title" data-en="Add players sitting at the table (2 to 8 players):" data-ar="إضافة اللاعبين الجالسين على الطاولة (من 2 إلى 8 لاعبين):">Add players sitting at the table (2 to 8 players):</p>
-              <div class="player-input-row">
-                <input type="text" id="player-name-input" data-placeholder-en="Player name..." data-placeholder-ar="اسم اللاعب..." placeholder="Player name..." maxlength="12" onkeydown="if(event.key==='Enter') addLoungePlayer()" />
-                <button class="btn-gold" onclick="addLoungePlayer()" style="padding: 0.6rem 1.2rem; font-size: 0.85rem;" data-en="Add +" data-ar="إضافة +">Add +</button>
-              </div>
-              <div class="player-chips-list" id="player-chips-container">
-                <!-- Player chips loaded dynamically -->
-              </div>
-            </div>
-
-            <div class="wheel-game-container">
-              <div class="cup-spinner-container">
-                <svg id="wheel-svg" viewBox="0 0 300 300">
-                  <!-- Slices loaded dynamically -->
-                </svg>
-                <div class="cup-center-spinner" id="cup-center-spinner">
-                  <img src="imgs/espresso.png" alt="Coffee Cup" class="spinning-cup-img-v2" />
-                  <div class="cup-pointer-dot"></div>
-                </div>
-                <div class="cup-spinner-arrow-v2">✦</div>
-              </div>
-              <button class="btn-gold" id="spin-btn" onclick="spinTheCupV2()" style="margin: 0 auto; display: block; padding: 0.8rem 2rem; font-size: 0.95rem; font-weight: 700; letter-spacing: 0.05em; border-radius: 50px;" data-en="✦ SPIN THE CUP ✦" data-ar="✦ لف الفنجان ✦">✦ SPIN THE CUP ✦</button>
-              <div class="spin-result-box" id="spin-result" data-en="Add players then click 'Spin the Cup'!" data-ar="أضف لاعبين ثم انقر على 'لف الفنجان'!">Add players then click 'Spin the Cup'!</div>
-            </div>
-          </div>
-        </div>
-
         <!-- IMPOSTER -->
         <div id="lounge-imposter" class="lounge-panel active">
           <div class="imposter-game-wrap" style="width: 100%;">
@@ -279,13 +250,6 @@
             <div class="ttt-modes-row">
               <div class="ttt-mode-selectors">
                 <button class="ttt-mode-btn active" id="ttt-btn-local" onclick="setTTTMode('local')" data-en="Player vs Player" data-ar="لاعب ضد لاعب">Player vs Player</button>
-                <button class="ttt-mode-btn" id="ttt-btn-ai" onclick="setTTTMode('ai')" data-en="Vs Smart Barista" data-ar="ضد الباريستا الذكي">Vs Smart Barista</button>
-              </div>
-              <div class="ttt-difficulty-wrap" id="ttt-difficulty-container" style="display: none;">
-                <select id="ttt-difficulty" class="ttt-select" onchange="resetTTT()">
-                  <option value="easy" data-en="Easy" data-ar="مبتدئ">Easy</option>
-                  <option value="smart" selected data-en="Smart AI" data-ar="محترف">Smart AI</option>
-                </select>
               </div>
             </div>
 
@@ -307,6 +271,132 @@
                 <div class="ttt-cell" data-idx="8" onclick="playTTT(8)"></div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- SCREW CARD GAME -->
+        <div id="lounge-screw" class="lounge-panel">
+          <div class="screw-game-wrap" style="width: 100%;">
+            <!-- Setup & Lobby -->
+            <div id="screw-lobby" class="screw-lobby-panel" style="text-align: center; padding: 2rem 0;">
+              <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:var(--gold); margin-bottom:1.5rem;" data-en="Multiplayer Screw Game" data-ar="لعبة اسكرو الجماعية">Multiplayer Screw Game</h3>
+              <div style="max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem;">
+                <input type="text" id="screw-player-name" data-placeholder-en="Your Nickname" data-placeholder-ar="اسمك المستعار" placeholder="Your Nickname" class="field" style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.85rem 1rem; border-radius:4px; font-family:'Tajawal',sans-serif; text-align:center; font-weight:bold;"/>
+                <div style="display: flex; gap: 0.5rem;">
+                  <button class="btn-gold" onclick="createScrewRoom()" style="flex: 1; justify-content: center; font-size: 0.85rem;" data-en="Create Room" data-ar="إنشاء غرفة">Create Room</button>
+                  <button class="btn-outline" onclick="showJoinScrewInput()" style="flex: 1; justify-content: center; font-size: 0.85rem;" data-en="Join Room" data-ar="انضمام لغرفة">Join Room</button>
+                </div>
+                <div id="screw-join-box" style="display: none; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; border-top: 1px solid var(--line); padding-top: 1rem;">
+                  <input type="text" id="screw-room-code" data-placeholder-en="4-Letter Room Code" data-placeholder-ar="رمز الغرفة (٤ أحرف)" placeholder="4-Letter Room Code" maxlength="4" style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.85rem 1rem; border-radius:4px; font-family:'Tajawal',sans-serif; text-align:center; text-transform:uppercase; font-weight:bold;"/>
+                  <button class="btn-gold" onclick="submitJoinScrewRoom()" style="width: 100%; justify-content: center; font-size: 0.85rem;" data-en="Submit Join" data-ar="تأكيد الانضمام">Submit Join</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Waiting Lobby -->
+            <div id="screw-waiting" class="screw-waiting-panel" style="display: none; text-align: center; padding: 2rem 0;">
+              <span style="font-size:0.75rem; color:var(--muted); letter-spacing:0.1em;" data-en="ROOM CODE" data-ar="رمز الغرفة">ROOM CODE</span>
+              <h2 id="screw-display-code" style="font-family:'Montserrat',sans-serif; font-size:3.5rem; font-weight:700; color:var(--gold); margin-bottom:1.5rem;">----</h2>
+              
+              <div style="background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:1.5rem; max-width:320px; margin:0 auto 2rem;">
+                <h4 style="margin-bottom:1rem; border-bottom:1px solid var(--line); padding-bottom:0.5rem;" data-en="Players in Lobby" data-ar="اللاعبون في الانتظار">Players in Lobby</h4>
+                <div id="screw-players-list" style="display:flex; flex-direction:column; gap:0.5rem; text-align:left;">
+                  <!-- Loaded dynamically -->
+                </div>
+              </div>
+
+              <div id="screw-host-actions" style="display: none; max-width: 320px; margin: 0 auto;">
+                <button class="btn-gold" onclick="startScrewGame()" style="width: 100%; justify-content: center;" data-en="✦ Start Game ✦" data-ar="✦ ابدأ اللعبة ✦">✦ Start Game ✦</button>
+              </div>
+              <p id="screw-nonhost-msg" style="color:var(--muted); font-size:0.85rem;" data-en="Waiting for host to start..." data-ar="بانتظار بدء اللعبة من منشئ الغرفة..."></p>
+            </div>
+
+            <!-- Active Gameplay Board -->
+            <div id="screw-board" class="screw-board-panel" style="display: none; width: 100%;">
+              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 0.8rem; margin-bottom: 1.5rem;">
+                <div>
+                  <span data-en="Room:" data-ar="الغرفة:">Room:</span> <strong id="screw-board-code" style="color:var(--gold)">ABCD</strong>
+                </div>
+                <div id="screw-turn-indicator" style="font-weight:700; color:var(--accent-emerald);">
+                  <!-- Turn details -->
+                </div>
+              </div>
+
+              <!-- Other Players Row -->
+              <div id="screw-other-players" style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 2rem;">
+                <!-- Other players card representations -->
+              </div>
+
+              <!-- Main Table Center (Deck & Discard) -->
+              <div style="display: flex; justify-content: center; align-items: center; gap: 2.5rem; margin-bottom: 2rem; background: var(--bg3); padding: 1.5rem; border-radius: 12px; border: 1px dashed var(--line); max-width: 500px; margin-inline: auto;">
+                
+                <!-- Draw Pile -->
+                <div style="text-align: center;">
+                  <span style="font-size:0.65rem; color:var(--muted); text-transform:uppercase; display:block; margin-bottom:0.4rem;" data-en="Draw Pile" data-ar="سحب">Draw Pile</span>
+                  <div class="screw-deck-card" id="screw-deck" onclick="drawFromScrewDeck()" style="width: 70px; height: 100px; background: linear-gradient(135deg, var(--gold), #9c6161); border: 2px solid var(--white); border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 1.5rem; cursor: pointer; transition: transform 0.2s;">
+                    ✦
+                  </div>
+                  <span id="screw-deck-count" style="font-size:0.75rem; color:var(--muted); margin-top:0.4rem; display:block;">48 cards</span>
+                </div>
+
+                <!-- Discard Pile -->
+                <div style="text-align: center;">
+                  <span style="font-size:0.65rem; color:var(--muted); text-transform:uppercase; display:block; margin-bottom:0.4rem;" data-en="Discard Pile" data-ar="المكشوف">Discard Pile</span>
+                  <div class="screw-discard-card" id="screw-discard" onclick="drawFromScrewDiscard()" style="width: 70px; height: 100px; background: var(--bg2); border: 2px solid var(--gold); border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; transition: transform 0.2s; position: relative;">
+                    <!-- Top card detail -->
+                  </div>
+                  <span id="screw-discard-count" style="font-size:0.75rem; color:var(--muted); margin-top:0.4rem; display:block;">1 card</span>
+                </div>
+
+                <!-- Drawn Card (Visible to active player only) -->
+                <div id="screw-drawn-card-area" style="text-align: center; opacity: 0.3;">
+                  <span style="font-size:0.65rem; color:var(--muted); text-transform:uppercase; display:block; margin-bottom:0.4rem;" data-en="Drawn Card" data-ar="المسحوب">Drawn Card</span>
+                  <div id="screw-drawn" style="width: 70px; height: 100px; background: var(--bg2); border: 2px dashed var(--line); border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold;">
+                    -
+                  </div>
+                  <span style="font-size:0.75rem; color:transparent; margin-top:0.4rem; display:block;">-</span>
+                </div>
+
+              </div>
+
+              <!-- My Hand Layout -->
+              <div style="text-align: center; margin-bottom: 2rem;">
+                <h4 style="font-family:'Tajawal',sans-serif; margin-bottom:1rem; font-size:1.1rem; color:var(--text);" data-en="Your Hand (Click card to swap or peek)" data-ar="بطاقاتك (اضغط على بطاقة للمبادلة أو الكشف)">Your Hand (Click card to swap or peek)</h4>
+                
+                <div style="display: grid; grid-template-columns: repeat(4, 70px); gap: 1rem; justify-content: center;" id="screw-my-cards">
+                  <!-- Player cards -->
+                </div>
+              </div>
+
+              <!-- Interactive Controls -->
+              <div style="display: flex; gap: 0.5rem; max-width: 400px; margin: 0 auto 1.5rem; flex-wrap: wrap; justify-content: center;" id="screw-actions-row">
+                <button class="btn-outline" onclick="discardDrawnScrewCard()" id="btn-screw-discard-drawn" disabled style="padding: 0.6rem 1.2rem; font-size: 0.85rem;" data-en="Discard Drawn" data-ar="رمي المسحوب">Discard Drawn</button>
+                <button class="btn-gold" onclick="callScrew()" id="btn-screw-call" disabled style="padding: 0.6rem 1.2rem; font-size: 0.85rem;" data-en="Call Screw!" data-ar="سكرو!">Call Screw!</button>
+              </div>
+
+              <!-- Live Game Logs -->
+              <div style="background: var(--bg3); padding: 1rem; border-radius: 8px; border: 1px solid var(--line); max-width: 500px; margin-inline: auto;">
+                <span style="font-size:0.7rem; color:var(--muted); font-weight:bold; text-transform:uppercase; letter-spacing:0.05em; display:block; border-bottom:1px solid var(--line); padding-bottom:0.3rem; margin-bottom:0.5rem;" data-en="Live Logs" data-ar="سجل اللعبة">Live Logs</span>
+                <div id="screw-logs" style="height: 80px; overflow-y: auto; font-family: monospace; font-size: 0.8rem; text-align: left; display: flex; flex-direction: column; gap: 0.2rem; color: var(--muted);">
+                  <!-- Log entries -->
+                </div>
+              </div>
+            </div>
+
+            <!-- End Game / Scores -->
+            <div id="screw-finished" class="screw-finished-panel" style="display: none; text-align: center; padding: 2rem 0;">
+              <h2 style="font-family:'Cormorant Garamond',serif; font-size:2.5rem; color:var(--gold); margin-bottom:1rem;" data-en="Game Finished!" data-ar="انتهت اللعبة!">Game Finished!</h2>
+              <p style="color:var(--muted); margin-bottom:2rem;" data-en="Round ended. All scores tallied:" data-ar="انتهت الجولة وتم احتساب النقاط:"></p>
+              
+              <div style="background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:1.5rem; max-width:360px; margin:0 auto 2rem;">
+                <div id="screw-tallies" style="display:flex; flex-direction:column; gap:0.8rem;">
+                  <!-- score cards -->
+                </div>
+              </div>
+
+              <button class="btn-gold" onclick="resetScrewLobby()" style="max-width: 240px; margin: 0 auto; justify-content: center;" data-en="Play Again" data-ar="اللعب مجدداً">Play Again</button>
+            </div>
+
           </div>
         </div>
       </div>
@@ -363,7 +453,7 @@
   </div>
 
   <!-- CART BUTTON -->
-  <a href="/cart.html" class="cart-fab" id="cartFab"
+  <a href="cart.html" class="cart-fab" id="cartFab"
     style="display: flex; align-items: center; justify-content: center; text-decoration: none; padding: 0.5rem 1rem; border-radius: 30px; gap: 0.4rem;">
     <span class="cart-fab-text" style="font-family: 'Tajawal', sans-serif; font-weight: 700; font-size: 0.85rem; color: var(--white);" data-en="Cart" data-ar="الطلب">Cart</span>
     <span class="cart-fab-badge" id="cartCount" style="position: static; transform: none;">0</span>
@@ -419,27 +509,31 @@
         <div class="modal-name" style="text-align: center; margin-bottom: 1.5rem; font-family: 'Playfair Display', serif; font-size: 1.8rem;" data-en="Your Profile" data-ar="حسابك الشخصي">Your Profile</div>
 
         <!-- PREMIUM VIP LOYALTY CARD -->
-        <div class="vip-card" style="position: relative; overflow: hidden; background: linear-gradient(135deg, var(--accent-emerald), #1a3026); padding: 1.8rem; border-radius: var(--rad-lg); border: 1px solid rgba(194, 159, 67, 0.3); box-shadow: 0 12px 30px rgba(42, 75, 61, 0.15); color: var(--white); margin-bottom: 1.5rem;">
+        <div class="vip-card tier-none" id="profileVipCard" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.15" style="cursor: pointer;">
           <div style="position: absolute; inset: 0; opacity: 0.08; background-image: url('data:image/svg+xml,%3Csvg viewBox=%270 0 200 200%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.9%27 numOctaves=%274%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23n)%27/%3E%3C/svg%3E'); pointer-events: none;"></div>
-          <div style="position: absolute; top: -50px; right: -50px; width: 140px; height: 140px; background: radial-gradient(circle, var(--gold) 0%, transparent 70%); opacity: 0.3; filter: blur(20px); pointer-events: none;"></div>
+          <div style="position: absolute; top: -50px; right: -50px; width: 140px; height: 140px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%); opacity: 0.3; filter: blur(20px); pointer-events: none;"></div>
           
           <div style="position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: space-between;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
               <div>
                 <span style="font-family: 'Outfit', sans-serif; font-size: 0.65rem; letter-spacing: 0.25rem; text-transform: uppercase; color: rgba(255,255,255,0.7); display: block; margin-bottom: 0.2rem;">OZEL CAFE MEMBER</span>
-                <span style="font-family: 'Playfair Display', serif; font-size: 1rem; font-style: italic; color: var(--gold); letter-spacing: 0.05em;" data-en="VIP Club ✦" data-ar="نادي كبار الشخصيات ✦">VIP Club ✦</span>
+                <span style="font-family: 'Playfair Display', serif; font-size: 1rem; font-style: italic; color: #fff; letter-spacing: 0.05em;" id="profileVipClubTitle" data-en="VIP Club ✦" data-ar="نادي كبار الشخصيات ✦">VIP Club ✦</span>
               </div>
+              <div class="vip-card-badge" id="profileTierBadge">STANDARD</div>
             </div>
             
             <div style="margin-bottom: 1.5rem;">
-              <span style="font-family: 'Outfit', sans-serif; font-size: 0.7rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); display: block; margin-bottom: 0.3rem; font-weight: 500;" data-en="YOUR CURRENT POINTS / BALANCE" data-ar="نقاطك الحالية / BALANCE">YOUR CURRENT POINTS / BALANCE</span>
+              <span style="font-family: 'Outfit', sans-serif; font-size: 0.7rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.6); display: block; margin-bottom: 0.3rem; font-weight: 500;" data-en="YOUR CURRENT POINTS / BALANCE" data-ar="نقاطك الحالية / BALANCE">YOUR CURRENT POINTS / BALANCE</span>
               <div style="display: flex; align-items: baseline; gap: 0.4rem;">
-                <span id="profilePoints" style="font-family: 'Montserrat', sans-serif; font-size: 2.8rem; font-weight: 700; color: var(--gold); line-height: 1;">0</span>
+                <span id="profilePoints" style="font-family: 'Montserrat', sans-serif; font-size: 2.8rem; font-weight: 700; color: #fff; line-height: 1;">0</span>
                 <span style="font-family: 'Tajawal', sans-serif; font-size: 0.8rem; letter-spacing: 0.05em; font-weight: 700; color: rgba(255,255,255,0.8);" data-en="pts" data-ar="نقطة">pts</span>
+              </div>
+              <div style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.85); font-weight: 600; margin-top: 0.4rem; font-family: 'Tajawal', sans-serif;" id="profileDiscountRate">
+                Discount: 0%
               </div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.8rem; font-size: 0.7rem; color: rgba(255,255,255,0.5); font-family: 'Tajawal', sans-serif;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.8rem; font-size: 0.7rem; color: rgba(255,255,255,0.6); font-family: 'Tajawal', sans-serif;">
               <span data-en="Every 100 points = 10 EGP discount" data-ar="كل 100 نقطة = 10 جنيه خصم">Every 100 points = 10 EGP discount</span>
               <span id="profileMemberName" style="text-transform: uppercase; font-weight: 700; color: var(--white); font-size: 0.75rem; font-family: 'Tajawal', sans-serif;">MEMBER</span>
             </div>
@@ -479,6 +573,7 @@
   </div>
 
   <script src="app.js"></script>
+  <script src="screw.js"></script>
 </body>
 
 </html>

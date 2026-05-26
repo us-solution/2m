@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta charset="UTF-8"/>
+<script src="api-override.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Login — OZEL CAFE</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@300;400&display=swap" rel="stylesheet"/>
 <style>
@@ -151,7 +153,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
 
     <!-- LOGIN -->
     <div class="form-section active" id="tab-login">
-      <div class="field"><label data-en="Phone Number" data-ar="رقم الهاتف">Phone Number</label><input id="l-phone" type="tel" data-placeholder-en="01xxxxxxxxx" data-placeholder-ar="٠١xxxxxxxxx" placeholder="01xxxxxxxxx"/></div>
+      <div class="field"><label data-en="Phone or Email" data-ar="الهاتف أو البريد">Phone or Email</label><input id="l-identifier" type="text" data-placeholder-en="Phone number or email" data-placeholder-ar="رقم الهاتف أو البريد" placeholder="Phone number or email"/></div>
       <div class="field"><label data-en="Password" data-ar="كلمة المرور">Password</label><input id="l-pass" type="password" data-placeholder-en="••••••••" data-placeholder-ar="••••••••" placeholder="••••••••"/></div>
       <button class="btn" onclick="doLogin()" data-en="Login" data-ar="تسجيل الدخول">Login</button>
       <span class="skip" style="margin-top:0.8rem; font-size:0.75rem;" onclick="forgotPassword()" data-en="Forgot Password?" data-ar="نسيت كلمة المرور؟">Forgot Password?</span>
@@ -162,6 +164,16 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
     <div class="form-section" id="tab-register">
       <div class="field"><label data-en="Name" data-ar="الاسم">Name</label><input id="r-name" type="text" data-placeholder-en="Your Name" data-placeholder-ar="الاسم الكريم" placeholder="Your Name"/></div>
       <div class="field"><label data-en="Phone Number" data-ar="رقم الهاتف">Phone Number</label><input id="r-phone" type="tel" data-placeholder-en="01xxxxxxxxx" data-placeholder-ar="٠١xxxxxxxxx" placeholder="01xxxxxxxxx"/></div>
+      <div class="field"><label data-en="Email Address (Optional)" data-ar="البريد الإلكتروني (اختياري)">Email Address (Optional)</label><input id="r-email" type="email" data-placeholder-en="example@mail.com" data-placeholder-ar="example@mail.com" placeholder="example@mail.com"/></div>
+      <div class="field"><label data-en="Subscription Tier" data-ar="باقة الاشتراك">Subscription Tier</label>
+        <select id="r-tier" style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.85rem 1rem; font-family:'Tajawal',sans-serif; font-size:.95rem; outline:none; border-radius:4px;">
+          <option value="none" data-en="None (Standard)" data-ar="بدون باقة (عادي)">None (Standard)</option>
+          <option value="bronze" data-en="Bronze Tier (5% Off)" data-ar="الباقة البرونزية (خصم ٥٪)">Bronze Tier (5% Off)</option>
+          <option value="silver" data-en="Silver Tier (10% Off)" data-ar="الباقة الفضية (خصم ١٠٪)">Silver Tier (10% Off)</option>
+          <option value="gold" data-en="Gold Tier (15% Off)" data-ar="الباقة الذهبية (خصم ١٥٪)">Gold Tier (15% Off)</option>
+          <option value="student" data-en="Student Tier (20% Off)" data-ar="باقة الطلاب (خصم ٢٠٪)">Student Tier (20% Off)</option>
+        </select>
+      </div>
       <div class="field"><label data-en="Password" data-ar="كلمة المرور">Password</label><input id="r-pass" type="password" data-placeholder-en="Choose a password" data-placeholder-ar="اختر كلمة مرور" placeholder="Choose a password"/></div>
       <button class="btn" onclick="doRegister()" data-en="Create Account" data-ar="إنشاء حساب">Create Account</button>
       <p class="err" id="r-err"></p>
@@ -170,7 +182,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   <span class="skip" onclick="skipLogin()" data-en="Skip and browse menu without login" data-ar="تخطى وتصفح المنيو بدون تسجيل الدخول">Skip and browse menu without login</span>
 </div>
 <script>
-const redirect = new URLSearchParams(location.search).get('from') || '/';
+const redirect = new URLSearchParams(location.search).get('from') || 'index.html';
 let currentLang = localStorage.getItem('ozel_lang') || 'en';
 
 function switchTab(t){
@@ -197,18 +209,18 @@ function forgotPassword() {
 
 async function doLogin(){
   const isAr = currentLang === 'ar';
-  const phone=document.getElementById('l-phone').value.trim();
+  const identifier=document.getElementById('l-identifier').value.trim();
   const pass=document.getElementById('l-pass').value;
   const err=document.getElementById('l-err');
   err.textContent='';
-  if(!phone || !pass) { err.textContent = isAr ? 'يرجى إدخال رقم الهاتف وكلمة المرور' : 'Please enter phone number and password'; return; }
-  const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,password:pass})});
+  if(!identifier || !pass) { err.textContent = isAr ? 'يرجى إدخال الهاتف/البريد وكلمة المرور' : 'Please enter identifier and password'; return; }
+  const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier,password:pass})});
   const data=await res.json();
   if(!res.ok){err.textContent=translateError(data.error);return;}
   localStorage.setItem('ozel_token',data.token);
   localStorage.setItem('ozel_user',JSON.stringify(data.user));
-  if(data.user.role==='admin') location.href='/admin';
-  else if(data.user.role==='cashier') location.href='/cashier';
+  if(data.user.role==='admin') location.href='admin.html';
+  else if(data.user.role==='cashier') location.href='cashier.html';
   else location.href=redirect;
 }
 
@@ -216,12 +228,17 @@ async function doRegister(){
   const isAr = currentLang === 'ar';
   const name=document.getElementById('r-name').value.trim();
   const phone=document.getElementById('r-phone').value.trim();
+  const email=document.getElementById('r-email').value.trim();
+  const subscriptionTier=document.getElementById('r-tier').value;
   const pass=document.getElementById('r-pass').value;
   const err=document.getElementById('r-err');
   err.textContent='';
-  if(!name || !phone || !pass) { err.textContent = isAr ? 'يرجى إكمال جميع الحقول' : 'Please complete all fields'; return; }
-  if(phone.length < 10) { err.textContent = isAr ? 'رقم هاتف غير صالح' : 'Invalid phone number'; return; }
-  const res=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,phone,password:pass})});
+  if(!name || !pass || (!phone && !email)) { err.textContent = isAr ? 'يرجى إكمال جميع الحقول الإلزامية' : 'Please complete all required fields'; return; }
+  const res=await fetch('/api/auth/register',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name,phone,email,subscriptionTier,password:pass})
+  });
   const data=await res.json();
   if(!res.ok){err.textContent=translateError(data.error);return;}
   localStorage.setItem('ozel_token',data.token);
@@ -255,8 +272,8 @@ function applyLanguage(lang) {
 // Auto redirect if already logged in
 const u=JSON.parse(localStorage.getItem('ozel_user')||'null');
 if(u){
-  if(u.role==='admin') location.href='/admin';
-  else if(u.role==='cashier') location.href='/cashier';
+  if(u.role==='admin') location.href='admin.html';
+  else if(u.role==='cashier') location.href='cashier.html';
   else location.href=redirect;
 }
 

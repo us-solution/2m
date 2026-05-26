@@ -1,0 +1,3 @@
+@echo off
+echo Starting OZEL Cafe Node.js Server...
+npm start

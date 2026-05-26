@@ -7,6 +7,31 @@ const urlParams  = new URLSearchParams(window.location.search);
 const tableParam = urlParams.get('table');
 window.currentPuzzle = { sugar: 'Normal', extra: 'None' };
 
+// ── Lounge & Games State ──────────────────
+let loungePlayers = [];
+
+let imposterGame = {
+  players: [],
+  citizenWordEn: "",
+  imposterWordEn: "",
+  citizenWordAr: "",
+  imposterWordAr: "",
+  round: 1,
+  currentTurnIdx: 0,
+  state: "setup",
+  winner: null,
+  votes: {},
+  eliminatedThisRound: null,
+  tieBreakerUsed: false,
+  tiedPlayers: [],
+  isSelectingSuspect: false
+};
+
+let tttBoard = Array(9).fill(null);
+let tttCurrentPlayer = 'O'; 
+let tttActive = true;
+let tttWinner = null; 
+
 // ── Auth State ───────────────────────────
 const TOKEN = localStorage.getItem('ozel_token');
 const CUSER = JSON.parse(localStorage.getItem('ozel_user') || 'null');
@@ -60,8 +85,7 @@ window.applyLanguage = function(lang) {
   renderMenu(currentCat === 'all' ? allDrinks : allDrinks.filter(d => String(d.category_id) === currentCat));
   renderOffersCards();
   renderNavUser();
-  drawWheel();
-  
+
   if (imposterGame) {
     if (imposterGame.state === 'setup') {
       renderImposterSetup();
@@ -72,18 +96,73 @@ window.applyLanguage = function(lang) {
     }
   }
   updateTTTStatus();
-  if (typeof updateSpinResult === 'function') {
-    updateSpinResult();
-  }
 };
 
 // ── Loader ──────────────────────────────
-window.addEventListener('load', () => {
+document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     const loader = document.getElementById('loader');
-    if (loader) loader.classList.add('hidden');
-  }, 2200);
+    if (loader) {
+      loader.classList.add('hidden');
+      setTimeout(() => {
+        loader.style.display = 'none';
+      }, 1200);
+    }
+  }, 1000);
   fetchMenu();
+});
+
+// --- Global delegation for lounge & games ---
+document.addEventListener('click', function(e) {
+  const handled = e.target.closest('[data-gh]');
+  if (handled) return;
+
+  // Game card tab switching
+  const card = e.target.closest('.lounge-game-card');
+  if (card) {
+    const tabName = card.id ? card.id.replace('btn-tab-', '') : '';
+    if (tabName && typeof window.switchLoungeTab === 'function') {
+      e.preventDefault();
+      card.setAttribute('data-gh', '1');
+      window.switchLoungeTab(tabName);
+      return;
+    }
+  }
+
+  // Drink modal buttons
+  const drinkBtn = e.target.closest('[onclick*="openDrink"]');
+  if (drinkBtn) {
+    const match = drinkBtn.getAttribute('onclick').match(/openDrink\('(\d+)'\)/);
+    if (match && match[1] && typeof window.openDrink === 'function') {
+      e.preventDefault();
+      drinkBtn.setAttribute('data-gh', '1');
+      window.openDrink(match[1]);
+      return;
+    }
+  }
+
+  // Generic: match any element with onclick that calls a known global function
+  const el = e.target.closest('[onclick]');
+  if (el) {
+    const code = el.getAttribute('onclick');
+    const m = code.match(/^(\w+)\(([^)]*)\)$/);
+    if (m && typeof window[m[1]] === 'function') {
+      e.preventDefault();
+      el.setAttribute('data-gh', '1');
+      const rawArgs = m[2].trim();
+      const args = rawArgs ? rawArgs.split(',').map(a => {
+        a = a.trim();
+        if (a === 'true') return true;
+        if (a === 'false') return false;
+        if (a === 'null') return null;
+        if (a === 'undefined') return undefined;
+        if (!isNaN(a) && a !== '') return Number(a);
+        if (/^event$/.test(a)) return e;
+        return a.replace(/^['"]|['"]$/g, '');
+      }) : [];
+      window[m[1]](...args);
+    }
+  }
 });
 
 function renderNavUser() {
@@ -107,7 +186,7 @@ function renderNavUser() {
   } else {
     const loginText = isAr ? 'تسجيل الدخول' : 'Login';
     html = `
-      <a href="/login" class="nav-user-btn">
+      <a href="login.html" class="nav-user-btn">
         <span>${loginText}</span>
       </a>
     `;
@@ -128,18 +207,76 @@ window.toggleMobileMenu = function() {
   }
 };
 
-function logoutUser() { localStorage.clear(); location.reload(); }
+window.logoutUser = function() { localStorage.clear(); location.reload(); };
 
-async function openProfileModal() {
+window.openProfileModal = async function() {
   const modal = document.getElementById('profileModal');
   if (!modal) return;
-  document.getElementById('profilePoints').textContent = CUSER.points || 0;
-  if (document.getElementById('profileMemberName')) {
-    document.getElementById('profileMemberName').textContent = CUSER.name || 'MEMBER';
-  }
   modal.classList.add('open');
   
   const isAr = currentLang === 'ar';
+  
+  // Fetch latest user details from server to keep stats synchronized
+  let userDetails = CUSER;
+  try {
+    const meRes = await fetch('/api/auth/me', { headers: authHeaders });
+    if (meRes.ok) {
+      userDetails = await meRes.json();
+      localStorage.setItem('ozel_user', JSON.stringify(userDetails));
+    }
+  } catch (e) {
+    console.warn('Failed to fetch latest user stats, using cached user data', e);
+  }
+  
+  // Render details on ID Card
+  document.getElementById('profilePoints').textContent = userDetails.points || 0;
+  if (document.getElementById('profileMemberName')) {
+    document.getElementById('profileMemberName').textContent = userDetails.name || 'MEMBER';
+  }
+
+  // Handle Dynamic ID Card Styling based on Subscription Tier
+  const cardEl = document.getElementById('profileVipCard');
+  const badgeEl = document.getElementById('profileTierBadge');
+  const discountEl = document.getElementById('profileDiscountRate');
+
+  if (cardEl && badgeEl && discountEl) {
+    // Reset tier classes
+    cardEl.className = 'vip-card';
+    
+    const tier = (userDetails.subscriptionTier || 'none').toLowerCase();
+    cardEl.classList.add(`tier-${tier}`);
+
+    // Map tier names and discounts
+    let tierName = 'STANDARD';
+    let discount = '0%';
+    
+    if (tier === 'bronze') {
+      tierName = isAr ? 'برونزية' : 'BRONZE';
+      discount = '5%';
+    } else if (tier === 'silver') {
+      tierName = isAr ? 'فضية' : 'SILVER';
+      discount = '10%';
+    } else if (tier === 'gold') {
+      tierName = isAr ? 'ذهبية' : 'GOLD';
+      discount = '15%';
+    } else if (tier === 'student') {
+      tierName = isAr ? 'طالب' : 'STUDENT';
+      discount = '20%';
+    } else {
+      tierName = isAr ? 'عادي' : 'STANDARD';
+      discount = '0%';
+    }
+
+    badgeEl.textContent = tierName;
+    discountEl.innerHTML = isAr 
+      ? `نسبة الخصم الخاصة بك: <span style="color:var(--gold); font-size:1.15rem; font-weight:700;">${discount}</span>`
+      : `Your discount rate: <span style="color:var(--gold); font-size:1.15rem; font-weight:700;">${discount}</span>`;
+  }
+
+  // Initialize vanilla tilt on the ID card if present
+  if (typeof VanillaTilt !== 'undefined' && cardEl) {
+    VanillaTilt.init(cardEl);
+  }
   
   try {
     const res = await fetch('/api/me/orders', { headers: authHeaders });
@@ -147,11 +284,18 @@ async function openProfileModal() {
     
     const drinkCounts = {};
     orders.forEach(order => {
-      const items = JSON.parse(order.items);
-      items.forEach(item => {
-        const nameKey = isAr ? (item.name_ar || item.name) : item.name;
-        drinkCounts[nameKey] = (drinkCounts[nameKey] || 0) + 1;
-      });
+      let items = [];
+      try {
+        items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+      } catch(e) {
+        items = order.items || [];
+      }
+      if (Array.isArray(items)) {
+        items.forEach(item => {
+          const nameKey = isAr ? (item.name_ar || item.name) : item.name;
+          drinkCounts[nameKey] = (drinkCounts[nameKey] || 0) + 1;
+        });
+      }
     });
     
     const topDrinks = Object.entries(drinkCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
@@ -164,7 +308,7 @@ async function openProfileModal() {
     } else {
       const timesLabel = isAr ? 'مرات' : 'times';
       listEl.innerHTML = topDrinks.map(([name, count]) => `
-        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg2); padding: 0.8rem 1rem; border-radius: var(--rad); border: 1px solid var(--line);">
+        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg3); padding: 0.8rem 1rem; border-radius: var(--rad); border: 1px solid var(--line);">
           <span style="color: var(--text); font-size: 0.95rem;">${name}</span>
           <span style="color: var(--gold); font-size: 0.85rem; font-weight: 700;">${count} ${timesLabel}</span>
         </div>
@@ -173,7 +317,7 @@ async function openProfileModal() {
   } catch(e) { console.error(e); }
 }
 
-function closeProfileModal() { document.getElementById('profileModal').classList.remove('open'); }
+window.closeProfileModal = function() { document.getElementById('profileModal').classList.remove('open'); };
 
 // ── Navbar scroll ────────────────────────
 window.addEventListener('scroll', () => {
@@ -324,7 +468,7 @@ function getExtraChipText(value, displayVal, isAr) {
 }
 
 // ── Drink Modal ───────────────────────────
-async function openDrink(id) {
+window.openDrink = async function(id) {
   const drink = allDrinks.find(d => d.id == id) || await fetch(`/api/drinks/${id}`).then(r => r.json());
   window.currentPuzzle = { sugar: 'Normal', extra: 'None' };
   const isAr = currentLang === 'ar';
@@ -483,7 +627,7 @@ window.selectChip = function(type, value, btn) {
   btn.animate([{transform:'scale(.92)'},{transform:'scale(1)'}], {duration:200, easing:'cubic-bezier(.175,.885,.32,1.275)'});
 };
 
-function closeModal(e) {
+window.closeModal = function(e) {
   if (e && e.target !== document.getElementById('drinkModal') && !e.target.classList.contains('modal-x')) return;
   const modal = document.getElementById('drinkModal');
   if (modal) modal.classList.remove('open');
@@ -491,7 +635,7 @@ function closeModal(e) {
 }
 
 // ── Cart ──────────────────────────────────
-function addToCart(drinkId, behavior = 'continue') {
+window.addToCart = function(drinkId, behavior = 'continue') {
   const drink = allDrinks.find(d => d.id == drinkId);
   const sugar = window.currentPuzzle.sugar;
   const extra = window.currentPuzzle.extra;
@@ -511,7 +655,7 @@ function addToCart(drinkId, behavior = 'continue') {
   const displayName = isAr ? (drink.name_ar || drink.name) : drink.name;
 
   if (behavior === 'finish') {
-    window.location.href = '/cart.html';
+    window.location.href = 'cart.html';
   } else {
     alert(isAr ? `تم إضافة ${displayName} إلى السلة بنجاح` : `Added ${displayName} to cart successfully`);
     closeModal();
@@ -558,7 +702,7 @@ async function submitOrder() {
   }
 }
 
-function handleContact(e) {
+window.handleContact = function(e) {
   e.preventDefault();
   const name = document.getElementById('contact-name').value.trim();
   const phone = document.getElementById('contact-phone').value.trim();
@@ -647,7 +791,7 @@ async function renderOffersCards() {
   }
 }
 
-async function changePassword() {
+window.changePassword = async function() {
   const oldPassword = document.getElementById('old-pass').value;
   const newPassword = document.getElementById('new-pass').value;
   const msgEl = document.getElementById('cp-msg');
@@ -694,16 +838,17 @@ async function changePassword() {
 
 window.switchLoungeTab = function(tabName) {
   document.querySelectorAll('.lounge-game-card').forEach(btn => btn.classList.remove('active'));
-  document.querySelectorAll('.lounge-panel').forEach(panel => panel.classList.remove('active'));
+  document.querySelectorAll('.lounge-panel').forEach(panel => {
+    panel.classList.remove('active');
+    panel.style.display = 'none';
+  });
   
   const activeBtn = document.getElementById(`btn-tab-${tabName}`);
   const activePanel = document.getElementById(`lounge-${tabName}`);
   if (activeBtn) activeBtn.classList.add('active');
-  if (activePanel) activePanel.classList.add('active');
-
-  if (tttAiTimeout) {
-    clearTimeout(tttAiTimeout);
-    tttAiTimeout = null;
+  if (activePanel) {
+    activePanel.classList.add('active');
+    activePanel.style.display = 'block';
   }
 
   if (tabName === 'ttt') {
@@ -716,299 +861,14 @@ window.switchLoungeTab = function(tabName) {
     } else {
       renderImposterSetup();
     }
-  }
-};
-
-// --- Spin the Cup Logic ---
-let loungePlayers = [];
-let isSpinning = false;
-let currentCupAngle = 0;
-let lastSpinWinnerIdx = null;
-let lastSpinPromptIdx = null;
-
-const spinPrompts = [
-  { 
-    ar: "عليه دفع ثمن المشروبات والحلويات لهذه الجلسة!", 
-    en: "Must pay for drinks and desserts for this session!" 
-  },
-  { 
-    ar: "ما هو المشروب المفضل لديه في أوزيل كافيه ولماذا؟", 
-    en: "What is their favorite drink at OZEL CAFE and why?" 
-  },
-  { 
-    ar: "شارك سرًا طريفًا لم تشاركه مع الآخرين من قبل!", 
-    en: "Share a funny secret you have never shared with others before!" 
-  },
-  { 
-    ar: "قم بتقليد ضحكة أحد الجالسين على الطاولة بشكل كوميدي", 
-    en: "Imitate the laugh of someone sitting at the table in a funny way!" 
-  },
-  { 
-    ar: "اختر صديقًا ليقوم بغناء مقطع من أغنيته المفضلة حالاً", 
-    en: "Choose a friend to sing a snippet of their favorite song right now!" 
-  },
-  { 
-    ar: "ما هي الكلمة الأولى التي تتبادر لذهنك لوصف كافيه أوزيل؟", 
-    en: "What is the first word that comes to mind to describe OZEL CAFE?" 
-  },
-  { 
-    ar: "تحدي: قم بتغيير نبرة صوتك إلى صوت طفل صغير للدقيقتين القادمتين", 
-    en: "Challenge: Change your voice tone to a small child for the next 2 minutes!" 
-  },
-  { 
-    ar: "ما هو أكثر مشروب غريب طلبته في حياتك وماذا كان طعمه؟", 
-    en: "What is the weirdest drink you ever ordered in your life and how did it taste?" 
-  },
-  { 
-    ar: "اسأل الشخص الذي يقابلك سؤالاً صريحاً جداً ولا يمكنه الرفض", 
-    en: "Ask the person opposite you a very candid question that they cannot refuse!" 
-  },
-  { 
-    ar: "تحدي: حاول عدم استخدام هاتفك تماماً حتى تنتهي من شرب كوبك!", 
-    en: "Challenge: Try not to use your phone at all until you finish drinking your cup!" 
-  },
-  { 
-    ar: "ما هو أجمل موقف مر عليك هذا الأسبوع؟", 
-    en: "What is the most beautiful thing that happened to you this week?" 
-  },
-  { 
-    ar: "تحدي: قم بوصف جارك الأيمن بـ 3 كلمات إيجابية فقط!", 
-    en: "Challenge: Describe your right-hand neighbor with only 3 positive words!" 
-  }
-];
-
-function drawWheel() {
-  const svg = document.getElementById('wheel-svg');
-  if (!svg) return;
-  svg.innerHTML = '';
-
-  const N = loungePlayers.length || 4; 
-  const isAr = currentLang === 'ar';
-  const placeholderNames = isAr 
-    ? ["بانتظار اللاعبين...", "أوزيل كافيه", "المشروب السري", "صاحب الفنجان"]
-    : ["Waiting for players...", "OZEL CAFE", "Secret Drink", "Cup Owner"];
-  const names = loungePlayers.length ? loungePlayers : placeholderNames;
-  const sectorSize = 360 / N;
-  
-  const colors = [
-    '#5c766d', // Brand Sage Green
-    '#541a1a', // Brand Deep Cocoa Brown
-    '#759288', // Light Sage Green
-    '#702424', // Deep Burgundy
-    '#8da199', // Pale Sage
-    '#9c6161', // Soft Crimson
-    '#394e47', // Dark Sage
-    '#380e0e'  // Very Dark Cocoa
-  ];
-
-  for (let i = 0; i < N; i++) {
-    const startAngle = i * sectorSize;
-    const endAngle = (i + 1) * sectorSize;
-    
-    function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
-      const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
-      return {
-        x: centerX + (radius * Math.cos(angleInRadians)),
-        y: centerY + (radius * Math.sin(angleInRadians))
-      };
+  } else if (tabName === 'screw') {
+    if (typeof initScrewLobby === 'function') {
+      initScrewLobby();
     }
-    
-    const x = 150, y = 150, radius = 140;
-    const start = polarToCartesian(x, y, radius, endAngle);
-    const end = polarToCartesian(x, y, radius, startAngle);
-    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-    const pathData = [
-      "M", x, y,
-      "L", start.x, start.y,
-      "A", radius, radius, 0, largeArcFlag, 0, end.x, end.y,
-      "Z"
-    ].join(" ");
-
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", pathData);
-    path.setAttribute("fill", colors[i % colors.length]);
-    path.setAttribute("stroke", "rgba(255,255,255,0.2)");
-    path.setAttribute("stroke-width", "1.5");
-    path.setAttribute("id", `wheel-sector-${i}`);
-    svg.appendChild(path);
-
-    const midAngle = startAngle + (sectorSize / 2);
-    const textPos = polarToCartesian(x, y, 90, midAngle);
-    
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    text.setAttribute("x", textPos.x);
-    text.setAttribute("y", textPos.y);
-    text.setAttribute("fill", "#ffffff");
-    text.setAttribute("font-size", N > 6 ? "9px" : "11px");
-    text.setAttribute("font-weight", "bold");
-    text.setAttribute("text-anchor", "middle");
-    text.setAttribute("font-family", "Tajawal, sans-serif");
-    
-    let rotation = midAngle;
-    text.setAttribute("transform", `rotate(${rotation}, ${textPos.x}, ${textPos.y})`);
-    
-    text.textContent = names[i];
-    svg.appendChild(text);
-  }
-}
-
-window.addLoungePlayer = function() {
-  const input = document.getElementById('player-name-input');
-  if (!input) return;
-  const name = input.value.trim();
-  const isAr = currentLang === 'ar';
-  
-  if (!name) {
-    alert(isAr ? "الرجاء إدخال اسم صحيح" : "Please enter a valid name");
-    return;
-  }
-  
-  if (loungePlayers.length >= 8) {
-    alert(isAr ? "الحد الأقصى هو 8 لاعبين" : "Maximum is 8 players");
-    return;
-  }
-  
-  if (loungePlayers.includes(name)) {
-    alert(isAr ? "هذا الاسم موجود بالفعل" : "This name already exists");
-    return;
-  }
-  
-  loungePlayers.push(name);
-  input.value = '';
-  lastSpinWinnerIdx = null;
-  lastSpinPromptIdx = null;
-  if (typeof updateSpinResult === 'function') updateSpinResult();
-  renderLoungePlayers();
-  drawWheel();
-  if (typeof renderImposterSetup === 'function') {
-    renderImposterSetup();
   }
 };
 
-window.removeLoungePlayer = function(idx) {
-  loungePlayers.splice(idx, 1);
-  lastSpinWinnerIdx = null;
-  lastSpinPromptIdx = null;
-  if (typeof updateSpinResult === 'function') updateSpinResult();
-  renderLoungePlayers();
-  drawWheel();
-  if (typeof renderImposterSetup === 'function') {
-    renderImposterSetup();
-  }
-};
 
-function renderLoungePlayers() {
-  const container = document.getElementById('player-chips-container');
-  if (!container) return;
-  container.innerHTML = '';
-  
-  loungePlayers.forEach((p, idx) => {
-    const chip = document.createElement('div');
-    chip.className = 'player-chip';
-    chip.innerHTML = `
-      <span>${p}</span>
-      <span class="player-chip-remove" onclick="removeLoungePlayer(${idx})">✕</span>
-    `;
-    container.appendChild(chip);
-  });
-}
-
-window.updateSpinResult = function() {
-  const resultBox = document.getElementById('spin-result');
-  if (!resultBox) return;
-  const isAr = currentLang === 'ar';
-  
-  if (isSpinning) {
-    resultBox.textContent = isAr ? "جاري دوران فنجان القهوة وتحديد المصير..." : "Spinning the coffee cup to determine your fate...";
-    return;
-  }
-  
-  if (lastSpinWinnerIdx === null || lastSpinPromptIdx === null) {
-    resultBox.innerHTML = isAr
-      ? `<span>انقر على الفنجان في المنتصف لبدء اللعب!</span>`
-      : `<span>Click the cup in the center to start playing!</span>`;
-    return;
-  }
-  
-  if (lastSpinWinnerIdx >= loungePlayers.length) {
-    lastSpinWinnerIdx = null;
-    lastSpinPromptIdx = null;
-    resultBox.innerHTML = isAr
-      ? `<span>انقر على الفنجان في المنتصف لبدء اللعب!</span>`
-      : `<span>Click the cup in the center to start playing!</span>`;
-    return;
-  }
-  
-  const winnerName = loungePlayers[lastSpinWinnerIdx];
-  const promptObj = spinPrompts[lastSpinPromptIdx];
-  const randomPrompt = isAr ? promptObj.ar : promptObj.en;
-  const resultTitle = isAr ? 'النتيجة لـ:' : 'Result for:';
-
-  resultBox.innerHTML = `
-    <div style="animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">
-      ${resultTitle} <strong style="color:var(--gold); font-size:1.2rem;">${winnerName}</strong>
-      <p style="margin-top:0.4rem; font-weight:500;">${randomPrompt}</p>
-    </div>
-  `;
-};
-
-window.spinTheCupV2 = function() {
-  if (isSpinning) return;
-  
-  const resultBox = document.getElementById('spin-result');
-  const N = loungePlayers.length;
-  const isAr = currentLang === 'ar';
-  
-  if (N < 2) {
-    resultBox.innerHTML = isAr
-      ? `<span style="color:var(--burgundy); font-weight:700;">الرجاء إضافة لاعبين على الأقل للعب! (من 2 إلى 8 لاعبين)</span>`
-      : `<span style="color:var(--burgundy); font-weight:700;">Please add at least 2 players to play! (2 to 8 players)</span>`;
-    return;
-  }
-  
-  isSpinning = true;
-  resultBox.textContent = isAr ? "جاري دوران فنجان القهوة وتحديد المصير..." : "Spinning the coffee cup to determine your fate...";
-  
-  const winnerIndex = Math.floor(Math.random() * N);
-  const promptIndex = Math.floor(Math.random() * spinPrompts.length);
-  
-  lastSpinWinnerIdx = winnerIndex;
-  lastSpinPromptIdx = promptIndex;
-  
-  const sectorSize = 360 / N;
-  const targetCenterAngle = (winnerIndex * sectorSize) + (sectorSize / 2);
-  
-  const totalRotations = 5 + Math.floor(Math.random() * 3);
-  currentCupAngle = (Math.ceil(currentCupAngle / 360) * 360) + (totalRotations * 360) + targetCenterAngle;
-  
-  const cup = document.getElementById('cup-center-spinner');
-  if (cup) {
-    cup.style.transition = 'transform 5s cubic-bezier(0.15, 0.85, 0.35, 1)';
-    cup.style.transform = `rotate(${currentCupAngle}deg)`;
-  }
-  
-  document.querySelectorAll('#wheel-svg path').forEach(p => {
-    p.style.opacity = '1';
-    p.classList.remove('winning-sector');
-  });
-  
-  setTimeout(() => {
-    isSpinning = false;
-    
-    const winnerPath = document.getElementById(`wheel-sector-${winnerIndex}`);
-    if (winnerPath) {
-      winnerPath.classList.add('winning-sector');
-    }
-    
-    document.querySelectorAll('#wheel-svg path').forEach((p, idx) => {
-      if (idx !== winnerIndex) {
-        p.style.opacity = '0.5';
-      }
-    });
-    
-    updateSpinResult();
-  }, 5000);
-};
 
 // --- Imposter Game Logic ---
 const imposterWordPairs = [
@@ -1149,22 +1009,6 @@ const imposterTexts = {
   }
 };
 
-let imposterGame = {
-  players: [],
-  citizenWordEn: "",
-  imposterWordEn: "",
-  citizenWordAr: "",
-  imposterWordAr: "",
-  round: 1,
-  currentTurnIdx: 0,
-  state: "setup",
-  winner: null,
-  votes: {},
-  eliminatedThisRound: null,
-  tieBreakerUsed: false,
-  tiedPlayers: [],
-  isSelectingSuspect: false
-};
 
 function renderStepsIndicator(activeStep) {
   const steps = [
@@ -1272,15 +1116,11 @@ window.addImposterSetupPlayer = function() {
   loungePlayers.push(name);
   input.value = '';
   renderImposterSetup();
-  renderLoungePlayers();
-  drawWheel();
 };
 
 window.removeImposterSetupPlayer = function(idx) {
   loungePlayers.splice(idx, 1);
   renderImposterSetup();
-  renderLoungePlayers();
-  drawWheel();
 };
 
 window.startImposterGame = function() {
@@ -1826,12 +1666,6 @@ window.resetImposterGame = function() {
 };
 
 // --- Tic-Tac-Coffee Logic ---
-let tttBoard = Array(9).fill(null);
-let tttCurrentPlayer = 'O'; 
-let tttActive = true;
-let tttMode = 'local'; 
-let tttWinner = null; 
-let tttAiTimeout = null;
 
 const winPatterns = [
   [0, 1, 2], [3, 4, 5], [6, 7, 8], 
@@ -1840,16 +1674,6 @@ const winPatterns = [
 ];
 
 window.setTTTMode = function(mode) {
-  tttMode = mode;
-  document.querySelectorAll('.ttt-mode-btn').forEach(btn => btn.classList.remove('active'));
-  const activeBtn = document.getElementById(`ttt-btn-${mode}`);
-  if (activeBtn) activeBtn.classList.add('active');
-  
-  const difficultyContainer = document.getElementById('ttt-difficulty-container');
-  if (difficultyContainer) {
-    difficultyContainer.style.display = mode === 'ai' ? 'block' : 'none';
-  }
-  
   resetTTT();
 };
 
@@ -1860,33 +1684,8 @@ window.playTTT = function(idx) {
   
   if (checkTTTWinner()) return;
   
-  if (tttMode === 'ai' && tttActive) {
-    tttCurrentPlayer = 'X'; 
-    updateTTTStatus();
-    
-    tttActive = false; 
-    
-    if (tttAiTimeout) clearTimeout(tttAiTimeout);
-    tttAiTimeout = setTimeout(() => {
-      tttAiTimeout = null;
-      const difficultySelect = document.getElementById('ttt-difficulty');
-      const difficulty = difficultySelect ? difficultySelect.value : 'smart';
-      
-      const aiMove = difficulty === 'smart' ? getBestMoveMinimax() : getRandomMove();
-      
-      tttActive = true; 
-      if (aiMove !== null) {
-        makeTTTMove(aiMove, 'X');
-        if (!checkTTTWinner()) {
-          tttCurrentPlayer = 'O';
-          updateTTTStatus();
-        }
-      }
-    }, 600);
-  } else {
-    tttCurrentPlayer = tttCurrentPlayer === 'O' ? 'X' : 'O';
-    updateTTTStatus();
-  }
+  tttCurrentPlayer = tttCurrentPlayer === 'O' ? 'X' : 'O';
+  updateTTTStatus();
 };
 
 function makeTTTMove(idx, player) {
@@ -1925,9 +1724,6 @@ function updateTTTStatus() {
       let winnerName = tttWinner === 'O' 
         ? (isAr ? 'اللاعب O' : 'Player O') 
         : (isAr ? 'اللاعب X' : 'Player X');
-      if (tttMode === 'ai' && tttWinner === 'X') {
-        winnerName = isAr ? 'الباريستا الذكي' : 'Smart Barista';
-      }
       statusEl.innerHTML = isAr ? `الفائز هو: ${winnerName}!` : `Winner is: ${winnerName}!`;
       statusEl.style.color = 'var(--green)';
     }
@@ -1936,13 +1732,8 @@ function updateTTTStatus() {
       statusEl.innerHTML = isAr ? 'دور اللاعب الأول (اللاعب O)' : "Player O's Turn";
       statusEl.style.color = 'var(--accent-emerald)';
     } else {
-      if (tttMode === 'ai') {
-        statusEl.innerHTML = isAr ? 'الباريستا الذكي يفكر...' : 'Smart Barista is thinking...';
-        statusEl.style.color = 'var(--gold)';
-      } else {
-        statusEl.innerHTML = isAr ? 'دور اللاعب الثاني (اللاعب X)' : "Player X's Turn";
-        statusEl.style.color = 'var(--gold)';
-      }
+      statusEl.innerHTML = isAr ? 'دور اللاعب الثاني (اللاعب X)' : "Player X's Turn";
+      statusEl.style.color = 'var(--gold)';
     }
   }
 }
@@ -1984,83 +1775,7 @@ function checkTTTWinner() {
   return false;
 }
 
-function evaluateBoard(board) {
-  for (let i = 0; i < winPatterns.length; i++) {
-    const [a, b, c] = winPatterns[i];
-    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-      if (board[a] === 'X') return 10;
-      if (board[a] === 'O') return -10;
-    }
-  }
-  return 0;
-}
-
-function minimax(board, depth, isMaxing) {
-  const score = evaluateBoard(board);
-
-  if (score === 10) return score - depth;
-  if (score === -10) return score + depth;
-  if (!board.includes(null)) return 0;
-
-  if (isMaxing) {
-    let best = -1000;
-    for (let i = 0; i < 9; i++) {
-      if (board[i] === null) {
-        board[i] = 'X';
-        best = Math.max(best, minimax(board, depth + 1, false));
-        board[i] = null;
-      }
-    }
-    return best;
-  } else {
-    let best = 1000;
-    for (let i = 0; i < 9; i++) {
-      if (board[i] === null) {
-        board[i] = 'O';
-        best = Math.min(best, minimax(board, depth + 1, true));
-        board[i] = null;
-      }
-    }
-    return best;
-  }
-}
-
-function getBestMoveMinimax() {
-  let bestVal = -1000;
-  let bestMove = null;
-
-  for (let i = 0; i < 9; i++) {
-    if (tttBoard[i] === null) {
-      tttBoard[i] = 'X';
-      let moveVal = minimax(tttBoard, 0, false);
-      tttBoard[i] = null;
-
-      if (moveVal > bestVal) {
-        bestVal = moveVal;
-        bestMove = i;
-      }
-    }
-  }
-  return bestMove;
-}
-
-function getRandomMove() {
-  const availableMoves = [];
-  for (let i = 0; i < 9; i++) {
-    if (tttBoard[i] === null) {
-      availableMoves.push(i);
-    }
-  }
-  if (availableMoves.length === 0) return null;
-  const randomIndex = Math.floor(Math.random() * availableMoves.length);
-  return availableMoves[randomIndex];
-}
-
 window.resetTTT = function() {
-  if (tttAiTimeout) {
-    clearTimeout(tttAiTimeout);
-    tttAiTimeout = null;
-  }
   tttBoard = Array(9).fill(null);
   tttCurrentPlayer = 'O';
   tttActive = true;

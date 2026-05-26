@@ -3,6 +3,11 @@
    ═══════════════════════════════════════════ */
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Tajawal:wght@300;400;500;700&display=swap');
 
+html { scroll-behavior: smooth; }
+
+/* Account for fixed nav */
+#about, #lounge, #menu, #contact { scroll-margin-top: 80px; }
+
 :root {
   --burgundy:      #541a1a; /* Brand Deep Cocoa Brown */
   --burgundy2:     #702424;
@@ -88,7 +93,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #0a0a0a;
+  background: #2c1a14;
   transition: opacity 1.2s ease, transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
@@ -373,7 +378,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   top: 0;
   inset-inline: 0;
   z-index: 800;
-  padding: 1.4rem 4rem;
+  padding: 0.6rem 4rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -383,28 +388,28 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   background: rgba(253, 251, 247, 0.9);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--line);
-  padding: 1rem 4rem;
+  padding: 0.4rem 4rem;
   box-shadow: 0 4px 30px rgba(36, 30, 26, 0.03);
 }
 .nav-logo {
   display: flex;
   align-items: center;
-  gap: .6rem;
+  gap: .4rem;
 }
 .nav-logo-img {
-  height: 90px;
+  height: 38px;
   width: auto;
   object-fit: contain;
   margin-right: 0.4rem;
 }
 .nav-links {
   display: flex;
-  gap: 2.5rem;
+  gap: 1.8rem;
 }
 .nav-links a {
   color: rgba(36, 30, 26, 0.8);
   text-decoration: none;
-  font-size: .95rem;
+  font-size: .82rem;
   letter-spacing: .05em;
   transition: all .3s;
   font-family: 'Outfit', sans-serif;
@@ -417,9 +422,9 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   background: transparent;
   border: 1px solid var(--gold);
   color: var(--gold);
-  padding: .5rem 1.5rem;
+  padding: .35rem 1.2rem;
   font-family: 'Outfit', sans-serif;
-  font-size: .85rem;
+  font-size: .75rem;
   letter-spacing: .05em;
   cursor: pointer;
   transition: all .3s;
@@ -1946,8 +1951,8 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
    TABLE LOUNGE & GROUP GAMES
    ═══════════════════════════════════════════ */
 #lounge {
-  padding: 5rem 2rem;
-  background: var(--bg2);
+  padding: 8rem 4rem;
+  background: var(--bg);
   border-bottom: 1px solid var(--line);
   position: relative;
   overflow: hidden;
@@ -1963,12 +1968,12 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   pointer-events: none;
 }
 .lounge-container {
-  max-width: 900px;
+  max-width: 950px;
   margin: 0 auto;
-  background: var(--bg);
+  background: var(--bg2);
   border: 1px solid var(--line);
   border-radius: var(--rad-lg);
-  box-shadow: 0 10px 30px rgba(24, 59, 43, 0.03);
+  box-shadow: 0 15px 40px rgba(36, 30, 26, 0.03);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1976,7 +1981,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
 .lounge-cards-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  gap: 1.2rem;
   padding: 1.5rem;
   background: var(--bg3);
   border-bottom: 1px solid var(--line);
@@ -1985,7 +1990,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   background: var(--bg2);
   border: 1px solid var(--line);
   border-radius: var(--rad-lg);
-  padding: 1.5rem;
+  padding: 1.2rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -2033,16 +2038,22 @@ body[dir="rtl"] .lounge-game-card h3 { font-family: 'Tajawal', sans-serif; }
 body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
 @media (max-width: 768px) {
   .lounge-cards-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
 }
+@media (max-width: 480px) {
+  .lounge-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
 .lounge-content {
-  padding: 3rem 2rem;
-  min-height: 400px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  padding: 2rem 2rem;
+  min-height: 200px;
 }
 .lounge-panel {
   display: none;
@@ -2051,69 +2062,6 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
 }
 .lounge-panel.active {
   display: block;
-}
-
-/* Spin The Cup */
-.spin-game-wrap {
-  text-align: center;
-}
-.cup-spinner-container {
-  width: 220px;
-  height: 220px;
-  margin: 0 auto 2rem;
-  position: relative;
-  background: radial-gradient(circle, var(--bg2) 50%, var(--bg3) 100%);
-  border: 3px solid var(--gold);
-  border-radius: 50%;
-  box-shadow: 0 10px 25px rgba(24, 59, 43, 0.08), inset 0 0 15px rgba(181, 145, 59, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.cup-spinner-plate {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 4s cubic-bezier(0.15, 0.85, 0.35, 1);
-}
-.spinning-cup-img {
-  width: 90px;
-  height: auto;
-  filter: drop-shadow(0 12px 18px rgba(24, 59, 43, 0.3));
-  transform: rotate(0deg);
-  transition: transform 0.1s;
-}
-.cup-spinner-arrow {
-  position: absolute;
-  top: -15px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 1.8rem;
-  color: var(--gold);
-  filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));
-  z-index: 10;
-  animation: arrowPulse 1s infinite alternate;
-}
-@keyframes arrowPulse {
-  0% { transform: translate(-50%, 0); }
-  100% { transform: translate(-50%, 5px); }
-}
-.spin-result-box {
-  margin-top: 1.5rem;
-  font-family: 'Tajawal', sans-serif;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--accent-emerald);
-  background: var(--bg3);
-  border: 1px solid var(--line);
-  padding: 1rem 2rem;
-  border-radius: var(--rad);
-  display: inline-block;
-  max-width: 500px;
-  line-height: 1.6;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.01);
 }
 
 /* Truth or Dare */
@@ -2410,261 +2358,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   }
 }
 
-/* ═══════════════════════════════════════════
-   TABLE LOUNGE & GROUP GAMES STYLES
-   ═══════════════════════════════════════════ */
-#lounge {
-  padding: 8rem 4rem;
-  background: var(--bg);
-  border-bottom: 1px solid var(--line);
-}
 
-.lounge-container {
-  max-width: 950px;
-  margin: 0 auto;
-  background: var(--bg2);
-  border: 1px solid var(--line);
-  border-radius: var(--rad-lg);
-  box-shadow: 0 15px 40px rgba(36, 30, 26, 0.03);
-  overflow: hidden;
-  padding: 2.5rem;
-}
-
-.lounge-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--bg4);
-  margin-bottom: 2.5rem;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.lounge-tab-btn {
-  flex: 1;
-  min-width: 150px;
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  padding: 1rem;
-  font-family: 'Tajawal', 'Outfit', sans-serif;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  transition: all 0.3s ease;
-}
-
-.lounge-tab-btn:hover {
-  color: var(--gold);
-  background: var(--gold-glow);
-}
-
-.lounge-tab-btn.active {
-  color: var(--gold);
-  border-bottom-color: var(--gold);
-  font-weight: 700;
-}
-
-.lounge-tab-icon {
-  font-size: 1.2rem;
-}
-
-.lounge-panel {
-  display: none;
-  animation: fadeIn 0.5s ease forwards;
-}
-
-.lounge-panel.active {
-  display: block;
-}
-
-/* --- Spin the Cup --- */
-.spin-game-wrap {
-  display: grid;
-  grid-template-columns: 1.2fr 1.8fr;
-  gap: 3rem;
-  align-items: start;
-}
-
-.player-manager-wrap {
-  background: var(--bg3);
-  border: 1px solid var(--line);
-  padding: 1.5rem;
-  border-radius: var(--rad-lg);
-}
-
-.pm-title {
-  font-family: 'Tajawal', sans-serif;
-  font-weight: 700;
-  font-size: 0.9rem;
-  color: var(--text);
-  margin-bottom: 1rem;
-  line-height: 1.5;
-  text-align: center;
-}
-
-.player-input-row {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-#player-name-input {
-  flex: 1;
-  padding: 0.6rem 1rem;
-  background: var(--bg2);
-  border: 1px solid var(--line);
-  border-radius: var(--rad);
-  color: var(--text);
-  font-family: 'Tajawal', sans-serif;
-  outline: none;
-  font-size: 0.9rem;
-  transition: all 0.3s;
-}
-
-#player-name-input:focus {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 3px var(--gold-glow);
-}
-
-.player-chips-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  min-height: 40px;
-  align-content: start;
-}
-
-.player-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.8rem;
-  background: var(--bg2);
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  font-family: 'Tajawal', sans-serif;
-  font-size: 0.8rem;
-  color: var(--text);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-  animation: fadeIn 0.3s ease;
-}
-
-.player-chip-remove {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: rgba(140, 28, 28, 0.08);
-  color: var(--burgundy);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 0.65rem;
-  font-weight: 700;
-  transition: all 0.2s;
-}
-
-.player-chip-remove:hover {
-  background: var(--burgundy);
-  color: var(--white);
-}
-
-.wheel-game-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.cup-spinner-container {
-  position: relative;
-  width: 320px;
-  height: 320px;
-  background: var(--bg2);
-  border: 6px solid var(--gold);
-  border-radius: 50%;
-  box-shadow: 0 15px 45px rgba(24, 59, 43, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#wheel-svg {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  overflow: hidden;
-}
-
-.cup-center-spinner {
-  position: absolute;
-  width: 90px;
-  height: 90px;
-  background: var(--bg2);
-  border: 4px solid var(--gold);
-  border-radius: 50%;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  cursor: pointer;
-  transition: transform 5s cubic-bezier(0.15, 0.85, 0.35, 1);
-}
-
-.spinning-cup-img-v2 {
-  width: 55px;
-  height: 55px;
-  object-fit: contain;
-  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.15));
-}
-
-.cup-pointer-dot {
-  position: absolute;
-  top: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 8px;
-  height: 8px;
-  background: var(--burgundy);
-  border-radius: 50%;
-  box-shadow: 0 0 4px var(--burgundy);
-}
-
-.cup-spinner-arrow-v2 {
-  position: absolute;
-  top: -18px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 1.8rem;
-  color: var(--gold);
-  text-shadow: 0 2px 6px rgba(181, 145, 59, 0.3);
-  z-index: 5;
-  pointer-events: none;
-}
-
-.spin-result-box {
-  width: 100%;
-  max-width: 450px;
-  padding: 1.5rem;
-  background: var(--bg3);
-  border: 1px solid var(--line);
-  border-radius: var(--rad-lg);
-  text-align: center;
-  font-family: 'Tajawal', sans-serif;
-  font-size: 1rem;
-  line-height: 1.6;
-  color: var(--text);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-  min-height: 90px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 /* --- Truth or Dare --- */
 .truth-game-wrap {
@@ -2961,27 +2655,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   font-weight: 700;
 }
 
-.ttt-difficulty-wrap {
-  display: flex;
-  align-items: center;
-}
 
-.ttt-select {
-  padding: 0.45rem 1rem;
-  background: var(--bg2);
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  color: var(--text);
-  font-family: 'Tajawal', sans-serif;
-  outline: none;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: border-color 0.3s;
-}
-
-.ttt-select:hover {
-  border-color: var(--gold);
-}
 
 .ttt-info {
   display: flex;
@@ -3090,27 +2764,6 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   50% { box-shadow: 0 0 20px #c09f4a; transform: scale(1.05); }
 }
 
-/* Spin the Cup Winning Sector Highlight */
-.winning-sector {
-  animation: sectorGlow 1.5s infinite ease-in-out;
-  stroke: #c09f4a !important;
-  stroke-width: 3.5px !important;
-  z-index: 12;
-}
-
-@keyframes sectorGlow {
-  0%, 100% {
-    stroke: #c09f4a;
-    stroke-width: 3.5px;
-    opacity: 1;
-  }
-  50% {
-    stroke: #ffffff;
-    stroke-width: 4.5px;
-    opacity: 0.95;
-  }
-}
-
 /* Result Box Pop In Animation */
 @keyframes popIn {
   0% {
@@ -3130,10 +2783,6 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   .lounge-container {
     padding: 1.5rem;
   }
-  .spin-game-wrap {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
   .ttt-modes-row {
     flex-direction: column;
     align-items: stretch !important;
@@ -3146,9 +2795,6 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
     flex: 1;
     text-align: center;
     padding: 0.5rem 0.5rem;
-  }
-  .ttt-select {
-    width: 100%;
   }
   .ttt-board {
     grid-template-columns: repeat(3, 80px);
@@ -3547,8 +3193,6 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
     font-size: 0.6rem;
     margin-top: 0.3rem;
   }
-}
-
 }
 
 /* ═══════════════════════════════════════════
@@ -4384,56 +4028,6 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
     margin-bottom: 0;
   }
 
-  /* Spin the Cup — mobile */
-  .spin-game-wrap {
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    grid-template-columns: 1fr !important;
-  }
-  .player-manager-wrap {
-    padding: 1rem;
-  }
-  .pm-title {
-    font-size: 0.8rem;
-  }
-  .player-input-row {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  .player-input-row input {
-    width: 100%;
-  }
-  .wheel-game-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .cup-spinner-container {
-    width: 200px !important;
-    height: 200px !important;
-    margin: 0.5rem auto;
-  }
-  #wheel-svg {
-    width: 200px !important;
-    height: 200px !important;
-  }
-  .cup-center-spinner {
-    width: 60px;
-    height: 60px;
-  }
-  .spinning-cup-img-v2 {
-    width: 38px;
-    height: 38px;
-  }
-  .spin-result-box {
-    max-width: 100%;
-    font-size: 0.85rem;
-    padding: 1rem;
-    min-height: 60px;
-  }
-
   /* Imposter game — mobile */
   .imposter-setup-panel,
   .imposter-gameplay-panel,
@@ -4822,4 +4416,81 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
     gap: 0.65rem !important;
   }
 }
+
+/* ── Dynamic HSL VIP Digital ID Card Themes ── */
+.vip-card {
+  position: relative;
+  overflow: hidden;
+  padding: 1.8rem;
+  border-radius: var(--rad-lg);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  color: var(--white);
+  margin-bottom: 1.5rem;
+  transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-size: 200% 200%;
+  animation: gradientMove 8s ease infinite;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Default / No Tier: Sage Green */
+.vip-card.tier-none {
+  background: linear-gradient(135deg, #5c766d, #2c3a35);
+  border-color: rgba(92, 118, 109, 0.4);
+}
+
+/* Bronze: Warm Copper HSL(28, 50%, 45%) */
+.vip-card.tier-bronze {
+  background: linear-gradient(135deg, hsl(28, 50%, 45%), hsl(28, 60%, 20%));
+  border-color: rgba(205, 127, 50, 0.4);
+  box-shadow: 0 12px 30px rgba(205, 127, 50, 0.2);
+}
+
+/* Silver: Sleek Metallic Platinum HSL(200, 10%, 70%) */
+.vip-card.tier-silver {
+  background: linear-gradient(135deg, hsl(200, 10%, 60%), hsl(200, 15%, 25%));
+  border-color: rgba(192, 192, 192, 0.4);
+  box-shadow: 0 12px 30px rgba(192, 192, 192, 0.15);
+}
+
+/* Gold: Premium Gold/Champagne HSL(43, 70%, 50%) */
+.vip-card.tier-gold {
+  background: linear-gradient(135deg, hsl(43, 70%, 48%), hsl(35, 80%, 20%));
+  border-color: rgba(194, 159, 67, 0.5);
+  box-shadow: 0 12px 30px rgba(194, 159, 67, 0.35);
+}
+
+/* Student: Vibrant Mint/Emerald HSL(150, 60%, 40%) */
+.vip-card.tier-student {
+  background: linear-gradient(135deg, hsl(155, 60%, 38%), #0d281a);
+  border-color: rgba(46, 204, 113, 0.4);
+  box-shadow: 0 12px 30px rgba(46, 204, 113, 0.2);
+}
+
+.vip-card-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(4px);
+}
+
+.tier-bronze .vip-card-badge { color: #f0c39e; }
+.tier-silver .vip-card-badge { color: #e6e6e6; }
+.tier-gold .vip-card-badge { color: #ffe699; }
+.tier-student .vip-card-badge { color: #a3ffd6; }
+.tier-none .vip-card-badge { color: #c2d1cc; }
+
 
