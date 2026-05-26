@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const { Op } = require('sequelize');
 const Offer = require('../models/Offer');
 const Drink = require('../models/Drink');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
@@ -9,26 +8,29 @@ const { authenticateToken, requireRole } = require('../middlewares/auth');
 router.get('/', async (req, res) => {
   const now = new Date();
   try {
-    const offers = await Offer.findAll({
-      where: {
-        [Op.or]: [
-          { expires_at: null },
-          { expires_at: { [Op.gt]: now } }
-        ]
-      },
-      include: [{ model: Drink, as: 'drink', where: { is_available: 1 } }]
+    const offers = await Offer.find({
+      $or: [
+        { expires_at: null },
+        { expires_at: { $gt: now } }
+      ]
+    }).populate({
+      path: 'drinkId',
+      match: { is_available: 1 }
     });
 
-    const serialized = offers.map(o => ({
-      id: o.id,
-      drink_id: o.drinkId,
+    // Filter out offers where drink didn't match (populate returns null)
+    const validOffers = offers.filter(o => o.drinkId != null);
+
+    const serialized = validOffers.map(o => ({
+      id: o._id,
+      drink_id: o.drinkId._id,
       discount_percent: o.discount_percent,
       expires_at: o.expires_at ? o.expires_at.toISOString() : null,
       created_at: o.created_at.toISOString(),
-      name: o.drink.name,
-      name_ar: o.drink.name_ar,
-      price: parseFloat(o.drink.price),
-      image_emoji: o.drink.image_emoji
+      name: o.drinkId.name,
+      name_ar: o.drinkId.name_ar,
+      price: parseFloat(o.drinkId.price),
+      image_emoji: o.drinkId.image_emoji
     }));
 
     res.json(serialized);

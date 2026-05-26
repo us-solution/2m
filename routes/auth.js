@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { Op } = require('sequelize');
 const User = require('../models/User');
 const PointsLog = require('../models/PointsLog');
 const { authenticateToken } = require('../middlewares/auth');
@@ -22,14 +21,14 @@ router.post('/register', async (req, res) => {
   try {
     // Check if phone or email already registered
     if (phone) {
-      const existingPhone = await User.findOne({ where: { phone } });
+      const existingPhone = await User.findOne({ phone });
       if (existingPhone) {
         return res.status(409).json({ error: 'Phone number already registered' });
       }
     }
 
     if (email) {
-      const existingEmail = await User.findOne({ where: { email } });
+      const existingEmail = await User.findOne({ email });
       if (existingEmail) {
         return res.status(409).json({ error: 'Email already registered' });
       }
@@ -51,12 +50,12 @@ router.post('/register', async (req, res) => {
       subscriptionTier: chosenTier
     });
 
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '30d' });
+    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '30d' });
 
     res.json({
       token,
       user: {
-        id: user.id,
+        id: user._id,
         name: user.name,
         phone: user.phone.startsWith('email_') ? '' : user.phone,
         email: user.email,
@@ -82,24 +81,22 @@ router.post('/login', async (req, res) => {
   try {
     // Search by email or phone
     const user = await User.findOne({
-      where: {
-        [Op.or]: [
-          { phone: loginKey },
-          { email: loginKey }
-        ]
-      }
+      $or: [
+        { phone: loginKey },
+        { email: loginKey }
+      ]
     });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '30d' });
+    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '30d' });
 
     res.json({
       token,
       user: {
-        id: user.id,
+        id: user._id,
         name: user.name,
         phone: user.phone.startsWith('email_') ? '' : user.phone,
         email: user.email,
@@ -116,7 +113,7 @@ router.post('/login', async (req, res) => {
 // Get Profile Info
 router.get('/me', authenticateToken, async (req, res) => {
   res.json({
-    id: req.user.id,
+    id: req.user._id,
     name: req.user.name,
     phone: req.user.phone.startsWith('email_') ? '' : req.user.phone,
     email: req.user.email,
@@ -153,16 +150,13 @@ router.post('/change-password', authenticateToken, async (req, res) => {
 // Customer Points Log
 router.get('/me/points', authenticateToken, async (req, res) => {
   try {
-    const logs = await PointsLog.findAll({
-      where: { userId: req.user.id },
-      order: [['created_at', 'DESC']]
-    });
+    const logs = await PointsLog.find({ userId: req.user._id }).sort({ created_at: -1 });
 
     res.json({
       points: req.user.points,
       total_spent: parseFloat(req.user.total_spent),
       log: logs.map(l => ({
-        id: l.id,
+        id: l._id,
         user_id: l.userId,
         points: l.points,
         reason: l.reason,

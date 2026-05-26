@@ -1,46 +1,27 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const User = require('./User');
-const Order = require('./Order');
+const mongoose = require('mongoose');
 
-const PointsLog = sequelize.define('PointsLog', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
+const pointsLogSchema = new mongoose.Schema({
   userId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: User,
-      key: 'id'
-    }
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   },
   points: {
-    type: DataTypes.INTEGER,
-    allowNull: false
+    type: Number,
+    required: true
   },
   reason: {
-    type: DataTypes.STRING,
-    allowNull: true
+    type: String,
+    default: null
   },
   orderId: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: Order,
-      key: 'id'
-    }
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Order',
+    default: null
   }
 }, {
-  tableName: 'points_logs',
-  timestamps: true,
-  createdAt: 'created_at',
-  updatedAt: false
+  timestamps: { createdAt: 'created_at', updatedAt: false },
+  collection: 'points_logs'
 });
 
-PointsLog.belongsTo(User, { foreignKey: 'userId', as: 'user' });
-PointsLog.belongsTo(Order, { foreignKey: 'orderId', as: 'order' });
-
-module.exports = PointsLog;
+module.exports = mongoose.models.PointsLog || mongoose.model('PointsLog', pointsLogSchema);

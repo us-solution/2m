@@ -1,39 +1,38 @@
-const { Sequelize } = require('sequelize');
-const path = require('path');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
-const dialect = process.env.DB_DIALECT || 'sqlite';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/ozel_cafe';
 
-let sequelize;
-
-if (dialect === 'mysql') {
-  sequelize = new Sequelize(
-    process.env.DB_NAME,
-    process.env.DB_USER,
-    process.env.DB_PASSWORD,
-    {
-      host: process.env.DB_HOST,
-      dialect: 'mysql',
-      logging: false,
-      pool: {
-        max: 5,
-        min: 0,
-        acquire: 30000,
-        idle: 10000
-      }
-    }
-  );
-} else {
-  // SQLite
-  const storagePath = process.env.DB_STORAGE 
-    ? path.resolve(__dirname, '..', process.env.DB_STORAGE)
-    : path.resolve(__dirname, '..', 'db.sqlite3');
-    
-  sequelize = new Sequelize({
-    dialect: 'sqlite',
-    storage: storagePath,
-    logging: false
-  });
+// Cache connection for serverless environments (Vercel)
+let cached = global._mongooseConnection;
+if (!cached) {
+  cached = global._mongooseConnection = { conn: null, promise: null };
 }
 
-module.exports = sequelize;
+async function connectDB() {
+  if (cached.conn) {
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
+    const opts = {
+      bufferCommands: false,
+    };
+
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
+      console.log('MongoDB connected successfully.');
+      return mongooseInstance;
+    });
+  }
+
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
+
+  return cached.conn;
+}
+
+module.exports = connectDB;

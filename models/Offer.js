@@ -1,36 +1,22 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const Drink = require('./Drink');
+const mongoose = require('mongoose');
 
-const Offer = sequelize.define('Offer', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
+const offerSchema = new mongoose.Schema({
   drinkId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: Drink,
-      key: 'id'
-    }
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Drink',
+    required: true
   },
   discount_percent: {
-    type: DataTypes.INTEGER,
-    allowNull: false
+    type: Number,
+    required: true
   },
   expires_at: {
-    type: DataTypes.DATE,
-    allowNull: true
+    type: Date,
+    default: null
   }
 }, {
-  tableName: 'offers',
-  timestamps: true,
-  createdAt: 'created_at',
-  updatedAt: false
+  timestamps: { createdAt: 'created_at', updatedAt: false },
+  collection: 'offers'
 });
 
-Offer.belongsTo(Drink, { foreignKey: 'drinkId', as: 'drink' });
-
-module.exports = Offer;
+module.exports = mongoose.models.Offer || mongoose.model('Offer', offerSchema);

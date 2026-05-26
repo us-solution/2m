@@ -1,49 +1,44 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const mongoose = require('mongoose');
 
-const User = sequelize.define('User', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
+const userSchema = new mongoose.Schema({
   name: {
-    type: DataTypes.STRING,
-    allowNull: false
+    type: String,
+    required: true
   },
   phone: {
-    type: DataTypes.STRING,
+    type: String,
     unique: true,
-    allowNull: false
+    required: true
   },
   email: {
-    type: DataTypes.STRING,
+    type: String,
     unique: true,
-    allowNull: true
+    sparse: true,
+    default: null
   },
   password: {
-    type: DataTypes.STRING,
-    allowNull: false
+    type: String,
+    required: true
   },
   role: {
-    type: DataTypes.STRING,
-    defaultValue: 'customer' // customer, cashier, admin
+    type: String,
+    default: 'customer' // customer, cashier, admin
   },
   points: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0
+    type: Number,
+    default: 0
   },
   total_spent: {
-    type: DataTypes.DECIMAL(10, 2),
-    defaultValue: 0.00
+    type: Number,
+    default: 0.00
   },
   subscriptionTier: {
-    type: DataTypes.STRING,
-    defaultValue: 'none' // none, bronze, silver, gold, student
+    type: String,
+    default: 'none' // none, bronze, silver, gold, student
   }
 }, {
-  tableName: 'users',
-  timestamps: true
+  timestamps: true,
+  collection: 'users'
 });
 
-module.exports = User;
+module.exports = mongoose.models.User || mongoose.model('User', userSchema);

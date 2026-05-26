@@ -14,7 +14,7 @@ const authenticateToken = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = await User.findByPk(decoded.id);
+    const user = await User.findById(decoded.id);
 
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized: User not found' });

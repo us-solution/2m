@@ -1,79 +1,66 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const Category = require('./Category');
+const mongoose = require('mongoose');
 
-const Drink = sequelize.define('Drink', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
+const drinkSchema = new mongoose.Schema({
   categoryId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: Category,
-      key: 'id'
-    }
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    required: true
   },
   name: {
-    type: DataTypes.STRING,
-    allowNull: false
+    type: String,
+    required: true
   },
   name_ar: {
-    type: DataTypes.STRING,
-    allowNull: true
+    type: String,
+    default: null
   },
   tagline: {
-    type: DataTypes.STRING,
-    allowNull: true
+    type: String,
+    default: null
   },
   description: {
-    type: DataTypes.TEXT,
-    allowNull: true
+    type: String,
+    default: null
   },
   ingredients: {
-    type: DataTypes.TEXT,
-    allowNull: true
+    type: String,
+    default: null
   },
   preparation: {
-    type: DataTypes.TEXT,
-    defaultValue: ''
+    type: String,
+    default: ''
   },
   price: {
-    type: DataTypes.DECIMAL(8, 2),
-    allowNull: false
+    type: Number,
+    required: true
   },
   calories: {
-    type: DataTypes.INTEGER,
-    allowNull: true
+    type: Number,
+    default: null
   },
   serving_size: {
-    type: DataTypes.STRING,
-    allowNull: true
+    type: String,
+    default: null
   },
   temperature: {
-    type: DataTypes.STRING,
-    defaultValue: 'hot'
+    type: String,
+    default: 'hot'
   },
   image_emoji: {
-    type: DataTypes.STRING,
-    defaultValue: 'imgs/espresso.png'
+    type: String,
+    default: 'imgs/espresso.png'
   },
   is_featured: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0
+    type: Number,
+    default: 0
   },
   is_available: {
-    type: DataTypes.INTEGER,
-    defaultValue: 1
+    type: Number,
+    default: 1
   }
 }, {
-  tableName: 'drinks',
-  timestamps: false
+  timestamps: false,
+  collection: 'drinks'
 });
 
-Drink.belongsTo(Category, { foreignKey: 'categoryId', as: 'category' });
-Category.hasMany(Drink, { foreignKey: 'categoryId', as: 'drinks' });
-
-module.exports = Drink;
+module.exports = mongoose.models.Drink || mongoose.model('Drink', drinkSchema);

@@ -4,20 +4,31 @@ const cors = require('cors');
 const compression = require('compression');
 const helmet = require('helmet');
 const { sanitizeInput } = require('./middlewares/sanitize');
-const sequelize = require('./config/database');
+const connectDB = require('./config/database');
 require('dotenv').config();
 
-// Initialize Models to establish relationships
-const User = require('./models/User');
-const Category = require('./models/Category');
-const Drink = require('./models/Drink');
-const Order = require('./models/Order');
-const PointsLog = require('./models/PointsLog');
-const Offer = require('./models/Offer');
-const GameRoom = require('./models/GameRoom');
+// Initialize Models (register Mongoose models)
+require('./models/User');
+require('./models/Category');
+require('./models/Drink');
+require('./models/Order');
+require('./models/PointsLog');
+require('./models/Offer');
+require('./models/GameRoom');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// 0. Connect to MongoDB before handling requests
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('MongoDB connection error:', err);
+    res.status(500).json({ error: 'Database connection failed' });
+  }
+});
 
 // 1. Security Headers (with Helmet configured to allow CDNs for frontend)
 app.use(helmet({
@@ -80,7 +91,7 @@ app.get('/api/migrate-db', async (req, res) => {
   }
 
   try {
-    await seedDatabase(true);
+    await seedDatabase();
     res.json({ success: true, message: 'Database migrated and seeded successfully!' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -101,14 +112,15 @@ app.get('*', (req, res) => {
 });
 
 // Database seeding logic
-async function seedDatabase(force = false) {
-  await sequelize.sync({ force });
+async function seedDatabase() {
+  const Category = require('./models/Category');
+  const Drink = require('./models/Drink');
+  const User = require('./models/User');
+  const bcrypt = require('bcryptjs');
 
-  const categoryCount = await Category.count();
-  if (categoryCount > 0 && !force) {
-    console.log('Database already populated.');
-    return;
-  }
+  // Clear existing data
+  await Category.deleteMany({});
+  await Drink.deleteMany({});
 
   console.log('Seeding database categories and drinks...');
 
@@ -126,10 +138,10 @@ async function seedDatabase(force = false) {
     { name: 'Desserts', name_ar: 'حلويات', icon: 'imgs/desserts.png', sort_order: 11 }
   ];
 
-  const createdCategories = await Category.bulkCreate(categoriesData);
+  const createdCategories = await Category.insertMany(categoriesData);
   const catMap = {};
   createdCategories.forEach((c, idx) => {
-    catMap[idx] = c.id;
+    catMap[idx] = c._id;
   });
 
   const drinksData = [
@@ -177,43 +189,48 @@ async function seedDatabase(force = false) {
     });
   }
 
-  // Create default admin and cashier
-  const bcrypt = require('bcryptjs');
-  const adminPassword = await bcrypt.hash('admin123', 10);
-  const cashierPassword = await bcrypt.hash('cashier123', 10);
+  // Create default admin and cashier (only if they don't exist)
+  const existingAdmin = await User.findOne({ email: 'admin@ozel.cafe' });
+  if (!existingAdmin) {
+    const adminPassword = await bcrypt.hash('admin123', 10);
+    await User.create({
+      name: 'Admin',
+      phone: '01000000000',
+      email: 'admin@ozel.cafe',
+      password: adminPassword,
+      role: 'admin',
+      subscriptionTier: 'gold'
+    });
+  }
 
-  await User.create({
-    name: 'Admin',
-    phone: '01000000000',
-    email: 'admin@ozel.cafe',
-    password: adminPassword,
-    role: 'admin',
-    subscriptionTier: 'gold'
-  });
-
-  await User.create({
-    name: 'Cashier',
-    phone: '01000000001',
-    email: 'cashier@ozel.cafe',
-    password: cashierPassword,
-    role: 'cashier',
-    subscriptionTier: 'silver'
-  });
+  const existingCashier = await User.findOne({ email: 'cashier@ozel.cafe' });
+  if (!existingCashier) {
+    const cashierPassword = await bcrypt.hash('cashier123', 10);
+    await User.create({
+      name: 'Cashier',
+      phone: '01000000001',
+      email: 'cashier@ozel.cafe',
+      password: cashierPassword,
+      role: 'cashier',
+      subscriptionTier: 'silver'
+    });
+  }
 
   console.log('Database seeding finished.');
 }
 
-// 9. Start Server
-sequelize.authenticate()
-  .then(() => {
-    console.log('Database connected successfully.');
-    return seedDatabase(false);
-  })
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+// 9. Start Server (only for local dev, not on Vercel)
+if (process.env.NODE_ENV !== 'production') {
+  connectDB()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+      });
+    })
+    .catch(err => {
+      console.error('Database connection failed:', err);
     });
-  })
-  .catch(err => {
-    console.error('Database connection failed:', err);
-  });
+}
+
+// Export for Vercel serverless
+module.exports = app;

@@ -90,7 +90,7 @@ router.post('/create', async (req, res) => {
     for (let i = 0; i < 4; i++) {
       roomCode += characters.charAt(Math.floor(Math.random() * characters.length));
     }
-    roomExists = await GameRoom.findOne({ where: { roomCode } });
+    roomExists = await GameRoom.findOne({ roomCode });
   }
 
   try {
@@ -130,7 +130,7 @@ router.post('/join', async (req, res) => {
   }
 
   try {
-    const room = await GameRoom.findOne({ where: { roomCode: roomCode.toUpperCase() } });
+    const room = await GameRoom.findOne({ roomCode: roomCode.toUpperCase() });
     if (!room) return res.status(404).json({ error: 'Room not found' });
     if (room.status !== 'lobby') return res.status(400).json({ error: 'Game already in progress' });
 
@@ -171,7 +171,7 @@ router.post('/start', async (req, res) => {
   const { roomCode, playerName } = req.body;
 
   try {
-    const room = await GameRoom.findOne({ where: { roomCode: roomCode.toUpperCase() } });
+    const room = await GameRoom.findOne({ roomCode: roomCode.toUpperCase() });
     if (!room) return res.status(404).json({ error: 'Room not found' });
 
     const players = JSON.parse(room.players);
@@ -238,7 +238,7 @@ router.get('/:roomCode', async (req, res) => {
   const { playerName } = req.query;
 
   try {
-    const room = await GameRoom.findOne({ where: { roomCode: req.params.roomCode.toUpperCase() } });
+    const room = await GameRoom.findOne({ roomCode: req.params.roomCode.toUpperCase() });
     if (!room) return res.status(404).json({ error: 'Room not found' });
 
     const players = JSON.parse(room.players);
@@ -284,7 +284,7 @@ router.post('/:roomCode/action', async (req, res) => {
   const roomCode = req.params.roomCode.toUpperCase();
 
   try {
-    const room = await GameRoom.findOne({ where: { roomCode } });
+    const room = await GameRoom.findOne({ roomCode });
     if (!room) return res.status(404).json({ error: 'Room not found' });
     if (room.status !== 'playing') return res.status(400).json({ error: 'Game is not in progress' });
 

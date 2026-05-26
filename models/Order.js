@@ -1,69 +1,53 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const User = require('./User');
+const mongoose = require('mongoose');
 
-const Order = sequelize.define('Order', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
+const orderSchema = new mongoose.Schema({
   userId: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: User,
-      key: 'id'
-    }
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
   },
   table_number: {
-    type: DataTypes.STRING,
-    allowNull: false
+    type: String,
+    required: true
   },
   items: {
-    type: DataTypes.TEXT, // Will store a JSON stringified array of items
-    allowNull: false
+    type: String, // JSON stringified array of items
+    required: true
   },
   total_price: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false
+    type: Number,
+    required: true
   },
   points_earned: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0
+    type: Number,
+    default: 0
   },
   status: {
-    type: DataTypes.STRING,
-    defaultValue: 'pending' // pending, ready, served, cancelled, confirmed
+    type: String,
+    default: 'pending' // pending, ready, served, cancelled, confirmed
   },
   notes: {
-    type: DataTypes.TEXT,
-    defaultValue: ''
+    type: String,
+    default: ''
   },
   cashierId: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: User,
-      key: 'id'
-    }
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
   },
   qrCodeToken: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    unique: true
+    type: String,
+    unique: true,
+    sparse: true,
+    default: null
   },
   isQrConfirmed: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
+    type: Boolean,
+    default: false
   }
 }, {
-  tableName: 'orders',
-  timestamps: true
+  timestamps: true,
+  collection: 'orders'
 });
 
-Order.belongsTo(User, { foreignKey: 'userId', as: 'user' });
-Order.belongsTo(User, { foreignKey: 'cashierId', as: 'cashier' });
-User.hasMany(Order, { foreignKey: 'userId', as: 'orders' });
-
-module.exports = Order;
+module.exports = mongoose.models.Order || mongoose.model('Order', orderSchema);

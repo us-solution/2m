@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const { Op } = require('sequelize');
-const sequelize = require('../config/database');
 const User = require('../models/User');
 const Order = require('../models/Order');
 const Category = require('../models/Category');
@@ -19,79 +17,102 @@ router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) =
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
     // Total orders count
-    const total_orders = await Order.count();
+    const total_orders = await Order.countDocuments();
 
     // Today's orders count
-    const today_orders = await Order.count({
-      where: {
-        createdAt: { [Op.gte]: today }
-      }
+    const today_orders = await Order.countDocuments({
+      createdAt: { $gte: today }
     });
 
     // Today's revenue
-    const todayRevenueObj = await Order.findOne({
-      where: {
-        createdAt: { [Op.gte]: today },
-        status: { [Op.ne]: 'cancelled' }
+    const todayRevenueAgg = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: today },
+          status: { $ne: 'cancelled' }
+        }
       },
-      attributes: [
-        [sequelize.fn('sum', sequelize.col('total_price')), 'total']
-      ],
-      raw: true
-    });
-    const today_revenue = parseFloat(todayRevenueObj?.total || 0);
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$total_price' }
+        }
+      }
+    ]);
+    const today_revenue = todayRevenueAgg.length > 0 ? parseFloat(todayRevenueAgg[0].total) : 0;
 
     // Monthly revenue
-    const monthlyRevenueObj = await Order.findOne({
-      where: {
-        createdAt: { [Op.gte]: firstDayOfMonth },
-        status: { [Op.ne]: 'cancelled' }
+    const monthlyRevenueAgg = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: firstDayOfMonth },
+          status: { $ne: 'cancelled' }
+        }
       },
-      attributes: [
-        [sequelize.fn('sum', sequelize.col('total_price')), 'total']
-      ],
-      raw: true
-    });
-    const monthly_revenue = parseFloat(monthlyRevenueObj?.total || 0);
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$total_price' }
+        }
+      }
+    ]);
+    const monthly_revenue = monthlyRevenueAgg.length > 0 ? parseFloat(monthlyRevenueAgg[0].total) : 0;
 
     // Total revenue
-    const totalRevenueObj = await Order.findOne({
-      where: {
-        status: { [Op.ne]: 'cancelled' }
+    const totalRevenueAgg = await Order.aggregate([
+      {
+        $match: {
+          status: { $ne: 'cancelled' }
+        }
       },
-      attributes: [
-        [sequelize.fn('sum', sequelize.col('total_price')), 'total']
-      ],
-      raw: true
-    });
-    const total_revenue = parseFloat(totalRevenueObj?.total || 0);
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$total_price' }
+        }
+      }
+    ]);
+    const total_revenue = totalRevenueAgg.length > 0 ? parseFloat(totalRevenueAgg[0].total) : 0;
 
     // Total customers
-    const total_customers = await User.count({ where: { role: 'customer' } });
+    const total_customers = await User.countDocuments({ role: 'customer' });
 
     // Pending orders
-    const pending_orders = await Order.count({ where: { status: 'pending' } });
+    const pending_orders = await Order.countDocuments({ status: 'pending' });
 
     // Cashier stats (Orders processed today)
-    const cashierStats = await Order.findAll({
-      where: {
-        createdAt: { [Op.gte]: today },
-        cashierId: { [Op.ne]: null },
-        status: { [Op.ne]: 'cancelled' }
+    const cashierStatsAgg = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: today },
+          cashierId: { $ne: null },
+          status: { $ne: 'cancelled' }
+        }
       },
-      attributes: [
-        'cashierId',
-        [sequelize.fn('count', sequelize.col('id')), 'order_count'],
-        [sequelize.fn('sum', sequelize.col('total_price')), 'total_rev']
-      ],
-      group: ['cashierId'],
-      include: [{ model: User, as: 'cashier', attributes: ['name'] }]
-    });
+      {
+        $group: {
+          _id: '$cashierId',
+          order_count: { $sum: 1 },
+          total_rev: { $sum: '$total_price' }
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'cashierInfo'
+        }
+      },
+      {
+        $unwind: { path: '$cashierInfo', preserveNullAndEmptyArrays: true }
+      }
+    ]);
 
-    const cashier_stats = cashierStats.map(item => ({
-      cashier_name: item.cashier ? item.cashier.name : 'Unknown',
-      order_count: parseInt(item.get('order_count')),
-      total_rev: parseFloat(item.get('total_rev') || 0)
+    const cashier_stats = cashierStatsAgg.map(item => ({
+      cashier_name: item.cashierInfo ? item.cashierInfo.name : 'Unknown',
+      order_count: item.order_count,
+      total_rev: parseFloat(item.total_rev || 0)
     }));
 
     res.json({
@@ -112,9 +133,9 @@ router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) =
 // Admin list users
 router.get('/users', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
-    const users = await User.findAll({ order: [['createdAt', 'DESC']] });
+    const users = await User.find().sort({ createdAt: -1 });
     const serialized = users.map(u => ({
-      id: u.id,
+      id: u._id,
       name: u.name,
       phone: u.phone.startsWith('email_') ? '' : u.phone,
       email: u.email,
@@ -140,11 +161,11 @@ router.post('/users', authenticateToken, requireRole('admin'), async (req, res) 
 
   try {
     if (phone) {
-      const existingPhone = await User.findOne({ where: { phone } });
+      const existingPhone = await User.findOne({ phone });
       if (existingPhone) return res.status(409).json({ error: 'Phone already registered' });
     }
     if (email) {
-      const existingEmail = await User.findOne({ where: { email } });
+      const existingEmail = await User.findOne({ email });
       if (existingEmail) return res.status(409).json({ error: 'Email already registered' });
     }
 
@@ -159,7 +180,7 @@ router.post('/users', authenticateToken, requireRole('admin'), async (req, res) 
       subscriptionTier: subscriptionTier || 'none'
     });
 
-    res.json({ success: true, id: u.id });
+    res.json({ success: true, id: u._id });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -170,7 +191,7 @@ router.patch('/users/:id', authenticateToken, requireRole('admin'), async (req, 
   const { name, phone, email, role, points, password, subscriptionTier } = req.body;
 
   try {
-    const u = await User.findByPk(req.params.id);
+    const u = await User.findById(req.params.id);
     if (!u) return res.status(404).json({ error: 'User not found' });
 
     if (name !== undefined) u.name = name;
@@ -192,15 +213,15 @@ router.patch('/users/:id', authenticateToken, requireRole('admin'), async (req, 
 
 // Admin delete user
 router.delete('/users/:id', authenticateToken, requireRole('admin'), async (req, res) => {
-  if (String(req.params.id) === String(req.user.id)) {
+  if (String(req.params.id) === String(req.user._id)) {
     return res.status(400).json({ error: 'Cannot delete yourself' });
   }
 
   try {
-    const u = await User.findByPk(req.params.id);
+    const u = await User.findById(req.params.id);
     if (!u) return res.status(404).json({ error: 'User not found' });
     
-    await u.destroy();
+    await u.deleteOne();
     res.json({ success: true });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -212,23 +233,21 @@ router.delete('/users/:id', authenticateToken, requireRole('admin'), async (req,
 // Admin list all drinks (GET /api/admin/drinks)
 router.get('/drinks', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
-    const drinks = await Drink.findAll({
-      include: [{ model: Category, as: 'category' }]
-    });
+    const drinks = await Drink.find().populate('categoryId');
     
     // Sort similar to Django settings
     const sortedDrinks = drinks.sort((a, b) => {
-      const orderA = a.category ? a.category.sort_order : 999;
-      const orderB = b.category ? b.category.sort_order : 999;
+      const orderA = a.categoryId ? a.categoryId.sort_order : 999;
+      const orderB = b.categoryId ? b.categoryId.sort_order : 999;
       if (orderA !== orderB) return orderA - orderB;
-      return a.id - b.id;
+      return String(a._id).localeCompare(String(b._id));
     });
 
     const serialized = sortedDrinks.map(d => ({
-      id: d.id,
-      category_id: d.categoryId,
-      category_name: d.category ? d.category.name : '',
-      category_name_ar: d.category ? d.category.name_ar : '',
+      id: d._id,
+      category_id: d.categoryId ? d.categoryId._id : null,
+      category_name: d.categoryId ? d.categoryId.name : '',
+      category_name_ar: d.categoryId ? d.categoryId.name_ar : '',
       name: d.name,
       name_ar: d.name_ar,
       tagline: d.tagline,
@@ -242,7 +261,7 @@ router.get('/drinks', authenticateToken, requireRole('admin'), async (req, res) 
       image_emoji: d.image_emoji,
       is_featured: d.is_featured,
       is_available: d.is_available,
-      cat_name: d.category ? d.category.name_ar : ''
+      cat_name: d.categoryId ? d.categoryId.name_ar : ''
     }));
     
     res.json(serialized);
@@ -260,7 +279,7 @@ router.post('/drinks', authenticateToken, requireRole('admin'), async (req, res)
   } = req.body;
 
   try {
-    const category = await Category.findByPk(category_id);
+    const category = await Category.findById(category_id);
     if (!category) {
       return res.status(400).json({ error: 'Invalid category_id' });
     }
@@ -282,7 +301,7 @@ router.post('/drinks', authenticateToken, requireRole('admin'), async (req, res)
       is_available: parseInt(is_available || 1)
     });
     
-    res.json({ success: true, id: d.id });
+    res.json({ success: true, id: d._id });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -291,14 +310,14 @@ router.post('/drinks', authenticateToken, requireRole('admin'), async (req, res)
 // Admin edit drink (PATCH /api/admin/drinks/:id)
 router.patch('/drinks/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
-    const d = await Drink.findByPk(req.params.id);
+    const d = await Drink.findById(req.params.id);
     if (!d) {
       return res.status(404).json({ error: 'Drink not found' });
     }
 
     const data = req.body;
     if (data.category_id !== undefined) {
-      const category = await Category.findByPk(data.category_id);
+      const category = await Category.findById(data.category_id);
       if (!category) return res.status(400).json({ error: 'Invalid category_id' });
       d.categoryId = data.category_id;
     }
@@ -327,11 +346,11 @@ router.patch('/drinks/:id', authenticateToken, requireRole('admin'), async (req,
 // Admin delete drink (DELETE /api/admin/drinks/:id)
 router.delete('/drinks/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
-    const d = await Drink.findByPk(req.params.id);
+    const d = await Drink.findById(req.params.id);
     if (!d) {
       return res.status(404).json({ error: 'Drink not found' });
     }
-    await d.destroy();
+    await d.deleteOne();
     res.json({ success: true });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -349,7 +368,7 @@ router.post('/offers', authenticateToken, requireRole('admin'), async (req, res)
   }
 
   try {
-    const drink = await Drink.findByPk(drink_id);
+    const drink = await Drink.findById(drink_id);
     if (!drink) return res.status(400).json({ error: 'Invalid drink_id' });
 
     const o = await Offer.create({
@@ -358,7 +377,7 @@ router.post('/offers', authenticateToken, requireRole('admin'), async (req, res)
       expires_at: expires_at ? new Date(expires_at) : null
     });
 
-    res.json({ success: true, id: o.id });
+    res.json({ success: true, id: o._id });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -367,10 +386,10 @@ router.post('/offers', authenticateToken, requireRole('admin'), async (req, res)
 // Admin delete offer (DELETE /api/admin/offers/:id)
 router.delete('/offers/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
-    const o = await Offer.findByPk(req.params.id);
+    const o = await Offer.findById(req.params.id);
     if (!o) return res.status(404).json({ error: 'Offer not found' });
     
-    await o.destroy();
+    await o.deleteOne();
     res.json({ success: true });
   } catch (err) {
     res.status(400).json({ error: err.message });

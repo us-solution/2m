@@ -7,14 +7,12 @@ const { authenticateToken } = require('../middlewares/auth');
 // Customer's Personal Order History (GET /api/me/orders)
 router.get('/orders', authenticateToken, async (req, res) => {
   try {
-    const orders = await Order.findAll({
-      where: { userId: req.user.id },
-      order: [['createdAt', 'DESC']],
-      limit: 20
-    });
+    const orders = await Order.find({ userId: req.user._id })
+      .sort({ createdAt: -1 })
+      .limit(20);
 
     const serialized = orders.map(o => ({
-      id: o.id,
+      id: o._id,
       user_id: o.userId,
       table_number: o.table_number,
       items: o.items,
@@ -36,16 +34,13 @@ router.get('/orders', authenticateToken, async (req, res) => {
 // Customer's Points Log (GET /api/me/points)
 router.get('/points', authenticateToken, async (req, res) => {
   try {
-    const logs = await PointsLog.findAll({
-      where: { userId: req.user.id },
-      order: [['created_at', 'DESC']]
-    });
+    const logs = await PointsLog.find({ userId: req.user._id }).sort({ created_at: -1 });
 
     res.json({
       points: req.user.points,
       total_spent: parseFloat(req.user.total_spent),
       log: logs.map(l => ({
-        id: l.id,
+        id: l._id,
         user_id: l.userId,
         points: l.points,
         reason: l.reason,

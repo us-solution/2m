@@ -17,7 +17,7 @@ const getOptionalUser = async (req) => {
   if (!token) return null;
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    return await User.findByPk(decoded.id);
+    return await User.findById(decoded.id);
   } catch (e) {
     return null;
   }
@@ -39,7 +39,7 @@ router.post('/', async (req, res) => {
     const items_str = typeof items === 'string' ? items : JSON.stringify(items);
 
     const order = await Order.create({
-      userId: user ? user.id : null,
+      userId: user ? user._id : null,
       table_number: String(table_number),
       items: items_str,
       total_price: total_price,
@@ -56,10 +56,10 @@ router.post('/', async (req, res) => {
       await user.save();
 
       await PointsLog.create({
-        userId: user.id,
+        userId: user._id,
         points: points_earned,
-        reason: `Order #${order.id}`,
-        orderId: order.id
+        reason: `Order #${order._id}`,
+        orderId: order._id
       });
     }
 
@@ -73,7 +73,7 @@ router.post('/', async (req, res) => {
 
     res.json({
       success: true,
-      order_id: order.id,
+      order_id: order._id,
       points_earned: points_earned,
       qrCodeUrl: qrCodeDataUrl, // base64 data url for direct rendering in <img>
       qrToken: qrCodeToken
@@ -86,23 +86,21 @@ router.post('/', async (req, res) => {
 // List Orders for Cashier/Admin
 router.get('/', authenticateToken, requireRole('cashier'), async (req, res) => {
   const { status } = req.query;
-  const whereClause = {};
+  const query = {};
   if (status) {
-    whereClause.status = status;
+    query.status = status;
   }
 
   try {
-    const orders = await Order.findAll({
-      where: whereClause,
-      order: [['createdAt', 'DESC']],
-      include: [{ model: User, as: 'user', attributes: ['name', 'phone', 'email'] }]
-    });
+    const orders = await Order.find(query)
+      .sort({ createdAt: -1 })
+      .populate('userId', 'name phone email');
 
     const serialized = orders.map(o => ({
-      id: o.id,
-      user_id: o.userId,
-      customer_name: o.user ? o.user.name : null,
-      customer_phone: o.user ? (o.user.phone.startsWith('email_') ? '' : o.user.phone) : null,
+      id: o._id,
+      user_id: o.userId ? o.userId._id : null,
+      customer_name: o.userId ? o.userId.name : null,
+      customer_phone: o.userId ? (o.userId.phone.startsWith('email_') ? '' : o.userId.phone) : null,
       table_number: o.table_number,
       items: o.items,
       total_price: parseFloat(o.total_price),
@@ -130,7 +128,7 @@ router.get('/confirm-qr', async (req, res) => {
   }
 
   try {
-    const order = await Order.findOne({ where: { qrCodeToken: token } });
+    const order = await Order.findOne({ qrCodeToken: token });
     if (!order) {
       return res.status(404).send('<h1>Not Found</h1><p>Order not found or invalid token</p>');
     }
@@ -149,7 +147,7 @@ router.get('/confirm-qr', async (req, res) => {
           <body>
             <div class="card">
               <h1>الطلب مؤكد بالفعل!</h1>
-              <p>تم تأكيد هذا الطلب #${order.id} مسبقاً.</p>
+              <p>تم تأكيد هذا الطلب #${order._id} مسبقاً.</p>
               <p style="color: #6d8e80;">Table: ${order.table_number}</p>
             </div>
           </body>
@@ -175,7 +173,7 @@ router.get('/confirm-qr', async (req, res) => {
         <body>
           <div class="card">
             <h1>تم تأكيد الطلب بنجاح!</h1>
-            <p>الطلب رقم #${order.id} تم تأكيده وتغيير حالته في النظام.</p>
+            <p>الطلب رقم #${order._id} تم تأكيده وتغيير حالته في النظام.</p>
             <p style="color: #6d8e80;">طاولة: ${order.table_number} | المجموع: ${order.total_price} ج.م</p>
             <a href="/cashier" class="btn">الذهاب للوحة الكاشير</a>
           </div>
@@ -195,13 +193,13 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
   }
 
   try {
-    const order = await Order.findByPk(req.params.id);
+    const order = await Order.findById(req.params.id);
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
     }
 
     order.status = status;
-    order.cashierId = req.user.id;
+    order.cashierId = req.user._id;
     await order.save();
 
     res.json({ success: true });
@@ -213,14 +211,12 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
 // Customer's Personal Order History
 router.get('/me', authenticateToken, async (req, res) => {
   try {
-    const orders = await Order.findAll({
-      where: { userId: req.user.id },
-      order: [['createdAt', 'DESC']],
-      limit: 20
-    });
+    const orders = await Order.find({ userId: req.user._id })
+      .sort({ createdAt: -1 })
+      .limit(20);
 
     const serialized = orders.map(o => ({
-      id: o.id,
+      id: o._id,
       user_id: o.userId,
       table_number: o.table_number,
       items: o.items,

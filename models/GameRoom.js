@@ -1,56 +1,51 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const mongoose = require('mongoose');
 
-const GameRoom = sequelize.define('GameRoom', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
+const gameRoomSchema = new mongoose.Schema({
   roomCode: {
-    type: DataTypes.STRING(10),
+    type: String,
     unique: true,
-    allowNull: false
+    required: true,
+    maxlength: 10
   },
   players: {
-    type: DataTypes.TEXT, // JSON string: [{ id, name, cards: [number/object], score, isReady }]
-    defaultValue: '[]'
+    type: String, // JSON string: [{ name, cards, score, isReady, isHost, knownCards }]
+    default: '[]'
   },
   drawPile: {
-    type: DataTypes.TEXT, // JSON string: [cards...]
-    defaultValue: '[]'
+    type: String, // JSON string: [cards...]
+    default: '[]'
   },
   discardPile: {
-    type: DataTypes.TEXT, // JSON string: [cards...]
-    defaultValue: '[]'
+    type: String, // JSON string: [cards...]
+    default: '[]'
   },
   status: {
-    type: DataTypes.STRING,
-    defaultValue: 'lobby' // lobby, playing, finished
+    type: String,
+    default: 'lobby' // lobby, playing, finished
   },
   turnIndex: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0
+    type: Number,
+    default: 0
   },
   turnPhase: {
-    type: DataTypes.STRING,
-    defaultValue: 'draw' // draw, play, discard
+    type: String,
+    default: 'draw' // draw, play, discard
   },
   drawnCard: {
-    type: DataTypes.STRING, // Store the card currently drawn by the active player
-    allowNull: true
+    type: String, // Store the card currently drawn by the active player
+    default: null
   },
   screwCalledBy: {
-    type: DataTypes.STRING, // Name of the player who called screw
-    allowNull: true
+    type: String, // Name of the player who called screw
+    default: null
   },
   roundsLeft: {
-    type: DataTypes.INTEGER,
-    defaultValue: -1
+    type: Number,
+    default: -1
   }
 }, {
-  tableName: 'game_rooms',
-  timestamps: true
+  timestamps: true,
+  collection: 'game_rooms'
 });
 
-module.exports = GameRoom;
+module.exports = mongoose.models.GameRoom || mongoose.model('GameRoom', gameRoomSchema);
