@@ -210,14 +210,17 @@ async function seedDatabase() {
 
 // 9. Start Server (only for local dev, not on Vercel)
 if (process.env.NODE_ENV !== 'production') {
+  const startServer = () => {
+    app.listen(PORT, () => {
+      console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+    });
+  };
   connectDB()
-    .then(() => {
-      app.listen(PORT, () => {
-        console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-      });
-    })
+    .then(() => { console.log('MongoDB connected'); startServer(); })
     .catch(err => {
-      console.error('Database connection failed:', err);
+      console.error('MongoDB connection failed:', err.message);
+      console.log('Starting server without database - only static pages will work');
+      startServer();
     });
 }
 

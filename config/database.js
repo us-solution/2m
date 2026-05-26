@@ -19,7 +19,7 @@ async function connectDB() {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
+    cached.promise = mongoose.connect(MONGODB_URI, { ...opts, serverSelectionTimeoutMS: 5000 }).then((mongooseInstance) => {
       console.log('MongoDB connected successfully.');
       return mongooseInstance;
     });
