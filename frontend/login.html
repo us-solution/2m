@@ -155,7 +155,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
     <div class="form-section active" id="tab-login">
       <div class="field"><label data-en="Phone or Email" data-ar="الهاتف أو البريد">Phone or Email</label><input id="l-identifier" type="text" data-placeholder-en="Phone number or email" data-placeholder-ar="رقم الهاتف أو البريد" placeholder="Phone number or email"/></div>
       <div class="field"><label data-en="Password" data-ar="كلمة المرور">Password</label><input id="l-pass" type="password" data-placeholder-en="••••••••" data-placeholder-ar="••••••••" placeholder="••••••••"/></div>
-      <button class="btn" onclick="doLogin()" data-en="Login" data-ar="تسجيل الدخول">Login</button>
+      <button id="l-btn" class="btn" onclick="doLogin()" data-en="Login" data-ar="تسجيل الدخول">Login</button>
       <span class="skip" style="margin-top:0.8rem; font-size:0.75rem;" onclick="forgotPassword()" data-en="Forgot Password?" data-ar="نسيت كلمة المرور؟">Forgot Password?</span>
       <p class="err" id="l-err"></p>
     </div>
@@ -175,7 +175,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
         </select>
       </div>
       <div class="field"><label data-en="Password" data-ar="كلمة المرور">Password</label><input id="r-pass" type="password" data-placeholder-en="Choose a password" data-placeholder-ar="اختر كلمة مرور" placeholder="Choose a password"/></div>
-      <button class="btn" onclick="doRegister()" data-en="Create Account" data-ar="إنشاء حساب">Create Account</button>
+      <button id="r-btn" class="btn" onclick="doRegister()" data-en="Create Account" data-ar="إنشاء حساب">Create Account</button>
       <p class="err" id="r-err"></p>
     </div>
   </div>
@@ -198,7 +198,8 @@ function translateError(msg) {
   if (msg === 'User not found') return isAr ? 'الحساب غير موجود' : 'Account not found';
   if (msg === 'Phone already registered') return isAr ? 'رقم الهاتف مسجل بالفعل' : 'Phone number already registered';
   if (msg === 'Email already registered') return isAr ? 'البريد الإلكتروني مسجل بالفعل' : 'Email already registered';
-  if (msg === 'All fields required' || msg === 'Name, password, and at least a Phone number or Email are required') return isAr ? 'يرجى إكمال جميع الحقول' : 'Please complete all fields';
+  if (msg === 'All fields required' || msg === 'Name, password, and at least a Phone number or Email are required') return isAr ? 'يرجى إكمال جميع الحقول' : 'Please complete all required fields';
+  if (msg === 'Database connection failed' || msg.includes('MongoDB') || msg.includes('database') || msg.includes('ECONNREFUSED')) return isAr ? 'فشل الاتصال بقاعدة البيانات، يرجى المحاولة لاحقاً' : 'Database connection failed, please try again later';
   return isAr ? 'حدث خطأ، يرجى المحاولة مرة أخرى' : 'An error occurred, please try again';
 }
 
@@ -211,16 +212,19 @@ function forgotPassword() {
 
 async function doLogin(){
   const isAr = currentLang === 'ar';
+  const btn=document.getElementById('l-btn');
   const err=document.getElementById('l-err');
   err.textContent='';
+  btn.disabled=true;
+  btn.textContent=isAr?'جارٍ تسجيل الدخول...':'Logging in...';
   try {
     const identifier=document.getElementById('l-identifier').value.trim();
     const pass=document.getElementById('l-pass').value;
-    if(!identifier || !pass) { err.textContent = isAr ? 'يرجى إدخال الهاتف/البريد وكلمة المرور' : 'Please enter identifier and password'; return; }
+    if(!identifier || !pass) { err.textContent = isAr ? 'يرجى إدخال الهاتف/البريد وكلمة المرور' : 'Please enter identifier and password'; btn.disabled=false; btn.textContent=isAr?'تسجيل الدخول':'Login'; return; }
     const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier,password:pass})});
     const data=await res.json();
-    if(!res.ok){err.textContent=translateError(data.error);return;}
-    if (!data.token || !data.user) { err.textContent = isAr ? 'استجابة غير صالحة من الخادم' : 'Invalid server response'; return; }
+    if(!res.ok){err.textContent=translateError(data.error);btn.disabled=false;btn.textContent=isAr?'تسجيل الدخول':'Login';return;}
+    if (!data.token || !data.user) { err.textContent = isAr ? 'استجابة غير صالحة من الخادم' : 'Invalid server response'; btn.disabled=false;btn.textContent=isAr?'تسجيل الدخول':'Login'; return; }
     localStorage.setItem('ozel_token',data.token);
     localStorage.setItem('ozel_user',JSON.stringify(data.user));
     if(data.user.role==='admin') location.href='admin.html';
@@ -228,33 +232,42 @@ async function doLogin(){
     else location.href=redirect;
   } catch(e) {
     err.textContent = isAr ? 'فشل الاتصال بالخادم' : 'Connection failed';
+    btn.disabled=false;
+    btn.textContent=isAr?'تسجيل الدخول':'Login';
   }
 }
 
 async function doRegister(){
   const isAr = currentLang === 'ar';
+  const btn=document.getElementById('r-btn');
   const err=document.getElementById('r-err');
   err.textContent='';
+  btn.disabled=true;
+  btn.textContent=isAr?'جارٍ إنشاء الحساب...':'Creating...';
   try {
     const name=document.getElementById('r-name').value.trim();
     const phone=document.getElementById('r-phone').value.trim();
     const email=document.getElementById('r-email').value.trim();
     const subscriptionTier=document.getElementById('r-tier').value;
     const pass=document.getElementById('r-pass').value;
-    if(!name || !pass || (!phone && !email)) { err.textContent = isAr ? 'يرجى إكمال جميع الحقول الإلزامية' : 'Please complete all required fields'; return; }
+    if(!name || !pass || (!phone && !email)) { err.textContent = isAr ? 'يرجى إكمال جميع الحقول الإلزامية' : 'Please complete all required fields'; btn.disabled=false; btn.textContent=isAr?'إنشاء حساب':'Create Account'; return; }
     const res=await fetch('/api/auth/register',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({name,phone,email,subscriptionTier,password:pass})
+      body:JSON.stringify({name,phone,email:email||undefined,subscriptionTier,password:pass})
     });
     const data=await res.json();
-    if(!res.ok){err.textContent=translateError(data.error);return;}
-    if (!data.token || !data.user) { err.textContent = isAr ? 'استجابة غير صالحة من الخادم' : 'Invalid server response'; return; }
+    if(!res.ok){err.textContent=translateError(data.error);btn.disabled=false;btn.textContent=isAr?'إنشاء حساب':'Create Account';return;}
+    if (!data.token || !data.user) { err.textContent = isAr ? 'استجابة غير صالحة من الخادم' : 'Invalid server response'; btn.disabled=false; btn.textContent=isAr?'إنشاء حساب':'Create Account'; return; }
     localStorage.setItem('ozel_token',data.token);
     localStorage.setItem('ozel_user',JSON.stringify(data.user));
-    location.href=redirect;
+    err.style.color='var(--green)';
+    err.textContent=isAr?'تم إنشاء الحساب بنجاح! جاري التوجيه...':'Account created! Redirecting...';
+    setTimeout(()=>{location.href=redirect;},800);
   } catch(e) {
     err.textContent = isAr ? 'فشل الاتصال بالخادم' : 'Connection failed';
+    btn.disabled=false;
+    btn.textContent=isAr?'إنشاء حساب':'Create Account';
   }
 }
 
@@ -281,13 +294,25 @@ function applyLanguage(lang) {
   });
 }
 
-// Auto redirect if already logged in
-const u=JSON.parse(localStorage.getItem('ozel_user')||'null');
-if(u){
-  if(u.role==='admin') location.href='admin.html';
-  else if(u.role==='cashier') location.href='cashier.html';
-  else location.href=redirect;
-}
+// Auto redirect only if token is still valid
+(async function() {
+  const u=JSON.parse(localStorage.getItem('ozel_user')||'null');
+  const tok=localStorage.getItem('ozel_token');
+  if(u && tok) {
+    try {
+      const check=await fetch('/api/auth/me',{headers:{'Authorization':'Bearer '+tok}});
+      if(check.ok) {
+        if(u.role==='admin') location.href='admin.html';
+        else if(u.role==='cashier') location.href='cashier.html';
+        else location.href=redirect;
+        return;
+      }
+    } catch(e) {}
+    // Token invalid/expired — clear stale data
+    localStorage.removeItem('ozel_token');
+    localStorage.removeItem('ozel_user');
+  }
+})();
 
 // Initial Load
 applyLanguage(currentLang);
