@@ -244,9 +244,11 @@
 </div>
 
 <script>
-  const token = localStorage.getItem('ozel_token');
   const user  = JSON.parse(localStorage.getItem('ozel_user') || 'null');
-  const authH = token ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token } : { 'Content-Type': 'application/json' };
+  function getAuthH() {
+    const t = localStorage.getItem('ozel_token');
+    return t ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + t } : { 'Content-Type': 'application/json' };
+  }
   
   const urlParams  = new URLSearchParams(window.location.search);
   const tableParam = urlParams.get('table');
@@ -428,7 +430,7 @@
     try {
       const res = await fetch('/api/orders', {
         method: 'POST',
-        headers: authH,
+        headers: getAuthH(),
         body: JSON.stringify(orderData)
       });
       const data = await res.json();
