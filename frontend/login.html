@@ -366,7 +366,7 @@ async function doLogin(){
   try{
     const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier:id,password:pw})});
     const d=await r.json();
-    if(!r.ok){err.textContent=translateError(d.error||d.message);btn.disabled=false;btn.textContent=a?'تسجيل الدخول':'Login';return;}
+    if(!r.ok){console.error('[Login 500]', d);err.textContent=translateError(d.error||d.message);btn.disabled=false;btn.textContent=a?'تسجيل الدخول':'Login';return;}
     if(!d.token||!d.user){err.textContent=a?'استجابة غير صالحة':'Invalid response';btn.disabled=false;btn.textContent=a?'تسجيل الدخول':'Login';return;}
     localStorage.setItem('ozel_token',d.token);
     localStorage.setItem('ozel_user',JSON.stringify(d.user));
