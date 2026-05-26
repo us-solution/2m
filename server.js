@@ -87,6 +87,23 @@ app.post('/api/debug-log', requireDB, (req, res) => {
   res.json({ success: true });
 });
 
+// TEMP: seed admin user (remove after first use)
+app.post('/api/seed-admin', requireDB, async (req, res) => {
+  try {
+    const bcrypt = require('bcryptjs');
+    const User = require('./models/User');
+    const phone = req.body.phone || '01000000000';
+    const password = req.body.password || 'admin123';
+    const existing = await User.findOne({ phone });
+    if (existing) return res.json({ message: 'Admin already exists', phone: existing.phone, role: existing.role });
+    const hashed = await bcrypt.hash(password, 10);
+    const admin = await User.create({ name: 'Admin', phone, email: 'admin@ozel.cafe', password: hashed, role: 'admin', subscriptionTier: 'none' });
+    res.json({ message: 'Admin created', phone: admin.phone, role: admin.role });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 8. Serve Frontend Static Pages
 app.use(express.static(path.join(__dirname, 'frontend')));
 
