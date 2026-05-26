@@ -136,6 +136,7 @@ document.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopImmediatePropagation();
       card.setAttribute('data-gh', '1');
+      setTimeout(() => card.removeAttribute('data-gh'), 0);
       window.switchLoungeTab(tabName);
       return;
     }
@@ -149,6 +150,7 @@ document.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopImmediatePropagation();
       drinkBtn.setAttribute('data-gh', '1');
+      setTimeout(() => drinkBtn.removeAttribute('data-gh'), 0);
       window.openDrink(match[1]);
       return;
     }
@@ -165,6 +167,7 @@ document.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopImmediatePropagation();
         el.setAttribute('data-gh', '1');
+        setTimeout(() => el.removeAttribute('data-gh'), 0);
         const rawArgs = m[2].trim();
         const args = rawArgs ? rawArgs.split(',').map(a => {
           a = a.trim();
