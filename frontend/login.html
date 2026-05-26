@@ -242,9 +242,6 @@ body::before{
 }
 .pw-toggle:hover{color:var(--burgundy);}
 
-/* Subscription */
-.field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:2.5rem;}
-
 /* Responsive */
 @media(max-width:480px){
   .wrap{padding:1rem;}
@@ -304,16 +301,7 @@ body::before{
         <label data-en="Email (optional)" data-ar="البريد الإلكتروني (اختياري)">Email (optional)</label>
         <input id="r-email" type="email" data-placeholder-en="example@mail.com" data-placeholder-ar="example@mail.com" placeholder="example@mail.com" autocomplete="email"/>
       </div>
-      <div class="field">
-        <label data-en="Subscription Tier" data-ar="باقة الاشتراك">Subscription Tier</label>
-        <select id="r-tier">
-          <option value="none" data-en="None (Standard)" data-ar="بدون (عادي)">None (Standard)</option>
-          <option value="bronze" data-en="Bronze &mdash; 5% Off" data-ar="برونز &mdash; خصم ٥٪">Bronze — 5% Off</option>
-          <option value="silver" data-en="Silver &mdash; 10% Off" data-ar="فضي &mdash; خصم ١٠٪">Silver — 10% Off</option>
-          <option value="gold" data-en="Gold &mdash; 15% Off" data-ar="ذهبي &mdash; خصم ١٥٪">Gold — 15% Off</option>
-          <option value="student" data-en="Student &mdash; 20% Off" data-ar="طالب &mdash; خصم ٢٠٪">Student — 20% Off</option>
-        </select>
-      </div>
+
       <div class="field">
         <label data-en="Password" data-ar="كلمة المرور">Password</label>
         <div class="pw-wrap">
@@ -391,12 +379,11 @@ async function doRegister(){
   const name=document.getElementById('r-name').value.trim();
   const phone=document.getElementById('r-phone').value.trim();
   const email=document.getElementById('r-email').value.trim();
-  const tier=document.getElementById('r-tier').value;
   const pw=document.getElementById('r-pass').value;
   if(!name||!pw||(!phone&&!email)){err.textContent=a?'يرجى إكمال الاسم وكلمة المرور والهاتف أو البريد':'Please fill name, password, and phone or email';return;}
   btn.disabled=true; btn.textContent=a?'جارٍ إنشاء الحساب...':'Creating...';
   try{
-    const r=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,phone,email:email||undefined,subscriptionTier:tier,password:pw})});
+    const r=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,phone,email:email||undefined,password:pw})});
     const d=await r.json();
     if(!r.ok){err.textContent=translateError(d.error);btn.disabled=false;btn.textContent=a?'إنشاء حساب':'Create Account';return;}
     if(!d.token||!d.user){err.textContent=a?'استجابة غير صالحة':'Invalid response';btn.disabled=false;btn.textContent=a?'إنشاء حساب':'Create Account';return;}
