@@ -87,8 +87,7 @@ router.post('/login', async (req, res) => {
       ]
     });
 
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-    if (!user.password) return res.status(500).json({ error: 'Corrupted account: no password set' });
+    if (!user || !user.password) return res.status(401).json({ error: 'Invalid credentials' });
     if (!(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
