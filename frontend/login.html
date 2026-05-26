@@ -265,9 +265,9 @@ body::before{
   </div>
 
   <div class="card">
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('login')" data-en="Login" data-ar="تسجيل الدخول">Login</button>
-      <button class="tab" onclick="switchTab('register')" data-en="Register" data-ar="تسجيل جديد">Register</button>
+    <div class="tabs" id="tabGroup">
+      <button class="tab active" data-tab="login" data-en="Login" data-ar="تسجيل الدخول">Login</button>
+      <button class="tab" data-tab="register" data-en="Register" data-ar="تسجيل جديد">Register</button>
     </div>
 
     <!-- LOGIN -->
@@ -283,10 +283,10 @@ body::before{
           <button class="pw-toggle" type="button" onclick="togglePw('l-pass',this)" tabindex="-1">&#128065;</button>
         </div>
       </div>
-      <button id="l-btn" class="btn" onclick="doLogin()" data-en="Login" data-ar="تسجيل الدخول">Login</button>
+      <button id="l-btn" class="btn" data-en="Login" data-ar="تسجيل الدخول">Login</button>
       <p class="err" id="l-err"></p>
       <div class="links">
-        <span onclick="forgotPassword()" data-en="Forgot Password?" data-ar="نسيت كلمة المرور؟">Forgot Password?</span>
+        <span id="forgotLink" data-en="Forgot Password?" data-ar="نسيت كلمة المرور؟">Forgot Password?</span>
       </div>
     </div>
 
@@ -321,12 +321,12 @@ body::before{
           <button class="pw-toggle" type="button" onclick="togglePw('r-pass',this)" tabindex="-1">&#128065;</button>
         </div>
       </div>
-      <button id="r-btn" class="btn" onclick="doRegister()" data-en="Create Account" data-ar="إنشاء حساب">Create Account</button>
+      <button id="r-btn" class="btn" data-en="Create Account" data-ar="إنشاء حساب">Create Account</button>
       <p class="err" id="r-err"></p>
     </div>
   </div>
 
-  <span class="skip" onclick="skipLogin()" data-en="Skip &mdash; browse the menu" data-ar="تخطي &mdash; تصفح المنيو">Skip — browse the menu</span>
+  <span class="skip" id="skipLink" data-en="Skip &mdash; browse the menu" data-ar="تخطي &mdash; تصفح المنيو">Skip — browse the menu</span>
 </div>
 
 <script>
@@ -334,11 +334,11 @@ const redirect = new URLSearchParams(location.search).get('from') || 'index.html
 let currentLang = localStorage.getItem('ozel_lang') || 'en';
 
 function switchTab(t){
-  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', (t==='login' ? b===document.querySelector('.tab:first-child') : b===document.querySelector('.tab:last-child'))));
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.getAttribute('data-tab')===t));
   document.getElementById('page-login').classList.toggle('active',t==='login');
   document.getElementById('page-register').classList.toggle('active',t==='register');
-  document.getElementById('l-err').textContent='';
-  document.getElementById('r-err').textContent='';
+  const le=document.getElementById('l-err');if(le)le.textContent='';
+  const re=document.getElementById('r-err');if(re)re.textContent='';
 }
 
 function togglePw(id, btn){
@@ -430,6 +430,15 @@ function applyLanguage(lang){
   document.querySelectorAll('[data-en]').forEach(el=>{el.innerHTML=a?el.getAttribute('data-ar'):el.getAttribute('data-en');});
   document.querySelectorAll('[data-placeholder-en]').forEach(el=>{el.placeholder=a?el.getAttribute('data-placeholder-ar'):el.getAttribute('data-placeholder-en');});
 }
+
+// Bind all clicks via addEventListener (safer than onclick with innerHTML)
+document.querySelectorAll('.tab').forEach(el => {
+  el.addEventListener('click', function(){switchTab(this.getAttribute('data-tab'));});
+});
+document.getElementById('l-btn').addEventListener('click', doLogin);
+document.getElementById('r-btn').addEventListener('click', doRegister);
+document.getElementById('forgotLink').addEventListener('click', forgotPassword);
+document.getElementById('skipLink').addEventListener('click', skipLogin);
 
 // Auto-redirect only if token valid
 (async function(){
