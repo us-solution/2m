@@ -360,6 +360,24 @@ router.delete('/drinks/:id', authenticateToken, requireRole('admin'), async (req
 
 // --- ADMIN OFFERS ENDPOINTS ---
 
+// Admin list all offers (GET /api/admin/offers)
+router.get('/offers', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const offers = await Offer.find({}).populate('drinkId').sort({ created_at: -1 });
+    const serialized = offers.map(o => ({
+      id: o._id,
+      drink_id: o.drinkId ? o.drinkId._id : null,
+      drink_name: o.drinkId ? o.drinkId.name : 'Deleted',
+      discount_percent: o.discount_percent,
+      expires_at: o.expires_at ? o.expires_at.toISOString() : null,
+      created_at: o.created_at.toISOString()
+    }));
+    res.json(serialized);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Admin create offer (POST /api/admin/offers)
 router.post('/offers', authenticateToken, requireRole('admin'), async (req, res) => {
   const { drink_id, discount_percent, expires_at } = req.body;
