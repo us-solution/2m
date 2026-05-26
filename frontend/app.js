@@ -64,7 +64,7 @@ const transMap = {
   'Caramel': { en: 'Caramel Syrup', ar: 'كراميل' }
 };
 
-window.scrollTo = function(id) {
+window.scrollToSection = function(id) {
   const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
@@ -108,19 +108,19 @@ window.applyLanguage = function(lang) {
 
 // ── Loader ──────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  try {
+    applyLanguage(currentLang);
+    renderNavUser();
+    updateCartUI();
+    fetchMenu();
+  } catch(e) { console.error('[Init]', e); }
   setTimeout(() => {
     const loader = document.getElementById('loader');
     if (loader) {
       loader.classList.add('hidden');
-      setTimeout(() => {
-        loader.style.display = 'none';
-      }, 1200);
+      setTimeout(() => { loader.style.display = 'none'; }, 1200);
     }
   }, 1000);
-  applyLanguage(currentLang);
-  renderNavUser();
-  updateCartUI();
-  fetchMenu();
 });
 
 // --- Global delegation for lounge & games ---
@@ -134,6 +134,7 @@ document.addEventListener('click', function(e) {
     const tabName = card.id ? card.id.replace('btn-tab-', '') : '';
     if (tabName && typeof window.switchLoungeTab === 'function') {
       e.preventDefault();
+      e.stopImmediatePropagation();
       card.setAttribute('data-gh', '1');
       window.switchLoungeTab(tabName);
       return;
@@ -146,6 +147,7 @@ document.addEventListener('click', function(e) {
     const match = drinkBtn.getAttribute('onclick').match(/openDrink\('(\d+)'\)/);
     if (match && match[1] && typeof window.openDrink === 'function') {
       e.preventDefault();
+      e.stopImmediatePropagation();
       drinkBtn.setAttribute('data-gh', '1');
       window.openDrink(match[1]);
       return;
@@ -156,22 +158,27 @@ document.addEventListener('click', function(e) {
   const el = e.target.closest('[onclick]');
   if (el) {
     const code = el.getAttribute('onclick');
-    const m = code.match(/^(\w+)\(([^)]*)\)$/);
-    if (m && typeof window[m[1]] === 'function') {
-      e.preventDefault();
-      el.setAttribute('data-gh', '1');
-      const rawArgs = m[2].trim();
-      const args = rawArgs ? rawArgs.split(',').map(a => {
-        a = a.trim();
-        if (a === 'true') return true;
-        if (a === 'false') return false;
-        if (a === 'null') return null;
-        if (a === 'undefined') return undefined;
-        if (!isNaN(a) && a !== '') return Number(a);
-        if (/^event$/.test(a)) return e;
-        return a.replace(/^['"]|['"]$/g, '');
-      }) : [];
-      window[m[1]](...args);
+    // Only handle simple functionName(args) — skip compound expressions (they use native onclick)
+    if (/^\w+\([^)]*\)$/.test(code)) {
+      const m = code.match(/^(\w+)\(([^)]*)\)$/);
+      if (m && typeof window[m[1]] === 'function') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        el.setAttribute('data-gh', '1');
+        const rawArgs = m[2].trim();
+        const args = rawArgs ? rawArgs.split(',').map(a => {
+          a = a.trim();
+          if (a === 'true') return true;
+          if (a === 'false') return false;
+          if (a === 'null') return null;
+          if (a === 'undefined') return undefined;
+          if (!isNaN(a) && a !== '') return Number(a);
+          if (/^event$/.test(a)) return e;
+          return a.replace(/^['"]|['"]$/g, '');
+        }) : [];
+        window[m[1]](...args);
+        return;
+      }
     }
   }
 });
@@ -452,11 +459,6 @@ function renderMenu(drinks) {
     grid.appendChild(item);
   });
 }
-
-window.quickAddToCart = function(drinkId) {
-  window.currentPuzzle = { sugar: 'Normal', extra: 'None' };
-  addToCart(drinkId);
-};
 
 // Helpers to map extras names and costs dynamically
 function getExtraChipText(value, displayVal, isAr) {
