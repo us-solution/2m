@@ -124,66 +124,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 1000);
 });
 
-// --- Global delegation for lounge & games ---
+// --- Global guard against event quirks (touch generating multiple clicks, etc.) ---
 document.addEventListener('click', function(e) {
-  const handled = e.target.closest('[data-gh]');
-  if (handled) return;
-
-  // Game card tab switching
-  const card = e.target.closest('.lounge-game-card');
-  if (card) {
-    const tabName = card.id ? card.id.replace('btn-tab-', '') : '';
-    if (tabName && typeof window.switchLoungeTab === 'function') {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      card.setAttribute('data-gh', '1');
-      setTimeout(() => card.removeAttribute('data-gh'), 0);
-      window.switchLoungeTab(tabName);
-      return;
-    }
-  }
-
-  // Drink modal buttons
-  const drinkBtn = e.target.closest('[onclick*="openDrink"]');
-  if (drinkBtn) {
-    const match = drinkBtn.getAttribute('onclick').match(/openDrink\('(\d+)'\)/);
-    if (match && match[1] && typeof window.openDrink === 'function') {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      drinkBtn.setAttribute('data-gh', '1');
-      setTimeout(() => drinkBtn.removeAttribute('data-gh'), 0);
-      window.openDrink(match[1]);
-      return;
-    }
-  }
-
-  // Generic: match any element with onclick that calls a known global function
-  const el = e.target.closest('[onclick]');
+  const el = e.target.closest('[data-gh]');
   if (el) {
-    const code = el.getAttribute('onclick');
-    // Only handle simple functionName(args) — skip compound expressions (they use native onclick)
-    if (/^\w+\([^)]*\)$/.test(code)) {
-      const m = code.match(/^(\w+)\(([^)]*)\)$/);
-      if (m && typeof window[m[1]] === 'function') {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        el.setAttribute('data-gh', '1');
-        setTimeout(() => el.removeAttribute('data-gh'), 0);
-        const rawArgs = m[2].trim();
-        const args = rawArgs ? rawArgs.split(',').map(a => {
-          a = a.trim();
-          if (a === 'true') return true;
-          if (a === 'false') return false;
-          if (a === 'null') return null;
-          if (a === 'undefined') return undefined;
-          if (!isNaN(a) && a !== '') return Number(a);
-          if (/^event$/.test(a)) return e;
-          return a.replace(/^['"]|['"]$/g, '');
-        }) : [];
-        window[m[1]](...args);
-        return;
-      }
-    }
+    e.stopImmediatePropagation();
+    return;
+  }
+  // Set guard on elements with inline onclick so native handler fires exactly once
+  const target = e.target.closest('[onclick],.lounge-game-card');
+  if (target) {
+    target.setAttribute('data-gh', '1');
+    setTimeout(() => target.removeAttribute('data-gh'), 0);
   }
 });
 
@@ -649,7 +601,11 @@ window.closeModal = function(e) {
 }
 
 // ── Cart ──────────────────────────────────
+let _addingToCart = false;
 window.addToCart = function(drinkId, behavior = 'continue') {
+  if (_addingToCart) return;
+  _addingToCart = true;
+  setTimeout(() => _addingToCart = false, 500);
   const drink = allDrinks.find(d => d.id == drinkId);
   const sugar = window.currentPuzzle.sugar;
   const extra = window.currentPuzzle.extra;

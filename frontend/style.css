@@ -583,6 +583,9 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
 }
 
 /* ── BUTTONS ── */
+.btn-gold, .btn, button, .lmi-btn, .puzzle-add-btn, .logout-btn {
+  touch-action: manipulation;
+}
 .btn-gold {
   display: inline-flex;
   align-items: center;

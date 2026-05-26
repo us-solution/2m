@@ -27,22 +27,23 @@ const getOptionalUser = async (req) => {
 router.post('/', async (req, res) => {
   const { table_number, items, total_price, notes } = req.body;
 
-  if (table_number === undefined || !items || !total_price) {
+  if (table_number === undefined || !items || total_price === undefined) {
     return res.status(400).json({ error: 'Missing fields: table_number, items, and total_price are required' });
   }
 
-  const user = await getOptionalUser(req);
   const qrCodeToken = uuidv4(); // Unique token for checkout validation
 
   try {
-    const points_earned = Math.floor(parseFloat(total_price));
+    const user = await getOptionalUser(req);
+    const priceNum = parseFloat(total_price) || 0;
+    const points_earned = Math.floor(priceNum);
     const items_str = typeof items === 'string' ? items : JSON.stringify(items);
 
     const order = await Order.create({
       userId: user ? user._id : null,
       table_number: String(table_number),
       items: items_str,
-      total_price: total_price,
+      total_price: priceNum,
       points_earned: points_earned,
       notes: notes || '',
       status: 'pending',
@@ -52,7 +53,7 @@ router.post('/', async (req, res) => {
 
     if (user) {
       user.points += points_earned;
-      user.total_spent = parseFloat(user.total_spent) + parseFloat(total_price);
+      user.total_spent = parseFloat(user.total_spent) + priceNum;
       await user.save();
 
       await PointsLog.create({

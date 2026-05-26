@@ -135,7 +135,7 @@ router.post('/change-password', authenticateToken, async (req, res) => {
   }
 
   try {
-    if (!(await bcrypt.compare(oldPassword, req.user.password))) {
+    if (!req.user || !req.user.password || !(await bcrypt.compare(oldPassword, req.user.password))) {
       return res.status(401).json({ error: 'Incorrect old password' });
     }
 
