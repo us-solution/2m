@@ -25,8 +25,14 @@ app.use(async (req, res, next) => {
     await connectDB();
     next();
   } catch (err) {
-    console.error('MongoDB connection error:', err);
-    res.status(500).json({ error: 'Database connection failed' });
+    console.error('MongoDB connection error:', err.message);
+    const mongoUri = process.env.MONGODB_URI;
+    res.status(500).json({ 
+      error: 'Database connection failed',
+      details: err.message,
+      hasMongoUri: !!mongoUri,
+      uriPrefix: mongoUri ? mongoUri.substring(0, 20) + '...' : 'NOT SET'
+    });
   }
 });
 
