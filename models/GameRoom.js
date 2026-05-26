@@ -7,21 +7,25 @@ const gameRoomSchema = new mongoose.Schema({
     required: true,
     maxlength: 10
   },
+  gameType: {
+    type: String,
+    default: 'uno'
+  },
   players: {
-    type: String, // JSON string: [{ name, cards, score, isReady, isHost, knownCards }]
+    type: String,
     default: '[]'
   },
   drawPile: {
-    type: String, // JSON string: [cards...]
+    type: String,
     default: '[]'
   },
   discardPile: {
-    type: String, // JSON string: [cards...]
+    type: String,
     default: '[]'
   },
   status: {
     type: String,
-    default: 'lobby' // lobby, playing, finished
+    default: 'lobby'
   },
   turnIndex: {
     type: Number,
@@ -29,19 +33,11 @@ const gameRoomSchema = new mongoose.Schema({
   },
   turnPhase: {
     type: String,
-    default: 'draw' // draw, play, discard
+    default: 'play'
   },
-  drawnCard: {
-    type: String, // Store the card currently drawn by the active player
-    default: null
-  },
-  screwCalledBy: {
-    type: String, // Name of the player who called screw
-    default: null
-  },
-  roundsLeft: {
-    type: Number,
-    default: -1
+  unoState: {
+    type: String,
+    default: '{}'
   }
 }, {
   timestamps: true,

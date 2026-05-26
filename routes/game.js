@@ -4,7 +4,6 @@ const Pusher = require('pusher');
 const GameRoom = require('../models/GameRoom');
 require('dotenv').config();
 
-// Initialize Pusher (gracefully fallback if dummy credentials are used)
 let pusher = null;
 if (process.env.PUSHER_APP_ID && process.env.PUSHER_KEY && process.env.PUSHER_SECRET) {
   try {
@@ -16,515 +15,357 @@ if (process.env.PUSHER_APP_ID && process.env.PUSHER_KEY && process.env.PUSHER_SE
       useTLS: true
     });
   } catch (e) {
-    console.error('Failed to initialize Pusher: ', e.message);
+    console.error('Failed to init Pusher:', e.message);
   }
 }
 
-// Helper to broadcast events
-const broadcastGameUpdate = async (roomCode, eventName, data) => {
+async function broadcast(roomCode, event, data) {
   if (pusher) {
-    try {
-      await pusher.trigger(`room-${roomCode}`, eventName, data);
-    } catch (e) {
-      console.error(`Pusher trigger error in room ${roomCode}:`, e.message);
-    }
-  } else {
-    console.log(`[Pusher Mock Broadcast] Channel: room-${roomCode}, Event: ${eventName}`);
+    try { await pusher.trigger(`room-${roomCode}`, event, data); }
+    catch (e) { console.error('Pusher error:', e.message); }
   }
-};
+}
 
-// Generate standard 52-card deck + 2 Jokers
-const createDeck = () => {
-  const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
-  // Values: 1-13 (1=Ace, 11=Jack, 12=Queen, 13=King)
+const COLORS = ['red', 'yellow', 'green', 'blue'];
+const COLOR_EMOJI = { red: '🔴', yellow: '🟡', green: '🟢', blue: '🔵', wild: '🃏' };
+
+function createUnoDeck() {
   const deck = [];
-
-  // Add standard cards
-  for (const suit of suits) {
-    for (let val = 1; val <= 13; val++) {
-      let points = val;
-      // Special rules for Screw (اسكرو):
-      // - Jack/Queen = 10 pts (swapping power)
-      // - Red Kings (hearts/diamonds) = 0 pts
-      // - Black Kings (clubs/spades) = 13 or 20 pts (the Screw card!)
-      if (val === 11 || val === 12) points = 10;
-      if (val === 13) {
-        points = (suit === 'hearts' || suit === 'diamonds') ? 0 : 20;
-      }
-      
-      deck.push({
-        id: `${suit}-${val}`,
-        suit,
-        value: val,
-        points,
-        code: `${suit.charAt(0).toUpperCase()}${val}`
-      });
+  for (const c of COLORS) {
+    deck.push({ color: c, value: 0, type: 'number' });
+    for (let v = 1; v <= 9; v++) {
+      deck.push({ color: c, value: v, type: 'number' });
+      deck.push({ color: c, value: v, type: 'number' });
+    }
+    for (const a of ['skip', 'reverse', 'draw2']) {
+      deck.push({ color: c, value: a, type: 'action' });
+      deck.push({ color: c, value: a, type: 'action' });
     }
   }
-
-  // Add 2 Jokers (-2 points)
-  deck.push({ id: 'joker-1', suit: 'joker', value: 0, points: -2, code: 'JK1' });
-  deck.push({ id: 'joker-2', suit: 'joker', value: 0, points: -2, code: 'JK2' });
-
-  // Shuffle
+  for (let i = 0; i < 4; i++) {
+    deck.push({ color: 'wild', value: 'wild', type: 'wild' });
+    deck.push({ color: 'wild', value: 'wild4', type: 'wild' });
+  }
   for (let i = deck.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [deck[i], deck[j]] = [deck[j], deck[i]];
   }
-
   return deck;
-};
+}
 
-// 1. Create Room
+function cardPoints(card) {
+  if (card.type === 'number') return card.value || 10;
+  if (['skip', 'reverse', 'draw2'].includes(card.value)) return 20;
+  return 50;
+}
+
+function canPlay(card, top) {
+  if (!top) return true;
+  if (card.color === 'wild') return true;
+  if (card.color === top.color) return true;
+  if (card.type === 'number' && top.type === 'number' && card.value === top.value) return true;
+  if (card.type === 'action' && top.type === 'action' && card.value === top.value) return true;
+  return false;
+}
+
+function nextIndex(players, current, direction) {
+  return (current + direction + players.length) % players.length;
+}
+
+// Create Room
 router.post('/create', async (req, res) => {
   const { playerName } = req.body;
-  if (!playerName) return res.status(400).json({ error: 'Player name is required' });
-
-  // Generate a random 4-letter room code
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let roomCode = '';
-  let roomExists = true;
-
-  while (roomExists) {
+  if (!playerName) return res.status(400).json({ error: 'Name required' });
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let roomCode = '', exists = true;
+  while (exists) {
     roomCode = '';
-    for (let i = 0; i < 4; i++) {
-      roomCode += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-    roomExists = await GameRoom.findOne({ roomCode });
+    for (let i = 0; i < 4; i++) roomCode += chars[Math.floor(Math.random() * 26)];
+    exists = await GameRoom.findOne({ roomCode });
   }
-
   try {
-    const players = [{
-      name: playerName,
-      cards: [],
-      score: 0,
-      isHost: true,
-      isReady: true,
-      knownCards: [false, false, false, false] // whether the player knows their card at index 0-3
-    }];
-
-    const room = await GameRoom.create({
-      roomCode,
-      players: JSON.stringify(players),
-      status: 'lobby',
-      turnIndex: 0,
-      turnPhase: 'draw'
-    });
-
-    res.json({
-      success: true,
-      roomCode: room.roomCode,
-      playerName,
-      isHost: true
-    });
+    const players = [{ name: playerName, cards: [], score: 0, isHost: true, saidUno: false }];
+    await GameRoom.create({ roomCode, players: JSON.stringify(players), gameType: 'uno' });
+    res.json({ success: true, roomCode, playerName, isHost: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// 2. Join Room
+// Join Room
 router.post('/join', async (req, res) => {
   const { roomCode, playerName } = req.body;
-  if (!roomCode || !playerName) {
-    return res.status(400).json({ error: 'Room code and player name are required' });
-  }
-
+  if (!roomCode || !playerName) return res.status(400).json({ error: 'Room code and name required' });
   try {
     const room = await GameRoom.findOne({ roomCode: roomCode.toUpperCase() });
     if (!room) return res.status(404).json({ error: 'Room not found' });
-    if (room.status !== 'lobby') return res.status(400).json({ error: 'Game already in progress' });
-
+    if (room.status !== 'lobby') return res.status(400).json({ error: 'Game already started' });
     const players = JSON.parse(room.players);
-    if (players.length >= 8) return res.status(400).json({ error: 'Room is full' });
-    if (players.some(p => p.name === playerName)) {
-      return res.status(409).json({ error: 'Player name already taken in this room' });
-    }
-
-    players.push({
-      name: playerName,
-      cards: [],
-      score: 0,
-      isHost: false,
-      isReady: false,
-      knownCards: [false, false, false, false]
-    });
-
+    if (players.length >= 4) return res.status(400).json({ error: 'Room full (max 4)' });
+    if (players.some(p => p.name === playerName)) return res.status(409).json({ error: 'Name taken' });
+    players.push({ name: playerName, cards: [], score: 0, isHost: false, saidUno: false });
     room.players = JSON.stringify(players);
     await room.save();
-
-    // Broadcast update to all players
-    await broadcastGameUpdate(room.roomCode, 'player-joined', { players });
-
-    res.json({
-      success: true,
-      roomCode: room.roomCode,
-      playerName,
-      isHost: false
-    });
+    await broadcast(room.roomCode, 'player-joined', { players: players.map(p => ({ name: p.name, isHost: p.isHost })) });
+    res.json({ success: true, roomCode: room.roomCode, playerName, isHost: false });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// 3. Start Game
+// Start Game
 router.post('/start', async (req, res) => {
   const { roomCode, playerName } = req.body;
-
   try {
     const room = await GameRoom.findOne({ roomCode: roomCode.toUpperCase() });
     if (!room) return res.status(404).json({ error: 'Room not found' });
-
     const players = JSON.parse(room.players);
     const host = players.find(p => p.isHost);
+    if (!host || host.name !== playerName) return res.status(403).json({ error: 'Only host can start' });
+    if (players.length < 2) return res.status(400).json({ error: 'Need 2+ players' });
 
-    if (host.name !== playerName) {
-      return res.status(403).json({ error: 'Only the host can start the game' });
+    const deck = createUnoDeck();
+    for (const p of players) {
+      p.cards = [];
+      for (let i = 0; i < 7; i++) p.cards.push(deck.pop());
     }
-
-    if (players.length < 2) {
-      return res.status(400).json({ error: 'Need at least 2 players to start' });
+    let firstDiscard = deck.pop();
+    while (firstDiscard.color === 'wild') {
+      deck.unshift(firstDiscard);
+      firstDiscard = deck.pop();
     }
-
-    // Initialize deck
-    const deck = createDeck();
-
-    // Deal 4 cards to each player
-    for (const player of players) {
-      player.cards = [deck.pop(), deck.pop(), deck.pop(), deck.pop()];
-      // In Screw, players are allowed to look at 2 cards at start. Let's mark the first 2 as known.
-      player.knownCards = [true, true, false, false];
-    }
-
-    // Place one card on discard pile
-    const initialDiscard = deck.pop();
 
     room.players = JSON.stringify(players);
     room.drawPile = JSON.stringify(deck);
-    room.discardPile = JSON.stringify([initialDiscard]);
+    room.discardPile = JSON.stringify([firstDiscard]);
     room.status = 'playing';
     room.turnIndex = 0;
-    room.turnPhase = 'draw';
-    room.drawnCard = null;
-    room.screwCalledBy = null;
-    room.roundsLeft = -1;
-
+    room.turnPhase = 'play';
+    room.unoState = JSON.stringify({ direction: 1, currentColor: firstDiscard.color, pendingDraw: 0 });
     await room.save();
 
-    const gameState = {
-      players: players.map(p => ({
-        name: p.name,
-        isHost: p.isHost,
-        score: p.score,
-        // Hide card details on start (except client-side knows their own first 2)
-        cardCount: p.cards.length
-      })),
-      discardTop: initialDiscard,
-      turnIndex: 0,
-      turnPhase: 'draw',
-      status: 'playing'
-    };
-
-    // Broadcast start
-    await broadcastGameUpdate(room.roomCode, 'game-started', gameState);
-
-    res.json({ success: true, message: 'Game started successfully' });
+    await broadcast(room.roomCode, 'game-started', {
+      players: players.map(p => ({ name: p.name, cardCount: p.cards.length })),
+      topCard: firstDiscard
+    });
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// 4. Retrieve Game Room State
+// Get Room State
 router.get('/:roomCode', async (req, res) => {
   const { playerName } = req.query;
-
   try {
     const room = await GameRoom.findOne({ roomCode: req.params.roomCode.toUpperCase() });
     if (!room) return res.status(404).json({ error: 'Room not found' });
-
     const players = JSON.parse(room.players);
     const discard = JSON.parse(room.discardPile);
     const draw = JSON.parse(room.drawPile);
+    const uno = JSON.parse(room.unoState || '{}');
 
-    // Hide other players' cards, only show if game is finished or for specific actions
-    const sanitizedPlayers = players.map(p => {
-      const isSelf = p.name === playerName;
-      return {
-        name: p.name,
-        isHost: p.isHost,
-        score: p.score,
-        isReady: p.isReady,
-        cardCount: p.cards.length,
-        // Only return cards if it's the player themselves, or game is finished
-        cards: (isSelf || room.status === 'finished') ? p.cards : null,
-        knownCards: isSelf ? p.knownCards : null
-      };
-    });
+    const sanitized = players.map(p => ({
+      name: p.name,
+      isHost: p.isHost,
+      score: p.score,
+      cardCount: p.cards.length,
+      cards: (p.name === playerName || room.status === 'finished') ? p.cards : null,
+      saidUno: p.saidUno
+    }));
 
     res.json({
       roomCode: room.roomCode,
       status: room.status,
-      players: sanitizedPlayers,
-      discardTop: discard.length > 0 ? discard[discard.length - 1] : null,
+      players: sanitized,
+      topCard: discard.length > 0 ? discard[discard.length - 1] : null,
       discardCount: discard.length,
       drawCount: draw.length,
       turnIndex: room.turnIndex,
       turnPhase: room.turnPhase,
-      drawnCard: room.drawnCard ? JSON.parse(room.drawnCard) : null,
-      screwCalledBy: room.screwCalledBy,
-      roundsLeft: room.roundsLeft
+      currentColor: uno.currentColor || null,
+      direction: uno.direction || 1,
+      pendingDraw: uno.pendingDraw || 0
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// 5. Game Actions (Draw, Discard, Swap, Screw)
-router.post('/:roomCode/action', async (req, res) => {
-  const { playerName, actionType, targetIndex, swapIndex, targetPlayer } = req.body;
+// Play Card
+router.post('/:roomCode/play', async (req, res) => {
+  const { playerName, cardIndex, chosenColor } = req.body;
   const roomCode = req.params.roomCode.toUpperCase();
-
   try {
     const room = await GameRoom.findOne({ roomCode });
     if (!room) return res.status(404).json({ error: 'Room not found' });
-    if (room.status !== 'playing') return res.status(400).json({ error: 'Game is not in progress' });
+    if (room.status !== 'playing') return res.status(400).json({ error: 'Game not in progress' });
 
     const players = JSON.parse(room.players);
-    const activePlayer = players[room.turnIndex];
+    const active = players[room.turnIndex];
+    if (active.name !== playerName) return res.status(403).json({ error: 'Not your turn' });
+    if (cardIndex < 0 || cardIndex >= active.cards.length) return res.status(400).json({ error: 'Invalid card' });
 
-    if (activePlayer.name !== playerName) {
-      return res.status(403).json({ error: 'It is not your turn' });
+    const card = active.cards[cardIndex];
+    const discard = JSON.parse(room.discardPile);
+    const top = discard[discard.length - 1];
+    const uno = JSON.parse(room.unoState || '{}');
+
+    if (!canPlay(card, top) && card.color !== uno.currentColor) {
+      return res.status(400).json({ error: 'Cannot play that card' });
     }
 
-    let drawPile = JSON.parse(room.drawPile);
-    let discardPile = JSON.parse(room.discardPile);
-    let drawnCard = room.drawnCard ? JSON.parse(room.drawnCard) : null;
-    let logMessage = '';
-    let cardReveal = '';
+    const chosen = (card.color === 'wild' && chosenColor) ? chosenColor : (card.color === 'wild' ? 'red' : card.color);
 
-    if (actionType === 'draw-deck') {
-      if (room.turnPhase !== 'draw') return res.status(400).json({ error: 'Invalid turn phase' });
-      if (drawPile.length === 0) {
-        // Reshuffle discard pile except top card
-        const topDiscard = discardPile.pop();
-        drawPile = discardPile;
-        // Shuffle
-        for (let i = drawPile.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [drawPile[i], drawPile[j]] = [drawPile[j], drawPile[i]];
-        }
-        discardPile = [topDiscard];
-      }
+    active.cards.splice(cardIndex, 1);
+    discard.push({ ...card, chosenColor: card.color === 'wild' ? chosen : undefined });
+    room.discardPile = JSON.stringify(discard);
 
-      drawnCard = drawPile.pop();
-      room.drawnCard = JSON.stringify(drawnCard);
-      room.drawPile = JSON.stringify(drawPile);
-      room.turnPhase = 'play';
-      logMessage = `${playerName} drew a card from the deck`;
-      
-    } else if (actionType === 'draw-discard') {
-      if (room.turnPhase !== 'draw') return res.status(400).json({ error: 'Invalid turn phase' });
-      if (discardPile.length === 0) return res.status(400).json({ error: 'Discard pile is empty' });
+    let nextIdx = nextIndex(players, room.turnIndex, uno.direction);
+    let phase = 'play';
 
-      // Immediate swap with discard pile top card
-      const chosenCard = discardPile.pop();
-      const oldCard = activePlayer.cards[swapIndex];
-      activePlayer.cards[swapIndex] = chosenCard;
-      // Mark the swapped card as known to owner
-      activePlayer.knownCards[swapIndex] = true;
-      
-      discardPile.push(oldCard);
-      room.discardPile = JSON.stringify(discardPile);
-      
-      logMessage = `${playerName} swapped top discard card with their card #${swapIndex + 1}`;
-      
-      // Advance Turn
-      advanceTurn(room, players);
-      
-    } else if (actionType === 'discard-drawn') {
-      if (room.turnPhase !== 'play') return res.status(400).json({ error: 'Must draw card first' });
-      if (!drawnCard) return res.status(400).json({ error: 'No drawn card' });
-
-      discardPile.push(drawnCard);
-      room.discardPile = JSON.stringify(discardPile);
-      room.drawnCard = null;
-
-      logMessage = `${playerName} discarded the drawn card (${drawnCard.code})`;
-
-      // Check card power:
-      // In Screw, if a card has a power, player can choose to execute it now or skip.
-      // - 7 or 8: peek self card
-      // - 9 or 10: peek other player card
-      // - 11 or 12 (Jack/Queen): swap cards between two players
-      const hasPower = [7, 8, 9, 10, 11, 12].includes(drawnCard.value);
-      if (hasPower) {
-        room.turnPhase = 'power';
-        // Save power card value in database so we can validate next use-power request
-        room.drawnCard = JSON.stringify(drawnCard); 
-      } else {
-        advanceTurn(room, players);
-      }
-      
-    } else if (actionType === 'swap-drawn') {
-      if (room.turnPhase !== 'play') return res.status(400).json({ error: 'Must draw card first' });
-      if (!drawnCard) return res.status(400).json({ error: 'No drawn card' });
-
-      const oldCard = activePlayer.cards[swapIndex];
-      activePlayer.cards[swapIndex] = drawnCard;
-      // Mark swapped card as known to owner
-      activePlayer.knownCards[swapIndex] = true;
-
-      discardPile.push(oldCard);
-      room.discardPile = JSON.stringify(discardPile);
-      room.drawnCard = null;
-
-      logMessage = `${playerName} swapped drawn card with their card #${swapIndex + 1}`;
-
-      advanceTurn(room, players);
-      
-    } else if (actionType === 'use-power') {
-      if (room.turnPhase !== 'power' || !drawnCard) {
-        return res.status(400).json({ error: 'No active card power to use' });
-      }
-
-      const val = drawnCard.value;
-
-      if (val === 7 || val === 8) {
-        // Peek at self card
-        activePlayer.knownCards[targetIndex] = true;
-        logMessage = `${playerName} peeked at their own card #${targetIndex + 1}`;
-      } else if (val === 9 || val === 10) {
-        // Peek other player card
-        const otherUser = players.find(p => p.name === targetPlayer);
-        if (otherUser && otherUser.cards && otherUser.cards[targetIndex]) {
-          const peekedCard = otherUser.cards[targetIndex];
-          const suitSymbolsShort = { 'hearts': '♥', 'diamonds': '♦', 'spades': '♠', 'clubs': '♣', 'joker': '🃏' };
-          const sym = suitSymbolsShort[peekedCard.suit] || '';
-          const label = peekedCard.value === 0 ? 'Joker' : (peekedCard.value === 1 ? 'A' : (peekedCard.value === 11 ? 'J' : (peekedCard.value === 12 ? 'Q' : (peekedCard.value === 13 ? 'K' : peekedCard.value))));
-          cardReveal = `${label}${sym} (${peekedCard.points} pts)`;
-        }
-        logMessage = `${playerName} peeked at a card of ${targetPlayer}`;
-      } else if (val === 11 || val === 12) {
-        // Swap yours with another player's card
-        const otherUser = players.find(p => p.name === targetPlayer);
-        if (!otherUser) return res.status(404).json({ error: 'Target player not found' });
-
-        const selfCard = activePlayer.cards[swapIndex];
-        const otherCard = otherUser.cards[targetIndex];
-
-        activePlayer.cards[swapIndex] = otherCard;
-        otherUser.cards[targetIndex] = selfCard;
-
-        // Swapping resets knowledge of the cards since they moved
-        activePlayer.knownCards[swapIndex] = false;
-        otherUser.knownCards[targetIndex] = false;
-
-        logMessage = `${playerName} swapped their card #${swapIndex + 1} with ${targetPlayer}'s card #${targetIndex + 1}`;
-      }
-
-      room.drawnCard = null;
-      advanceTurn(room, players);
-      
-    } else if (actionType === 'call-screw') {
-      if (room.turnPhase !== 'draw') return res.status(400).json({ error: 'Can only call Screw at the start of your turn' });
-      if (room.screwCalledBy) return res.status(400).json({ error: 'Screw has already been called' });
-
-      room.screwCalledBy = playerName;
-      room.roundsLeft = players.length - 1; // Everyone else gets one turn
-      logMessage = `${playerName} CALLED SCREW (اسكرو)!`;
-
-      advanceTurn(room, players);
+    if (active.cards.length === 0) {
+      room.status = 'finished';
+      const total = players.reduce((sum, p) => sum + (p === active ? 0 : p.cards.reduce((s, c) => s + cardPoints(c), 0)), 0);
+      active.score += total;
+      room.players = JSON.stringify(players);
+      await room.save();
+      await broadcast(roomCode, 'game-over', {
+        winner: active.name,
+        players: players.map(p => ({ name: p.name, score: p.score, cards: p.cards }))
+      });
+      return res.json({ success: true, gameOver: true });
     }
+
+    if (card.value === 'skip') {
+      nextIdx = nextIndex(players, nextIndex(players, room.turnIndex, uno.direction), uno.direction);
+    } else if (card.value === 'reverse') {
+      uno.direction *= -1;
+      if (players.length === 2) nextIdx = nextIndex(players, room.turnIndex, uno.direction);
+    } else if (card.value === 'draw2') {
+      const nextPlayer = players[nextIdx];
+      const draw = JSON.parse(room.drawPile);
+      for (let i = 0; i < 2; i++) { if (draw.length) nextPlayer.cards.push(draw.pop()); }
+      room.drawPile = JSON.stringify(draw);
+      nextIdx = nextIndex(players, nextIdx, uno.direction);
+    } else if (card.value === 'wild4') {
+      const nextPlayer = players[nextIdx];
+      const draw = JSON.parse(room.drawPile);
+      for (let i = 0; i < 4; i++) { if (draw.length) nextPlayer.cards.push(draw.pop()); }
+      room.drawPile = JSON.stringify(draw);
+      nextIdx = nextIndex(players, nextIdx, uno.direction);
+    }
+
+    uno.currentColor = chosen;
+    room.turnIndex = nextIdx;
+    room.turnPhase = 'play';
+
+    // Reset saidUno for all players each turn
+    players.forEach(p => p.saidUno = false);
+    active.saidUno = true;
 
     room.players = JSON.stringify(players);
+    room.unoState = JSON.stringify(uno);
     await room.save();
 
-    // Broadcast the update via Pusher
-    const updatedState = {
-      action: actionType,
-      log: logMessage,
-      turnIndex: room.turnIndex,
-      turnPhase: room.turnPhase,
-      screwCalledBy: room.screwCalledBy,
-      roundsLeft: room.roundsLeft,
-      discardTop: discardPile.length > 0 ? discardPile[discardPile.length - 1] : null,
-      status: room.status,
-      players: players.map(p => ({
-        name: p.name,
-        score: p.score,
-        isHost: p.isHost,
-        cardCount: p.cards.length
-      }))
-    };
+    await broadcast(roomCode, 'card-played', {
+      player: playerName,
+      card: { color: card.color, value: card.value },
+      topCard: discard[discard.length - 1],
+      turnIndex: nextIdx,
+      currentColor: chosen,
+      direction: uno.direction
+    });
 
-    // If game ended, broadcast full reveal
-    if (room.status === 'finished') {
-      updatedState.players = players; // Reveal all cards!
-    }
-
-    await broadcastGameUpdate(room.roomCode, 'game-action', updatedState);
-
-    res.json({ success: true, log: logMessage, cardReveal });
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Helper to advance turns
-function advanceTurn(room, players) {
-  if (room.roundsLeft === 0) {
-    // Game over! Calculate scores
-    room.status = 'finished';
-    calculateRoundScores(room, players);
-  } else {
-    if (room.roundsLeft > 0) {
-      room.roundsLeft--;
-      if (room.roundsLeft === 0) {
-        room.status = 'finished';
-        calculateRoundScores(room, players);
-        return;
+// Draw Card
+router.post('/:roomCode/draw', async (req, res) => {
+  const { playerName } = req.body;
+  const roomCode = req.params.roomCode.toUpperCase();
+  try {
+    const room = await GameRoom.findOne({ roomCode });
+    if (!room || room.status !== 'playing') return res.status(400).json({ error: 'Invalid game' });
+    const players = JSON.parse(room.players);
+    const active = players[room.turnIndex];
+    if (active.name !== playerName) return res.status(403).json({ error: 'Not your turn' });
+
+    const draw = JSON.parse(room.drawPile);
+    if (draw.length === 0) {
+      const discard = JSON.parse(room.discardPile);
+      const top = discard.pop();
+      for (const c of discard) draw.push(c);
+      discard.length = 0;
+      discard.push(top);
+      for (let i = draw.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [draw[i], draw[j]] = [draw[j], draw[i]];
       }
     }
-    
-    room.turnIndex = (room.turnIndex + 1) % players.length;
-    room.turnPhase = 'draw';
-    room.drawnCard = null;
+
+    const drawnCard = draw.pop();
+    active.cards.push(drawnCard);
+    room.drawPile = JSON.stringify(draw);
+    room.players = JSON.stringify(players);
+    await room.save();
+
+    await broadcast(roomCode, 'card-drawn', { player: playerName });
+
+    res.json({ success: true, card: drawnCard });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-}
+});
 
-// Calculate scores when round ends
-function calculateRoundScores(room, players) {
-  // Sum up card points for each player
-  const roundScores = players.map(p => {
-    const total = p.cards.reduce((sum, card) => sum + card.points, 0);
-    return { name: p.name, total };
-  });
+// Pass Turn
+router.post('/:roomCode/pass', async (req, res) => {
+  const { playerName } = req.body;
+  const roomCode = req.params.roomCode.toUpperCase();
+  try {
+    const room = await GameRoom.findOne({ roomCode });
+    if (!room || room.status !== 'playing') return res.status(400).json({ error: 'Invalid game' });
+    const players = JSON.parse(room.players);
+    const active = players[room.turnIndex];
+    if (active.name !== playerName) return res.status(403).json({ error: 'Not your turn' });
+    if (room.turnPhase !== 'play') return res.status(400).json({ error: 'Cannot pass now' });
 
-  // Find minimum score
-  let minScore = Infinity;
-  roundScores.forEach(s => {
-    if (s.total < minScore) minScore = s.total;
-  });
+    const uno = JSON.parse(room.unoState || '{}');
+    const nextIdx = nextIndex(players, room.turnIndex, uno.direction);
+    room.turnIndex = nextIdx;
+    room.turnPhase = 'play';
+    players.forEach(p => p.saidUno = false);
+    room.players = JSON.stringify(players);
+    room.unoState = JSON.stringify(uno);
+    await room.save();
 
-  const callerName = room.screwCalledBy;
-  const callerScore = roundScores.find(s => s.name === callerName)?.total;
+    await broadcast(roomCode, 'turn-passed', { player: playerName, turnIndex: nextIdx });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-  roundScores.forEach(s => {
-    const playerObj = players.find(p => p.name === s.name);
-    
-    // Penalize the Screw caller if they do not have the absolute lowest score
-    if (s.name === callerName) {
-      const isSuccessful = s.total === minScore;
-      if (isSuccessful) {
-        // Caller gets 0 points for this round as a reward
-        playerObj.score += 0;
-      } else {
-        // Caller penalty: gets 40 points + their actual score
-        playerObj.score += (s.total + 40);
-      }
-    } else {
-      playerObj.score += s.total;
-    }
-  });
-}
+// Say UNO
+router.post('/:roomCode/say-uno', async (req, res) => {
+  const { playerName } = req.body;
+  const roomCode = req.params.roomCode.toUpperCase();
+  try {
+    const room = await GameRoom.findOne({ roomCode });
+    if (!room) return res.status(404).json({ error: 'Room not found' });
+    const players = JSON.parse(room.players);
+    const p = players.find(p => p.name === playerName);
+    if (p) p.saidUno = true;
+    room.players = JSON.stringify(players);
+    await room.save();
+    await broadcast(roomCode, 'said-uno', { player: playerName });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router;

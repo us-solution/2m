@@ -219,9 +219,9 @@
           <h3 data-en="Tic-Tac-Coffee" data-ar="إكس أو">Tic-Tac-Coffee</h3>
           <p data-en="Classic fun." data-ar="لعبة كلاسيكية.">Classic fun.</p>
         </div>
-        <div class="lounge-game-card" id="btn-tab-screw" onclick="switchLoungeTab('screw')">
+        <div class="lounge-game-card" id="btn-tab-uno" onclick="switchLoungeTab('uno')">
           <div class="lgc-icon">🃏</div>
-          <h3 data-en="Screw Card Game" data-ar="لعبة اسكرو">Screw Card Game</h3>
+          <h3 data-en="UNO Card Game" data-ar="لعبة أونو">UNO Card Game</h3>
           <p data-en="Online multiplayer" data-ar="لعب جماعي أونلاين">Online multiplayer</p>
         </div>
       </div>
@@ -275,127 +275,101 @@
           </div>
         </div>
 
-        <!-- SCREW CARD GAME -->
-        <div id="lounge-screw" class="lounge-panel">
-          <div class="screw-game-wrap" style="width: 100%;">
-            <!-- Setup & Lobby -->
-            <div id="screw-lobby" class="screw-lobby-panel" style="text-align: center; padding: 2rem 0;">
-              <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:var(--gold); margin-bottom:1.5rem;" data-en="Multiplayer Screw Game" data-ar="لعبة اسكرو الجماعية">Multiplayer Screw Game</h3>
+        <!-- UNO CARD GAME -->
+        <div id="lounge-uno" class="lounge-panel">
+          <div class="uno-game-wrap" style="width: 100%;">
+            <!-- Lobby -->
+            <div id="uno-lobby" style="text-align: center; padding: 2rem 0;">
+              <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:var(--gold); margin-bottom:1.5rem;" data-en="UNO Card Game" data-ar="لعبة أونو">UNO Card Game</h3>
               <div style="max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem;">
-                <input type="text" id="screw-player-name" data-placeholder-en="Your Nickname" data-placeholder-ar="اسمك المستعار" placeholder="Your Nickname" class="field" style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.85rem 1rem; border-radius:4px; font-family:'Tajawal',sans-serif; text-align:center; font-weight:bold;"/>
+                <input type="text" id="uno-player-name" data-placeholder-en="Your Nickname" data-placeholder-ar="اسمك المستعار" placeholder="Your Nickname" class="field" style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.85rem 1rem; border-radius:4px; font-family:'Tajawal',sans-serif; text-align:center; font-weight:bold;"/>
                 <div style="display: flex; gap: 0.5rem;">
-                  <button class="btn-gold" onclick="createScrewRoom()" style="flex: 1; justify-content: center; font-size: 0.85rem;" data-en="Create Room" data-ar="إنشاء غرفة">Create Room</button>
-                  <button class="btn-outline" onclick="showJoinScrewInput()" style="flex: 1; justify-content: center; font-size: 0.85rem;" data-en="Join Room" data-ar="انضمام لغرفة">Join Room</button>
+                  <button class="btn-gold" onclick="createUnoRoom()" style="flex: 1; justify-content: center; font-size: 0.85rem;" data-en="Create Room" data-ar="إنشاء غرفة">Create Room</button>
+                  <button class="btn-outline" onclick="showJoinUnoInput()" style="flex: 1; justify-content: center; font-size: 0.85rem;" data-en="Join Room" data-ar="انضمام لغرفة">Join Room</button>
                 </div>
-                <div id="screw-join-box" style="display: none; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; border-top: 1px solid var(--line); padding-top: 1rem;">
-                  <input type="text" id="screw-room-code" data-placeholder-en="4-Letter Room Code" data-placeholder-ar="رمز الغرفة (٤ أحرف)" placeholder="4-Letter Room Code" maxlength="4" style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.85rem 1rem; border-radius:4px; font-family:'Tajawal',sans-serif; text-align:center; text-transform:uppercase; font-weight:bold;"/>
-                  <button class="btn-gold" onclick="submitJoinScrewRoom()" style="width: 100%; justify-content: center; font-size: 0.85rem;" data-en="Submit Join" data-ar="تأكيد الانضمام">Submit Join</button>
+                <div id="uno-join-box" style="display: none; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; border-top: 1px solid var(--line); padding-top: 1rem;">
+                  <input type="text" id="uno-room-code" data-placeholder-en="4-Letter Room Code" data-placeholder-ar="رمز الغرفة (٤ أحرف)" placeholder="4-Letter Room Code" maxlength="4" style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.85rem 1rem; border-radius:4px; font-family:'Tajawal',sans-serif; text-align:center; text-transform:uppercase; font-weight:bold;"/>
+                  <button class="btn-gold" onclick="submitJoinUnoRoom()" style="width: 100%; justify-content: center; font-size: 0.85rem;" data-en="Join" data-ar="انضمام">Join</button>
                 </div>
               </div>
             </div>
 
-            <!-- Waiting Lobby -->
-            <div id="screw-waiting" class="screw-waiting-panel" style="display: none; text-align: center; padding: 2rem 0;">
+            <!-- Waiting -->
+            <div id="uno-waiting" class="uno-waiting-panel" style="display: none; text-align: center; padding: 2rem 0;">
               <span style="font-size:0.75rem; color:var(--muted); letter-spacing:0.1em;" data-en="ROOM CODE" data-ar="رمز الغرفة">ROOM CODE</span>
-              <h2 id="screw-display-code" style="font-family:'Montserrat',sans-serif; font-size:3.5rem; font-weight:700; color:var(--gold); margin-bottom:1.5rem;">----</h2>
-              
+              <h2 id="uno-code-display" style="font-family:'Montserrat',sans-serif; font-size:3.5rem; font-weight:700; color:var(--gold); margin-bottom:1.5rem;">----</h2>
               <div style="background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:1.5rem; max-width:320px; margin:0 auto 2rem;">
-                <h4 style="margin-bottom:1rem; border-bottom:1px solid var(--line); padding-bottom:0.5rem;" data-en="Players in Lobby" data-ar="اللاعبون في الانتظار">Players in Lobby</h4>
-                <div id="screw-players-list" style="display:flex; flex-direction:column; gap:0.5rem; text-align:left;">
-                  <!-- Loaded dynamically -->
-                </div>
+                <h4 style="margin-bottom:1rem; border-bottom:1px solid var(--line); padding-bottom:0.5rem;" data-en="Players in Lobby" data-ar="اللاعبون">Players in Lobby</h4>
+                <div id="uno-player-list" style="display:flex; flex-direction:column; gap:0.5rem; text-align:left;"></div>
               </div>
-
-              <div id="screw-host-actions" style="display: none; max-width: 320px; margin: 0 auto;">
-                <button class="btn-gold" onclick="startScrewGame()" style="width: 100%; justify-content: center;" data-en="✦ Start Game ✦" data-ar="✦ ابدأ اللعبة ✦">✦ Start Game ✦</button>
+              <div id="uno-host-actions" style="display: none; max-width: 320px; margin: 0 auto;">
+                <button class="btn-gold" onclick="startUnoGame()" style="width: 100%; justify-content: center;" data-en="✦ Start Game ✦" data-ar="✦ ابدأ اللعبة ✦">✦ Start Game ✦</button>
               </div>
-              <p id="screw-nonhost-msg" style="color:var(--muted); font-size:0.85rem;" data-en="Waiting for host to start..." data-ar="بانتظار بدء اللعبة من منشئ الغرفة..."></p>
+              <p id="uno-nonhost-msg" style="color:var(--muted); font-size:0.85rem;" data-en="Waiting for host to start..." data-ar="بانتظار بدء اللعبة من منشئ الغرفة..."></p>
             </div>
 
-            <!-- Active Gameplay Board -->
-            <div id="screw-board" class="screw-board-panel" style="display: none; width: 100%;">
+            <!-- Board -->
+            <div id="uno-board" class="uno-board-panel" style="display: none; width: 100%;">
+              <!-- Top bar -->
               <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 0.8rem; margin-bottom: 1.5rem;">
-                <div>
-                  <span data-en="Room:" data-ar="الغرفة:">Room:</span> <strong id="screw-board-code" style="color:var(--gold)">ABCD</strong>
-                </div>
-                <div id="screw-turn-indicator" style="font-weight:700; color:var(--accent-emerald);">
-                  <!-- Turn details -->
-                </div>
+                <div><span data-en="Room:" data-ar="الغرفة:">Room:</span> <strong style="color:var(--gold)">...</strong></div>
+                <div id="uno-turn-indicator" style="font-weight:700; color:var(--accent-emerald);"></div>
+                <div id="uno-direction" style="font-size:0.75rem; color:var(--muted);"></div>
               </div>
 
-              <!-- Other Players Row -->
-              <div id="screw-other-players" style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 2rem;">
-                <!-- Other players card representations -->
-              </div>
+              <!-- Other Players -->
+              <div id="uno-other-players" style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.5rem;"></div>
 
-              <!-- Main Table Center (Deck & Discard) -->
+              <!-- Table Center -->
               <div style="display: flex; justify-content: center; align-items: center; gap: 2.5rem; margin-bottom: 2rem; background: var(--bg3); padding: 1.5rem; border-radius: 12px; border: 1px dashed var(--line); max-width: 500px; margin-inline: auto;">
-                
                 <!-- Draw Pile -->
                 <div style="text-align: center;">
                   <span style="font-size:0.65rem; color:var(--muted); text-transform:uppercase; display:block; margin-bottom:0.4rem;" data-en="Draw Pile" data-ar="سحب">Draw Pile</span>
-                  <div class="screw-deck-card" id="screw-deck" onclick="drawFromScrewDeck()" style="width: 70px; height: 100px; background: linear-gradient(135deg, var(--gold), #9c6161); border: 2px solid var(--white); border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 1.5rem; cursor: pointer; transition: transform 0.2s;">
-                    ✦
-                  </div>
-                  <span id="screw-deck-count" style="font-size:0.75rem; color:var(--muted); margin-top:0.4rem; display:block;">48 cards</span>
+                  <div id="uno-deck" onclick="drawUnoCard()" style="width: 70px; height: 100px; background: linear-gradient(135deg, var(--gold), #9c6161); border: 2px solid var(--white); border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 1.5rem; cursor: pointer; transition: transform 0.2s;">✦</div>
+                  <span id="uno-deck-count" style="font-size:0.75rem; color:var(--muted); margin-top:0.4rem; display:block;">0 cards</span>
                 </div>
-
-                <!-- Discard Pile -->
+                <!-- Discard / Top Card -->
                 <div style="text-align: center;">
-                  <span style="font-size:0.65rem; color:var(--muted); text-transform:uppercase; display:block; margin-bottom:0.4rem;" data-en="Discard Pile" data-ar="المكشوف">Discard Pile</span>
-                  <div class="screw-discard-card" id="screw-discard" onclick="drawFromScrewDiscard()" style="width: 70px; height: 100px; background: var(--bg2); border: 2px solid var(--gold); border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; transition: transform 0.2s; position: relative;">
-                    <!-- Top card detail -->
-                  </div>
-                  <span id="screw-discard-count" style="font-size:0.75rem; color:var(--muted); margin-top:0.4rem; display:block;">1 card</span>
-                </div>
-
-                <!-- Drawn Card (Visible to active player only) -->
-                <div id="screw-drawn-card-area" style="text-align: center; opacity: 0.3;">
-                  <span style="font-size:0.65rem; color:var(--muted); text-transform:uppercase; display:block; margin-bottom:0.4rem;" data-en="Drawn Card" data-ar="المسحوب">Drawn Card</span>
-                  <div id="screw-drawn" style="width: 70px; height: 100px; background: var(--bg2); border: 2px dashed var(--line); border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold;">
-                    -
-                  </div>
-                  <span style="font-size:0.75rem; color:transparent; margin-top:0.4rem; display:block;">-</span>
-                </div>
-
-              </div>
-
-              <!-- My Hand Layout -->
-              <div style="text-align: center; margin-bottom: 2rem;">
-                <h4 style="font-family:'Tajawal',sans-serif; margin-bottom:1rem; font-size:1.1rem; color:var(--text);" data-en="Your Hand (Click card to swap or peek)" data-ar="بطاقاتك (اضغط على بطاقة للمبادلة أو الكشف)">Your Hand (Click card to swap or peek)</h4>
-                
-                <div style="display: grid; grid-template-columns: repeat(4, 70px); gap: 1rem; justify-content: center;" id="screw-my-cards">
-                  <!-- Player cards -->
+                  <span style="font-size:0.65rem; color:var(--muted); text-transform:uppercase; display:block; margin-bottom:0.4rem;" data-en="Top Card" data-ar="البطاقة العلوية">Top Card</span>
+                  <div id="uno-top-card" style="width: 70px; height: 100px; background: var(--bg2); border: 2px solid var(--gold); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold;">---</div>
+                  <span id="uno-current-color" style="font-size:0.75rem; color:var(--muted); margin-top:0.4rem; display:block;"></span>
                 </div>
               </div>
 
-              <!-- Interactive Controls -->
-              <div style="display: flex; gap: 0.5rem; max-width: 400px; margin: 0 auto 1.5rem; flex-wrap: wrap; justify-content: center;" id="screw-actions-row">
-                <button class="btn-outline" onclick="discardDrawnScrewCard()" id="btn-screw-discard-drawn" disabled style="padding: 0.6rem 1.2rem; font-size: 0.85rem;" data-en="Discard Drawn" data-ar="رمي المسحوب">Discard Drawn</button>
-                <button class="btn-gold" onclick="callScrew()" id="btn-screw-call" disabled style="padding: 0.6rem 1.2rem; font-size: 0.85rem;" data-en="Call Screw!" data-ar="سكرو!">Call Screw!</button>
+              <!-- My Hand -->
+              <div style="text-align: center; margin-bottom: 1.5rem;">
+                <h4 style="font-family:'Tajawal',sans-serif; margin-bottom:1rem; font-size:1rem;" data-en="Your Cards" data-ar="بطاقاتك">Your Cards</h4>
+                <div id="uno-my-hand" style="display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap;"></div>
               </div>
 
-              <!-- Live Game Logs -->
+              <!-- Controls -->
+              <div style="display: flex; gap: 0.5rem; max-width: 400px; margin: 0 auto 1.5rem; flex-wrap: wrap; justify-content: center;">
+                <button class="btn-outline" id="uno-draw-btn" onclick="drawUnoCard()" style="padding: 0.6rem 1.2rem; font-size: 0.85rem;" data-en="Draw Card" data-ar="اسحب بطاقة">Draw Card</button>
+                <button class="btn-outline" id="uno-pass-btn" onclick="passTurn()" disabled style="padding: 0.6rem 1.2rem; font-size: 0.85rem;" data-en="Pass" data-ar="تخطي">Pass</button>
+                <button class="btn-gold" id="uno-uno-btn" onclick="sayUno()" style="display:none; padding: 0.6rem 1.2rem; font-size: 0.85rem;" data-en="UNO!" data-ar="أونو!">UNO!</button>
+              </div>
+
+              <!-- Logs -->
               <div style="background: var(--bg3); padding: 1rem; border-radius: 8px; border: 1px solid var(--line); max-width: 500px; margin-inline: auto;">
-                <span style="font-size:0.7rem; color:var(--muted); font-weight:bold; text-transform:uppercase; letter-spacing:0.05em; display:block; border-bottom:1px solid var(--line); padding-bottom:0.3rem; margin-bottom:0.5rem;" data-en="Live Logs" data-ar="سجل اللعبة">Live Logs</span>
-                <div id="screw-logs" style="height: 80px; overflow-y: auto; font-family: monospace; font-size: 0.8rem; text-align: left; display: flex; flex-direction: column; gap: 0.2rem; color: var(--muted);">
-                  <!-- Log entries -->
-                </div>
+                <span style="font-size:0.7rem; color:var(--muted); font-weight:bold; text-transform:uppercase; display:block; border-bottom:1px solid var(--line); padding-bottom:0.3rem; margin-bottom:0.5rem;" data-en="Live Logs" data-ar="سجل اللعبة">Live Logs</span>
+                <div id="uno-logs" style="height: 80px; overflow-y: auto; font-size: 0.8rem; text-align: left; display: flex; flex-direction: column; gap: 0.2rem; color: var(--muted);"></div>
               </div>
             </div>
 
-            <!-- End Game / Scores -->
-            <div id="screw-finished" class="screw-finished-panel" style="display: none; text-align: center; padding: 2rem 0;">
-              <h2 style="font-family:'Cormorant Garamond',serif; font-size:2.5rem; color:var(--gold); margin-bottom:1rem;" data-en="Game Finished!" data-ar="انتهت اللعبة!">Game Finished!</h2>
-              <p style="color:var(--muted); margin-bottom:2rem;" data-en="Round ended. All scores tallied:" data-ar="انتهت الجولة وتم احتساب النقاط:"></p>
-              
-              <div style="background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:1.5rem; max-width:360px; margin:0 auto 2rem;">
-                <div id="screw-tallies" style="display:flex; flex-direction:column; gap:0.8rem;">
-                  <!-- score cards -->
+            <!-- Finished -->
+            <div id="uno-finish" class="uno-finish-panel" style="display: none; text-align: center; padding: 2rem 0;"></div>
+
+            <!-- Color Picker Overlay -->
+            <div id="uno-color-picker" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.6); z-index:9999; align-items:center; justify-content:center;">
+              <div style="background:var(--bg2); border-radius:16px; padding:2rem; text-align:center;">
+                <h3 style="margin-bottom:1.5rem; font-family:'Cormorant Garamond',serif;" data-en="Choose a Color" data-ar="اختر لوناً">Choose a Color</h3>
+                <div style="display:flex; gap:1rem; justify-content:center;">
+                  <button class="uno-color-btn" data-color="red" style="width:60px;height:60px;border-radius:50%;background:#E74C3C;border:3px solid transparent;cursor:pointer;"></button>
+                  <button class="uno-color-btn" data-color="yellow" style="width:60px;height:60px;border-radius:50%;background:#F1C40F;border:3px solid transparent;cursor:pointer;"></button>
+                  <button class="uno-color-btn" data-color="green" style="width:60px;height:60px;border-radius:50%;background:#2ECC71;border:3px solid transparent;cursor:pointer;"></button>
+                  <button class="uno-color-btn" data-color="blue" style="width:60px;height:60px;border-radius:50%;background:#3498DB;border:3px solid transparent;cursor:pointer;"></button>
                 </div>
               </div>
-
-              <button class="btn-gold" onclick="resetScrewLobby()" style="max-width: 240px; margin: 0 auto; justify-content: center;" data-en="Play Again" data-ar="اللعب مجدداً">Play Again</button>
             </div>
 
           </div>
@@ -574,7 +548,7 @@
   </div>
 
   <script src="app.js"></script>
-  <script src="screw.js"></script>
+  <script src="uno.js"></script>
 </body>
 
 </html>

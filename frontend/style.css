@@ -4493,4 +4493,25 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
 .tier-student .vip-card-badge { color: #a3ffd6; }
 .tier-none .vip-card-badge { color: #c2d1cc; }
 
+.uno-card {
+  width: 70px;
+  height: 100px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.3rem;
+  border: 2px solid rgba(255,255,255,.6);
+  box-shadow: 0 3px 8px rgba(0,0,0,.15);
+  transition: transform .15s, box-shadow .15s;
+  cursor: default;
+  user-select: none;
+  position: relative;
+}
+.uno-card-label {
+  text-shadow: 0 1px 3px rgba(0,0,0,.3);
+  color: #fff;
+}
+
 

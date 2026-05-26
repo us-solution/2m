@@ -875,9 +875,9 @@ window.switchLoungeTab = function(tabName) {
     } else {
       renderImposterSetup();
     }
-  } else if (tabName === 'screw') {
-    if (typeof initScrewLobby === 'function') {
-      initScrewLobby();
+  } else if (tabName === 'uno') {
+    if (typeof initUnoLobby === 'function') {
+      initUnoLobby();
     }
   }
 };
