@@ -192,11 +192,13 @@ function switchTab(t){
 }
 
 function translateError(msg) {
+  if (!msg) return currentLang === 'ar' ? 'حدث خطأ غير متوقع' : 'Unexpected error';
   const isAr = currentLang === 'ar';
   if (msg === 'Invalid credentials') return isAr ? 'رقم الهاتف أو كلمة المرور غير صحيحة' : 'Incorrect phone number or password';
   if (msg === 'User not found') return isAr ? 'الحساب غير موجود' : 'Account not found';
   if (msg === 'Phone already registered') return isAr ? 'رقم الهاتف مسجل بالفعل' : 'Phone number already registered';
-  if (msg === 'All fields required') return isAr ? 'يرجى إكمال جميع الحقول' : 'Please complete all fields';
+  if (msg === 'Email already registered') return isAr ? 'البريد الإلكتروني مسجل بالفعل' : 'Email already registered';
+  if (msg === 'All fields required' || msg === 'Name, password, and at least a Phone number or Email are required') return isAr ? 'يرجى إكمال جميع الحقول' : 'Please complete all fields';
   return isAr ? 'حدث خطأ، يرجى المحاولة مرة أخرى' : 'An error occurred, please try again';
 }
 
@@ -209,41 +211,51 @@ function forgotPassword() {
 
 async function doLogin(){
   const isAr = currentLang === 'ar';
-  const identifier=document.getElementById('l-identifier').value.trim();
-  const pass=document.getElementById('l-pass').value;
   const err=document.getElementById('l-err');
   err.textContent='';
-  if(!identifier || !pass) { err.textContent = isAr ? 'يرجى إدخال الهاتف/البريد وكلمة المرور' : 'Please enter identifier and password'; return; }
-  const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier,password:pass})});
-  const data=await res.json();
-  if(!res.ok){err.textContent=translateError(data.error);return;}
-  localStorage.setItem('ozel_token',data.token);
-  localStorage.setItem('ozel_user',JSON.stringify(data.user));
-  if(data.user.role==='admin') location.href='admin.html';
-  else if(data.user.role==='cashier') location.href='cashier.html';
-  else location.href=redirect;
+  try {
+    const identifier=document.getElementById('l-identifier').value.trim();
+    const pass=document.getElementById('l-pass').value;
+    if(!identifier || !pass) { err.textContent = isAr ? 'يرجى إدخال الهاتف/البريد وكلمة المرور' : 'Please enter identifier and password'; return; }
+    const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier,password:pass})});
+    const data=await res.json();
+    if(!res.ok){err.textContent=translateError(data.error);return;}
+    if (!data.token || !data.user) { err.textContent = isAr ? 'استجابة غير صالحة من الخادم' : 'Invalid server response'; return; }
+    localStorage.setItem('ozel_token',data.token);
+    localStorage.setItem('ozel_user',JSON.stringify(data.user));
+    if(data.user.role==='admin') location.href='admin.html';
+    else if(data.user.role==='cashier') location.href='cashier.html';
+    else location.href=redirect;
+  } catch(e) {
+    err.textContent = isAr ? 'فشل الاتصال بالخادم' : 'Connection failed';
+  }
 }
 
 async function doRegister(){
   const isAr = currentLang === 'ar';
-  const name=document.getElementById('r-name').value.trim();
-  const phone=document.getElementById('r-phone').value.trim();
-  const email=document.getElementById('r-email').value.trim();
-  const subscriptionTier=document.getElementById('r-tier').value;
-  const pass=document.getElementById('r-pass').value;
   const err=document.getElementById('r-err');
   err.textContent='';
-  if(!name || !pass || (!phone && !email)) { err.textContent = isAr ? 'يرجى إكمال جميع الحقول الإلزامية' : 'Please complete all required fields'; return; }
-  const res=await fetch('/api/auth/register',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({name,phone,email,subscriptionTier,password:pass})
-  });
-  const data=await res.json();
-  if(!res.ok){err.textContent=translateError(data.error);return;}
-  localStorage.setItem('ozel_token',data.token);
-  localStorage.setItem('ozel_user',JSON.stringify(data.user));
-  location.href=redirect;
+  try {
+    const name=document.getElementById('r-name').value.trim();
+    const phone=document.getElementById('r-phone').value.trim();
+    const email=document.getElementById('r-email').value.trim();
+    const subscriptionTier=document.getElementById('r-tier').value;
+    const pass=document.getElementById('r-pass').value;
+    if(!name || !pass || (!phone && !email)) { err.textContent = isAr ? 'يرجى إكمال جميع الحقول الإلزامية' : 'Please complete all required fields'; return; }
+    const res=await fetch('/api/auth/register',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,phone,email,subscriptionTier,password:pass})
+    });
+    const data=await res.json();
+    if(!res.ok){err.textContent=translateError(data.error);return;}
+    if (!data.token || !data.user) { err.textContent = isAr ? 'استجابة غير صالحة من الخادم' : 'Invalid server response'; return; }
+    localStorage.setItem('ozel_token',data.token);
+    localStorage.setItem('ozel_user',JSON.stringify(data.user));
+    location.href=redirect;
+  } catch(e) {
+    err.textContent = isAr ? 'فشل الاتصال بالخادم' : 'Connection failed';
+  }
 }
 
 function skipLogin(){location.href=redirect;}

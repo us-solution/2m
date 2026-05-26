@@ -61,6 +61,11 @@ const transMap = {
   'Caramel': { en: 'Caramel Syrup', ar: 'كراميل' }
 };
 
+window.scrollTo = function(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
 window.toggleLanguage = function() {
   currentLang = currentLang === 'en' ? 'ar' : 'en';
   localStorage.setItem('ozel_lang', currentLang);
@@ -82,17 +87,17 @@ window.applyLanguage = function(lang) {
   });
 
   buildCatTabs();
-  renderMenu(currentCat === 'all' ? allDrinks : allDrinks.filter(d => String(d.category_id) === currentCat));
+  if (allDrinks.length) {
+    renderMenu(currentCat === 'all' ? allDrinks : allDrinks.filter(d => String(d.category_id) === currentCat));
+  }
   renderOffersCards();
   renderNavUser();
 
-  if (imposterGame) {
-    if (imposterGame.state === 'setup') {
-      renderImposterSetup();
-    } else if (imposterGame.state === 'reveal' || imposterGame.state === 'describe' || imposterGame.state === 'ask' || imposterGame.state === 'vote' || imposterGame.state === 'tally') {
-      renderImposterGameplay();
+  if (imposterGame && imposterGame.state !== 'setup') {
+    if (imposterGame.state === 'reveal' || imposterGame.state === 'describe' || imposterGame.state === 'ask' || imposterGame.state === 'vote' || imposterGame.state === 'tally') {
+      if (typeof renderImposterGameplay === 'function') renderImposterGameplay();
     } else if (imposterGame.state === 'result') {
-      showImposterResults(imposterGame.winner);
+      if (typeof showImposterResults === 'function') showImposterResults(imposterGame.winner);
     }
   }
   updateTTTStatus();
@@ -109,6 +114,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 1200);
     }
   }, 1000);
+  applyLanguage(currentLang);
+  renderNavUser();
+  updateCartUI();
   fetchMenu();
 });
 
@@ -333,30 +341,25 @@ async function fetchMenu() {
       fetch('/api/drinks'),
       fetch('/api/offers')
     ]);
-    allCategories = await catRes.json();
-    allDrinks     = await drinksRes.json();
+    if (catRes.ok) allCategories = await catRes.json();
+    if (drinksRes.ok) allDrinks = await drinksRes.json();
     
-    try {
+    if (offersRes.ok) {
       const offersData = await offersRes.json();
-      if (Array.isArray(offersData)) {
-        window.allOffers = offersData;
-      } else {
-        console.warn('Offers data is not an array:', offersData);
-        window.allOffers = [];
-      }
-    } catch(e) {
-      console.warn('Failed to parse offers, using empty array', e);
+      window.allOffers = Array.isArray(offersData) ? offersData : [];
+    } else {
       window.allOffers = [];
     }
     
     applyLanguage(currentLang);
   } catch(err) {
     console.error('Error fetching menu:', err);
+    applyLanguage(currentLang);
     const grid = document.getElementById('menuGrid');
     if (grid) {
       grid.innerHTML = currentLang === 'ar'
-        ? `<p style="color:#C0392B;text-align:center;grid-column:1/-1;padding:4rem">فشل تحميل القائمة. يرجى التأكد من تشغيل الخادم.</p>`
-        : `<p style="color:#C0392B;text-align:center;grid-column:1/-1;padding:4rem">Failed to load menu. Make sure the server is running.</p>`;
+        ? `<p style="color:#C0392B;text-align:center;grid-column:1/-1;padding:4rem">فشل تحميل القائمة. يرجى المحاولة لاحقاً.</p>`
+        : `<p style="color:#C0392B;text-align:center;grid-column:1/-1;padding:4rem">Failed to load menu. Please try again later.</p>`;
     }
   }
 }
@@ -370,6 +373,8 @@ function buildCatTabs() {
   bar.innerHTML = `<button class="cat-btn active" data-cat="all">${allLabel}</button>`;
   
   renderOffersCards();
+
+  if (!allCategories || !allCategories.length) return;
 
   allCategories.forEach(cat => {
     const btn = document.createElement('button');

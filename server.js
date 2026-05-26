@@ -19,22 +19,19 @@ require('./models/GameRoom');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// 0. Connect to MongoDB before handling requests
-app.use(async (req, res, next) => {
+// 0. Middleware to connect MongoDB only for API routes
+async function requireDB(req, res, next) {
   try {
     await connectDB();
     next();
   } catch (err) {
     console.error('MongoDB connection error:', err.message);
-    const mongoUri = process.env.MONGODB_URI;
     res.status(500).json({ 
       error: 'Database connection failed',
-      details: err.message,
-      hasMongoUri: !!mongoUri,
-      uriPrefix: mongoUri ? mongoUri.substring(0, 20) + '...' : 'NOT SET'
+      details: err.message
     });
   }
-});
+}
 
 // 1. Security Headers (with Helmet configured to allow CDNs for frontend)
 app.use(helmet({
@@ -74,34 +71,20 @@ app.use((req, res, next) => {
   next();
 });
 
-// 6. Mount API Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/categories', require('./routes/categories'));
-app.use('/api/drinks', require('./routes/drinks'));
-app.use('/api/orders', require('./routes/orders'));
-app.use('/api/offers', require('./routes/offers'));
-app.use('/api/me', require('./routes/me'));
-app.use('/api/admin', require('./routes/admin'));
+// 6. API Routes (with DB middleware)
+app.use('/api/auth', requireDB, require('./routes/auth'));
+app.use('/api/categories', requireDB, require('./routes/categories'));
+app.use('/api/drinks', requireDB, require('./routes/drinks'));
+app.use('/api/orders', requireDB, require('./routes/orders'));
+app.use('/api/offers', requireDB, require('./routes/offers'));
+app.use('/api/me', requireDB, require('./routes/me'));
+app.use('/api/admin', requireDB, require('./routes/admin'));
 
-app.use('/api/game', require('./routes/game'));
+app.use('/api/game', requireDB, require('./routes/game'));
 
-app.post('/api/debug-log', (req, res) => {
+app.post('/api/debug-log', requireDB, (req, res) => {
   console.log('[FRONTEND LOG]', req.body);
   res.json({ success: true });
-});
-
-// 7. Support database seeding route (similar to Django migrate-db)
-app.get('/api/migrate-db', async (req, res) => {
-  if (req.query.secret !== 'ozel') {
-    return res.status(403).send('Forbidden');
-  }
-
-  try {
-    await seedDatabase();
-    res.json({ success: true, message: 'Database migrated and seeded successfully!' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
 });
 
 // 8. Serve Frontend Static Pages
