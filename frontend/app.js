@@ -30,7 +30,8 @@ let imposterGame = {
 let tttBoard = Array(9).fill(null);
 let tttCurrentPlayer = 'O'; 
 let tttActive = true;
-let tttWinner = null; 
+let tttWinner = null;
+let tttMode = 'local'; 
 
 // ── Auth State ───────────────────────────
 const CUSER = JSON.parse(localStorage.getItem('ozel_user') || 'null');
@@ -1687,11 +1688,16 @@ const winPatterns = [
 ];
 
 window.setTTTMode = function(mode) {
+  tttMode = mode;
+  document.querySelectorAll('.ttt-mode-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('ttt-btn-' + mode);
+  if (btn) btn.classList.add('active');
   resetTTT();
 };
 
 window.playTTT = function(idx) {
   if (!tttActive || tttBoard[idx]) return;
+  if (tttMode === 'ai' && tttCurrentPlayer === 'X') return;
   
   makeTTTMove(idx, tttCurrentPlayer);
   
@@ -1699,6 +1705,10 @@ window.playTTT = function(idx) {
   
   tttCurrentPlayer = tttCurrentPlayer === 'O' ? 'X' : 'O';
   updateTTTStatus();
+
+  if (tttMode === 'ai' && tttCurrentPlayer === 'X' && tttActive) {
+    setTimeout(makeAIMove, 500);
+  }
 };
 
 function makeTTTMove(idx, player) {
@@ -1733,6 +1743,14 @@ function updateTTTStatus() {
     if (tttWinner === 'draw') {
       statusEl.innerHTML = isAr ? 'تعادل! العبوا مجدداً' : "It's a draw! Play again";
       statusEl.style.color = 'var(--muted)';
+    } else if (tttMode === 'ai') {
+      if (tttWinner === 'X') {
+        statusEl.innerHTML = isAr ? 'الذكاء الاصطناعي فاز!' : 'AI Wins!';
+        statusEl.style.color = 'var(--red)';
+      } else {
+        statusEl.innerHTML = isAr ? 'أنت الفائز!' : 'You Win!';
+        statusEl.style.color = 'var(--green)';
+      }
     } else {
       let winnerName = tttWinner === 'O' 
         ? (isAr ? 'اللاعب O' : 'Player O') 
@@ -1741,12 +1759,22 @@ function updateTTTStatus() {
       statusEl.style.color = 'var(--green)';
     }
   } else {
-    if (tttCurrentPlayer === 'O') {
-      statusEl.innerHTML = isAr ? 'دور اللاعب الأول (اللاعب O)' : "Player O's Turn";
-      statusEl.style.color = 'var(--accent-emerald)';
+    if (tttMode === 'ai') {
+      if (tttCurrentPlayer === 'O') {
+        statusEl.innerHTML = isAr ? 'دورك (O)' : 'Your Turn (O)';
+        statusEl.style.color = 'var(--accent-emerald)';
+      } else {
+        statusEl.innerHTML = isAr ? 'الذكاء الاصطناعي يُفكر...' : 'AI is thinking...';
+        statusEl.style.color = 'var(--gold)';
+      }
     } else {
-      statusEl.innerHTML = isAr ? 'دور اللاعب الثاني (اللاعب X)' : "Player X's Turn";
-      statusEl.style.color = 'var(--gold)';
+      if (tttCurrentPlayer === 'O') {
+        statusEl.innerHTML = isAr ? 'دور اللاعب الأول (اللاعب O)' : "Player O's Turn";
+        statusEl.style.color = 'var(--accent-emerald)';
+      } else {
+        statusEl.innerHTML = isAr ? 'دور اللاعب الثاني (اللاعب X)' : "Player X's Turn";
+        statusEl.style.color = 'var(--gold)';
+      }
     }
   }
 }
@@ -1788,6 +1816,69 @@ function checkTTTWinner() {
   return false;
 }
 
+function getEmptyCells() {
+  return tttBoard.reduce((acc, cell, i) => cell === null ? acc.concat(i) : acc, []);
+}
+
+function minimax(board, depth, isMaximizing) {
+  const scores = { X: 10, O: -10, draw: 0 };
+  const available = board.reduce((acc, cell, i) => cell === null ? acc.concat(i) : acc, []);
+
+  if (checkBoardWinner(board) === 'X') return scores.X - depth;
+  if (checkBoardWinner(board) === 'O') return scores.O + depth;
+  if (available.length === 0) return scores.draw;
+
+  if (isMaximizing) {
+    let best = -Infinity;
+    for (const i of available) {
+      board[i] = 'X';
+      best = Math.max(best, minimax(board, depth + 1, false));
+      board[i] = null;
+    }
+    return best;
+  } else {
+    let best = Infinity;
+    for (const i of available) {
+      board[i] = 'O';
+      best = Math.min(best, minimax(board, depth + 1, true));
+      board[i] = null;
+    }
+    return best;
+  }
+}
+
+function checkBoardWinner(board) {
+  for (const [a, b, c] of winPatterns) {
+    if (board[a] && board[a] === board[b] && board[a] === board[c]) return board[a];
+  }
+  return null;
+}
+
+function getBestMove() {
+  let bestScore = -Infinity;
+  let bestMove = null;
+  const available = getEmptyCells();
+  const board = [...tttBoard];
+
+  for (const i of available) {
+    board[i] = 'X';
+    const score = minimax(board, 0, false);
+    board[i] = null;
+    if (score > bestScore) {
+      bestScore = score;
+      bestMove = i;
+    }
+  }
+  return bestMove;
+}
+
+function makeAIMove() {
+  if (!tttActive || tttCurrentPlayer !== 'X') return;
+  const move = getBestMove();
+  if (move === null) return;
+  playTTT(move);
+}
+
 window.resetTTT = function() {
   tttBoard = Array(9).fill(null);
   tttCurrentPlayer = 'O';
@@ -1802,6 +1893,10 @@ window.resetTTT = function() {
     cell.style.background = '';
     cell.style.borderColor = '';
   });
+
+  if (tttMode === 'ai') {
+    document.querySelector('#ttt-btn-ai')?.classList.add('active');
+  }
 };
 
 /* ═══════════════════════════════════════════
