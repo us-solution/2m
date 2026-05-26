@@ -277,7 +277,7 @@ body::before{
         <label data-en="Password" data-ar="كلمة المرور">Password</label>
         <div class="pw-wrap">
           <input id="l-pass" type="password" data-placeholder-en="Enter your password" data-placeholder-ar="أدخل كلمة المرور" placeholder="Enter your password" autocomplete="current-password"/>
-          <button class="pw-toggle" type="button" onclick="togglePw('l-pass',this)" tabindex="-1">&#128065;</button>
+          <button class="pw-toggle" type="button" onclick="togglePw('l-pass')" tabindex="-1">&#128065;</button>
         </div>
       </div>
       <button id="l-btn" class="btn" data-en="Login" data-ar="تسجيل الدخول">Login</button>
@@ -306,7 +306,7 @@ body::before{
         <label data-en="Password" data-ar="كلمة المرور">Password</label>
         <div class="pw-wrap">
           <input id="r-pass" type="password" data-placeholder-en="Choose a strong password" data-placeholder-ar="اختر كلمة مرور قوية" placeholder="Choose a strong password" autocomplete="new-password"/>
-          <button class="pw-toggle" type="button" onclick="togglePw('r-pass',this)" tabindex="-1">&#128065;</button>
+          <button class="pw-toggle" type="button" onclick="togglePw('r-pass')" tabindex="-1">&#128065;</button>
         </div>
       </div>
       <button id="r-btn" class="btn" data-en="Create Account" data-ar="إنشاء حساب">Create Account</button>
@@ -329,21 +329,29 @@ function switchTab(t){
   const re=document.getElementById('r-err');if(re)re.textContent='';
 }
 
-function togglePw(id, btn){
+function togglePw(id){
   const inp = document.getElementById(id);
-  if(inp.type==='password'){inp.type='text';btn.textContent='\u{1F441}';}
+  if(!inp)return;
+  const wrap = inp.closest('.pw-wrap');
+  if(!wrap)return;
+  const btn = wrap.querySelector('.pw-toggle');
+  if(!btn)return;
+  if(inp.type==='password'){inp.type='text';btn.textContent='\u{1F648}';}
   else{inp.type='password';btn.textContent='\u{1F441}';}
 }
 
 function translateError(msg){
   if(!msg) return currentLang==='ar'?'حدث خطأ غير متوقع':'Unexpected error';
+  console.error('[API Error]', msg);
   const a=currentLang==='ar';
   if(msg==='Invalid credentials') return a?'رقم الهاتف أو كلمة المرور غير صحيحة':'Incorrect phone number or password';
   if(msg==='Phone already registered') return a?'رقم الهاتف مسجل بالفعل':'Phone number already registered';
   if(msg==='Email already registered') return a?'البريد الإلكتروني مسجل بالفعل':'Email already registered';
   if(msg==='All fields required'||msg==='Name, password, and at least a Phone number or Email are required') return a?'يرجى إكمال جميع الحقول المطلوبة':'Please complete all required fields';
   if(msg==='Database connection failed'||msg.includes('MongoDB')||msg.includes('database')||msg.includes('ECONNREFUSED')) return a?'فشل الاتصال بقاعدة البيانات، يرجى المحاولة لاحقاً':'Database connection failed, please try again later';
-  return a?'حدث خطأ، يرجى المحاولة مرة أخرى':'An error occurred, please try again';
+  if(msg.includes('validation failed')||msg.includes('required')) return a?'يرجى التأكد من صحة البيانات المدخلة':'Please check your input data';
+  if(msg.includes('E11000')||msg.includes('duplicate')) return a?'رقم الهاتف أو البريد موجود بالفعل':'Phone or email already exists';
+  return a? msg : msg;
 }
 
 async function doLogin(){
@@ -358,7 +366,7 @@ async function doLogin(){
   try{
     const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier:id,password:pw})});
     const d=await r.json();
-    if(!r.ok){err.textContent=translateError(d.error);btn.disabled=false;btn.textContent=a?'تسجيل الدخول':'Login';return;}
+    if(!r.ok){err.textContent=translateError(d.error||d.message);btn.disabled=false;btn.textContent=a?'تسجيل الدخول':'Login';return;}
     if(!d.token||!d.user){err.textContent=a?'استجابة غير صالحة':'Invalid response';btn.disabled=false;btn.textContent=a?'تسجيل الدخول':'Login';return;}
     localStorage.setItem('ozel_token',d.token);
     localStorage.setItem('ozel_user',JSON.stringify(d.user));
@@ -385,7 +393,7 @@ async function doRegister(){
   try{
     const r=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,phone,email:email||undefined,password:pw})});
     const d=await r.json();
-    if(!r.ok){err.textContent=translateError(d.error);btn.disabled=false;btn.textContent=a?'إنشاء حساب':'Create Account';return;}
+    if(!r.ok){err.textContent=translateError(d.error||d.message);btn.disabled=false;btn.textContent=a?'إنشاء حساب':'Create Account';return;}
     if(!d.token||!d.user){err.textContent=a?'استجابة غير صالحة':'Invalid response';btn.disabled=false;btn.textContent=a?'إنشاء حساب':'Create Account';return;}
     localStorage.setItem('ozel_token',d.token);
     localStorage.setItem('ozel_user',JSON.stringify(d.user));
