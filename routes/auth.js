@@ -57,71 +57,11 @@ router.post('/register', async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        phone: user.phone.startsWith('email_') ? '' : user.phone,
-        email: user.email,
-        role: user.role,
-        points: user.points,
-        subscriptionTier: user.subscriptionTier
-      }
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Login Endpoint
-router.post('/login', async (req, res) => {
-  const { identifier, phone, password } = req.body;
-  const loginKey = identifier || phone; // support old parameter name "phone"
-
-  if (!loginKey || !password) {
-    return res.status(400).json({ error: 'Missing credentials: Phone/Email and password required' });
-  }
-
-  try {
-    // Search by email or phone
-    const user = await User.findOne({
-      $or: [
-        { phone: loginKey },
-        { email: loginKey }
-      ]
-    });
-
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '30d' });
-
-    res.json({
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        phone: user.phone.startsWith('email_') ? '' : user.phone,
-        email: user.email,
-        role: user.role,
-        points: user.points,
-        subscriptionTier: user.subscriptionTier
-      }
-    });
-  } catch (err) {
-    console.error('[LOGIN ERROR]', err);
-    res.status(500).json({ error: err.message, stack: err.stack });
-  }
-});
-
-// Get Profile Info
-router.get('/me', authenticateToken, async (req, res) => {
-  res.json({
-    id: req.user._id,
-    name: req.user.name,
-    phone: req.user.phone.startsWith('email_') ? '' : req.user.phone,
-    email: req.user.email,
-    role: req.user.role,
-    points: req.user.points,
-    total_spent: parseFloat(req.user.total_spent),
-    subscriptionTier: req.user.subscriptionTier
+    phone: user.phone && user.phone.startsWith('email_') ? '' : (user.phone || ''),
+    email: user.email,
+    role: user.role,
+    points: user.points,
+    subscriptionTier: user.subscriptionTier
   });
 });
 

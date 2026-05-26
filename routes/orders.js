@@ -100,7 +100,7 @@ router.get('/', authenticateToken, requireRole('cashier'), async (req, res) => {
       id: o._id,
       user_id: o.userId ? o.userId._id : null,
       customer_name: o.userId ? o.userId.name : null,
-      customer_phone: o.userId ? (o.userId.phone.startsWith('email_') ? '' : o.userId.phone) : null,
+      customer_phone: o.userId ? (o.userId.phone && o.userId.phone.startsWith('email_') ? '' : (o.userId.phone || '')) : null,
       table_number: o.table_number,
       items: o.items,
       total_price: parseFloat(o.total_price),

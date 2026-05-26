@@ -137,7 +137,7 @@ router.get('/users', authenticateToken, requireRole('admin'), async (req, res) =
     const serialized = users.map(u => ({
       id: u._id,
       name: u.name,
-      phone: u.phone.startsWith('email_') ? '' : u.phone,
+      phone: u.phone && u.phone.startsWith('email_') ? '' : (u.phone || ''),
       email: u.email,
       role: u.role,
       points: u.points,
@@ -279,6 +279,7 @@ router.post('/drinks', authenticateToken, requireRole('admin'), async (req, res)
   } = req.body;
 
   try {
+    if (!category_id) return res.status(400).json({ error: 'category_id is required' });
     const category = await Category.findById(category_id);
     if (!category) {
       return res.status(400).json({ error: 'Invalid category_id' });
@@ -316,7 +317,7 @@ router.patch('/drinks/:id', authenticateToken, requireRole('admin'), async (req,
     }
 
     const data = req.body;
-    if (data.category_id !== undefined) {
+    if (data.category_id !== undefined && data.category_id !== '') {
       const category = await Category.findById(data.category_id);
       if (!category) return res.status(400).json({ error: 'Invalid category_id' });
       d.categoryId = data.category_id;
