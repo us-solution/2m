@@ -88,34 +88,7 @@ app.post('/api/debug-log', requireDB, (req, res) => {
 });
 
 // Create admin (GET from browser — remove after use)
-// Reset all users and create admin (GET from browser — remove after use)
-app.all('/api/reset-users', requireDB, async (req, res) => {
-  try {
-    const bcrypt = require('bcryptjs');
-    const User = require('./models/User');
-    const phone = req.query.phone || '01010297675';
-    const password = req.query.password || '123';
-    const name = req.query.name || 'Admin';
 
-    // Drop all users
-    await User.deleteMany({});
-    
-    // Create admin
-    const hashed = await bcrypt.hash(password, 10);
-    await User.create({
-      name,
-      phone,
-      email: `admin_${Date.now()}@ozel.cafe`,
-      password: hashed,
-      role: 'admin',
-      subscriptionTier: 'none'
-    });
-
-    res.send('<h2>✅ Users Reset!</h2><p><b>Phone:</b> ' + phone + '<br><b>Password:</b> ' + password + '<br><b>Name:</b> ' + name + '</p><p><a href="/login">Go to Login</a></p>');
-  } catch (err) {
-    res.status(500).send('<h2>Error</h2><p>' + err.message + '</p>');
-  }
-});
 
 
 
