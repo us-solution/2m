@@ -124,20 +124,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 1000);
 });
 
-// --- Global guard against event quirks (touch generating multiple clicks, etc.) ---
-document.addEventListener('click', function(e) {
-  const el = e.target.closest('[data-gh]');
-  if (el) {
-    e.stopImmediatePropagation();
-    return;
-  }
-  // Set guard on elements with inline onclick so native handler fires exactly once
-  const target = e.target.closest('[onclick],.lounge-game-card');
-  if (target) {
-    target.setAttribute('data-gh', '1');
-    setTimeout(() => target.removeAttribute('data-gh'), 0);
-  }
-});
+// --- Global guard: prevent double-fire from mobile tap generating two click events ---
+// We don't need a delegation — native onclick handles everything.
+// Protection is at function level (debounce guards in addToCart, etc.)
 
 function renderNavUser() {
   const area = document.getElementById('nav-user-area');
@@ -603,9 +592,9 @@ window.closeModal = function(e) {
 // ── Cart ──────────────────────────────────
 let _addingToCart = false;
 window.addToCart = function(drinkId, behavior = 'continue') {
-  if (_addingToCart) return;
+  if (_addingToCart) { console.warn('[Cart] Blocked double-add'); return; }
   _addingToCart = true;
-  setTimeout(() => _addingToCart = false, 500);
+  setTimeout(() => _addingToCart = false, 600);
   const drink = allDrinks.find(d => d.id == drinkId);
   const sugar = window.currentPuzzle.sugar;
   const extra = window.currentPuzzle.extra;
@@ -1870,6 +1859,9 @@ window.selectDeckChip = function(type, value, btn) {
 };
 
 window.addDeckToCart = function(drinkId) {
+  if (_addingToCart) return;
+  _addingToCart = true;
+  setTimeout(() => _addingToCart = false, 600);
   const drink = allDrinks.find(d => d.id == drinkId);
   if (!drink) return;
   const sugar = window.currentPuzzle.sugar;
