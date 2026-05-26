@@ -1875,8 +1875,11 @@ function getBestMove() {
 function makeAIMove() {
   if (!tttActive || tttCurrentPlayer !== 'X') return;
   const move = getBestMove();
-  if (move === null) return;
-  playTTT(move);
+  if (move === null) { checkTTTWinner(); return; }
+  makeTTTMove(move, 'X');
+  if (checkTTTWinner()) return;
+  tttCurrentPlayer = 'O';
+  updateTTTStatus();
 }
 
 window.resetTTT = function() {
