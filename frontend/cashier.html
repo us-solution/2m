@@ -28,6 +28,7 @@
   --green:         #27AE60;
   --red:           #C0392B;
   --orange:        #D35400;
+  --confirmed:     #2980B9;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:ltr;}
@@ -40,6 +41,8 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .hbtn{background:transparent;border:1px solid var(--line);color:var(--muted);padding:.4rem .9rem;font-family:'Tajawal',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s;border-radius:2px;}
 .hbtn:hover{border-color:var(--gold);color:var(--gold);}
+.hbtn.sound-on{border-color:var(--green);color:var(--green);}
+.hbtn.sound-off{border-color:var(--muted);color:var(--muted);opacity:.5;}
 
 .main{display:grid;grid-template-columns:240px 1fr;gap:0;min-height:calc(100vh - 64px);}
 
@@ -50,30 +53,40 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
 .sstat{background:var(--bg3);padding:1rem;border:1px solid var(--line);border-radius:4px;}
 .sstat-n{font-family:'Montserrat',sans-serif;font-size:2rem;color:var(--gold);font-weight:700;display:block;}
 .sstat-l{font-size:.72rem;color:var(--muted);}
+.sb-search{margin-bottom:1.5rem;}
+.sb-search input{width:100%;background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.7rem 1rem;font-family:'Tajawal',sans-serif;font-size:.85rem;outline:none;border-radius:4px;}
+.sb-search input:focus{border-color:var(--gold);}
 .filter-btns{display:flex;flex-direction:column;gap:.4rem;}
 .fbtn{background:transparent;border:1px solid var(--line);color:var(--muted);padding:.55rem .8rem;font-family:'Tajawal',sans-serif;font-size:.85rem;cursor:pointer;transition:all .2s;text-align:left;border-radius:4px;}
 .fbtn.active{background:var(--gold);color:var(--white);border-color:var(--gold);font-weight:700;}
 .fbtn:hover:not(.active){border-color:var(--gold);color:var(--gold);}
 .dot-status{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:.4rem;}
 .dot-pending{background:var(--orange);}
+.dot-confirmed{background:var(--confirmed);}
 .dot-ready{background:var(--green);}
 .dot-served{background:var(--muted);}
 
 /* Orders Grid */
 .orders-area{padding:2rem;overflow-y:auto;max-height:calc(100vh - 64px);}
 .orders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;}
-.order-card{background:var(--bg2);border:1px solid var(--line);overflow:hidden;transition:all .3s;border-radius:8px;box-shadow: 0 4px 15px rgba(0,0,0,0.03);}
+.order-card{background:var(--bg2);border:1px solid var(--line);overflow:hidden;transition:all .3s;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.03);cursor:pointer;}
+.order-card:hover{box-shadow:0 6px 20px rgba(0,0,0,0.08);transform:translateY(-2px);}
 .order-card.pending{border-color:rgba(230,126,34,.3);}
+.order-card.confirmed{border-color:rgba(41,128,185,.3);}
 .order-card.ready{border-color:rgba(39,174,96,.3);}
 .order-card.served{opacity:.5;}
-.order-card.cancelled{opacity:.6; border-color:rgba(192,57,43,.3); background: rgba(192,57,43,.02);}
+.order-card.cancelled{opacity:.6;border-color:rgba(192,57,43,.3);background:rgba(192,57,43,.02);}
+.order-card.urgent{box-shadow:0 0 0 2px var(--red),0 4px 15px rgba(192,57,43,.15);}
 .oc-header{padding:1rem;background:var(--bg3);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);}
 .oc-table{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--text);font-weight:600;}
 .oc-status{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .6rem;font-family:'Montserrat',sans-serif;border-radius:2px;}
 .oc-status.pending{background:rgba(230,126,34,.15);color:var(--orange);}
+.oc-status.confirmed{background:rgba(41,128,185,.15);color:var(--confirmed);}
 .oc-status.ready{background:rgba(39,174,96,.15);color:var(--green);}
 .oc-status.served{background:rgba(110,102,89,.15);color:var(--muted);}
 .oc-status.cancelled{background:rgba(192,57,43,.15);color:var(--red);}
+.oc-age{font-size:.65rem;color:var(--muted);margin-top:.2rem;}
+.oc-age.urgent{color:var(--red);font-weight:700;}
 .oc-body{padding:1rem;}
 .oc-item{display:flex;justify-content:space-between;align-items:flex-start;padding:.4rem 0;border-bottom:1px solid var(--line);font-size:.88rem;color:var(--text);}
 .oc-item:last-child{border:none;}
@@ -83,56 +96,58 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
 .oc-footer{padding:1rem;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
 .oc-total{font-family:'Montserrat',sans-serif;font-size:1.2rem;color:var(--gold);font-weight:700;}
 .oc-time{font-size:.7rem;color:var(--muted);}
-.oc-actions{display:flex;gap:.4rem;margin-top:.8rem;}
-.action-btn{flex:1;border:1px solid var(--line);background:var(--bg);color:var(--muted);padding:.5rem;font-family:'Tajawal',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s;border-radius:4px;}
+.oc-actions{display:flex;gap:.4rem;margin-top:.8rem;padding:0 1rem 1rem;}
+.action-btn{flex:1;border:1px solid var(--line);background:var(--bg);color:var(--muted);padding:.5rem;font-family:'Tajawal',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s;border-radius:4px;text-align:center;}
+.action-btn.confirm-btn:hover{background:rgba(41,128,185,.1);border-color:var(--confirmed);color:var(--confirmed);}
 .action-btn.ready-btn:hover{background:rgba(39,174,96,.1);border-color:var(--green);color:var(--green);}
 .action-btn.served-btn:hover{background:rgba(110,102,89,.1);border-color:var(--text);color:var(--text);}
+.action-btn.cancel-btn:hover{background:rgba(192,57,43,.1);border-color:var(--red);color:var(--red);}
+.action-btn.print-btn:hover{background:rgba(92,118,109,.1);border-color:var(--accent-emerald);color:var(--accent-emerald);}
 .empty-msg{grid-column:1/-1;text-align:center;padding:4rem;color:var(--muted);}
 .oc-customer{font-size:.75rem;color:var(--muted);margin-top:.3rem;}
+.oc-qr-status{font-size:.65rem;margin-top:.2rem;}
+.oc-qr-status.confirmed{color:var(--green);}
+.oc-qr-status.unconfirmed{color:var(--orange);}
 .new-badge{background:var(--gold);color:var(--bg);font-size:.55rem;padding:.1rem .4rem;font-family:'Montserrat',sans-serif;letter-spacing:.1em;vertical-align:middle;margin-left:0.3rem;border-radius:2px;}
 
-@media (max-width: 768px) {
-  .main {
-    grid-template-columns: 1fr;
-  }
-  .sidebar {
-    border-right: none;
-    border-bottom: 1px solid var(--line);
-    padding: 1rem;
-  }
-  .sb-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-  }
-  .sstat {
-    padding: 0.5rem;
-    text-align: center;
-  }
-  .sstat-n {
-    font-size: 1.5rem;
-  }
-  .filter-btns {
-    display: none;
-  }
-  #mobile-filter-select {
-    display: block !important;
-  }
-  .orders-area {
-    padding: 1rem;
-  }
+/* Modal Overlay */
+.modal-overlay{position:fixed;inset:0;background:rgba(44,32,30,0.5);display:none;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px);}
+.modal-content{background:var(--bg2);border:1px solid var(--line);border-radius:12px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 40px rgba(0,0,0,0.15);padding:0;}
+.modal-header{padding:1.2rem 1.5rem;background:var(--bg3);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1;}
+.modal-header h2{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--text);}
+.modal-close{background:none;border:none;font-size:1.5rem;color:var(--muted);cursor:pointer;padding:.2rem;line-height:1;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:1.5rem;}
+.modal-section{margin-bottom:1.2rem;}
+.modal-section-title{font-size:.65rem;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:.6rem;font-family:'Montserrat',sans-serif;}
+.modal-item{display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--line);font-size:.9rem;}
+.modal-total-row{display:flex;justify-content:space-between;padding:.6rem 0;font-size:1.1rem;font-weight:700;color:var(--gold);border-top:2px solid var(--gold);margin-top:.5rem;}
+.modal-actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem;}
+.modal-actions .action-btn{padding:.6rem 1rem;flex:1;min-width:100px;}
+
+@media (max-width:768px){
+  .main{grid-template-columns:1fr;}
+  .sidebar{border-right:none;border-bottom:1px solid var(--line);padding:1rem;}
+  .sb-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;}
+  .sstat{padding:.5rem;text-align:center;}
+  .sstat-n{font-size:1.5rem;}
+  .filter-btns{display:none;}
+  #mobile-filter-select{display:block!important;}
+  .orders-area{padding:1rem;}
+  .modal-content{max-width:95%;margin:1rem;}
 }
 </style>
 </head>
 <body>
 <header>
   <div style="display:flex;align-items:center;gap:.6rem;">
-    <img src="imgs/Ozel-Logo--01.png" alt="OZEL CAFE Logo" style="height:50px; width:auto; object-fit:contain;" />
+    <img src="imgs/Ozel-Logo--01.png" alt="OZEL CAFE Logo" style="height:50px;width:auto;object-fit:contain;" />
     <span class="htag">Cashier System</span>
     <span class="hlogo">OZEL</span>
   </div>
   <div class="hright">
-    <div class="hlive"><div class="hdot"></div><span>Live — Updates every 5 seconds</span></div>
+    <div class="hlive"><div class="hdot"></div><span>Live</span></div>
+    <button class="hbtn sound-on" id="soundToggleBtn" onclick="toggleSound()">Sound On</button>
     <button class="hbtn" onclick="logout()">Logout</button>
   </div>
 </header>
@@ -140,20 +155,25 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
   <div class="sidebar">
     <div class="sb-title">Statistics</div>
     <div class="sb-stats">
-      <div class="sstat"><span class="sstat-n" id="st-pending">0</span><span class="sstat-l">Pending Orders</span></div>
+      <div class="sstat"><span class="sstat-n" id="st-pending">0</span><span class="sstat-l">Pending</span></div>
       <div class="sstat"><span class="sstat-n" id="st-today">0</span><span class="sstat-l">Today's Orders</span></div>
-      <div class="sstat"><span class="sstat-n" id="st-rev">0</span><span class="sstat-l">Today's Revenue (EGP)</span></div>
+      <div class="sstat"><span class="sstat-n" id="st-rev">0</span><span class="sstat-l">Revenue (EGP)</span></div>
+    </div>
+    <div class="sb-search">
+      <input id="orderSearch" type="text" placeholder="Search table / name / ID ..." oninput="renderOrders()"/>
     </div>
     <div class="sb-title">Filter</div>
-    <select id="mobile-filter-select" onchange="filterOrders(this.value, this)" style="display: none; width: 100%; padding: 0.8rem; background: var(--bg3); border: 1px solid var(--line); border-radius: 4px; font-family: 'Tajawal', sans-serif; font-size: 1rem; color: var(--text); margin-bottom: 1rem;">
+    <select id="mobile-filter-select" onchange="filterOrders(this.value,this)" style="display:none;width:100%;padding:.8rem;background:var(--bg3);border:1px solid var(--line);border-radius:4px;font-family:'Tajawal',sans-serif;font-size:1rem;color:var(--text);margin-bottom:1rem;">
       <option value="all">All Orders</option>
       <option value="pending">Pending</option>
+      <option value="confirmed">Confirmed</option>
       <option value="ready">Ready</option>
       <option value="served">Served</option>
     </select>
     <div class="filter-btns">
       <button class="fbtn active" onclick="filterOrders('all',this)">All Orders</button>
       <button class="fbtn" onclick="filterOrders('pending',this)"><span class="dot-status dot-pending"></span>Pending</button>
+      <button class="fbtn" onclick="filterOrders('confirmed',this)"><span class="dot-status dot-confirmed"></span>Confirmed</button>
       <button class="fbtn" onclick="filterOrders('ready',this)"><span class="dot-status dot-ready"></span>Ready</button>
       <button class="fbtn" onclick="filterOrders('served',this)"><span class="dot-status dot-served"></span>Served</button>
     </div>
@@ -164,23 +184,46 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
     </div>
   </div>
 </div>
+
+<!-- Order Detail Modal -->
+<div class="modal-overlay" id="orderModal" onclick="if(event.target===this)closeOrderModal()">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modalTitle">Order Details</h2>
+      <button class="modal-close" onclick="closeOrderModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
 <script>
-const token = localStorage.getItem('ozel_token');
-const user  = JSON.parse(localStorage.getItem('ozel_user') || 'null');
+const user = JSON.parse(localStorage.getItem('ozel_user') || 'null');
 if (!user || !['cashier','admin'].includes(user.role)) { location.href = 'login.html?from=cashier.html'; }
 
+function getAuthH() {
+  const t = localStorage.getItem('ozel_token');
+  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + t };
+}
+
 let allOrders = [], currentFilter = 'all', knownIds = new Set();
+let soundEnabled = localStorage.getItem('ozel_cashier_sound') !== 'off';
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  localStorage.setItem('ozel_cashier_sound', soundEnabled ? 'on' : 'off');
+  const btn = document.getElementById('soundToggleBtn');
+  btn.textContent = soundEnabled ? 'Sound On' : 'Sound Off';
+  btn.className = 'hbtn ' + (soundEnabled ? 'sound-on' : 'sound-off');
+}
 
 async function fetchOrders() {
   try {
-    const res = await fetch('/api/orders', { headers: { Authorization: 'Bearer ' + token } });
+    const res = await fetch('/api/orders', { headers: getAuthH() });
     const data = await res.json();
-    
-    // Check for new orders
     const newOrders = data.filter(o => !knownIds.has(o.id) && o.status === 'pending');
-    if (knownIds.size > 0 && newOrders.length > 0) {
-      new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA').play().catch(()=>{});
-      document.title = `(${newOrders.length}) New Order — Cashier`;
+    if (knownIds.size > 0 && newOrders.length > 0 && soundEnabled) {
+      try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA').play().catch(()=>{}); } catch(e) {}
+      document.title = `(${newOrders.length}) New — Cashier`;
     } else { document.title = 'Cashier — OZEL CAFE'; }
     data.forEach(o => knownIds.add(o.id));
     allOrders = data;
@@ -199,66 +242,160 @@ function updateStats() {
   document.getElementById('st-rev').textContent = Math.round(rev);
 }
 
+function getAge(minutes) {
+  if (minutes < 5) return { label: Math.round(minutes) + 'm ago', cls: '' };
+  if (minutes < 10) return { label: Math.round(minutes) + 'm ago', cls: '' };
+  if (minutes < 15) return { label: Math.round(minutes) + 'm ago', cls: '' };
+  return { label: Math.round(minutes) + 'm', cls: 'urgent' };
+}
+
 function renderOrders() {
   const grid = document.getElementById('ordersGrid');
-  const filtered = currentFilter === 'all' ? allOrders : allOrders.filter(o => o.status === currentFilter);
+  const query = document.getElementById('orderSearch').value.toLowerCase().trim();
+  let filtered = currentFilter === 'all' ? allOrders : allOrders.filter(o => o.status === currentFilter);
+  if (query) {
+    filtered = filtered.filter(o =>
+      String(o.table_number).includes(query) ||
+      (o.customer_name && o.customer_name.toLowerCase().includes(query)) ||
+      String(o.id).toLowerCase().includes(query)
+    );
+  }
   if (!filtered.length) { grid.innerHTML = '<div class="empty-msg">No orders found</div>'; return; }
   grid.innerHTML = filtered.map(o => {
     let items = [];
     try { items = JSON.parse(o.items); } catch(e) {}
-    const isNew = (Date.now() - new Date(o.created_at).getTime()) < 60000 && o.status === 'pending';
-    return `
-      <div class="order-card ${o.status}">
-        <div class="oc-header">
-          <div>
-            ${isNew ? '<span class="new-badge">New</span>' : ''}
-            <div class="oc-table">Table ${o.table_number}</div>
-            <div class="oc-customer">${o.customer_name ? o.customer_name : 'Guest'}</div>
-          </div>
-          <span class="oc-status ${o.status}">${o.status === 'pending' ? 'Pending' : o.status === 'ready' ? 'Ready' : o.status === 'cancelled' ? 'Cancelled' : 'Served'}</span>
-        </div>
-        <div class="oc-body">
-          ${items.map(i => `
-            <div class="oc-item">
-              <div class="oc-item-name">
-                ${i.name}
-                <div class="oc-item-mods">Sugar: ${i.sugar || '-'} · ${i.extra || 'None'}</div>
-                ${i.notes ? `<div style="color:var(--gold); font-size:0.75rem; margin-top:0.2rem;">📌 Note: ${i.notes}</div>` : ''}
-              </div>
-              <div class="oc-item-price">${i.price} EGP</div>
-            </div>
-          `).join('')}
-          ${o.notes ? `<div class="oc-notes" style="margin-top:0.8rem; padding-top:0.5rem; border-top:1px dashed var(--line); font-size:0.8rem; color:var(--text);"><strong>📝 Customer Notes:</strong> ${o.notes}</div>` : ''}
-        </div>
-        <div class="oc-footer">
-          <div>
-            <div class="oc-total">${o.total_price} EGP</div>
-            <div class="oc-time">${new Date(o.created_at).toLocaleTimeString('en-US')}</div>
-          </div>
-        </div>
-        <div class="oc-actions" style="padding:.8rem 1rem 1rem; display:flex; gap:0.5rem;">
-          ${o.status === 'pending' ? `<button class="action-btn ready-btn" onclick="updateStatus('${o.id}','ready')">Ready for Delivery</button>` : ''}
-          ${o.status === 'ready' ? `<button class="action-btn served-btn" onclick="updateStatus('${o.id}','served')">Served</button>` : ''}
-          ${o.status !== 'served' && o.status !== 'cancelled' ? `<button class="action-btn" style="background:transparent; border:1px solid #C0392B; color:#C0392B; cursor:pointer; padding:0.4rem 0.8rem; border-radius:4px;" onclick="if(confirm('Are you sure you want to cancel this order?')) updateStatus('${o.id}','cancelled')">Cancel</button>` : ''}
-        </div>
-      </div>
-    `;
+    const elapsed = (Date.now() - new Date(o.created_at).getTime()) / 60000;
+    const isNew = elapsed < 1 && o.status === 'pending';
+    const age = getAge(elapsed);
+    const isUrgent = elapsed > 15 && (o.status === 'pending' || o.status === 'confirmed');
+    const qrStatus = o.isQrConfirmed ? 'confirmed' : 'unconfirmed';
+    const qrLabel = o.isQrConfirmed ? 'QR Confirmed' : 'QR Pending';
+    return '<div class="order-card ' + o.status + (isUrgent ? ' urgent' : '') + '" onclick="openOrderModal(\'' + o.id + '\')">' +
+      '<div class="oc-header">' +
+        '<div>' +
+          (isNew ? '<span class="new-badge">New</span>' : '') +
+          '<div class="oc-table">Table ' + o.table_number + '</div>' +
+          '<div class="oc-customer">' + (o.customer_name || 'Guest') + '</div>' +
+          '<div class="oc-age ' + age.cls + '">' + age.label + '</div>' +
+        '</div>' +
+        '<div><span class="oc-status ' + o.status + '">' + o.status.charAt(0).toUpperCase() + o.status.slice(1) + '</span>' +
+        '<div class="oc-qr-status ' + qrStatus + '">' + qrLabel + '</div></div>' +
+      '</div>' +
+      '<div class="oc-body">' +
+        items.map(function(i) {
+          return '<div class="oc-item"><div class="oc-item-name">' + i.name +
+            '<div class="oc-item-mods">Sugar: ' + (i.sugar || '-') + ' \u00b7 ' + (i.extra || 'None') + '</div>' +
+            (i.notes ? '<div style="color:var(--gold);font-size:.75rem;margin-top:.2rem;">\uD83D\uDCCC Note: ' + i.notes + '</div>' : '') +
+          '</div><div class="oc-item-price">' + i.price + ' EGP</div></div>';
+        }).join('') +
+        (o.notes ? '<div style="margin-top:.8rem;padding-top:.5rem;border-top:1px dashed var(--line);font-size:.8rem;color:var(--text);"><strong>\uD83D\uDCDD Customer Notes:</strong> ' + o.notes + '</div>' : '') +
+      '</div>' +
+      '<div class="oc-footer"><div><div class="oc-total">' + o.total_price + ' EGP</div><div class="oc-time">' + new Date(o.created_at).toLocaleTimeString('en-US') + '</div></div></div>' +
+      '<div class="oc-actions">' +
+        (o.status === 'pending' ? '<button class="action-btn confirm-btn" onclick="event.stopPropagation();confirmOrder(\'' + o.id + '\')">Confirm</button>' : '') +
+        (o.status === 'pending' || o.status === 'confirmed' ? '<button class="action-btn ready-btn" onclick="event.stopPropagation();updateStatus(\'' + o.id + '\',\'ready\')">Ready</button>' : '') +
+        (o.status === 'ready' ? '<button class="action-btn served-btn" onclick="event.stopPropagation();updateStatus(\'' + o.id + '\',\'served\')">Served</button>' : '') +
+        (o.status !== 'served' && o.status !== 'cancelled' ? '<button class="action-btn cancel-btn" onclick="event.stopPropagation();if(confirm(\'Cancel this order?\')) updateStatus(\'' + o.id + '\',\'cancelled\')">Cancel</button>' : '') +
+        '<button class="action-btn print-btn" onclick="event.stopPropagation();printOrder(\'' + o.id + '\')">Print</button>' +
+      '</div></div>';
   }).join('');
 }
 
-async function updateStatus(id, status) {
-  await fetch(`/api/orders/${id}/status`, { method:'PATCH', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({ status }) });
+function openOrderModal(id) {
+  const o = allOrders.find(x => x.id === id);
+  if (!o) return;
+  let items = [];
+  try { items = JSON.parse(o.items); } catch(e) {}
+  const elapsed = (Date.now() - new Date(o.created_at).getTime()) / 60000;
+  const age = getAge(elapsed);
+  const qrStatus = o.isQrConfirmed ? 'QR Confirmed \u2705' : 'QR Pending \u23F3';
+  document.getElementById('modalTitle').textContent = 'Order #' + o.id.slice(-6);
+  document.getElementById('modalBody').innerHTML =
+    '<div class="modal-section">' +
+      '<div class="modal-section-title">Order Info</div>' +
+      '<div><strong>Table:</strong> ' + o.table_number + '</div>' +
+      '<div><strong>Customer:</strong> ' + (o.customer_name || 'Guest') + '</div>' +
+      '<div><strong>Status:</strong> ' + o.status.charAt(0).toUpperCase() + o.status.slice(1) + '</div>' +
+      '<div><strong>QR:</strong> ' + qrStatus + '</div>' +
+      '<div><strong>Time:</strong> ' + new Date(o.created_at).toLocaleString('en-US') + '</div>' +
+      '<div><strong>Age:</strong> <span class="' + age.cls + '">' + age.label + '</span></div>' +
+      (o.notes ? '<div><strong>Notes:</strong> ' + o.notes + '</div>' : '') +
+    '</div>' +
+    '<div class="modal-section">' +
+      '<div class="modal-section-title">Items (' + items.length + ')</div>' +
+      items.map(function(i) {
+        return '<div class="modal-item"><span>' + i.name +
+          '<div style="font-size:.75rem;color:var(--muted)">Sugar: ' + (i.sugar || '-') + ' \u00b7 ' + (i.extra || 'None') +
+          (i.notes ? ' \u00b7 Note: ' + i.notes : '') + '</div></span><span style="color:var(--gold);font-weight:700;">' + i.price + ' EGP</span></div>';
+      }).join('') +
+      '<div class="modal-total-row"><span>Total</span><span>' + o.total_price + ' EGP</span></div>' +
+    '</div>' +
+    '<div class="modal-section">' +
+      '<div class="modal-section-title">Points</div>' +
+      '<div>Points earned: <strong>' + (o.points_earned || 0) + '</strong></div>' +
+    '</div>' +
+    '<div class="modal-actions">' +
+      (o.status === 'pending' ? '<button class="action-btn confirm-btn" onclick="confirmOrder(\'' + o.id + '\');closeOrderModal()">Confirm QR</button>' : '') +
+      (o.status === 'pending' || o.status === 'confirmed' ? '<button class="action-btn ready-btn" onclick="updateStatus(\'' + o.id + '\',\'ready\');closeOrderModal()">Mark Ready</button>' : '') +
+      (o.status === 'ready' ? '<button class="action-btn served-btn" onclick="updateStatus(\'' + o.id + '\',\'served\');closeOrderModal()">Mark Served</button>' : '') +
+      (o.status !== 'served' && o.status !== 'cancelled' ? '<button class="action-btn cancel-btn" onclick="if(confirm(\'Cancel this order?\')){updateStatus(\'' + o.id + '\',\'cancelled\');closeOrderModal()}">Cancel Order</button>' : '') +
+      '<button class="action-btn print-btn" onclick="printOrder(\'' + o.id + '\')">Print Receipt</button>' +
+    '</div>';
+  document.getElementById('orderModal').style.display = 'flex';
+}
+
+function closeOrderModal() {
+  document.getElementById('orderModal').style.display = 'none';
+}
+
+async function confirmOrder(id) {
+  await fetch('/api/orders/' + id + '/confirm-qr', { method:'PATCH', headers: getAuthH() });
   fetchOrders();
+}
+
+async function updateStatus(id, status) {
+  await fetch('/api/orders/' + id + '/status', { method:'PATCH', headers: getAuthH(), body: JSON.stringify({ status }) });
+  fetchOrders();
+}
+
+function printOrder(id) {
+  const o = allOrders.find(x => x.id === id);
+  if (!o) return;
+  let items = [];
+  try { items = JSON.parse(o.items); } catch(e) {}
+  const win = window.open('', '_blank');
+  win.document.write('<html><head><title>Order #' + id.slice(-6) + '</title>' +
+    '<style>body{font-family:"Courier New",monospace;font-size:13px;padding:20px;color:#000}' +
+    'h1{font-size:18px;text-align:center;margin-bottom:5px}' +
+    '.line{border-top:1px dashed #000;margin:10px 0}' +
+    '.item{margin:5px 0}' +
+    '.row{display:flex;justify-content:space-between}' +
+    '.total{font-weight:700;font-size:16px;margin-top:10px;border-top:2px solid #000;padding-top:8px}' +
+    '.center{text-align:center}' +
+    '</style></head><body>' +
+    '<h1>OZEL CAFE</h1>' +
+    '<div class="center">Table ' + o.table_number + (o.customer_name ? ' | ' + o.customer_name : '') + '</div>' +
+    '<div class="center">' + new Date(o.created_at).toLocaleString('en-US') + '</div>' +
+    '<div class="line"></div>' +
+    items.map(function(i) { return '<div class="item row"><span>' + i.name + ' x1</span><span>' + i.price + ' EGP</span></div>' +
+      '<div style="font-size:11px;color:#666;margin-left:10px">Sugar: ' + (i.sugar || '-') + ' | ' + (i.extra || 'None') + (i.notes ? ' | ' + i.notes : '') + '</div>'; }).join('') +
+    '<div class="line"></div>' +
+    '<div class="row total"><span>TOTAL</span><span>' + o.total_price + ' EGP</span></div>' +
+    (o.notes ? '<div class="line"></div><div><strong>Notes:</strong> ' + o.notes + '</div>' : '') +
+    '<div class="line"></div>' +
+    '<div class="center">Order #' + id.slice(-6) + ' | ' + o.status.toUpperCase() + '</div>' +
+    '</body></html>');
+  win.document.close();
+  win.focus();
+  win.print();
 }
 
 function filterOrders(f, btn) {
   currentFilter = f;
-  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.fbtn').forEach(function(b) { b.classList.remove('active'); });
   if (btn && btn.classList && btn.classList.contains('fbtn')) btn.classList.add('active');
-  
   const sel = document.getElementById('mobile-filter-select');
   if (sel) sel.value = f;
-
   renderOrders();
 }
 

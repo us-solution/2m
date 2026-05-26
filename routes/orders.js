@@ -199,10 +199,28 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
     }
 
     order.status = status;
+    if (status === 'confirmed') order.isQrConfirmed = true;
     order.cashierId = req.user._id;
     await order.save();
 
     res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Cashier manually confirms QR for an order (without scanning)
+router.patch('/:id/confirm-qr', authenticateToken, requireRole('cashier'), async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    order.isQrConfirmed = true;
+    order.status = 'confirmed';
+    order.cashierId = req.user._id;
+    await order.save();
+
+    res.json({ success: true, message: 'Order confirmed via QR' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
