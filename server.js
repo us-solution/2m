@@ -87,6 +87,24 @@ app.post('/api/debug-log', requireDB, (req, res) => {
   res.json({ success: true });
 });
 
+// Create admin (GET from browser — remove after use)
+app.all('/api/create-admin', requireDB, async (req, res) => {
+  try {
+    const bcrypt = require('bcryptjs');
+    const User = require('./models/User');
+    const phone = req.query.phone || req.body?.phone || '01111111111';
+    const password = req.query.password || req.body?.password || 'admin123';
+    const name = req.query.name || req.body?.name || 'Admin2';
+    const existing = await User.findOne({ phone });
+    if (existing) return res.send('<h2>Phone already used</h2><p>This phone number is already registered.</p>');
+    const hashed = await bcrypt.hash(password, 10);
+    const admin = await User.create({ name, phone, email: `admin_${Date.now()}@ozel.cafe`, password: hashed, role: 'admin', subscriptionTier: 'none' });
+    res.send('<h2>Admin Created!</h2><p><b>Phone:</b> ' + admin.phone + '<br><b>Password:</b> ' + password + '<br><b>Name:</b> ' + admin.name + '</p><p><a href="/login">Go to Login</a></p>');
+  } catch (err) {
+    res.status(500).send('<h2>Error</h2><p>' + err.message + '</p>');
+  }
+});
+
 
 
 // 8. Serve Frontend Static Pages
