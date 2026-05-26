@@ -43,7 +43,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https://*"],
-      connectSrc: ["'self'", "https://api.pusher.com", "wss://ws-eu.pusher.com", "https://sockjs-eu.pusher.com"]
+      connectSrc: ["'self'", "https://api.pusher.com", "wss://ws-eu.pusher.com", "https://sockjs-eu.pusher.com", "https://js.pusher.com"]
     }
   }
 }));
