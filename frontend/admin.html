@@ -584,7 +584,7 @@ async function loadOffers() {
               <td style="color:var(--gold); font-weight:700;">${finalPrice.toFixed(2)} EGP</td>
               <td style="color:${isExpired ? 'var(--red)' : 'var(--muted)'}; font-size:.8rem">${expiryStr}${isExpired ? ' (Expired)' : ''}</td>
               <td>
-                <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteOffer(${o.id})">Delete</button>
+                <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteOffer('${o.id}')">Delete</button>
               </td>
             </tr>
           `;
