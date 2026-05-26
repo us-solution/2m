@@ -205,12 +205,14 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
     <select id="mobile-nav-select" class="mobile-nav" onchange="showPage(this.value, this)" style="display: none; width: 90%; margin: 1rem auto; padding: 0.8rem; background: var(--bg2); border: 1px solid var(--line); border-radius: 4px; font-family: 'Tajawal', sans-serif; font-size: 1rem; color: var(--text);">
       <option value="dashboard">Dashboard</option>
       <option value="menu">Menu Management</option>
+      <option value="categories">Categories</option>
       <option value="offers">Offers</option>
       <option value="orders">Orders</option>
       <option value="users">Users</option>
     </select>
     <div class="nav-item active" onclick="showPage('dashboard',this)">Dashboard</div>
     <div class="nav-item" onclick="showPage('menu',this)">Menu Management</div>
+    <div class="nav-item" onclick="showPage('categories',this)">Categories</div>
     <div class="nav-item" onclick="showPage('offers',this)">Offers</div>
     <div class="nav-item" onclick="showPage('orders',this)">Orders</div>
     <div class="nav-item" onclick="showPage('users',this)">Users</div>
@@ -233,8 +235,10 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       <div style="background:var(--bg2); padding: 1rem; border: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
         <input type="text" id="nd-name" placeholder="Name (EN)" class="edit-input" style="width:120px; padding:.4rem">
         <input type="text" id="nd-name-ar" placeholder="Name (AR)" class="edit-input" style="width:120px; padding:.4rem">
-        <input type="number" id="nd-price" placeholder="Price" class="edit-input" style="width:80px; padding:.4rem">
-        <input type="text" id="nd-cat" placeholder="Category ID" class="edit-input" style="width:120px; padding:.4rem">
+        <input type="number" id="nd-price" placeholder="Price" class="edit-input" style="width:80px; padding:.4rem" step="0.01">
+        <select id="nd-cat" class="edit-input" style="width:140px; padding:.4rem">
+          <option value="">Select category...</option>
+        </select>
         <div style="display:flex; flex-direction:column; gap:0.2rem;">
           <label style="font-size:0.7rem; color:var(--muted);">Drink Image</label>
           <input type="file" id="nd-img" class="edit-input" style="width:150px; padding:.2rem" accept="image/*">
@@ -268,7 +272,8 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       
       <div style="background:var(--bg2); padding: 1rem; border: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
         <input type="text" id="nu-name" placeholder="Name" class="edit-input" style="width:120px; padding:.4rem">
-        <input type="tel" id="nu-phone" placeholder="Phone Number" class="edit-input" style="width:120px; padding:.4rem">
+        <input type="tel" id="nu-phone" placeholder="Phone" class="edit-input" style="width:120px; padding:.4rem">
+        <input type="email" id="nu-email" placeholder="Email (optional)" class="edit-input" style="width:150px; padding:.4rem">
         <input type="password" id="nu-pass" placeholder="Password" class="edit-input" style="width:120px; padding:.4rem">
         <select id="nu-role" class="edit-input" style="width:auto; padding:.4rem">
           <option value="customer">Customer</option>
@@ -282,6 +287,24 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
         <th>Name</th><th>Phone</th><th>Role</th><th>Points</th><th>Total Spent</th><th>Join Date</th><th>Action</th>
       </tr></thead>
       <tbody id="usersTable"></tbody></table>
+    </div>
+
+    <!-- CATEGORIES -->
+    <div class="page" id="page-categories">
+      <h1 class="page-title">Categories</h1>
+      <p class="page-sub">Manage drink categories (add / edit order / delete)</p>
+
+      <div style="background:var(--bg2); padding: 1rem; border: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <input type="text" id="nc-name" placeholder="Name (EN)" class="edit-input" style="width:130px; padding:.4rem">
+        <input type="text" id="nc-name-ar" placeholder="Name (AR)" class="edit-input" style="width:130px; padding:.4rem">
+        <input type="number" id="nc-order" placeholder="Sort Order" class="edit-input" style="width:80px; padding:.4rem" value="0">
+        <button class="hbtn" onclick="addCategory()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.4rem 1rem; font-weight:700;">Add Category +</button>
+      </div>
+
+      <table><thead><tr>
+        <th>Name (EN)</th><th>Name (AR)</th><th>Sort Order</th><th>Action</th>
+      </tr></thead>
+      <tbody id="categoriesTable"></tbody></table>
     </div>
 
     <!-- OFFERS -->
@@ -303,7 +326,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       </div>
 
       <table><thead><tr>
-        <th>Drink</th><th>Original Price</th><th>Discount</th><th>Final Price</th><th>Action</th>
+        <th>Drink</th><th>Original Price</th><th>Discount</th><th>Final Price</th><th>Expires</th><th>Action</th>
       </tr></thead>
       <tbody id="offersTable"></tbody></table>
     </div>
@@ -312,11 +335,15 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
 </div>
 
 <script>
-const token = localStorage.getItem('ozel_token');
 const user  = JSON.parse(localStorage.getItem('ozel_user') || 'null');
 if (!user || user.role !== 'admin') { location.href = 'login.html?from=admin.html'; }
 
-let menuData = [], usersData = [], ordersData = [];
+let menuData = [], usersData = [], ordersData = [], categoriesData = [];
+
+function getAuthH() {
+  const token = localStorage.getItem('ozel_token');
+  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
+}
 
 function showPage(name, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -329,15 +356,14 @@ function showPage(name, el) {
 
   if (name === 'dashboard') loadStats();
   if (name === 'menu') loadMenu();
+  if (name === 'categories') loadCategories();
   if (name === 'offers') loadOffers();
   if (name === 'orders') loadOrders();
   if (name === 'users') loadUsers();
 }
 
-const authH = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
-
 async function loadStats() {
-  const res = await fetch('/api/admin/stats', { headers: authH });
+  const res = await fetch('/api/admin/stats', { headers: getAuthH() });
   const s = await res.json();
   
   document.getElementById('statsGrid').innerHTML = `
@@ -374,9 +400,22 @@ async function loadStats() {
 }
 
 async function loadMenu() {
-  const res = await fetch('/api/admin/drinks', { headers: authH });
+  const res = await fetch('/api/admin/drinks', { headers: getAuthH() });
   menuData = await res.json();
   renderMenuTable(menuData);
+
+  // Also populate the category dropdown
+  try {
+    const catRes = await fetch('/api/admin/categories', { headers: getAuthH() });
+    categoriesData = await catRes.json();
+    const sel = document.getElementById('nd-cat');
+    if (sel && Array.isArray(categoriesData)) {
+      sel.innerHTML = '<option value="">Select category...</option>' +
+        categoriesData.map(c => `<option value="${c._id}">${c.name_ar || c.name}</option>`).join('');
+    }
+  } catch(e) {
+    console.error('Failed to load categories for dropdown:', e);
+  }
 }
 
 function renderMenuTable(data) {
@@ -444,14 +483,14 @@ function editField(id, field, current, el) {
 }
 
 async function patchDrink(id, data) {
-  await fetch(`/api/admin/drinks/${id}`, { method:'PATCH', headers: authH, body: JSON.stringify(data) });
+  await fetch(`/api/admin/drinks/${id}`, { method:'PATCH', headers: getAuthH(), body: JSON.stringify(data) });
 }
 
 async function toggleDrinkStatus(id, field, currentVal) {
   const newVal = currentVal ? 0 : 1;
   await fetch(`/api/admin/drinks/${id}`, { 
     method: 'PATCH', 
-    headers: authH, 
+    headers: getAuthH(), 
     body: JSON.stringify({ [field]: newVal }) 
   });
   loadMenu(); // Reload to update UI
@@ -461,7 +500,7 @@ async function addDrink() {
   const name = document.getElementById('nd-name').value.trim();
   const name_ar = document.getElementById('nd-name-ar').value.trim();
   const price = parseFloat(document.getElementById('nd-price').value);
-  const category_id = document.getElementById('nd-cat').value.trim();
+  const category_id = document.getElementById('nd-cat').value;
   
   const imgFile = document.getElementById('nd-img').files[0];
   let image_emoji = '';
@@ -474,10 +513,10 @@ async function addDrink() {
     });
   }
   
-  if(!name || isNaN(price) || isNaN(category_id)) { showModal('Alert', 'Please fill name, price and category'); return; }
+  if(!name || isNaN(price) || !category_id) { showModal('Alert', 'Please fill name, price and category'); return; }
   
   try {
-    const res = await fetch('/api/admin/drinks', { method:'POST', headers: authH, body: JSON.stringify({name, name_ar, price, category_id, image_emoji}) });
+    const res = await fetch('/api/admin/drinks', { method:'POST', headers: getAuthH(), body: JSON.stringify({name, name_ar, price, category_id, image_emoji}) });
     const data = await res.json();
     if(data.success) {
       document.getElementById('nd-name').value = '';
@@ -493,7 +532,7 @@ async function addDrink() {
 
 async function deleteDrink(id) {
   if(!await showModal('Confirm', 'Are you sure you want to delete this item?', true)) return;
-  const res = await fetch(`/api/admin/drinks/${id}`, { method:'DELETE', headers: authH });
+  const res = await fetch(`/api/admin/drinks/${id}`, { method:'DELETE', headers: getAuthH() });
   const data = await res.json();
   if(data.success) loadMenu();
   else alert('Error deleting');
@@ -504,7 +543,7 @@ async function loadOffers() {
     const res = await fetch('/api/offers');
     const offers = await res.json();
     
-    const resD = await fetch('/api/admin/drinks', { headers: authH });
+    const resD = await fetch('/api/admin/drinks', { headers: getAuthH() });
     if (!resD.ok) {
       showModal('Error', 'Failed to load drinks. Check session validity.');
       return;
@@ -529,12 +568,16 @@ async function loadOffers() {
           const originalPrice = o.price;
           const discount = o.discount_percent;
           const finalPrice = originalPrice * (1 - discount / 100);
+          const expiry = o.expires_at ? new Date(o.expires_at) : null;
+          const expiryStr = expiry ? expiry.toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }) : 'Never';
+          const isExpired = expiry && expiry < new Date();
           return `
             <tr>
               <td>${o.name_ar || o.name}</td>
               <td>${originalPrice} EGP</td>
               <td style="color:var(--red)">${discount}%</td>
               <td style="color:var(--gold); font-weight:700;">${finalPrice.toFixed(2)} EGP</td>
+              <td style="color:${isExpired ? 'var(--red)' : 'var(--muted)'}; font-size:.8rem">${expiryStr}${isExpired ? ' (Expired)' : ''}</td>
               <td>
                 <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteOffer(${o.id})">Delete</button>
               </td>
@@ -543,7 +586,7 @@ async function loadOffers() {
         }).join('');
       } else {
         console.error('Offers is not an array:', offers);
-        table.innerHTML = `<tr><td colspan="5" style="color:var(--red); text-align:center;">Failed to load offers: ${offers.error || 'Unexpected response'}</td></tr>`;
+        table.innerHTML = `<tr><td colspan="6" style="color:var(--red); text-align:center;">Failed to load offers: ${offers.error || 'Unexpected response'}</td></tr>`;
       }
     }
   } catch (e) {
@@ -565,7 +608,7 @@ async function addOffer() {
   try {
     const res = await fetch('/api/admin/offers', {
       method: 'POST',
-      headers: authH,
+      headers: getAuthH(),
       body: JSON.stringify({ drink_id, discount_percent, expires_at })
     });
     const data = await res.json();
@@ -584,14 +627,86 @@ async function addOffer() {
 
 async function deleteOffer(id) {
   if (!await showModal('Confirm', 'Are you sure you want to delete this offer?', true)) return;
-  const res = await fetch(`/api/admin/offers/${id}`, { method: 'DELETE', headers: authH });
+  const res = await fetch(`/api/admin/offers/${id}`, { method: 'DELETE', headers: getAuthH() });
   const data = await res.json();
   if (data.success) loadOffers();
   else showModal('Error', 'Error deleting');
 }
 
+// ── CATEGORY MANAGEMENT ─────────────────────
+async function loadCategories() {
+  const res = await fetch('/api/admin/categories', { headers: getAuthH() });
+  categoriesData = await res.json();
+  document.getElementById('categoriesTable').innerHTML = (Array.isArray(categoriesData) ? categoriesData : []).map(c => `
+    <tr>
+      <td><span class="editable" onclick="editCatField('${c._id}','name','${(c.name||'').replace(/'/g,"\\'")}',this)">${c.name}</span></td>
+      <td><span class="editable" onclick="editCatField('${c._id}','name_ar','${(c.name_ar||'').replace(/'/g,"\\'")}',this)">${c.name_ar || '-'}</span></td>
+      <td><span class="editable" onclick="editCatSort('${c._id}',${c.sort_order || 0},this)">${c.sort_order || 0}</span></td>
+      <td>
+        <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteCategory('${c._id}')">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function editCatField(id, field, current, el) {
+  const inp = document.createElement('input');
+  inp.className = 'edit-input'; inp.type = 'text'; inp.value = current; inp.style.width = '140px';
+  inp.onblur = async () => {
+    const val = inp.value.trim();
+    if (val && val !== current) {
+      await fetch('/api/admin/categories/' + id, { method:'PATCH', headers: getAuthH(), body: JSON.stringify({ [field]: val }) });
+      el.textContent = val;
+    }
+    inp.replaceWith(el);
+  };
+  inp.onkeydown = e => { if(e.key==='Enter') inp.blur(); if(e.key==='Escape') inp.replaceWith(el); };
+  el.replaceWith(inp); inp.focus(); inp.select();
+}
+
+async function editCatSort(id, current, el) {
+  const inp = document.createElement('input');
+  inp.className = 'edit-input'; inp.type = 'number'; inp.value = current; inp.style.width = '70px';
+  inp.onblur = async () => {
+    const val = parseInt(inp.value);
+    if (!isNaN(val) && val !== current) {
+      await fetch('/api/admin/categories/' + id, { method:'PATCH', headers: getAuthH(), body: JSON.stringify({ sort_order: val }) });
+      el.textContent = val;
+    } else { el.textContent = current; }
+    inp.replaceWith(el);
+  };
+  inp.onkeydown = e => { if(e.key==='Enter') inp.blur(); if(e.key==='Escape') inp.replaceWith(el); };
+  el.replaceWith(inp); inp.focus(); inp.select();
+}
+
+async function addCategory() {
+  const name = document.getElementById('nc-name').value.trim();
+  const name_ar = document.getElementById('nc-name-ar').value.trim();
+  const sort_order = parseInt(document.getElementById('nc-order').value) || 0;
+  if (!name) { showModal('Alert', 'Category name (EN) is required'); return; }
+  try {
+    const res = await fetch('/api/admin/categories', { method:'POST', headers: getAuthH(), body: JSON.stringify({ name, name_ar, sort_order }) });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('nc-name').value = '';
+      document.getElementById('nc-name-ar').value = '';
+      document.getElementById('nc-order').value = '0';
+      loadCategories();
+      showModal('Success', 'Category added');
+    } else { showModal('Error', data.error); }
+  } catch(e) { showModal('Error', 'Error adding category'); }
+}
+
+async function deleteCategory(id) {
+  if (!await showModal('Confirm', 'Delete this category? Drinks using it must be reassigned first.', true)) return;
+  const res = await fetch('/api/admin/categories/' + id, { method:'DELETE', headers: getAuthH() });
+  const data = await res.json();
+  if (data.success) { loadCategories(); showModal('Success', 'Category deleted'); }
+  else showModal('Error', data.error || 'Error deleting');
+}
+
 async function loadOrders() {
-  const res = await fetch('/api/orders', { headers: authH });
+  const res = await fetch('/api/orders', { headers: getAuthH() });
   ordersData = await res.json();
   document.getElementById('ordersTable').innerHTML = ordersData.map(o => {
     const statusMap = { pending:'Pending', ready:'Ready', served:'Served', cancelled:'Cancelled' };
@@ -614,7 +729,7 @@ async function cancelOrderAdmin(id) {
   if (!await showModal('Confirm', 'Are you sure you want to cancel this order?', true)) return;
   const res = await fetch(`/api/orders/${id}/status`, { 
     method: 'PATCH', 
-    headers: authH, 
+    headers: getAuthH(), 
     body: JSON.stringify({ status: 'cancelled' }) 
   });
   const data = await res.json();
@@ -623,7 +738,7 @@ async function cancelOrderAdmin(id) {
 }
 
 async function loadUsers() {
-  const res = await fetch('/api/admin/users', { headers: authH });
+  const res = await fetch('/api/admin/users', { headers: getAuthH() });
   usersData = await res.json();
   document.getElementById('usersTable').innerHTML = usersData.map(u => `
     <tr>
@@ -650,19 +765,23 @@ async function loadUsers() {
 async function addUser() {
   const name = document.getElementById('nu-name').value.trim();
   const phone = document.getElementById('nu-phone').value.trim();
+  const email = document.getElementById('nu-email').value.trim();
   const password = document.getElementById('nu-pass').value;
   const role = document.getElementById('nu-role').value;
-  if(!name || !phone || !password) { showModal('Alert', 'Please fill all fields'); return; }
+  if(!name || !password) { showModal('Alert', 'Please fill name and password'); return; }
+  if(!phone && !email) { showModal('Alert', 'Please provide at least phone or email'); return; }
   try {
-    const res = await fetch('/api/admin/users', { method:'POST', headers: authH, body: JSON.stringify({name, phone, password, role}) });
+    const res = await fetch('/api/admin/users', { method:'POST', headers: getAuthH(), body: JSON.stringify({name, phone, email: email || undefined, password, role}) });
     const data = await res.json();
     if(data.success) {
       document.getElementById('nu-name').value = '';
       document.getElementById('nu-phone').value = '';
+      document.getElementById('nu-email').value = '';
       document.getElementById('nu-pass').value = '';
       loadUsers();
-    } else { alert(data.error); }
-  } catch(e) { alert('Error adding'); }
+      showModal('Success', 'User added');
+    } else { showModal('Error', data.error); }
+  } catch(e) { showModal('Error', 'Error adding user'); }
 }
 
 function editUserField(id, field, current, el) {
@@ -704,19 +823,19 @@ async function editUserPassword(id) {
 }
 
 async function patchUser(id, data) {
-  await fetch(`/api/admin/users/${id}`, { method:'PATCH', headers: authH, body: JSON.stringify(data) });
+  await fetch(`/api/admin/users/${id}`, { method:'PATCH', headers: getAuthH(), body: JSON.stringify(data) });
 }
 
 async function deleteUser(id) {
   if(!await showModal('Confirm', 'Are you sure you want to permanently delete the user?', true)) return;
-  const res = await fetch(`/api/admin/users/${id}`, { method:'DELETE', headers: authH });
+  const res = await fetch(`/api/admin/users/${id}`, { method:'DELETE', headers: getAuthH() });
   const data = await res.json();
   if(data.success) loadUsers();
   else showModal('Error', data.error || 'Error deleting');
 }
 
 async function changeRole(id, role) {
-  await fetch(`/api/admin/users/${id}`, { method:'PATCH', headers: authH, body: JSON.stringify({ role }) });
+  await fetch(`/api/admin/users/${id}`, { method:'PATCH', headers: getAuthH(), body: JSON.stringify({ role }) });
 }
 
 function logout() { localStorage.clear(); location.href = 'login.html'; }

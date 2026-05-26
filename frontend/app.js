@@ -33,9 +33,12 @@ let tttActive = true;
 let tttWinner = null; 
 
 // ── Auth State ───────────────────────────
-const TOKEN = localStorage.getItem('ozel_token');
 const CUSER = JSON.parse(localStorage.getItem('ozel_user') || 'null');
-const authHeaders = TOKEN ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN } : { 'Content-Type': 'application/json' };
+
+function getAuthHeaders() {
+  const tok = localStorage.getItem('ozel_token');
+  return tok ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok } : { 'Content-Type': 'application/json' };
+}
 
 // ── Bilingual Language Setup ──────────────
 let currentLang = localStorage.getItem('ozel_lang') || 'en';
@@ -227,7 +230,7 @@ window.openProfileModal = async function() {
   // Fetch latest user details from server to keep stats synchronized
   let userDetails = CUSER;
   try {
-    const meRes = await fetch('/api/auth/me', { headers: authHeaders });
+    const meRes = await fetch('/api/auth/me', { headers: getAuthHeaders() });
     if (meRes.ok) {
       userDetails = await meRes.json();
       localStorage.setItem('ozel_user', JSON.stringify(userDetails));
@@ -287,7 +290,7 @@ window.openProfileModal = async function() {
   }
   
   try {
-    const res = await fetch('/api/me/orders', { headers: authHeaders });
+    const res = await fetch('/api/me/orders', { headers: getAuthHeaders() });
     const orders = await res.json();
     
     const drinkCounts = {};
@@ -689,7 +692,7 @@ async function submitOrder() {
   const notes = document.getElementById('orderNotes').value;
   const total = cart.reduce((s, i) => s + i.price, 0);
   try {
-    const res  = await fetch('/api/orders', { method:'POST', headers: authHeaders, body: JSON.stringify({ table_number: table, items: cart, total_price: total, notes: notes }) });
+    const res  = await fetch('/api/orders', { method:'POST', headers: getAuthHeaders(), body: JSON.stringify({ table_number: table, items: cart, total_price: total, notes: notes }) });
     const data = await res.json();
     if (data.success) {
       const pts = CUSER 

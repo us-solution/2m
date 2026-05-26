@@ -396,4 +396,70 @@ router.delete('/offers/:id', authenticateToken, requireRole('admin'), async (req
   }
 });
 
+// --- ADMIN CATEGORIES ENDPOINTS ---
+
+// Admin list all categories
+router.get('/categories', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const cats = await Category.find().sort({ sort_order: 1, _id: 1 });
+    res.json(cats);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin create category
+router.post('/categories', authenticateToken, requireRole('admin'), async (req, res) => {
+  const { name, name_ar, sort_order } = req.body;
+  if (!name) return res.status(400).json({ error: 'Category name (EN) is required' });
+
+  try {
+    const c = await Category.create({
+      name,
+      name_ar: name_ar || name,
+      sort_order: parseInt(sort_order || 0)
+    });
+    res.json({ success: true, id: c._id });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Admin edit category
+router.patch('/categories/:id', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const c = await Category.findById(req.params.id);
+    if (!c) return res.status(404).json({ error: 'Category not found' });
+
+    const { name, name_ar, sort_order } = req.body;
+    if (name !== undefined) c.name = name;
+    if (name_ar !== undefined) c.name_ar = name_ar;
+    if (sort_order !== undefined) c.sort_order = parseInt(sort_order);
+
+    await c.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Admin delete category
+router.delete('/categories/:id', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const c = await Category.findById(req.params.id);
+    if (!c) return res.status(404).json({ error: 'Category not found' });
+
+    // Check if any drinks reference this category
+    const drinksUsing = await Drink.countDocuments({ categoryId: req.params.id });
+    if (drinksUsing > 0) {
+      return res.status(400).json({ error: `Cannot delete: ${drinksUsing} drink(s) use this category. Reassign them first.` });
+    }
+
+    await c.deleteOne();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 module.exports = router;
