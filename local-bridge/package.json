@@ -1,0 +1,22 @@
+{
+  "name": "ozel-cafe-local-bridge",
+  "version": "1.0.0",
+  "description": "Local bridge server for OZEL Cafe - connects Vercel website to local cashier & thermal printer",
+  "main": "bridge-server.js",
+  "scripts": {
+    "start": "node bridge-server.js",
+    "dev": "nodemon bridge-server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "node-thermal-printer": "^4.3.2",
+    "pusher-js": "^8.4.0",
+    "pusher": "^5.2.0",
+    "sql.js": "^1.12.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

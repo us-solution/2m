@@ -7,3 +7,8 @@ db.sqlite3
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Local Bridge Server
+local-bridge/node_modules/
+local-bridge/.env
+local-bridge/orders.db

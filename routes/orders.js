@@ -7,8 +7,18 @@ const User = require('../models/User');
 const PointsLog = require('../models/PointsLog');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 const jwt = require('jsonwebtoken');
+const Pusher = require('pusher');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'ozel_cafe_secret_2026';
+
+// Initialize Pusher for real-time cashier notifications
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APP_ID,
+  key: process.env.PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.PUSHER_CLUSTER || 'eu',
+  useTLS: true
+});
 
 // Helper to get authenticated user if token is present
 const getOptionalUser = async (req) => {
@@ -71,6 +81,27 @@ router.post('/', async (req, res) => {
     const protocol = req.protocol;
     const confirmUrl = `${protocol}://${host}/api/orders/confirm-qr?token=${qrCodeToken}`;
     const qrCodeDataUrl = await QRCode.toDataURL(confirmUrl);
+
+    // 🔔 Notify local cashier bridge via Pusher in real-time
+    try {
+      const parsedItems = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+      await pusher.trigger('cashier-orders', 'new-order', {
+        order_id: String(order._id),
+        table_number: order.table_number,
+        items: parsedItems,
+        total_price: order.total_price,
+        points_earned: order.points_earned,
+        notes: order.notes,
+        status: order.status,
+        qr_token: qrCodeToken,
+        customer_name: user ? user.name : null,
+        customer_phone: user ? user.phone : null,
+        created_at: order.createdAt
+      });
+    } catch (pusherErr) {
+      // Non-fatal: log but don't block the response
+      console.error('[Pusher] Failed to notify cashier:', pusherErr.message);
+    }
 
     res.json({
       success: true,
