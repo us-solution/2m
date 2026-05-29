@@ -433,6 +433,13 @@
       return alert(isAr ? 'يرجى إدخال رقم الطاولة أو اختيار طلب سفري' : 'Please enter table number or select takeaway');
     }
 
+    if (isTakeaway && !user) {
+      _submittingOrder = false;
+      btn.textContent = origText;
+      btn.disabled = false;
+      return alert(isAr ? 'يجب تسجيل الدخول أولاً للطلب السفري (نحتاج رقم هاتفك للتواصل)' : 'Please login first for takeaway orders (we need your phone number to contact you)');
+    }
+
     const total_price = cart.reduce((s, i) => s + i.price * (i.quantity || 1), 0);
 
     const orderData = {

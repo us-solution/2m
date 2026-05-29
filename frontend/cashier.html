@@ -362,7 +362,7 @@ function renderOrders() {
         '<div>' +
           (isNew ? '<span class="new-badge">New</span>' : '') +
           '<div class="oc-table">Table ' + o.table_number + '</div>' +
-          '<div class="oc-customer">' + (o.customer_name || 'Guest') + '</div>' +
+          '<div class="oc-customer">' + (o.customer_name || 'Guest') + (o.customer_phone ? ' &middot; ' + o.customer_phone : '') + '</div>' +
           '<div class="oc-age ' + age.cls + '">' + age.label + '</div>' +
         '</div>' +
         '<div><span class="oc-status ' + o.status + '">' + o.status.charAt(0).toUpperCase() + o.status.slice(1) + '</span>' +
@@ -401,7 +401,7 @@ function openOrderModal(id) {
     '<div class="modal-section">' +
       '<div class="modal-section-title">Order Info</div>' +
       '<div><strong>Table:</strong> ' + o.table_number + '</div>' +
-      '<div><strong>Customer:</strong> ' + (o.customer_name || 'Guest') + '</div>' +
+      '<div><strong>Customer:</strong> ' + (o.customer_name || 'Guest') + (o.customer_phone ? ' (' + o.customer_phone + ')' : '') + '</div>' +
       '<div><strong>Status:</strong> ' + o.status.charAt(0).toUpperCase() + o.status.slice(1) + '</div>' +
       '<div><strong>QR:</strong> ' + qrStatus + '</div>' +
       '<div><strong>Time:</strong> ' + new Date(o.created_at).toLocaleString('en-US') + '</div>' +
