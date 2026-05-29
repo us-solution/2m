@@ -80,11 +80,25 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Generate QR Code — use x-forwarded-proto on Vercel (protocol is always http internally)
-    const host = req.get('host');
-    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-    const confirmUrl = `${protocol}://${host}/api/orders/confirm-qr?token=${qrCodeToken}`;
-    const qrCodeDataUrl = await QRCode.toDataURL(confirmUrl);
+    // ── Respond immediately with success ──
+    res.json({
+      success: true,
+      order_id: order._id,
+      points_earned: points_earned
+    });
+
+    // ── Background tasks (fire-and-forget, never delay client) ──
+    (async () => {
+      // Generate QR Code
+      let qrCodeDataUrl = '';
+      try {
+        const host = req.get('host');
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+        const confirmUrl = `${protocol}://${host}/api/orders/confirm-qr?token=${qrCodeToken}`;
+        qrCodeDataUrl = await QRCode.toDataURL(confirmUrl);
+      } catch (qrErr) {
+        console.error('[QR Code] Generation failed:', qrErr.message);
+      }
 
     // ── Structured cashier payload — identical shape for Pusher + Webhook ───
     const cashierPayload = {
@@ -117,33 +131,22 @@ router.post('/', async (req, res) => {
     }
 
     // ── 2. Webhook to local bridge (Fallback — only if BRIDGE_WEBHOOK_URL set) ─
-    // Useful when bridge is exposed via ngrok/Cloudflare Tunnel.
-    // Fire-and-forget: never delays the client response.
     const BRIDGE_URL = process.env.BRIDGE_WEBHOOK_URL;
     const BRIDGE_KEY = process.env.BRIDGE_API_KEY;
     if (BRIDGE_URL && BRIDGE_KEY) {
       fetch(`${BRIDGE_URL}/api/inbound`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-bridge-key': BRIDGE_KEY
-        },
+        headers: { 'Content-Type': 'application/json', 'x-bridge-key': BRIDGE_KEY },
         body: JSON.stringify({ event: 'new-order', order: cashierPayload })
       }).then(r => {
         if (!r.ok) r.text().then(t => console.warn('[Bridge Webhook] HTTP', r.status, t.substring(0, 80)));
         else console.log('[Bridge Webhook] ✅ Order delivered to local bridge');
       }).catch(err => console.warn('[Bridge Webhook] ⚠️ Could not reach bridge:', err.message));
     }
-
-    res.json({
-      success: true,
-      order_id: order._id,
-      points_earned: points_earned,
-      qrCodeUrl: qrCodeDataUrl,
-      qrToken: qrCodeToken
-    });
+    })(); // end background IIFE
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    // Order was already saved, try to respond if headers not yet sent
+    try { res.status(500).json({ error: err.message }); } catch(e) {}
   }
 });
 
