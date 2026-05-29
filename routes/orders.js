@@ -87,66 +87,72 @@ router.post('/', async (req, res) => {
       points_earned: points_earned
     });
 
-    // ── Background tasks (fire-and-forget, never delay client) ──
-    (async () => {
-      // Generate QR Code
-      let qrCodeDataUrl = '';
+    // ── Background tasks after response is fully flushed ──
+    setImmediate(async () => {
       try {
-        const host = req.get('host');
-        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-        const confirmUrl = `${protocol}://${host}/api/orders/confirm-qr?token=${qrCodeToken}`;
-        qrCodeDataUrl = await QRCode.toDataURL(confirmUrl);
-      } catch (qrErr) {
-        console.error('[QR Code] Generation failed:', qrErr.message);
+        // Generate QR Code (best-effort)
+        try {
+          const host = req.get('host');
+          const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+          const confirmUrl = `${protocol}://${host}/api/orders/confirm-qr?token=${qrCodeToken}`;
+          await QRCode.toDataURL(confirmUrl);
+        } catch (qrErr) {
+          console.error('[QR Code] Generation failed:', qrErr.message);
+        }
+
+        // ── Structured cashier payload ──
+        const cashierPayload = {
+          order_id: String(order._id),
+          table_number: order.table_number,
+          items: parsedItems.map(item => ({
+            name:     item.name    || '',
+            name_ar:  item.name_ar || '',
+            quantity: item.quantity || 1,
+            price:    Number(item.price) || 0,
+            sugar:    item.sugar || 'Normal',
+            extra:    item.extra || 'None',
+            notes:    item.notes || ''
+          })),
+          total_price:    order.total_price,
+          points_earned:  order.points_earned,
+          notes:          order.notes,
+          status:         order.status,
+          qr_token:       qrCodeToken,
+          customer_name:  user ? user.name : (order.customerPhone ? 'Takeaway' : null),
+          customer_phone: user ? (user.phone && user.phone.startsWith('email_') ? null : user.phone) : (order.customerPhone || null),
+          created_at:     order.createdAt
+        };
+
+        // ── 1. Pusher ──
+        try {
+          await pusher.trigger('cashier-orders', 'new-order', cashierPayload);
+        } catch (pusherErr) {
+          console.error('[Pusher] Failed to notify cashier:', pusherErr.message);
+        }
+
+        // ── 2. Webhook ──
+        const BRIDGE_URL = process.env.BRIDGE_WEBHOOK_URL;
+        const BRIDGE_KEY = process.env.BRIDGE_API_KEY;
+        if (BRIDGE_URL && BRIDGE_KEY) {
+          fetch(`${BRIDGE_URL}/api/inbound`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-bridge-key': BRIDGE_KEY },
+            body: JSON.stringify({ event: 'new-order', order: cashierPayload })
+          }).then(r => {
+            if (!r.ok) r.text().then(t => console.warn('[Bridge Webhook] HTTP', r.status, t.substring(0, 80)));
+            else console.log('[Bridge Webhook] Order delivered to local bridge');
+          }).catch(err => console.warn('[Bridge Webhook] Could not reach bridge:', err.message));
+        }
+      } catch (err) {
+        console.error('[Background] Unhandled error in order post-processing:', err);
       }
-
-    // ── Structured cashier payload — identical shape for Pusher + Webhook ───
-    const cashierPayload = {
-      order_id: String(order._id),
-      table_number: order.table_number,
-      items: parsedItems.map(item => ({
-        name:     item.name    || '',
-        name_ar:  item.name_ar || '',
-        quantity: item.quantity || 1,
-        price:    Number(item.price) || 0,
-        sugar:    item.sugar || 'Normal',
-        extra:    item.extra || 'None',
-        notes:    item.notes || ''
-      })),
-      total_price:    order.total_price,
-      points_earned:  order.points_earned,
-      notes:          order.notes,
-      status:         order.status,
-      qr_token:       qrCodeToken,
-      customer_name:  user ? user.name : (order.customerPhone ? 'Takeaway' : null),
-      customer_phone: user ? (user.phone && user.phone.startsWith('email_') ? null : user.phone) : (order.customerPhone || null),
-      created_at:     order.createdAt
-    };
-
-    // ── 1. Pusher (Primary — always works, no network topology requirements) ──
-    try {
-      await pusher.trigger('cashier-orders', 'new-order', cashierPayload);
-    } catch (pusherErr) {
-      console.error('[Pusher] Failed to notify cashier:', pusherErr.message);
-    }
-
-    // ── 2. Webhook to local bridge (Fallback — only if BRIDGE_WEBHOOK_URL set) ─
-    const BRIDGE_URL = process.env.BRIDGE_WEBHOOK_URL;
-    const BRIDGE_KEY = process.env.BRIDGE_API_KEY;
-    if (BRIDGE_URL && BRIDGE_KEY) {
-      fetch(`${BRIDGE_URL}/api/inbound`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-bridge-key': BRIDGE_KEY },
-        body: JSON.stringify({ event: 'new-order', order: cashierPayload })
-      }).then(r => {
-        if (!r.ok) r.text().then(t => console.warn('[Bridge Webhook] HTTP', r.status, t.substring(0, 80)));
-        else console.log('[Bridge Webhook] ✅ Order delivered to local bridge');
-      }).catch(err => console.warn('[Bridge Webhook] ⚠️ Could not reach bridge:', err.message));
-    }
-    })(); // end background IIFE
+    });
   } catch (err) {
-    // Order was already saved, try to respond if headers not yet sent
-    try { res.status(500).json({ error: err.message }); } catch(e) {}
+    if (!res.headersSent) {
+      res.status(500).json({ error: err.message });
+    } else {
+      console.error('[Order] Error after response sent:', err.message);
+    }
   }
 });
 
