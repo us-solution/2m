@@ -44,6 +44,10 @@ const orderSchema = new mongoose.Schema({
   isQrConfirmed: {
     type: Boolean,
     default: false
+  },
+  customerPhone: {
+    type: String,
+    default: null
   }
 }, {
   timestamps: true,

@@ -35,7 +35,7 @@ const getOptionalUser = async (req) => {
 
 // Create Order (with optional Auth)
 router.post('/', async (req, res) => {
-  const { table_number, items, total_price, notes } = req.body;
+  const { table_number, items, total_price, notes, customer_phone } = req.body;
 
   if (table_number === undefined || !items || total_price === undefined) {
     return res.status(400).json({ error: 'Missing fields: table_number, items, and total_price are required' });
@@ -63,7 +63,8 @@ router.post('/', async (req, res) => {
       notes: notes || '',
       status: 'pending',
       qrCodeToken,
-      isQrConfirmed: false
+      isQrConfirmed: false,
+      customerPhone: customer_phone || null
     });
 
     if (user) {
@@ -103,8 +104,8 @@ router.post('/', async (req, res) => {
       notes:          order.notes,
       status:         order.status,
       qr_token:       qrCodeToken,
-      customer_name:  user ? user.name : null,
-      customer_phone: user ? (user.phone && user.phone.startsWith('email_') ? null : user.phone) : null,
+      customer_name:  user ? user.name : (order.customerPhone ? 'Takeaway' : null),
+      customer_phone: user ? (user.phone && user.phone.startsWith('email_') ? null : user.phone) : (order.customerPhone || null),
       created_at:     order.createdAt
     };
 
@@ -162,8 +163,8 @@ router.get('/', authenticateToken, requireRole('cashier'), async (req, res) => {
     const serialized = orders.map(o => ({
       id: o._id,
       user_id: o.userId ? o.userId._id : null,
-      customer_name: o.userId ? o.userId.name : null,
-      customer_phone: o.userId ? (o.userId.phone && o.userId.phone.startsWith('email_') ? '' : (o.userId.phone || '')) : null,
+      customer_name: o.userId ? o.userId.name : (o.customerPhone ? 'Takeaway' : null),
+      customer_phone: o.userId ? (o.userId.phone && o.userId.phone.startsWith('email_') ? '' : (o.userId.phone || '')) : (o.customerPhone || null),
       table_number: o.table_number,
       items: o.items || '[]',
       total_price: parseFloat(o.total_price) || 0,

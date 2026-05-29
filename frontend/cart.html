@@ -206,8 +206,13 @@
       </div>
       
       <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1.5rem;">
-        <input type="checkbox" id="isTakeaway" style="width:auto; cursor:pointer;" onchange="document.getElementById('tableNum').disabled = this.checked; if(this.checked) document.getElementById('tableNum').value='';"/>
+        <input type="checkbox" id="isTakeaway" style="width:auto; cursor:pointer;" onchange="handleTakeawayToggle(this)"/>
         <label for="isTakeaway" style="margin-bottom:0; cursor:pointer; font-size:.8rem; color:var(--muted); letter-spacing:.1em;" data-en="Takeaway order" data-ar="طلب سفري (تيك أواي)">Takeaway order</label>
+      </div>
+
+      <div class="form-group" id="takeawayPhoneGroup" style="display:none;">
+        <label data-en="Phone Number (required)" data-ar="رقم الهاتف (مطلوب)">Phone Number</label>
+        <input type="tel" id="takeawayPhone" data-placeholder-en="e.g. 01000000000" data-placeholder-ar="مثال ٠١٠٠٠٠٠٠٠٠٠" placeholder="e.g. 01000000000"/>
       </div>
 
       <div class="form-group">
@@ -335,6 +340,21 @@
     if (drawerArea) drawerArea.innerHTML = html;
   }
 
+  window.handleTakeawayToggle = function(el) {
+    const tableField = document.getElementById('tableNum');
+    const phoneGroup = document.getElementById('takeawayPhoneGroup');
+    const phoneInput = document.getElementById('takeawayPhone');
+    if (el.checked) {
+      tableField.disabled = true;
+      tableField.value = '';
+      phoneGroup.style.display = user ? 'none' : 'block';
+    } else {
+      tableField.disabled = false;
+      phoneGroup.style.display = 'none';
+      phoneInput.value = '';
+    }
+  }
+
   window.toggleMobileMenu = function() {
     const drawer = document.getElementById('mobileDrawer');
     const hamburger = document.getElementById('navHamburger');
@@ -433,11 +453,20 @@
       return alert(isAr ? 'يرجى إدخال رقم الطاولة أو اختيار طلب سفري' : 'Please enter table number or select takeaway');
     }
 
-    if (isTakeaway && !user) {
-      _submittingOrder = false;
-      btn.textContent = origText;
-      btn.disabled = false;
-      return alert(isAr ? 'يجب تسجيل الدخول أولاً للطلب السفري (نحتاج رقم هاتفك للتواصل)' : 'Please login first for takeaway orders (we need your phone number to contact you)');
+    if (isTakeaway) {
+      const phone = document.getElementById('takeawayPhone').value.trim();
+      if (!user && !phone) {
+        _submittingOrder = false;
+        btn.textContent = origText;
+        btn.disabled = false;
+        return alert(isAr ? 'يرجى إدخال رقم هاتفك للتواصل أو تسجيل الدخول' : 'Please enter your phone number for contact, or login');
+      }
+      if (phone && !/^[\d\+\(\)\-\s]{8,15}$/.test(phone)) {
+        _submittingOrder = false;
+        btn.textContent = origText;
+        btn.disabled = false;
+        return alert(isAr ? 'يرجى إدخال رقم هاتف صحيح' : 'Please enter a valid phone number');
+      }
     }
 
     const total_price = cart.reduce((s, i) => s + i.price * (i.quantity || 1), 0);
@@ -446,7 +475,8 @@
       table_number: isTakeaway ? 'Takeaway' : String(parseInt(tableNum)),
       items: cart,
       total_price,
-      notes
+      notes,
+      customer_phone: isTakeaway ? document.getElementById('takeawayPhone').value.trim() : undefined
     };
 
     try {
