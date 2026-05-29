@@ -9,7 +9,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css?v=1"/>
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <style>
     /* Custom styles for cart page */
     .cart-page {
@@ -563,39 +562,50 @@
           video.srcObject = stream;
           video.setAttribute('playsinline', '');
           video.play();
-          scanFrame();
+          scanLoop();
         })
         .catch(err => {
           console.error('[Scanner] Camera error:', err);
           document.getElementById('scannerStatus').textContent = 'Camera unavailable';
-          // Fallback: manual confirm
-          fallbackManualConfirm();
+          showManualFallback();
         });
     } else {
       document.getElementById('scannerStatus').textContent = 'Camera not supported';
-      fallbackManualConfirm();
+      showManualFallback();
     }
 
-    function scanFrame() {
+    async function scanLoop() {
       if (video.readyState >= 2) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        try {
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const code = jsQR(imageData.data, imageData.width, imageData.height);
-          if (code && code.data) {
-            // Check if scanned QR contains matching table number
-            const match = code.data.match(/[?&]table=(\d+)/i);
-            if (match && match[1] === String(tableNum)) {
-              // Matched! Confirm the order
-              confirmViaScanner();
-              return;
+        if (await tryDetect(canvas, ctx)) return;
+      }
+      _scannerRaf = requestAnimationFrame(scanLoop);
+    }
+
+    async function tryDetect(cv, c) {
+      try {
+        // 1) Native BarcodeDetector (Chrome Android, Edge)
+        if ('BarcodeDetector' in window) {
+          const detector = new BarcodeDetector({ formats: ['qr_code'] });
+          const barcodes = await detector.detect(cv);
+          for (const b of barcodes) {
+            if (b.rawValue && b.rawValue.match(new RegExp('[?&]table=' + tableNum + '(\\D|$)', 'i'))) {
+              confirmViaScanner(); return true;
             }
           }
-        } catch(e) {}
-      }
-      _scannerRaf = requestAnimationFrame(scanFrame);
+        }
+        // 2) jsQR fallback (loaded async for iOS etc.)
+        if (window.jsQR) {
+          const imageData = c.getImageData(0, 0, cv.width, cv.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          if (code && code.data && code.data.match(new RegExp('[?&]table=' + tableNum + '(\\D|$)', 'i'))) {
+            confirmViaScanner(); return true;
+          }
+        }
+      } catch(e) { /* frame skip */ }
+      return false;
     }
   }
 
@@ -643,20 +653,14 @@
     }
   }
 
-  function fallbackManualConfirm() {
+  function showManualFallback() {
     const isAr = currentLang === 'ar';
-    const pending = JSON.parse(localStorage.getItem('ozel_pending_table') || 'null');
-    if (!pending) return;
-    // Show a simple confirm button as fallback
     document.getElementById('scannerStatus').textContent = isAr ? 'اضغط لتأكيد الطلب يدوياً' : 'Tap to confirm manually';
-    const manualBtn = document.createElement('button');
-    manualBtn.textContent = isAr ? 'تأكيد الطلب' : 'Confirm Order';
-    manualBtn.style.cssText = 'margin-top:0.5rem; background:var(--gold); color:var(--bg); border:none; padding:0.6rem 2rem; border-radius:6px; cursor:pointer; font-family:Tajawal,sans-serif; font-weight:700;';
-    manualBtn.onclick = () => {
-      confirmViaScanner();
-    };
-    const statusEl = document.getElementById('scannerStatus');
-    statusEl.parentNode.insertBefore(manualBtn, statusEl.nextSibling);
+    const btn = document.createElement('button');
+    btn.textContent = isAr ? 'تأكيد الطلب' : 'Confirm Order';
+    btn.style.cssText = 'margin-top:0.5rem; background:var(--gold); color:var(--bg); border:none; padding:0.6rem 2rem; border-radius:6px; cursor:pointer; font-family:Tajawal,sans-serif; font-weight:700;';
+    btn.onclick = confirmViaScanner;
+    document.getElementById('scannerStatus').after(btn);
   }
 
   // ── THANK YOU / NOT CONFIRMED MODALS ──
@@ -694,6 +698,8 @@
   // Initial Load
   applyLanguage(currentLang);
 </script>
+
+<script async src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" onload="console.log('[jsQR] loaded')"></script>
 
 </body>
 </html>
