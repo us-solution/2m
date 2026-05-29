@@ -432,9 +432,12 @@ function getExtraChipText(value, displayVal, isAr) {
 }
 
 // ── Drink Modal ───────────────────────────
+let _modalSessionId = 0;
+
 window.openDrink = async function(id) {
   const drink = allDrinks.find(d => d.id == id) || await fetch(`/api/drinks/${id}`).then(r => r.json());
   window.currentPuzzle = { sugar: 'Normal', extra: 'None' };
+  _modalSessionId = (_modalSessionId + 1) % 1e9;
   const isAr = currentLang === 'ar';
   const displayName = isAr ? (drink.name_ar || drink.name) : drink.name;
 
@@ -599,14 +602,12 @@ window.closeModal = function(e) {
 }
 
 // ── Cart ──────────────────────────────────
-// Per-drink debounce guard: prevents double-tap on mobile while allowing
-// adding different drinks concurrently
-let _addingCartDrinks = new Set();
+let _sessionUsed = new Set();
 
 window.addToCart = function(drinkId, behavior = 'continue') {
-  if (_addingCartDrinks.has(drinkId)) { console.warn('[Cart] Blocked double-add'); return; }
-  _addingCartDrinks.add(drinkId);
-  setTimeout(() => _addingCartDrinks.delete(drinkId), 300);
+  const sessionKey = drinkId + ':' + _modalSessionId;
+  if (_sessionUsed.has(sessionKey)) { console.warn('[Cart] Blocked duplicate add'); return; }
+  _sessionUsed.add(sessionKey);
   const drink = allDrinks.find(d => d.id == drinkId);
   const sugar = window.currentPuzzle.sugar;
   const extra = window.currentPuzzle.extra;
@@ -1871,9 +1872,9 @@ window.selectDeckChip = function(type, value, btn) {
 };
 
 window.addDeckToCart = function(drinkId) {
-  if (_addingCartDrinks.has(drinkId)) return;
-  _addingCartDrinks.add(drinkId);
-  setTimeout(() => _addingCartDrinks.delete(drinkId), 300);
+  const sessionKey = drinkId + ':' + _modalSessionId;
+  if (_sessionUsed.has(sessionKey)) return;
+  _sessionUsed.add(sessionKey);
   const drink = allDrinks.find(d => d.id == drinkId);
   if (!drink) return;
   const sugar = window.currentPuzzle.sugar;
