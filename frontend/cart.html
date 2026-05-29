@@ -220,7 +220,7 @@
         <span id="cartTotal">0 EGP</span>
       </div>
 
-      <button class="btn-gold" style="width:100%; justify-content:center; margin-top:1.5rem" onclick="submitOrder()" data-en="Confirm Order ✦" data-ar="تأكيد الطلب ✦">Confirm Order ✦</button>
+      <button class="btn-gold" id="confirmOrderBtn" style="width:100%; justify-content:center; margin-top:1.5rem" onclick="submitOrder()" data-en="Confirm Order ✦" data-ar="تأكيد الطلب ✦">Confirm Order ✦</button>
     </div>
   </div>
 </div>
@@ -409,8 +409,14 @@
     if (_submittingOrder) return;
     _submittingOrder = true;
     const isAr = currentLang === 'ar';
+    const btn = document.getElementById('confirmOrderBtn');
+    const origText = btn.textContent;
+    btn.textContent = isAr ? 'جاري الإرسال...' : 'Submitting...';
+    btn.disabled = true;
     if (cart.length === 0) {
       _submittingOrder = false;
+      btn.textContent = origText;
+      btn.disabled = false;
       return alert(isAr ? 'السلة فارغة!' : 'Cart is empty!');
     }
     
@@ -420,6 +426,8 @@
     
     if (!isTakeaway && !tableNum) {
       _submittingOrder = false;
+      btn.textContent = origText;
+      btn.disabled = false;
       return alert(isAr ? 'يرجى إدخال رقم الطاولة أو اختيار طلب سفري' : 'Please enter table number or select takeaway');
     }
 
@@ -445,13 +453,21 @@
         document.getElementById('qrOrderId').textContent = `#${data.order_id}`;
         document.getElementById('qrModal').style.display = 'flex';
         localStorage.removeItem('ozel_cart');
+        _submittingOrder = false;
+        btn.textContent = origText;
+        btn.disabled = false;
       } else {
         alert(data.error || (isAr ? 'فشل إرسال الطلب' : 'Failed to send order'));
         _submittingOrder = false;
+        btn.textContent = origText;
+        btn.disabled = false;
       }
     } catch (e) {
+      console.error('[Cart] submitOrder error:', e);
       alert(isAr ? 'فشل الاتصال بالخادم' : 'Connection error with server');
       _submittingOrder = false;
+      btn.textContent = origText;
+      btn.disabled = false;
     }
   }
 
