@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <script src="api-override.js"></script>
+<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Cashier — OZEL CAFE</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet"/>
@@ -219,18 +220,92 @@ function toggleSound() {
 async function fetchOrders() {
   try {
     const res = await fetch('/api/orders', { headers: getAuthH() });
+    if (!res.ok) {
+      document.getElementById('ordersGrid').innerHTML = '<div class="empty-msg" style="color:var(--red)">Failed to fetch orders (HTTP ' + res.status + ')</div>';
+      return;
+    }
     const data = await res.json();
+    if (!Array.isArray(data)) {
+      document.getElementById('ordersGrid').innerHTML = '<div class="empty-msg" style="color:var(--red)">Unexpected response from server</div>';
+      return;
+    }
     const newOrders = data.filter(o => !knownIds.has(o.id) && o.status === 'pending');
-    if (knownIds.size > 0 && newOrders.length > 0 && soundEnabled) {
-      try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA').play().catch(()=>{}); } catch(e) {}
-      document.title = `(${newOrders.length}) New — Cashier`;
+    if (knownIds.size > 0 && newOrders.length > 0) {
+      notifyNewOrder(newOrders.length, newOrders[0]);
     } else { document.title = 'Cashier — OZEL CAFE'; }
     data.forEach(o => knownIds.add(o.id));
     allOrders = data;
     renderOrders();
     updateStats();
-  } catch(e) { console.error(e); }
+  } catch(e) {
+    console.error('[Cashier] fetchOrders error:', e);
+    document.getElementById('ordersGrid').innerHTML = '<div class="empty-msg" style="color:var(--red)">Connection error — retrying...</div>';
+  }
 }
+
+function notifyNewOrder(count, firstOrder) {
+  if (soundEnabled) {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = 800;
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.3);
+    } catch(e) { /* audio not supported */ }
+  }
+  document.title = '(' + count + ') New — Cashier';
+  // Flash favicon indicator
+  const link = document.querySelector('link[rel*="icon"]') || document.createElement('link');
+  link.type = 'image/x-icon';
+  link.rel = 'shortcut icon';
+  link.href = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔔</text></svg>';
+  document.getElementsByTagName('head')[0].appendChild(link);
+  // Send browser notification if permitted
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('New Order — OZEL', {
+      body: 'Table ' + firstOrder.table_number + ' | ' + firstOrder.customer_name || 'Guest',
+      icon: 'https://ozel-weld.vercel.app/imgs/Ozel-Logo--01.png'
+    });
+  }
+}
+
+// ── Pusher Real-time ──────────────────────
+(function() {
+  try {
+    const pusher = new Pusher('f8a0a11e0429bb8e9dbb', { cluster: 'eu' });
+    const channel = pusher.subscribe('cashier-orders');
+    channel.bind('new-order', function(order) {
+      console.log('[Pusher] New order received:', order.order_id);
+      if (knownIds.has(order.order_id)) return;
+      knownIds.add(order.order_id);
+      // Insert at top and re-render
+      allOrders.unshift({
+        id: order.order_id,
+        table_number: order.table_number,
+        items: JSON.stringify(order.items),
+        total_price: order.total_price,
+        points_earned: order.points_earned,
+        status: order.status || 'pending',
+        notes: order.notes || '',
+        customer_name: order.customer_name,
+        customer_phone: order.customer_phone,
+        created_at: order.created_at,
+        isQrConfirmed: false,
+        cashier_id: null
+      });
+      renderOrders();
+      updateStats();
+      notifyNewOrder(1, order);
+    });
+  } catch(e) {
+    console.warn('[Cashier] Pusher init failed (will poll instead):', e);
+  }
+})();
 
 function updateStats() {
   const today = new Date().toISOString().split('T')[0];
@@ -403,6 +478,10 @@ function logout() { localStorage.clear(); location.href = 'login.html'; }
 
 fetchOrders();
 setInterval(fetchOrders, 5000);
+// Request notification permission
+if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
 </script>
 </body>
 </html>
