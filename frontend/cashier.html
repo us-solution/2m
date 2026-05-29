@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8"/>
-<script src="api-override.js"></script>
+<script src="api-override.js?v=1"></script>
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Cashier — OZEL CAFE</title>
@@ -244,29 +244,40 @@ async function fetchOrders() {
   }
 }
 
+let _audioCtx = null;
+
+function playBeep() {
+  try {
+    if (!_audioCtx) {
+      _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (_audioCtx.state === 'suspended') {
+      _audioCtx.resume();
+    }
+    const osc = _audioCtx.createOscillator();
+    const gain = _audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(_audioCtx.destination);
+    osc.frequency.value = 800;
+    gain.gain.setValueAtTime(0.3, _audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, _audioCtx.currentTime + 0.3);
+    osc.start();
+    osc.stop(_audioCtx.currentTime + 0.3);
+  } catch(e) { /* audio not supported */ }
+}
+
+function vibrate() {
+  try { navigator.vibrate && navigator.vibrate(200); } catch(e) {}
+}
+
 function notifyNewOrder(count, firstOrder) {
-  if (soundEnabled) {
-    try {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.frequency.value = 800;
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.3);
-    } catch(e) { /* audio not supported */ }
-  }
+  if (soundEnabled) { playBeep(); vibrate(); }
   document.title = '(' + count + ') New — Cashier';
-  // Flash favicon indicator
   const link = document.querySelector('link[rel*="icon"]') || document.createElement('link');
   link.type = 'image/x-icon';
   link.rel = 'shortcut icon';
   link.href = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔔</text></svg>';
   document.getElementsByTagName('head')[0].appendChild(link);
-  // Send browser notification if permitted
   if ('Notification' in window && Notification.permission === 'granted') {
     new Notification('New Order — OZEL', {
       body: 'Table ' + firstOrder.table_number + ' | ' + firstOrder.customer_name || 'Guest',
@@ -479,6 +490,13 @@ function logout() { localStorage.clear(); location.href = 'login.html'; }
 
 fetchOrders();
 setInterval(fetchOrders, 5000);
+// Init AudioContext on first user gesture (needed by iOS)
+document.addEventListener('touchstart', function() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}, { once: true });
+document.addEventListener('click', function() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}, { once: true });
 // Request notification permission
 if ('Notification' in window && Notification.permission === 'default') {
   Notification.requestPermission();
