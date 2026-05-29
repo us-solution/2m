@@ -47,7 +47,12 @@ router.post('/', async (req, res) => {
     const user = await getOptionalUser(req);
     const priceNum = parseFloat(total_price) || 0;
     const points_earned = Math.floor(priceNum);
-    const items_str = typeof items === 'string' ? items : JSON.stringify(items);
+
+    // Normalize items: ensure we have an array for processing, and a string for storage
+    const parsedItems = Array.isArray(items)
+      ? items
+      : (() => { try { return JSON.parse(items); } catch (_) { return []; } })();
+    const items_str = JSON.stringify(parsedItems);
 
     const order = await Order.create({
       userId: user ? user._id : null,
@@ -74,40 +79,66 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Generate base64 QR Code. The QR code contains the link to confirm order status
-    // Cashier/Admin will scan this. We can encode the confirm endpoint URL or raw token.
-    // Encodes: /api/orders/confirm-qr?token=xyz
+    // Generate QR Code — use x-forwarded-proto on Vercel (protocol is always http internally)
     const host = req.get('host');
-    const protocol = req.protocol;
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
     const confirmUrl = `${protocol}://${host}/api/orders/confirm-qr?token=${qrCodeToken}`;
     const qrCodeDataUrl = await QRCode.toDataURL(confirmUrl);
 
-    // 🔔 Notify local cashier bridge via Pusher in real-time
+    // ── Structured cashier payload — identical shape for Pusher + Webhook ───
+    const cashierPayload = {
+      order_id: String(order._id),
+      table_number: order.table_number,
+      items: parsedItems.map(item => ({
+        name:     item.name    || '',
+        name_ar:  item.name_ar || '',
+        quantity: item.quantity || 1,
+        price:    Number(item.price) || 0,
+        sugar:    item.sugar || 'Normal',
+        extra:    item.extra || 'None',
+        notes:    item.notes || ''
+      })),
+      total_price:    order.total_price,
+      points_earned:  order.points_earned,
+      notes:          order.notes,
+      status:         order.status,
+      qr_token:       qrCodeToken,
+      customer_name:  user ? user.name : null,
+      customer_phone: user ? (user.phone && user.phone.startsWith('email_') ? null : user.phone) : null,
+      created_at:     order.createdAt
+    };
+
+    // ── 1. Pusher (Primary — always works, no network topology requirements) ──
     try {
-      const parsedItems = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
-      await pusher.trigger('cashier-orders', 'new-order', {
-        order_id: String(order._id),
-        table_number: order.table_number,
-        items: parsedItems,
-        total_price: order.total_price,
-        points_earned: order.points_earned,
-        notes: order.notes,
-        status: order.status,
-        qr_token: qrCodeToken,
-        customer_name: user ? user.name : null,
-        customer_phone: user ? user.phone : null,
-        created_at: order.createdAt
-      });
+      await pusher.trigger('cashier-orders', 'new-order', cashierPayload);
     } catch (pusherErr) {
-      // Non-fatal: log but don't block the response
       console.error('[Pusher] Failed to notify cashier:', pusherErr.message);
+    }
+
+    // ── 2. Webhook to local bridge (Fallback — only if BRIDGE_WEBHOOK_URL set) ─
+    // Useful when bridge is exposed via ngrok/Cloudflare Tunnel.
+    // Fire-and-forget: never delays the client response.
+    const BRIDGE_URL = process.env.BRIDGE_WEBHOOK_URL;
+    const BRIDGE_KEY = process.env.BRIDGE_API_KEY;
+    if (BRIDGE_URL && BRIDGE_KEY) {
+      fetch(`${BRIDGE_URL}/api/inbound`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-bridge-key': BRIDGE_KEY
+        },
+        body: JSON.stringify({ event: 'new-order', order: cashierPayload })
+      }).then(r => {
+        if (!r.ok) r.text().then(t => console.warn('[Bridge Webhook] HTTP', r.status, t.substring(0, 80)));
+        else console.log('[Bridge Webhook] ✅ Order delivered to local bridge');
+      }).catch(err => console.warn('[Bridge Webhook] ⚠️ Could not reach bridge:', err.message));
     }
 
     res.json({
       success: true,
       order_id: order._id,
       points_earned: points_earned,
-      qrCodeUrl: qrCodeDataUrl, // base64 data url for direct rendering in <img>
+      qrCodeUrl: qrCodeDataUrl,
       qrToken: qrCodeToken
     });
   } catch (err) {
@@ -217,6 +248,33 @@ router.get('/confirm-qr', async (req, res) => {
   }
 });
 
+// Customer's Personal Order History
+router.get('/me', authenticateToken, async (req, res) => {
+  try {
+    const orders = await Order.find({ userId: req.user._id })
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    const serialized = orders.map(o => ({
+      id: o._id,
+      user_id: o.userId,
+      table_number: o.table_number,
+      items: o.items,
+      total_price: parseFloat(o.total_price),
+      points_earned: o.points_earned,
+      status: o.status,
+      notes: o.notes,
+      created_at: o.createdAt.toISOString(),
+      updated_at: o.updatedAt.toISOString(),
+      isQrConfirmed: o.isQrConfirmed
+    }));
+
+    res.json(serialized);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Update Order Status (Cashier)
 router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (req, res) => {
   const { status } = req.body;
@@ -253,33 +311,6 @@ router.patch('/:id/confirm-qr', authenticateToken, requireRole('cashier'), async
     await order.save();
 
     res.json({ success: true, message: 'Order confirmed via QR' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Customer's Personal Order History
-router.get('/me', authenticateToken, async (req, res) => {
-  try {
-    const orders = await Order.find({ userId: req.user._id })
-      .sort({ createdAt: -1 })
-      .limit(20);
-
-    const serialized = orders.map(o => ({
-      id: o._id,
-      user_id: o.userId,
-      table_number: o.table_number,
-      items: o.items,
-      total_price: parseFloat(o.total_price),
-      points_earned: o.points_earned,
-      status: o.status,
-      notes: o.notes,
-      created_at: o.createdAt.toISOString(),
-      updated_at: o.updatedAt.toISOString(),
-      isQrConfirmed: o.isQrConfirmed
-    }));
-
-    res.json(serialized);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

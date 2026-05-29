@@ -244,9 +244,16 @@ channel.bind('pusher:subscription_succeeded', () => {
   console.log('✅ [Pusher] متصل بـ channel: cashier-orders');
 });
 
-channel.bind('new-order', async (data) => {
-  console.log('\n📦 [Pusher] طلب جديد وصل!', {
-    id: data.order_id,
+// Reusable handler for new orders from both Pusher and Webhook
+async function handleNewOrder(data, source = 'Pusher') {
+  const orderId = data.order_id || data.id;
+  if (!orderId) {
+    console.warn(`[Bridge] [${source}] ⚠️  الطلب لا يحتوي على معرف (order_id)`);
+    return false;
+  }
+
+  console.log(`\n📦 [${source}] طلب جديد وصل!`, {
+    id: orderId,
     table: data.table_number,
     total: data.total_price
   });
@@ -260,7 +267,7 @@ channel.bind('new-order', async (data) => {
          customer_name, customer_phone, qr_token, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        data.order_id,
+        orderId,
         data.table_number,
         typeof data.items === 'string' ? data.items : JSON.stringify(data.items || []),
         data.total_price,
@@ -284,7 +291,7 @@ channel.bind('new-order', async (data) => {
     try { return typeof data.items === 'string' ? JSON.parse(data.items) : (data.items || []); } catch (_) { return []; }
   })();
   broadcastSSE('new-order', {
-    id: data.order_id,
+    id: orderId,
     table_number: data.table_number,
     items: parsedItems,
     total_price: data.total_price,
@@ -302,14 +309,20 @@ channel.bind('new-order', async (data) => {
   // 3. طباعة الطلب
   const printed = await printOrder({
     ...data,
-    id: data.order_id,
+    id: orderId,
     created_at: createdAt
   });
 
   // 4. تحديث حالة الطباعة
   if (printed) {
-    dbRun('UPDATE orders SET printed = 1 WHERE id = ?', [data.order_id]);
+    dbRun('UPDATE orders SET printed = 1 WHERE id = ?', [orderId]);
   }
+
+  return true;
+}
+
+channel.bind('new-order', async (data) => {
+  await handleNewOrder(data, 'Pusher');
 });
 
 pusherClient.connection.bind('error', (err) => {
@@ -321,6 +334,37 @@ pusherClient.connection.bind('disconnected', () => {
 });
 
 // ─── REST API المحلي ─────────────────────────────────────────────────────────
+
+// POST /api/inbound - Webhook endpoint for inbound events (e.g. from Vercel)
+app.post('/api/inbound', async (req, res) => {
+  const bridgeKey = req.headers['x-bridge-key'];
+  const expectedKey = process.env.BRIDGE_API_KEY;
+
+  if (!expectedKey) {
+    console.warn('[Webhook] ⚠️  BRIDGE_API_KEY is not configured on this bridge server');
+    return res.status(500).json({ error: 'Bridge server is missing BRIDGE_API_KEY configuration' });
+  }
+
+  if (bridgeKey !== expectedKey) {
+    console.warn('[Webhook] ❌ Unauthorized webhook attempt from IP:', req.ip);
+    return res.status(401).json({ error: 'Unauthorized: Invalid bridge key' });
+  }
+
+  const { event, order } = req.body;
+  if (!event || !order) {
+    return res.status(400).json({ error: 'Bad Request: Missing event or order payload' });
+  }
+
+  if (event === 'new-order') {
+    // Process new order asynchronously so we don't hold the webhook connection
+    handleNewOrder(order, 'Webhook').catch(err => {
+      console.error('[Webhook] ❌ Error handling new order:', err.message);
+    });
+    return res.json({ success: true, message: 'Order received and processing started' });
+  }
+
+  res.status(400).json({ error: `Unknown event: ${event}` });
+});
 
 // GET /orders - قائمة الطلبات (مع دعم CORS كامل للكاشير)
 app.get('/orders', (req, res) => {

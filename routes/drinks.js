@@ -41,6 +41,8 @@ router.get('/', async (req, res) => {
       is_available: d.is_available
     }));
     
+    // Cache menu for 5 minutes — menu rarely changes during service
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
     res.json(serialized);
   } catch (err) {
     res.status(500).json({ error: err.message });
