@@ -233,18 +233,6 @@
   </div>
 </div>
 
-<!-- QR SCANNER MODAL (for dine-in table confirmation) -->
-<div class="modal-overlay" id="scannerModal" style="display:none; position:fixed; inset:0; background:#000; justify-content:center; align-items:center; z-index:9999; flex-direction:column;">
-  <div style="position:relative; width:100%; max-width:400px; margin:0 auto; text-align:center;">
-    <video id="scannerVideo" autoplay playsinline style="width:100%; max-height:70vh; object-fit:cover; border-radius:12px;"></video>
-    <canvas id="scannerCanvas" style="display:none;"></canvas>
-    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:200px; height:200px; border:3px solid var(--gold); border-radius:12px; box-shadow:0 0 0 9999px rgba(0,0,0,0.5); pointer-events:none;"></div>
-    <p style="color:var(--gold); font-size:0.9rem; margin-top:1rem; font-family:'Tajawal',sans-serif;" data-en="Point your camera at the QR code on your table" data-ar="وجّه الكاميرا نحو رمز QR الموجود على طاولتك">Point your camera at the QR code on your table</p>
-    <p style="color:var(--muted); font-size:0.75rem; margin-top:0.25rem;" id="scannerStatus">Scanning...</p>
-    <button style="margin-top:1rem; background:var(--gold); color:var(--bg); border:none; padding:0.6rem 2rem; border-radius:6px; cursor:pointer; font-family:'Tajawal',sans-serif; font-weight:700;" onclick="closeScanner(true)" data-en="Cancel" data-ar="إلغاء">Cancel</button>
-  </div>
-</div>
-
 <!-- THANK YOU MODAL (success) -->
 <div class="modal-overlay" id="thankYouModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); backdrop-filter:blur(12px); justify-content:center; align-items:center; z-index:9999; padding:1.5rem;">
   <div class="modal-panel" style="max-width:420px; width:100%; background:var(--bg2); border:1px solid var(--gold); border-radius:16px; padding:2.5rem 2rem; text-align:center; box-shadow:0 12px 40px rgba(0,0,0,0.4); position:relative; animation:fadeIn 0.4s ease;">
@@ -256,16 +244,6 @@
     <p style="font-size:0.95rem; color:var(--text); margin-bottom:0.3rem; line-height:1.6;" id="thankYouMsg">Your order has been confirmed. Please wait while we prepare your drinks.</p>
     <p style="font-size:0.8rem; color:var(--muted); margin-bottom:1.5rem;" data-en="Order ID:" data-ar="رقم الطلب:">Order ID: <strong id="tyOrderId" style="color:var(--gold)">#--</strong></p>
     <button class="btn-gold" style="width:100%; justify-content:center;" onclick="closeThankYou()" data-en="Done" data-ar="تم">Done</button>
-  </div>
-</div>
-
-<!-- NOT CONFIRMED MODAL (cancel / failure) -->
-<div class="modal-overlay" id="notConfirmedModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); backdrop-filter:blur(12px); justify-content:center; align-items:center; z-index:9999; padding:1.5rem;">
-  <div class="modal-panel" style="max-width:400px; width:100%; background:var(--bg2); border:1px solid #c0392b; border-radius:16px; padding:2.5rem 2rem; text-align:center; box-shadow:0 12px 40px rgba(0,0,0,0.4);">
-    <div style="font-size:3rem; margin-bottom:1rem;">&#128533;</div>
-    <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:#e74c3c; margin-bottom:0.5rem;" data-en="Order Not Confirmed" data-ar="لم يتم تأكيد الطلب">Order Not Confirmed</h3>
-    <p style="font-size:0.9rem; color:var(--muted); margin-bottom:1.5rem; line-height:1.6;" data-en="Your order was not confirmed. You can try again or contact the cashier." data-ar="لم يتم تأكيد طلبك. يمكنك المحاولة مرة أخرى أو الاتصال بالكاشير.">Your order was not confirmed. You can try again or contact the cashier.</p>
-    <button class="btn-gold" style="width:100%; justify-content:center; background:#c0392b; border-color:#c0392b;" onclick="closeNotConfirmed()" data-en="Back to Menu" data-ar="العودة للمنيو">Back to Menu</button>
   </div>
 </div>
 
@@ -516,14 +494,10 @@
         btn.textContent = origText;
         btn.disabled = false;
 
-        if (isTakeaway) {
-          // Takeaway: show thank-you immediately
-          showThankYou(data.order_id, isAr ? 'تم تسليم طلبك للكاشير، سيتم الاتصال بك لتأكيد الطلب' : 'Your order has been sent to the cashier. They will call you to confirm.');
-        } else {
-          // Dine-in: store pending and open scanner
-          try { localStorage.setItem('ozel_pending_table', JSON.stringify({ orderId: data.order_id, table: tableNum, ts: Date.now() })); } catch(e) {}
-          startScanner(tableNum, data.order_id);
-        }
+        const msg = isTakeaway
+          ? (isAr ? 'تم تسليم طلبك للكاشير، سيتم الاتصال بك لتأكيد الطلب' : 'Your order has been sent to the cashier. They will call you to confirm.')
+          : (isAr ? 'تم إرسال طلبك إلى الكاشير. استمتع بمشروباتك في أزيل ☕' : 'Your order has been sent to the cashier. Enjoy your drinks at OZEL ☕');
+        showThankYou(data.order_id, msg);
       } else {
         alert(data.error || (isAr ? 'فشل إرسال الطلب' : 'Failed to send order'));
         _submittingOrder = false;
@@ -539,130 +513,6 @@
     }
   }
 
-  // ── QR SCANNER ──
-  let _scannerStream = null;
-  let _scannerRaf = null;
-  let _scannerTableNum = null;
-  let _scannerOrderId = null;
-
-  function startScanner(tableNum, orderId) {
-    _scannerTableNum = tableNum;
-    _scannerOrderId = orderId;
-    document.getElementById('scannerModal').style.display = 'flex';
-    document.getElementById('scannerStatus').textContent = 'Scanning...';
-
-    const video = document.getElementById('scannerVideo');
-    const canvas = document.getElementById('scannerCanvas');
-    const ctx = canvas.getContext('2d');
-
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: 640, height: 480 } })
-        .then(stream => {
-          _scannerStream = stream;
-          video.srcObject = stream;
-          video.setAttribute('playsinline', '');
-          video.play();
-          scanLoop();
-        })
-        .catch(err => {
-          console.error('[Scanner] Camera error:', err);
-          document.getElementById('scannerStatus').textContent = 'Camera unavailable';
-          showManualFallback();
-        });
-    } else {
-      document.getElementById('scannerStatus').textContent = 'Camera not supported';
-      showManualFallback();
-    }
-
-    async function scanLoop() {
-      if (video.readyState >= 2) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        if (await tryDetect(canvas, ctx)) return;
-      }
-      _scannerRaf = requestAnimationFrame(scanLoop);
-    }
-
-    async function tryDetect(cv, c) {
-      try {
-        // 1) Native BarcodeDetector (Chrome Android, Edge)
-        if ('BarcodeDetector' in window) {
-          const detector = new BarcodeDetector({ formats: ['qr_code'] });
-          const barcodes = await detector.detect(cv);
-          for (const b of barcodes) {
-            if (b.rawValue && b.rawValue.match(new RegExp('[?&]table=' + tableNum + '(\\D|$)', 'i'))) {
-              confirmViaScanner(); return true;
-            }
-          }
-        }
-        // 2) jsQR fallback (loaded async for iOS etc.)
-        if (window.jsQR) {
-          const imageData = c.getImageData(0, 0, cv.width, cv.height);
-          const code = jsQR(imageData.data, imageData.width, imageData.height);
-          if (code && code.data && code.data.match(new RegExp('[?&]table=' + tableNum + '(\\D|$)', 'i'))) {
-            confirmViaScanner(); return true;
-          }
-        }
-      } catch(e) { /* frame skip */ }
-      return false;
-    }
-  }
-
-  function confirmViaScanner() {
-    stopScanner();
-    const isAr = currentLang === 'ar';
-    document.getElementById('scannerStatus').textContent = isAr ? 'تم التعرف على QR!' : 'QR detected!';
-
-    const pending = JSON.parse(localStorage.getItem('ozel_pending_table') || 'null');
-    if (!pending) return;
-    fetch('/api/orders/confirm-table/' + pending.orderId, { method: 'PATCH' })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          localStorage.removeItem('ozel_pending_table');
-          document.getElementById('scannerModal').style.display = 'none';
-          showThankYou(pending.orderId, isAr ? 'تم تأكيد طلبك بنجاح! استمتع بمشروباتك في أزيل ☕' : 'Your order has been confirmed! Enjoy your drinks at OZEL ☕');
-        } else {
-          document.getElementById('scannerModal').style.display = 'none';
-          showNotConfirmed();
-        }
-      })
-      .catch(() => {
-        document.getElementById('scannerModal').style.display = 'none';
-        showNotConfirmed();
-      });
-  }
-
-  function stopScanner() {
-    if (_scannerRaf) { cancelAnimationFrame(_scannerRaf); _scannerRaf = null; }
-    if (_scannerStream) {
-      _scannerStream.getTracks().forEach(t => t.stop());
-      _scannerStream = null;
-    }
-    const video = document.getElementById('scannerVideo');
-    if (video) video.srcObject = null;
-  }
-
-  function closeScanner(cancelled) {
-    stopScanner();
-    document.getElementById('scannerModal').style.display = 'none';
-    if (cancelled) {
-      localStorage.removeItem('ozel_pending_table');
-      showNotConfirmed();
-    }
-  }
-
-  function showManualFallback() {
-    const isAr = currentLang === 'ar';
-    document.getElementById('scannerStatus').textContent = isAr ? 'اضغط لتأكيد الطلب يدوياً' : 'Tap to confirm manually';
-    const btn = document.createElement('button');
-    btn.textContent = isAr ? 'تأكيد الطلب' : 'Confirm Order';
-    btn.style.cssText = 'margin-top:0.5rem; background:var(--gold); color:var(--bg); border:none; padding:0.6rem 2rem; border-radius:6px; cursor:pointer; font-family:Tajawal,sans-serif; font-weight:700;';
-    btn.onclick = confirmViaScanner;
-    document.getElementById('scannerStatus').after(btn);
-  }
-
   // ── THANK YOU / NOT CONFIRMED MODALS ──
   function showThankYou(orderId, msg) {
     document.getElementById('tyOrderId').textContent = '#' + orderId;
@@ -675,31 +525,9 @@
     location.href = 'index.html';
   }
 
-  function showNotConfirmed() {
-    document.getElementById('notConfirmedModal').style.display = 'flex';
-  }
-
-  function closeNotConfirmed() {
-    document.getElementById('notConfirmedModal').style.display = 'none';
-    location.href = 'index.html';
-  }
-
-  // ── FALLBACK: table confirm from pending localStorage ──
-  (function checkPendingTable() {
-    if (!tableParam) return;
-    try {
-      const pending = JSON.parse(localStorage.getItem('ozel_pending_table') || 'null');
-      if (!pending || String(pending.table) !== String(tableParam)) return;
-      // There's a pending order - start scanner immediately
-      startScanner(tableParam, pending.orderId);
-    } catch(e) {}
-  })();
-
   // Initial Load
   applyLanguage(currentLang);
 </script>
-
-<script async src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" onload="console.log('[jsQR] loaded')"></script>
 
 </body>
 </html>
