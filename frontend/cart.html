@@ -248,20 +248,18 @@
   </div>
 </div>
 
-<!-- SCAN TABLE QR PROMPT MODAL -->
+<!-- SCAN TABLE QR PROMPT MODAL (shows after table order) -->
 <div class="modal-overlay" id="scanPromptModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); justify-content:center; align-items:center; z-index:9999; padding:1.5rem;">
-  <div class="modal-panel" style="max-width:400px; width:100%; background:var(--bg2); border:1px solid var(--gold); border-radius:12px; padding:2rem; text-align:center; box-shadow:0 12px 30px rgba(0,0,0,0.3); position:relative;">
-    <div style="font-size:3rem; margin-bottom:1rem;">📱</div>
-    <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:var(--gold); margin-bottom:1rem;" data-en="Almost Done!" data-ar="خطوة أخيرة!">Almost Done!</h3>
-    <p style="font-size:0.9rem; color:var(--muted); margin-bottom:1.5rem;" data-en="Scan the QR code on your table to confirm the order:" data-ar="امسح QR الموجود على طاولتك لتأكيد الطلب:">Scan the QR code on your table to confirm your order:</p>
-    <div style="font-size:0.85rem; color:var(--text); margin-bottom:1.5rem;">
-      <span data-en="Table" data-ar="طاولة">Table</span> <strong id="confirmTableNum" style="color:var(--gold)">-</strong>
-      &middot; <span data-en="Order" data-ar="طلب">Order</span> <strong id="confirmOrderId" style="color:var(--gold)">#--</strong>
+  <div class="modal-panel" style="max-width:420px; width:100%; background:var(--bg2); border:1px solid var(--gold); border-radius:12px; padding:2rem; text-align:center; box-shadow:0 12px 30px rgba(0,0,0,0.3); position:relative; max-height:95vh; overflow-y:auto;">
+    <h3 style="font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--gold); margin-bottom:0.5rem;" data-en="Order Placed!" data-ar="تم تسجيل طلبك!">Order Placed!</h3>
+    <p style="font-size:0.85rem; color:var(--muted); margin-bottom:1rem;">
+      <span data-en="Table" data-ar="طاولة">Table</span> <strong id="spTableNum" style="color:var(--gold)">-</strong>
+      &middot; <span data-en="Order" data-ar="طلب">Order</span> <strong id="spOrderId" style="color:var(--gold)">#--</strong>
+    </p>
+    <div style="background:var(--white); padding:0.5rem; border-radius:8px; display:inline-block; margin-bottom:1rem; box-shadow:0 8px 20px rgba(0,0,0,0.15);">
+      <img id="spQrCodeImg" src="" alt="QR Code" style="width:150px; height:150px; display:block;"/>
     </div>
-    <div style="background:var(--bg); padding:1rem; border-radius:8px; margin-bottom:1.5rem;">
-      <p style="font-size:0.8rem; color:var(--muted); margin:0;" data-en="Tap the button below when you are at your table and ready to confirm:" data-ar="اضغط على الزر أدناه عندما تكون على طاولتك وجاهزًا للتأكيد:">When you are at your table:</p>
-    </div>
-    <p style="font-size:0.85rem; color:var(--muted); margin-bottom:1.5rem; line-height:1.6;" data-en="Simply scan the QR code on your table again. The page will show a Confirm button." data-ar="كل ما عليك هو مسح QR الطاولة مرة أخرى. ستظهر لك صفحة تأكيد الطلب.">Simply scan the QR code on your table again. A confirmation page will appear.</p>
+    <p style="font-size:0.9rem; color:var(--text); margin-bottom:1rem; line-height:1.6;" data-en="Now scan the QR code on your TABLE to confirm your order. Or show the QR above to the cashier." data-ar="الآن امسح QR الموجود على طاولتك لتأكيد الطلب. أو أظهر الـ QR أعلاه للكاشير.">Now scan the QR code on your TABLE to confirm your order. Or show the QR above to the cashier.</p>
     <button class="btn-gold" style="width:100%; justify-content:center;" onclick="closeScanPrompt()" data-en="Got it" data-ar="حسناً">Got it</button>
   </div>
 </div>
@@ -532,15 +530,14 @@
       
       if (data.success) {
         if (isTakeaway) {
-          // For takeaway, show QR code for pickup
           document.getElementById('qrCodeImg').src = data.qrCodeUrl;
           document.getElementById('qrOrderId').textContent = `#${data.order_id}`;
           document.getElementById('qrModal').style.display = 'flex';
         } else {
-          // For table, save order ID and show scan-prompt
           try { localStorage.setItem('ozel_pending_table', JSON.stringify({ orderId: data.order_id, table: tableNum, ts: Date.now() })); } catch(e) {}
-          document.getElementById('confirmTableNum').textContent = tableNum;
-          document.getElementById('confirmOrderId').textContent = `#${data.order_id}`;
+          document.getElementById('spQrCodeImg').src = data.qrCodeUrl;
+          document.getElementById('spOrderId').textContent = `#${data.order_id}`;
+          document.getElementById('spTableNum').textContent = tableNum;
           document.getElementById('scanPromptModal').style.display = 'flex';
         }
         cart = [];
