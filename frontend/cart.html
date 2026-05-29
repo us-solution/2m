@@ -277,6 +277,7 @@
   };
 
   let currentLang = localStorage.getItem('ozel_lang') || 'en';
+  let _submittingOrder = false;
 
   function toggleLanguage() {
     currentLang = currentLang === 'en' ? 'ar' : 'en';
@@ -405,8 +406,11 @@
   }
 
   async function submitOrder() {
+    if (_submittingOrder) return;
+    _submittingOrder = true;
     const isAr = currentLang === 'ar';
     if (cart.length === 0) {
+      _submittingOrder = false;
       return alert(isAr ? 'السلة فارغة!' : 'Cart is empty!');
     }
     
@@ -415,6 +419,7 @@
     const notes = document.getElementById('orderNotes').value.trim();
     
     if (!isTakeaway && !tableNum) {
+      _submittingOrder = false;
       return alert(isAr ? 'يرجى إدخال رقم الطاولة أو اختيار طلب سفري' : 'Please enter table number or select takeaway');
     }
 
@@ -442,9 +447,11 @@
         localStorage.removeItem('ozel_cart');
       } else {
         alert(data.error || (isAr ? 'فشل إرسال الطلب' : 'Failed to send order'));
+        _submittingOrder = false;
       }
     } catch (e) {
       alert(isAr ? 'فشل الاتصال بالخادم' : 'Connection error with server');
+      _submittingOrder = false;
     }
   }
 
