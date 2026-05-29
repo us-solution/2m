@@ -717,7 +717,7 @@ async function loadOrders() {
     const statusMap = { pending:'Pending', ready:'Ready', served:'Served', cancelled:'Cancelled' };
     return `<tr>
       <td style="color:var(--muted);font-size:.8rem">#${o.id}</td>
-      <td style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--white)">Table ${o.table_number}</td>
+      <td style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--text)">Table ${o.table_number}</td>
       <td>${o.customer_name||'Guest'}</td>
       <td class="tbl-price">${o.total_price} EGP</td>
       <td class="points-badge">+${o.points_earned||0}</td>

@@ -371,7 +371,9 @@
     list.innerHTML = '';
     
     cart.forEach((item, idx) => {
-      sum += item.price;
+      const qty = item.quantity || 1;
+      const lineTotal = item.price * qty;
+      sum += lineTotal;
       const displayName = isAr ? (item.name_ar || item.name) : item.name;
       const sugarTrans = transMap[item.sugar] ? transMap[item.sugar][currentLang] : item.sugar;
       const extraTrans = transMap[item.extra] ? transMap[item.extra][currentLang] : item.extra;
@@ -381,11 +383,11 @@
       el.className = 'cart-item-row';
       el.innerHTML = `
         <div class="ci-details">
-          <h4>${displayName}</h4>
+          <h4>${displayName} <span class="ci-qty" style="color:var(--gold);font-size:.8rem">×${qty}</span></h4>
           <p>${sugarLabel}: ${sugarTrans} · ${extraLabel}: ${extraTrans}${notesStr}</p>
         </div>
         <div style="display:flex; align-items:center;">
-          <div class="ci-price">${item.price} ${currencyLabel}</div>
+          <div class="ci-price">${lineTotal} ${currencyLabel}</div>
           <button class="ci-remove-btn" onclick="removeFromCart(${idx})">✕</button>
         </div>
       `;
@@ -431,7 +433,7 @@
       return alert(isAr ? 'يرجى إدخال رقم الطاولة أو اختيار طلب سفري' : 'Please enter table number or select takeaway');
     }
 
-    const total_price = cart.reduce((s, i) => s + i.price, 0);
+    const total_price = cart.reduce((s, i) => s + i.price * (i.quantity || 1), 0);
 
     const orderData = {
       table_number: isTakeaway ? 'Takeaway' : String(parseInt(tableNum)),
@@ -452,7 +454,9 @@
         document.getElementById('qrCodeImg').src = data.qrCodeUrl;
         document.getElementById('qrOrderId').textContent = `#${data.order_id}`;
         document.getElementById('qrModal').style.display = 'flex';
+        cart = [];
         localStorage.removeItem('ozel_cart');
+        loadCart();
         _submittingOrder = false;
         btn.textContent = origText;
         btn.disabled = false;

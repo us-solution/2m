@@ -512,7 +512,14 @@ window.openDrink = async function(id) {
 
         <textarea id="deckNotes" placeholder="${isAr ? 'أضف ملاحظاتك هنا...' : 'Add your notes here...'}" style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none; height: 50px; resize:none;"></textarea>
 
-        <button class="btn-gold" onclick="addDeckToCart('${drink.id}')" style="width: 100%; justify-content: center; padding: 0.8rem; background: var(--accent-emerald); color: var(--white);">
+        <div style="display:flex;align-items:center;gap:.6rem;margin-top:.8rem;">
+          <span style="font-size:.8rem;color:var(--muted)">${isAr ? 'العدد' : 'Qty'}:</span>
+          <button type="button" class="qty-btn deck-qty" onclick="const inp=document.getElementById('deckQty');let v=parseInt(inp.value)||1;if(v>1){v--;inp.value=v}" style="width:32px;height:32px;border:1px solid var(--line);background:var(--bg2);color:var(--text);font-size:1.1rem;cursor:pointer;border-radius:4px;">−</button>
+          <input type="number" id="deckQty" value="1" min="1" oninput="if(this.value<1||this.value=='')this.value=1" style="width:44px;text-align:center;background:var(--bg2);border:1px solid var(--line);color:var(--text);padding:.2rem;border-radius:4px;font-size:.9rem;font-family:'Tajawal',sans-serif">
+          <button type="button" class="qty-btn deck-qty" onclick="const inp=document.getElementById('deckQty');let v=parseInt(inp.value)||1;v++;inp.value=v" style="width:32px;height:32px;border:1px solid var(--line);background:var(--bg2);color:var(--text);font-size:1.1rem;cursor:pointer;border-radius:4px;">+</button>
+        </div>
+
+        <button class="btn-gold" onclick="addDeckToCart('${drink.id}')" style="width: 100%; justify-content: center; padding: 0.8rem; background: var(--accent-emerald); color: var(--white); margin-top:.8rem;">
           ${isAr ? 'إضافة للطلب ✦' : 'Add to Order ✦'}
         </button>
       </div>
@@ -573,6 +580,13 @@ window.openDrink = async function(id) {
 
       <textarea id="drinkNotes" placeholder="${isAr ? 'أضف ملاحظاتك هنا...' : 'Add your notes here...'}" style="width:100%; background:var(--bg); border:1px solid var(--line); color:var(--text); padding:.7rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.95rem; outline:none; margin-top: 1rem; height: 60px;"></textarea>
 
+      <div class="puzzle-qty-row" style="display:flex;align-items:center;gap:.8rem;margin-top:1rem;">
+        <label style="font-size:.85rem;color:var(--muted);font-weight:500">${isAr ? 'العدد' : 'Qty'}</label>
+        <button type="button" class="qty-btn" onclick="const inp=document.getElementById('drinkQty');let v=parseInt(inp.value)||1;if(v>1){v--;inp.value=v}" style="width:36px;height:36px;border:1px solid var(--line);background:var(--bg3);color:var(--text);font-size:1.2rem;cursor:pointer;border-radius:4px;">−</button>
+        <input type="number" id="drinkQty" value="1" min="1" oninput="if(this.value<1||this.value=='')this.value=1" style="width:50px;text-align:center;background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.3rem;border-radius:4px;font-size:1rem;font-family:'Tajawal',sans-serif">
+        <button type="button" class="qty-btn" onclick="const inp=document.getElementById('drinkQty');let v=parseInt(inp.value)||1;v++;inp.value=v" style="width:36px;height:36px;border:1px solid var(--line);background:var(--bg3);color:var(--text);font-size:1.2rem;cursor:pointer;border-radius:4px;">+</button>
+      </div>
+
       <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
         <button class="puzzle-add-btn" onclick="addToCart('${drink.id}', 'continue')" style="flex: 1;">
           ${continueText}
@@ -613,6 +627,8 @@ window.addToCart = function(drinkId, behavior = 'continue') {
   const extra = window.currentPuzzle.extra;
   const notesElement = document.getElementById('drinkNotes');
   const notes = notesElement ? notesElement.value : '';
+  const qtyInput = document.getElementById('drinkQty');
+  const qty = qtyInput ? Math.max(1, parseInt(qtyInput.value) || 1) : 1;
   const isAr = currentLang === 'ar';
   
   let price = drink.price;
@@ -620,7 +636,8 @@ window.addToCart = function(drinkId, behavior = 'continue') {
   if (extra.includes('Almond') || extra.includes('Ice Cream')) price += 20;
   if (extra.includes('Caramel') || extra.includes('Marshmallow')) price += 10;
   
-  cart.push({ drink_id: drink.id, name: drink.name, name_ar: drink.name_ar, sugar, extra, price, notes });
+  const totalPrice = price * qty;
+  cart.push({ drink_id: drink.id, name: drink.name, name_ar: drink.name_ar, sugar, extra, price, notes, quantity: qty });
   localStorage.setItem('ozel_cart', JSON.stringify(cart));
   updateCartUI();
   
@@ -654,7 +671,7 @@ async function submitOrder() {
   const table = isTakeaway ? 'Takeaway' : document.getElementById('tableNum').value;
   if (!isTakeaway && !table) return alert(isAr ? 'الرجاء إدخال رقم الطاولة' : 'Please enter table number');
   const notes = document.getElementById('orderNotes').value;
-  const total = cart.reduce((s, i) => s + i.price, 0);
+  const total = cart.reduce((s, i) => s + i.price * (i.quantity || 1), 0);
   try {
     const res  = await fetch('/api/orders', { method:'POST', headers: getAuthHeaders(), body: JSON.stringify({ table_number: table, items: cart, total_price: total, notes: notes }) });
     const data = await res.json();
@@ -1881,6 +1898,8 @@ window.addDeckToCart = function(drinkId) {
   const extra = window.currentPuzzle.extra;
   const notesElement = document.getElementById('deckNotes');
   const notes = notesElement ? notesElement.value : '';
+  const qtyInput = document.getElementById('deckQty');
+  const qty = qtyInput ? Math.max(1, parseInt(qtyInput.value) || 1) : 1;
   const isAr = currentLang === 'ar';
   
   let price = drink.price;
@@ -1888,7 +1907,7 @@ window.addDeckToCart = function(drinkId) {
   if (extra.includes('Almond') || extra.includes('Ice Cream')) price += 20;
   if (extra.includes('Caramel') || extra.includes('Marshmallow')) price += 10;
   
-  cart.push({ drink_id: drink.id, name: drink.name, name_ar: drink.name_ar, sugar, extra, price, notes });
+  cart.push({ drink_id: drink.id, name: drink.name, name_ar: drink.name_ar, sugar, extra, price, notes, quantity: qty });
   localStorage.setItem('ozel_cart', JSON.stringify(cart));
   updateCartUI();
   
