@@ -165,15 +165,15 @@ router.get('/', authenticateToken, requireRole('cashier'), async (req, res) => {
       customer_name: o.userId ? o.userId.name : null,
       customer_phone: o.userId ? (o.userId.phone && o.userId.phone.startsWith('email_') ? '' : (o.userId.phone || '')) : null,
       table_number: o.table_number,
-      items: o.items,
-      total_price: parseFloat(o.total_price),
-      points_earned: o.points_earned,
-      status: o.status,
-      notes: o.notes,
+      items: o.items || '[]',
+      total_price: parseFloat(o.total_price) || 0,
+      points_earned: o.points_earned || 0,
+      status: o.status || 'pending',
+      notes: o.notes || '',
       cashier_id: o.cashierId,
-      created_at: o.createdAt.toISOString(),
-      updated_at: o.updatedAt.toISOString(),
-      isQrConfirmed: o.isQrConfirmed
+      created_at: o.createdAt ? o.createdAt.toISOString() : new Date().toISOString(),
+      updated_at: o.updatedAt ? o.updatedAt.toISOString() : new Date().toISOString(),
+      isQrConfirmed: o.isQrConfirmed || false
     }));
 
     res.json(serialized);

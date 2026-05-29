@@ -15,15 +15,16 @@ const authenticateToken = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     const user = await User.findById(decoded.id);
-
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized: User not found' });
     }
-
     req.user = user;
     next();
   } catch (err) {
-    return res.status(403).json({ error: 'Forbidden: Invalid or expired token' });
+    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(403).json({ error: 'Forbidden: Invalid or expired token' });
+    }
+    return res.status(500).json({ error: 'Authentication error: ' + err.message });
   }
 };
 

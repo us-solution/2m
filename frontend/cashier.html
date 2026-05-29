@@ -221,7 +221,8 @@ async function fetchOrders() {
   try {
     const res = await fetch('/api/orders', { headers: getAuthH() });
     if (!res.ok) {
-      document.getElementById('ordersGrid').innerHTML = '<div class="empty-msg" style="color:var(--red)">Failed to fetch orders (HTTP ' + res.status + ')</div>';
+      const errData = await res.json().catch(() => ({ error: 'HTTP ' + res.status }));
+      document.getElementById('ordersGrid').innerHTML = '<div class="empty-msg" style="color:var(--red)">' + (errData.error || 'Server error') + ' (HTTP ' + res.status + ')</div>';
       return;
     }
     const data = await res.json();
