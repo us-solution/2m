@@ -233,34 +233,16 @@
 <!-- QR CONFIRMATION MODAL -->
 <div class="modal-overlay" id="qrModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); justify-content:center; align-items:center; z-index:9999; padding:1.5rem;">
   <div class="modal-panel" style="max-width:400px; width:100%; background:var(--bg2); border:1px solid var(--gold); border-radius:12px; padding:2rem; text-align:center; box-shadow:0 12px 30px rgba(0,0,0,0.3); position:relative;">
-    <h3 style="font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--gold); margin-bottom:1rem;" data-en="Order Placed!" data-ar="تم تسجيل طلبك!">Order Placed!</h3>
-    <p style="font-size:0.9rem; color:var(--muted); margin-bottom:1.5rem;" data-en="Show this QR code to the cashier to confirm your order:" data-ar="اعرض هذا الـ QR Code على الكاشير لتأكيد وتفعيل طلبك:">Show this QR code to the cashier to confirm your order:</p>
-    
-    <div style="background:var(--white); padding:1rem; border-radius:8px; display:inline-block; margin-bottom:1.5rem; box-shadow:0 8px 20px rgba(0,0,0,0.15);">
-      <img id="qrCodeImg" src="" alt="QR Code" style="width:200px; height:200px; display:block;"/>
+    <h3 style="font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--gold); margin-bottom:0.5rem;" data-en="Order Placed!" data-ar="تم تسجيل طلبك!">Order Placed!</h3>
+    <p style="font-size:0.85rem; color:var(--muted); margin-bottom:0.25rem;" id="qrTableNum"></p>
+    <div style="background:var(--white); padding:1rem; border-radius:8px; display:inline-block; margin-bottom:1rem; box-shadow:0 8px 20px rgba(0,0,0,0.15);">
+      <img id="qrCodeImg" src="" alt="QR Code" style="width:180px; height:180px; display:block;"/>
     </div>
-    
-    <div style="font-size:0.85rem; color:var(--text); margin-bottom:1.5rem; font-family:'Tajawal',sans-serif;">
+    <div style="font-size:0.85rem; color:var(--text); margin-bottom:1rem; font-family:'Tajawal',sans-serif;">
       <span data-en="Order ID:" data-ar="رقم الطلب:">Order ID:</span> <strong id="qrOrderId" style="color:var(--gold)">#--</strong>
     </div>
-    
+    <p style="font-size:0.85rem; color:var(--muted); margin-bottom:1.5rem; line-height:1.6;" id="qrModalHint">Show this QR code to the cashier to confirm your order. Or scan the QR code on your table to confirm.</p>
     <button class="btn-gold" style="width:100%; justify-content:center;" onclick="closeQrModal()" data-en="Done" data-ar="تم">Done</button>
-  </div>
-</div>
-
-<!-- SCAN TABLE QR PROMPT MODAL (shows after table order) -->
-<div class="modal-overlay" id="scanPromptModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); justify-content:center; align-items:center; z-index:9999; padding:1.5rem;">
-  <div class="modal-panel" style="max-width:420px; width:100%; background:var(--bg2); border:1px solid var(--gold); border-radius:12px; padding:2rem; text-align:center; box-shadow:0 12px 30px rgba(0,0,0,0.3); position:relative; max-height:95vh; overflow-y:auto;">
-    <h3 style="font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--gold); margin-bottom:0.5rem;" data-en="Order Placed!" data-ar="تم تسجيل طلبك!">Order Placed!</h3>
-    <p style="font-size:0.85rem; color:var(--muted); margin-bottom:1rem;">
-      <span data-en="Table" data-ar="طاولة">Table</span> <strong id="spTableNum" style="color:var(--gold)">-</strong>
-      &middot; <span data-en="Order" data-ar="طلب">Order</span> <strong id="spOrderId" style="color:var(--gold)">#--</strong>
-    </p>
-    <div style="background:var(--white); padding:0.5rem; border-radius:8px; display:inline-block; margin-bottom:1rem; box-shadow:0 8px 20px rgba(0,0,0,0.15);">
-      <img id="spQrCodeImg" src="" alt="QR Code" style="width:150px; height:150px; display:block;"/>
-    </div>
-    <p style="font-size:0.9rem; color:var(--text); margin-bottom:1rem; line-height:1.6;" data-en="Now scan the QR code on your TABLE to confirm your order. Or show the QR above to the cashier." data-ar="الآن امسح QR الموجود على طاولتك لتأكيد الطلب. أو أظهر الـ QR أعلاه للكاشير.">Now scan the QR code on your TABLE to confirm your order. Or show the QR above to the cashier.</p>
-    <button class="btn-gold" style="width:100%; justify-content:center;" onclick="closeScanPrompt()" data-en="Got it" data-ar="حسناً">Got it</button>
   </div>
 </div>
 
@@ -529,17 +511,19 @@
       const data = await res.json();
       
       if (data.success) {
+        document.getElementById('qrCodeImg').src = data.qrCodeUrl;
+        document.getElementById('qrOrderId').textContent = `#${data.order_id}`;
+        const tableLabel = document.getElementById('qrTableNum');
+        const hint = document.getElementById('qrModalHint');
         if (isTakeaway) {
-          document.getElementById('qrCodeImg').src = data.qrCodeUrl;
-          document.getElementById('qrOrderId').textContent = `#${data.order_id}`;
-          document.getElementById('qrModal').style.display = 'flex';
+          tableLabel.textContent = '';
+          hint.textContent = isAr ? 'أظهر هذا الـ QR للكاشير لاستلام طلبك' : 'Show this QR code to the cashier to pick up your order';
         } else {
+          tableLabel.textContent = (isAr ? 'طاولة ' : 'Table ') + tableNum;
+          hint.textContent = isAr ? 'اعرض الـ QR للكاشير أو امسح QR الطاولة لتأكيد الطلب' : 'Show this QR to the cashier, or scan the table QR code to confirm';
           try { localStorage.setItem('ozel_pending_table', JSON.stringify({ orderId: data.order_id, table: tableNum, ts: Date.now() })); } catch(e) {}
-          document.getElementById('spQrCodeImg').src = data.qrCodeUrl;
-          document.getElementById('spOrderId').textContent = `#${data.order_id}`;
-          document.getElementById('spTableNum').textContent = tableNum;
-          document.getElementById('scanPromptModal').style.display = 'flex';
         }
+        document.getElementById('qrModal').style.display = 'flex';
         cart = [];
         localStorage.removeItem('ozel_cart');
         loadCart();
@@ -563,10 +547,6 @@
 
   function closeQrModal() {
     location.href = 'index.html';
-  }
-
-  function closeScanPrompt() {
-    document.getElementById('scanPromptModal').style.display = 'none';
   }
 
   function closeTableConfirm() {
