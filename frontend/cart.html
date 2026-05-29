@@ -248,6 +248,49 @@
   </div>
 </div>
 
+<!-- SCAN TABLE QR PROMPT MODAL -->
+<div class="modal-overlay" id="scanPromptModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); justify-content:center; align-items:center; z-index:9999; padding:1.5rem;">
+  <div class="modal-panel" style="max-width:400px; width:100%; background:var(--bg2); border:1px solid var(--gold); border-radius:12px; padding:2rem; text-align:center; box-shadow:0 12px 30px rgba(0,0,0,0.3); position:relative;">
+    <div style="font-size:3rem; margin-bottom:1rem;">📱</div>
+    <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:var(--gold); margin-bottom:1rem;" data-en="Almost Done!" data-ar="خطوة أخيرة!">Almost Done!</h3>
+    <p style="font-size:0.9rem; color:var(--muted); margin-bottom:1.5rem;" data-en="Scan the QR code on your table to confirm the order:" data-ar="امسح QR الموجود على طاولتك لتأكيد الطلب:">Scan the QR code on your table to confirm your order:</p>
+    <div style="font-size:0.85rem; color:var(--text); margin-bottom:1.5rem;">
+      <span data-en="Table" data-ar="طاولة">Table</span> <strong id="confirmTableNum" style="color:var(--gold)">-</strong>
+      &middot; <span data-en="Order" data-ar="طلب">Order</span> <strong id="confirmOrderId" style="color:var(--gold)">#--</strong>
+    </div>
+    <div style="background:var(--bg); padding:1rem; border-radius:8px; margin-bottom:1.5rem;">
+      <p style="font-size:0.8rem; color:var(--muted); margin:0;" data-en="Tap the button below when you are at your table and ready to confirm:" data-ar="اضغط على الزر أدناه عندما تكون على طاولتك وجاهزًا للتأكيد:">When you are at your table:</p>
+    </div>
+    <p style="font-size:0.85rem; color:var(--muted); margin-bottom:1.5rem; line-height:1.6;" data-en="Simply scan the QR code on your table again. The page will show a Confirm button." data-ar="كل ما عليك هو مسح QR الطاولة مرة أخرى. ستظهر لك صفحة تأكيد الطلب.">Simply scan the QR code on your table again. A confirmation page will appear.</p>
+    <button class="btn-gold" style="width:100%; justify-content:center;" onclick="closeScanPrompt()" data-en="Got it" data-ar="حسناً">Got it</button>
+  </div>
+</div>
+
+<!-- TABLE CONFIRM OVERLAY (shown when scanning table QR with a pending order) -->
+<div class="modal-overlay" id="tableConfirmModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); justify-content:center; align-items:center; z-index:9999; padding:1.5rem;">
+  <div class="modal-panel" style="max-width:400px; width:100%; background:var(--bg2); border:1px solid var(--gold); border-radius:12px; padding:2rem; text-align:center; box-shadow:0 12px 30px rgba(0,0,0,0.3); position:relative;">
+    <div style="font-size:3rem; margin-bottom:1rem;">✅</div>
+    <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:var(--gold); margin-bottom:1rem;" data-en="Confirm Your Order" data-ar="تأكيد طلبك">Confirm Your Order</h3>
+    <p style="font-size:0.9rem; color:var(--muted); margin-bottom:1.5rem;" data-en="You have an unconfirmed order for this table." data-ar="لديك طلب غير مؤكد لهذه الطاولة.">You have an unconfirmed order for this table.</p>
+    <div style="font-size:0.85rem; color:var(--text); margin-bottom:1.5rem;">
+      <span data-en="Table" data-ar="طاولة">Table</span> <strong id="tcTableNum" style="color:var(--gold)">-</strong>
+      &middot; <span data-en="Order" data-ar="طلب">Order</span> <strong id="tcOrderId" style="color:var(--gold)">#--</strong>
+    </div>
+    <button class="btn-gold" id="confirmBtn" style="width:100%; justify-content:center; margin-bottom:0.5rem;" onclick="confirmTableOrder()" data-en="Confirm Order ✦" data-ar="تأكيد الطلب ✦">Confirm Order ✦</button>
+    <button style="width:100%; justify-content:center; background:none; border:none; color:var(--muted); cursor:pointer; padding:0.5rem; font-size:0.8rem;" onclick="closeTableConfirm()" data-en="Cancel" data-ar="إلغاء">Cancel</button>
+  </div>
+</div>
+
+<!-- ORDER CONFIRMED MODAL -->
+<div class="modal-overlay" id="orderConfirmedModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); justify-content:center; align-items:center; z-index:9999; padding:1.5rem;">
+  <div class="modal-panel" style="max-width:400px; width:100%; background:var(--bg2); border:1px solid var(--gold); border-radius:12px; padding:2rem; text-align:center; box-shadow:0 12px 30px rgba(0,0,0,0.3); position:relative;">
+    <div style="font-size:4rem; margin-bottom:1rem;">🎉</div>
+    <h3 style="font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--gold); margin-bottom:1rem;" data-en="Order Confirmed!" data-ar="تم تأكيد طلبك!">Order Confirmed!</h3>
+    <p style="font-size:0.9rem; color:var(--muted); margin-bottom:1.5rem;" data-en="Your order has been sent to the barista. Enjoy your drinks!" data-ar="تم إرسال طلبك للكاشير. استمتع بمشروباتك!">Your order has been sent to the barista. Enjoy your drinks!</p>
+    <button class="btn-gold" style="width:100%; justify-content:center;" onclick="closeConfirmedModal()" data-en="Done" data-ar="تم">Done</button>
+  </div>
+</div>
+
 <script>
   const user  = JSON.parse(localStorage.getItem('ozel_user') || 'null');
   function getAuthH() {
@@ -488,9 +531,18 @@
       const data = await res.json();
       
       if (data.success) {
-        document.getElementById('qrCodeImg').src = data.qrCodeUrl;
-        document.getElementById('qrOrderId').textContent = `#${data.order_id}`;
-        document.getElementById('qrModal').style.display = 'flex';
+        if (isTakeaway) {
+          // For takeaway, show QR code for pickup
+          document.getElementById('qrCodeImg').src = data.qrCodeUrl;
+          document.getElementById('qrOrderId').textContent = `#${data.order_id}`;
+          document.getElementById('qrModal').style.display = 'flex';
+        } else {
+          // For table, save order ID and show scan-prompt
+          try { localStorage.setItem('ozel_pending_table', JSON.stringify({ orderId: data.order_id, table: tableNum, ts: Date.now() })); } catch(e) {}
+          document.getElementById('confirmTableNum').textContent = tableNum;
+          document.getElementById('confirmOrderId').textContent = `#${data.order_id}`;
+          document.getElementById('scanPromptModal').style.display = 'flex';
+        }
         cart = [];
         localStorage.removeItem('ozel_cart');
         loadCart();
@@ -515,6 +567,55 @@
   function closeQrModal() {
     location.href = 'index.html';
   }
+
+  function closeScanPrompt() {
+    document.getElementById('scanPromptModal').style.display = 'none';
+  }
+
+  function closeTableConfirm() {
+    document.getElementById('tableConfirmModal').style.display = 'none';
+  }
+
+  function closeConfirmedModal() {
+    document.getElementById('orderConfirmedModal').style.display = 'none';
+    location.href = 'index.html';
+  }
+
+  window.confirmTableOrder = async function() {
+    const btn = document.getElementById('confirmBtn');
+    const isAr = currentLang === 'ar';
+    btn.textContent = isAr ? 'جاري التأكيد...' : 'Confirming...';
+    btn.disabled = true;
+    try {
+      const pending = JSON.parse(localStorage.getItem('ozel_pending_table') || 'null');
+      if (!pending) { closeTableConfirm(); return; }
+      const res = await fetch('/api/orders/confirm-table/' + pending.orderId, { method: 'PATCH' });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.removeItem('ozel_pending_table');
+        document.getElementById('tableConfirmModal').style.display = 'none';
+        document.getElementById('orderConfirmedModal').style.display = 'flex';
+      } else {
+        alert(data.error || (isAr ? 'فشل التأكيد' : 'Confirmation failed'));
+      }
+    } catch(e) {
+      alert(isAr ? 'خطأ في الاتصال' : 'Connection error');
+    }
+    btn.textContent = isAr ? 'تأكيد الطلب ✦' : 'Confirm Order ✦';
+    btn.disabled = false;
+  }
+
+  // Check for pending table order on load
+  (function checkPendingTable() {
+    if (!tableParam) return;
+    try {
+      const pending = JSON.parse(localStorage.getItem('ozel_pending_table') || 'null');
+      if (!pending || String(pending.table) !== String(tableParam)) return;
+      document.getElementById('tcTableNum').textContent = tableParam;
+      document.getElementById('tcOrderId').textContent = '#' + pending.orderId;
+      document.getElementById('tableConfirmModal').style.display = 'flex';
+    } catch(e) {}
+  })();
 
   // Initial Load
   applyLanguage(currentLang);

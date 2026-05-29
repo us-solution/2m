@@ -54,6 +54,8 @@ router.post('/', async (req, res) => {
       : (() => { try { return JSON.parse(items); } catch (_) { return []; } })();
     const items_str = JSON.stringify(parsedItems);
 
+    // Table orders start as "unconfirmed" until guest scans the table QR
+    const isTakeawayOrder = String(table_number).toLowerCase() === 'takeaway';
     const order = await Order.create({
       userId: user ? user._id : null,
       table_number: String(table_number),
@@ -61,7 +63,7 @@ router.post('/', async (req, res) => {
       total_price: priceNum,
       points_earned: points_earned,
       notes: notes || '',
-      status: 'pending',
+      status: isTakeawayOrder ? 'pending' : 'unconfirmed',
       qrCodeToken,
       isQrConfirmed: false,
       customerPhone: customer_phone || null
@@ -153,6 +155,8 @@ router.get('/', authenticateToken, requireRole('cashier'), async (req, res) => {
   const query = {};
   if (status) {
     query.status = status;
+  } else {
+    query.status = { $ne: 'unconfirmed' }; // Don't show unconfirmed orders
   }
 
   try {
@@ -178,6 +182,48 @@ router.get('/', authenticateToken, requireRole('cashier'), async (req, res) => {
     }));
 
     res.json(serialized);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Confirm a table order by scanning the table QR (guest confirms)
+router.patch('/confirm-table/:id', async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    if (order.status !== 'unconfirmed') return res.status(400).json({ error: 'Order already confirmed' });
+    order.status = 'pending';
+    await order.save();
+
+    // Notify cashier
+    const user = order.userId ? await User.findById(order.userId) : null;
+    const cashierPayload = {
+      order_id:       order._id,
+      table_number:   order.table_number,
+      items:          JSON.parse(order.items || '[]').map(item => ({
+        name:     item.name,
+        name_ar:  item.name_ar,
+        price:    Number(item.price) || 0,
+        sugar:    item.sugar || 'Normal',
+        extra:    item.extra || 'None',
+        notes:    item.notes || '',
+        quantity: item.quantity || 1
+      })),
+      total_price:    order.total_price,
+      points_earned:  order.points_earned,
+      notes:          order.notes,
+      status:         order.status,
+      qr_token:       order.qrCodeToken,
+      customer_name:  user ? user.name : null,
+      customer_phone: user ? (user.phone && user.phone.startsWith('email_') ? null : user.phone) : (order.customerPhone || null),
+      created_at:     order.createdAt
+    };
+
+    try { await pusher.trigger('cashier-orders', 'new-order', cashierPayload); }
+    catch (e) { console.error('[Pusher] confirm-table notify failed:', e.message); }
+
+    res.json({ success: true, order_id: order._id });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
