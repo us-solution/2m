@@ -2,6 +2,15 @@
    OZEL CAFE — Frontend JS (Premium v2.1 - Bilingual & Turn-Based Imposter)
    ═══════════════════════════════════════ */
 
+// Generic debounce utility for rapid-click protection
+window._debounceTimers = {};
+window.debounceClick = function(key, fn, ms = 300) {
+  if (window._debounceTimers[key]) return;
+  window._debounceTimers[key] = true;
+  setTimeout(() => { window._debounceTimers[key] = false; }, ms);
+  fn();
+};
+
 let allDrinks = [], allCategories = [], currentCat = 'all', cart = JSON.parse(localStorage.getItem('ozel_cart') || '[]');
 const urlParams  = new URLSearchParams(window.location.search);
 const tableParam = urlParams.get('table');
@@ -590,11 +599,14 @@ window.closeModal = function(e) {
 }
 
 // ── Cart ──────────────────────────────────
-let _addingToCart = false;
+// Per-drink debounce guard: prevents double-tap on mobile while allowing
+// adding different drinks concurrently
+let _addingCartDrinks = new Set();
+
 window.addToCart = function(drinkId, behavior = 'continue') {
-  if (_addingToCart) { console.warn('[Cart] Blocked double-add'); return; }
-  _addingToCart = true;
-  setTimeout(() => _addingToCart = false, 600);
+  if (_addingCartDrinks.has(drinkId)) { console.warn('[Cart] Blocked double-add'); return; }
+  _addingCartDrinks.add(drinkId);
+  setTimeout(() => _addingCartDrinks.delete(drinkId), 300);
   const drink = allDrinks.find(d => d.id == drinkId);
   const sugar = window.currentPuzzle.sugar;
   const extra = window.currentPuzzle.extra;
@@ -1859,9 +1871,9 @@ window.selectDeckChip = function(type, value, btn) {
 };
 
 window.addDeckToCart = function(drinkId) {
-  if (_addingToCart) return;
-  _addingToCart = true;
-  setTimeout(() => _addingToCart = false, 600);
+  if (_addingCartDrinks.has(drinkId)) return;
+  _addingCartDrinks.add(drinkId);
+  setTimeout(() => _addingCartDrinks.delete(drinkId), 300);
   const drink = allDrinks.find(d => d.id == drinkId);
   if (!drink) return;
   const sugar = window.currentPuzzle.sugar;
