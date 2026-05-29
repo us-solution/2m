@@ -38,11 +38,12 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdnjs.cloudflare.com", "https://js.pusher.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdnjs.cloudflare.com", "https://js.pusher.com", "https://cdn.jsdelivr.net"],
       scriptSrcAttr: ["'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https://*"],
+      mediaSrc: ["'self'", "blob:", "mediastream:"],
       connectSrc: ["'self'", "https://api.pusher.com", "wss://ws-eu.pusher.com", "https://sockjs-eu.pusher.com", "https://js.pusher.com"]
     }
   }
