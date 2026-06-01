@@ -52,6 +52,16 @@ const orderSchema = new mongoose.Schema({
   posSynced: {
     type: Boolean,
     default: false
+  },
+  shiftId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Shift',
+    default: null
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['cash', 'card', 'wallet', 'split', null],
+    default: null
   }
 }, {
   timestamps: true,

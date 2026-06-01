@@ -148,6 +148,10 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
   </div>
   <div class="hright">
     <div class="hlive"><div class="hdot"></div><span>Live</span></div>
+    <div id="shiftIndicator" style="display:flex;align-items:center;gap:.5rem;font-size:.75rem;">
+      <span id="shiftStatus" style="color:var(--orange);font-weight:700;">No Shift</span>
+      <button class="hbtn" id="shiftBtn" onclick="toggleShift()" style="border-color:var(--gold);color:var(--gold);">Open Shift</button>
+    </div>
     <button class="hbtn sound-on" id="soundToggleBtn" onclick="toggleSound()">Sound On</button>
     <button class="hbtn" onclick="logout()">Logout</button>
   </div>
@@ -159,6 +163,7 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
       <div class="sstat"><span class="sstat-n" id="st-pending">0</span><span class="sstat-l">Pending</span></div>
       <div class="sstat"><span class="sstat-n" id="st-today">0</span><span class="sstat-l">Today's Orders</span></div>
       <div class="sstat"><span class="sstat-n" id="st-rev">0</span><span class="sstat-l">Revenue (EGP)</span></div>
+      <div class="sstat" id="st-shift"><span class="sstat-n">—</span><span class="sstat-l">Shift</span></div>
     </div>
     <div class="sb-search">
       <input id="orderSearch" type="text" placeholder="Search table / name / ID ..." oninput="renderOrders()"/>
@@ -208,6 +213,69 @@ function getAuthH() {
 
 let allOrders = [], currentFilter = 'all', knownIds = new Set();
 let soundEnabled = localStorage.getItem('ozel_cashier_sound') !== 'off';
+let currentShift = null;
+let _paymentMethod = null; // temp payment for modal
+
+async function loadActiveShift() {
+  try {
+    const res = await fetch('/api/shifts/active', { headers: getAuthH() });
+    const data = await res.json();
+    currentShift = data.shift;
+    updateShiftUI();
+  } catch(e) {}
+}
+
+async function openShift() {
+  const val = prompt('Opening balance (EGP):', '0');
+  if (val === null) return;
+  try {
+    const res = await fetch('/api/shifts/open', {
+      method: 'POST', headers: getAuthH(),
+      body: JSON.stringify({ openingBalance: parseFloat(val) || 0 })
+    });
+    const data = await res.json();
+    if (data.success) { currentShift = data.shift; updateShiftUI(); }
+    else alert(data.error || 'Failed to open shift');
+  } catch(e) { alert('Error opening shift'); }
+}
+
+async function closeShift() {
+  const val = prompt('Closing balance (EGP):', '0');
+  if (val === null) return;
+  try {
+    const res = await fetch('/api/shifts/close/' + currentShift._id, {
+      method: 'POST', headers: getAuthH(),
+      body: JSON.stringify({ closingBalance: parseFloat(val) || 0 })
+    });
+    const data = await res.json();
+    if (data.success) {
+      currentShift = null; updateShiftUI();
+      alert('Shift closed!\nExpected: ' + data.shift.expectedBalance + '\nActual: ' + data.shift.closingBalance + '\nVariance: ' + data.shift.variance);
+    } else alert(data.error || 'Failed to close shift');
+  } catch(e) { alert('Error closing shift'); }
+}
+
+function toggleShift() {
+  if (currentShift) closeShift();
+  else openShift();
+}
+
+function updateShiftUI() {
+  const st = document.getElementById('shiftStatus');
+  const btn = document.getElementById('shiftBtn');
+  const stat = document.getElementById('st-shift');
+  if (currentShift) {
+    st.textContent = 'Shift Open'; st.style.color = 'var(--green)';
+    btn.textContent = 'Close Shift';
+    const m = Math.floor((Date.now() - new Date(currentShift.openedAt).getTime()) / 60000);
+    const h = Math.floor(m / 60), mm = m % 60;
+    stat.innerHTML = '<span class="sstat-n" style="color:var(--green);font-size:1.2rem">' + h + 'h ' + mm + 'm</span><span class="sstat-l">Shift</span>';
+  } else {
+    st.textContent = 'No Shift'; st.style.color = 'var(--orange)';
+    btn.textContent = 'Open Shift';
+    stat.innerHTML = '<span class="sstat-n">—</span><span class="sstat-l">Shift</span>';
+  }
+}
 
 function toggleSound() {
   soundEnabled = !soundEnabled;
@@ -381,7 +449,7 @@ function renderOrders() {
       '<div class="oc-actions">' +
         (o.status === 'pending' ? '<button class="action-btn confirm-btn" onclick="event.stopPropagation();confirmOrder(\'' + o.id + '\')">Confirm</button>' : '') +
         (o.status === 'pending' || o.status === 'confirmed' ? '<button class="action-btn ready-btn" onclick="event.stopPropagation();updateStatus(\'' + o.id + '\',\'ready\')">Ready</button>' : '') +
-        (o.status === 'ready' ? '<button class="action-btn served-btn" onclick="event.stopPropagation();updateStatus(\'' + o.id + '\',\'served\')">Served</button>' : '') +
+        (o.status === 'ready' ? '<button class="action-btn served-btn" onclick="event.stopPropagation();serveOrder(\'' + o.id + '\')">Served</button>' : '') +
         (o.status !== 'served' && o.status !== 'cancelled' ? '<button class="action-btn cancel-btn" onclick="event.stopPropagation();if(confirm(\'Cancel this order?\')) updateStatus(\'' + o.id + '\',\'cancelled\')">Cancel</button>' : '') +
         '<button class="action-btn print-btn" onclick="event.stopPropagation();printOrder(\'' + o.id + '\')">Print</button>' +
       '</div></div>';
@@ -424,7 +492,7 @@ function openOrderModal(id) {
     '<div class="modal-actions">' +
       (o.status === 'pending' ? '<button class="action-btn confirm-btn" onclick="confirmOrder(\'' + o.id + '\');closeOrderModal()">Confirm QR</button>' : '') +
       (o.status === 'pending' || o.status === 'confirmed' ? '<button class="action-btn ready-btn" onclick="updateStatus(\'' + o.id + '\',\'ready\');closeOrderModal()">Mark Ready</button>' : '') +
-      (o.status === 'ready' ? '<button class="action-btn served-btn" onclick="updateStatus(\'' + o.id + '\',\'served\');closeOrderModal()">Mark Served</button>' : '') +
+      (o.status === 'ready' ? '<button class="action-btn served-btn" onclick="serveOrder(\'' + o.id + '\');closeOrderModal()">Served</button>' : '') +
       (o.status !== 'served' && o.status !== 'cancelled' ? '<button class="action-btn cancel-btn" onclick="if(confirm(\'Cancel this order?\')){updateStatus(\'' + o.id + '\',\'cancelled\');closeOrderModal()}">Cancel Order</button>' : '') +
       '<button class="action-btn print-btn" onclick="printOrder(\'' + o.id + '\')">Print Receipt</button>' +
     '</div>';
@@ -440,9 +508,23 @@ async function confirmOrder(id) {
   fetchOrders();
 }
 
-async function updateStatus(id, status) {
-  await fetch('/api/orders/' + id + '/status', { method:'PATCH', headers: getAuthH(), body: JSON.stringify({ status }) });
-  fetchOrders();
+async function updateStatus(id, status, paymentMethod) {
+  const body = { status };
+  if (paymentMethod) body.paymentMethod = paymentMethod;
+  if (currentShift) body.shiftId = currentShift._id;
+  try {
+    await fetch('/api/orders/' + id + '/status', { method:'PATCH', headers: getAuthH(), body: JSON.stringify(body) });
+    fetchOrders();
+  } catch(e) {}
+}
+
+function serveOrder(id) {
+  const methods = ['cash', 'card', 'wallet'];
+  const m = prompt('Payment method? (cash / card / wallet)', 'cash');
+  if (!m) return;
+  const pm = m.trim().toLowerCase();
+  if (!methods.includes(pm)) { alert('Invalid method. Use: cash, card, or wallet'); return; }
+  updateStatus(id, 'served', pm);
 }
 
 function printOrder(id) {
@@ -489,6 +571,7 @@ function filterOrders(f, btn) {
 function logout() { localStorage.clear(); location.href = 'login.html'; }
 
 fetchOrders();
+loadActiveShift();
 setInterval(fetchOrders, 5000);
 // Init AudioContext on first user gesture (needed by iOS)
 document.addEventListener('touchstart', function() {

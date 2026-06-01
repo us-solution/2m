@@ -287,7 +287,7 @@ router.get('/me', authenticateToken, async (req, res) => {
 
 // Update Order Status (Cashier)
 router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (req, res) => {
-  const { status } = req.body;
+  const { status, paymentMethod, shiftId } = req.body;
   if (!status) {
     return res.status(400).json({ error: 'Missing status' });
   }
@@ -301,6 +301,8 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
     order.status = status;
     if (status === 'confirmed') order.isQrConfirmed = true;
     order.cashierId = req.user._id;
+    if (paymentMethod) order.paymentMethod = paymentMethod;
+    if (shiftId) order.shiftId = shiftId;
     await order.save();
 
     res.json({ success: true });

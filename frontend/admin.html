@@ -27,6 +27,7 @@
   --white:         #ffffff;
   --green:         #27AE60;
   --red:           #C0392B;
+  --orange:        #E67E22;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:ltr;}
@@ -360,40 +361,73 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
 
     <!-- REPORTS -->
     <div class="page" id="page-reports">
-      <h1 class="page-title">POS Reports</h1>
-      <p class="page-sub">Sales data synced from the local POS system (updates every 5 minutes)</p>
+      <h1 class="page-title">Reports</h1>
+      <p class="page-sub">Full sales reports, shift history, and exports</p>
 
-      <div style="display:flex; gap:.6rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+      <!-- Controls -->
+      <div style="display:flex; gap:.6rem; margin-bottom:1.5rem; flex-wrap:wrap; align-items:center;">
+        <select id="r-period" onchange="loadReports()" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.5rem;font-family:'Tajawal',sans-serif;border-radius:4px;">
+          <option value="today">Today</option>
+          <option value="week" selected>This Week</option>
+          <option value="month">This Month</option>
+          <option value="all">All Time</option>
+        </select>
         <button class="hbtn" onclick="loadReports()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.5rem 1.2rem; font-weight:700;">Refresh</button>
+        <button class="hbtn" onclick="downloadPDF()" style="background:var(--accent-emerald); color:var(--white); border-color:var(--accent-emerald); padding:.5rem 1.2rem;">Download PDF</button>
         <button class="hbtn" onclick="exportReportsCSV()" style="border-color:var(--accent-emerald); color:var(--accent-emerald); padding:.5rem 1.2rem;">Export CSV</button>
       </div>
 
-      <!-- Daily Summary Cards -->
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-bottom:2rem;">
+      <!-- Summary Cards -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:1rem; margin-bottom:2rem;">
         <div class="stat-card" style="background:var(--bg2); padding:1.2rem; border:1px solid var(--line); border-radius:6px; text-align:center;">
-          <div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--gold);"><span id="r-today-orders">—</span></div>
-          <div style="font-size:.8rem; color:var(--muted); margin-top:.3rem;">Today's Orders</div>
+          <div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--gold);"><span id="r-total-orders">—</span></div>
+          <div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">Orders</div>
         </div>
         <div class="stat-card" style="background:var(--bg2); padding:1.2rem; border:1px solid var(--line); border-radius:6px; text-align:center;">
-          <div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--accent-emerald);"><span id="r-today-revenue">—</span></div>
-          <div style="font-size:.8rem; color:var(--muted); margin-top:.3rem;">Today's Revenue</div>
+          <div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--accent-emerald);"><span id="r-total-revenue">—</span></div>
+          <div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">Revenue (EGP)</div>
         </div>
         <div class="stat-card" style="background:var(--bg2); padding:1.2rem; border:1px solid var(--line); border-radius:6px; text-align:center;">
           <div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--text);"><span id="r-avg-order">—</span></div>
-          <div style="font-size:.8rem; color:var(--muted); margin-top:.3rem;">Avg Order Value</div>
+          <div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">Avg Order</div>
         </div>
+        <div class="stat-card" style="background:var(--bg2); padding:1.2rem; border:1px solid var(--line); border-radius:6px; text-align:center;">
+          <div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:#C0392B;"><span id="r-cancelled">—</span></div>
+          <div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">Cancelled</div>
+        </div>
+      </div>
+
+      <!-- Status breakdown -->
+      <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem;">
+        <span style="font-size:.8rem;color:var(--muted);">Status:</span>
+        <span id="r-st-pending" style="font-size:.8rem;color:var(--orange);">Pending: —</span>
+        <span id="r-st-ready" style="font-size:.8rem;color:var(--green);">Ready: —</span>
+        <span id="r-st-served" style="font-size:.8rem;color:var(--muted);">Served: —</span>
+        <span id="r-st-refunded" style="font-size:.8rem;color:#C0392B;">Refunded: —</span>
       </div>
 
       <!-- Top Items -->
       <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">Top Selling Items (Today)</h3>
-        <div id="r-top-items"><p style="color:var(--muted); font-size:.9rem;">No data yet — POS bridge must be running with an active shift.</p></div>
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">Top Selling Items</h3>
+        <div id="r-top-items"><p style="color:var(--muted); font-size:.9rem;">Loading...</p></div>
+      </div>
+
+      <!-- Cashier Performance -->
+      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">Cashier Performance</h3>
+        <div id="r-cashiers"><p style="color:var(--muted); font-size:.9rem;">Loading...</p></div>
+      </div>
+
+      <!-- Shift History -->
+      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">Shift History</h3>
+        <div id="r-shifts"><p style="color:var(--muted); font-size:.9rem;">Loading...</p></div>
       </div>
 
       <!-- Sales History Chart -->
       <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line);">
         <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">Sales History (Last 7 Days)</h3>
-        <div id="r-sales-chart"><p style="color:var(--muted); font-size:.9rem;">No history yet.</p></div>
+        <div id="r-sales-chart"><p style="color:var(--muted); font-size:.9rem;">Loading...</p></div>
         <div style="margin-top:1rem; font-size:.8rem; color:var(--muted);">
           <span style="display:inline-block; width:12px; height:12px; background:var(--gold); border-radius:2px; vertical-align:middle; margin-right:4px;"></span> Revenue
         </div>
@@ -1004,61 +1038,109 @@ function showModal(title, text, isConfirm = false, isPrompt = false) {
   });
 }
 
-// Load stats on start
+// Load stats + reports on start
 loadStats();
+loadReports();
 
 // ── REPORTS ──
 
-let _reportsCache = { daily: null, top: null };
-
 async function loadReports() {
   try {
-    const [dailyRes, itemsRes] = await Promise.all([
-      fetch('/api/admin/reports/daily_summary?days=7', { headers: getAuthH() }),
-      fetch('/api/admin/reports/top_items?days=1', { headers: getAuthH() })
+    const period = document.getElementById('r-period').value;
+    const daysMap = { today: 1, week: 7, month: 30, all: 365 };
+    const days = daysMap[period] || 7;
+    const params = `?period=${period}`;
+    const itemsParams = `?days=${days}`;
+
+    const [salesRes, topRes, cashiersRes, shiftsRes] = await Promise.all([
+      fetch('/api/reports/sales' + params, { headers: getAuthH() }),
+      fetch('/api/reports/top-items' + itemsParams, { headers: getAuthH() }),
+      fetch('/api/reports/cashiers' + itemsParams, { headers: getAuthH() }),
+      fetch('/api/shifts', { headers: getAuthH() })
     ]);
-    const dailyData = await dailyRes.json();
-    const itemsData = await itemsRes.json();
 
-    _reportsCache = { daily: dailyData, top: itemsData };
+    const sales = await salesRes.json();
+    const topItems = await topRes.json();
+    const cashiers = await cashiersRes.json();
+    const shifts = await shiftsRes.json();
 
-    // Today's summary (latest daily entry)
-    const today = dailyData && dailyData[0] && dailyData[0].data;
-    document.getElementById('r-today-orders').textContent = today ? today.order_count : '—';
-    document.getElementById('r-today-revenue').textContent = today ? today.total_revenue + ' EGP' : '—';
-    document.getElementById('r-avg-order').textContent = today ? parseFloat(today.avg_order_value).toFixed(2) + ' EGP' : '—';
+    // Summary cards
+    document.getElementById('r-total-orders').textContent = sales.totalOrders || '—';
+    document.getElementById('r-total-revenue').textContent = sales.totalRevenue ? parseFloat(sales.totalRevenue).toFixed(2) + ' EGP' : '—';
+    document.getElementById('r-avg-order').textContent = sales.avgOrderValue ? parseFloat(sales.avgOrderValue).toFixed(2) + ' EGP' : '—';
+    document.getElementById('r-cancelled').textContent = sales.cancelledOrders || '—';
+
+    // Status breakdown
+    const st = sales.statusBreakdown || {};
+    document.getElementById('r-st-pending').textContent = 'Pending: ' + (st.pending || 0);
+    document.getElementById('r-st-ready').textContent = 'Ready: ' + (st.ready || 0);
+    document.getElementById('r-st-served').textContent = 'Served: ' + (st.served || 0);
+    document.getElementById('r-st-refunded').textContent = 'Refunded: ' + (st.cancelled || 0);
 
     // Top items
-    const items = itemsData && itemsData[0] && itemsData[0].data;
     const topDiv = document.getElementById('r-top-items');
-    if (items && items.length > 0) {
-      const maxRev = Math.max(...items.map(i => i.revenue));
-      topDiv.innerHTML = items.map((item, idx) => `
-        <div style="display:flex; align-items:center; padding:.5rem 0; border-bottom:1px solid var(--line);">
-          <span style="min-width:1.5rem; color:var(--gold); font-weight:700;">${idx + 1}.</span>
-          <span style="flex:1; color:var(--text);">${item.name}</span>
-          <span style="min-width:3rem; text-align:right; color:var(--muted);">×${item.qty}</span>
-          <span style="min-width:5rem; text-align:right; color:var(--accent-emerald); font-weight:600;">${parseFloat(item.revenue).toFixed(2)} EGP</span>
+    if (topItems && topItems.length > 0) {
+      topDiv.innerHTML = '<div style="display:grid; grid-template-columns: 1fr auto auto; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>Item</span><span>Qty</span><span>Revenue</span></div>' +
+        topItems.map(item => `
+        <div style="display:grid; grid-template-columns: 1fr auto auto; gap:.5rem; align-items:center; padding:.5rem 0; border-bottom:1px solid var(--line);">
+          <span style="color:var(--text);">${item.name}</span>
+          <span style="text-align:right; color:var(--muted);">×${item.qty}</span>
+          <span style="text-align:right; color:var(--accent-emerald); font-weight:600; min-width:80px;">${parseFloat(item.revenue).toFixed(2)} EGP</span>
         </div>
       `).join('');
     } else {
-      topDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">No sales data yet today.</p>';
+      topDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">No items sold yet.</p>';
     }
 
-    // Sales history chart (last 7 days)
+    // Cashier performance
+    const cashDiv = document.getElementById('r-cashiers');
+    if (cashiers && cashiers.length > 0) {
+      cashDiv.innerHTML = '<div style="display:grid; grid-template-columns: 1fr auto auto auto; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>Cashier</span><span>Shifts</span><span>Orders</span><span>Revenue</span></div>' +
+        cashiers.map(c => `
+        <div style="display:grid; grid-template-columns: 1fr auto auto auto; gap:.5rem; align-items:center; padding:.5rem 0; border-bottom:1px solid var(--line);">
+          <span style="color:var(--text);">${c.cashierName || 'Cashier'}</span>
+          <span style="text-align:right; color:var(--muted);">${c.shifts || 0}</span>
+          <span style="text-align:right; color:var(--muted);">${c.totalOrders || 0}</span>
+          <span style="text-align:right; color:var(--accent-emerald); font-weight:600;">${parseFloat(c.totalRevenue || 0).toFixed(2)} EGP</span>
+        </div>
+      `).join('');
+    } else {
+      cashDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">No cashier data yet.</p>';
+    }
+
+    // Shift history
+    const shiftDiv = document.getElementById('r-shifts');
+    if (shifts && shifts.length > 0) {
+      shiftDiv.innerHTML = '<div style="display:grid; grid-template-columns: 1fr auto auto auto auto; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>Shift</span><span>Cashier</span><span>Revenue</span><span>Diff</span><span>Status</span></div>' +
+        shifts.slice(0, 20).map(s => {
+          const exp = s.expectedBalance || 0;
+          const actual = s.closingBalance || 0;
+          const diff = exp ? ((actual - exp) / exp * 100).toFixed(1) : '—';
+          const diffColor = Math.abs(parseFloat(diff)) > 2 ? 'var(--red)' : 'var(--accent-emerald)';
+          return `<div style="display:grid; grid-template-columns: 1fr auto auto auto auto; gap:.5rem; align-items:center; padding:.4rem 0; border-bottom:1px solid var(--line);">
+            <span style="color:var(--text); font-size:.85rem;">${new Date(s.openedAt).toLocaleDateString('en-US', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
+            <span style="color:var(--muted); font-size:.8rem;">Cashier</span>
+            <span style="color:var(--accent-emerald); font-size:.85rem;">${s.totalRevenue ? parseFloat(s.totalRevenue).toFixed(0) : '0'} EGP</span>
+            <span style="color:${diffColor}; font-size:.8rem;">${diff}%</span>
+            <span style="color:${s.status === 'open' ? 'var(--gold)' : 'var(--muted)'}; font-size:.8rem;">${s.status}</span>
+          </div>`;
+        }).join('');
+    } else {
+      shiftDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">No shifts yet.</p>';
+    }
+
+    // Sales history chart (last 7 days from sales data)
     const chartDiv = document.getElementById('r-sales-chart');
-    if (dailyData && dailyData.length > 0) {
-      const snapshots = dailyData.reverse(); // oldest first
-      const maxRev = Math.max(...snapshots.map(s => s.data.total_revenue));
+    const history = sales.dailyHistory || [];
+    if (history.length > 0) {
+      const maxRev = Math.max(...history.map(h => h.revenue));
       chartDiv.innerHTML = `<div style="display:flex; align-items:flex-end; gap:.4rem; min-height:160px; padding:.5rem 0;">
-        ${snapshots.map(s => {
-          const rev = s.data.total_revenue;
-          const pct = maxRev > 0 ? (rev / maxRev * 100) : 0;
-          const date = (s.snapshotDate || '').slice(5);
+        ${history.map(h => {
+          const pct = maxRev > 0 ? (h.revenue / maxRev * 100) : 0;
           return `<div style="flex:1; display:flex; flex-direction:column; align-items:center;">
-            <div style="font-size:.7rem; color:var(--muted); margin-bottom:.3rem;">${rev.toFixed(0)}</div>
+            <div style="font-size:.7rem; color:var(--muted); margin-bottom:.3rem;">${h.revenue.toFixed(0)}</div>
             <div style="width:100%; max-width:50px; height:${Math.max(pct, 5)}%; background:var(--gold); border-radius:3px 3px 0 0; min-height:8px;"></div>
-            <div style="font-size:.7rem; color:var(--muted); margin-top:.3rem;">${date}</div>
+            <div style="font-size:.7rem; color:var(--muted); margin-top:.3rem;">${(h.date || '').slice(5)}</div>
           </div>`;
         }).join('')}
       </div>`;
@@ -1070,29 +1152,41 @@ async function loadReports() {
   }
 }
 
+function downloadPDF() {
+  fetch('/api/reports/pdf', { headers: getAuthH() })
+    .then(r => r.blob())
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ozel-report-${new Date().toISOString().slice(0,10)}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    })
+    .catch(() => alert('Error downloading PDF'));
+}
+
 function exportReportsCSV() {
-  const daily = _reportsCache.daily || [];
-  if (!daily.length) { alert('No report data to export.'); return; }
+  fetch('/api/reports/sales?period=all', { headers: getAuthH() })
+    .then(r => r.json())
+    .then(sales => {
+      const history = sales.dailyHistory || [];
+      if (!history.length) { alert('No data to export.'); return; }
 
-  let csv = 'Date,Orders,Revenue (EGP),Avg Order (EGP),Top Items\n';
-  for (const snap of daily) {
-    const d = snap.data;
-    csv += `${snap.snapshotDate},${d.order_count},${d.total_revenue},${d.avg_order_value},`;
-    // Add top items for this day
-    const top = _reportsCache.top && _reportsCache.top[0] && _reportsCache.top[0].data;
-    if (top) {
-      csv += top.map(t => `${t.name} (×${t.qty})`).join('; ');
-    }
-    csv += '\n';
-  }
+      let csv = 'Date,Orders,Revenue (EGP),Avg Order (EGP)\n';
+      for (const h of history) {
+        csv += `${h.date},${h.orders},${h.revenue},${h.avgValue}\n`;
+      }
 
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `pos-report-${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ozel-report-${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    })
+    .catch(() => alert('Error exporting CSV'));
 }
 </script>
 
