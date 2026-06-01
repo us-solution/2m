@@ -225,9 +225,90 @@ app.post('/api/inbound', async (req, res) => {
   }
 });
 
+// ── Report sync: Push POS data to Vercel for admin dashboard ──
+
+async function syncReports() {
+  if (!VERCEL_URL || !VERCEL_KEY) return;
+
+  const today = new Date().toISOString().split('T')[0];
+
+  try {
+    const client = await pool.connect();
+    try {
+      // 1. Daily sales summary
+      const salesResult = await client.query(
+        `SELECT
+           COUNT(*)::int AS order_count,
+           COALESCE(SUM("FinalTotal"),0) AS total_revenue,
+           COALESCE(AVG("FinalTotal"),0) AS avg_order_value
+         FROM orders
+         WHERE "Status" IN ('Paid','Completed')
+           AND "LastActivityAt" >= CURRENT_DATE`
+      );
+      const salesRow = salesResult.rows[0] || { order_count: 0, total_revenue: 0, avg_order_value: 0 };
+
+      // 2. Top selling items (today)
+      const itemsResult = await client.query(
+        `SELECT
+           oi."NameSnapshot" AS name,
+           SUM(oi."Quantity")::int AS qty,
+           SUM(oi."FinalTotal") AS revenue
+         FROM order_items oi
+         JOIN orders o ON oi."OrderId" = o."Id"
+         WHERE o."Status" IN ('Paid','Completed')
+           AND o."LastActivityAt" >= CURRENT_DATE
+         GROUP BY oi."NameSnapshot"
+         ORDER BY revenue DESC
+         LIMIT 10`
+      );
+
+      const clientRelease = client;
+      clientRelease.release();
+
+      // Push daily_summary
+      await fetch(`${VERCEL_URL}/api/bridge/report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-bridge-key': VERCEL_KEY },
+        body: JSON.stringify({
+          type: 'daily_summary',
+          snapshotDate: today,
+          data: {
+            order_count: parseInt(salesRow.order_count) || 0,
+            total_revenue: parseFloat(salesRow.total_revenue) || 0,
+            avg_order_value: parseFloat(salesRow.avg_order_value) || 0
+          }
+        })
+      });
+
+      // Push top_items
+      const topItems = itemsResult.rows.map(r => ({
+        name: r.name || 'Unknown',
+        qty: parseInt(r.qty) || 0,
+        revenue: parseFloat(r.revenue) || 0
+      }));
+      await fetch(`${VERCEL_URL}/api/bridge/report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-bridge-key': VERCEL_KEY },
+        body: JSON.stringify({
+          type: 'top_items',
+          snapshotDate: today,
+          data: topItems
+        })
+      });
+
+      console.log(`[Reports] Synced POS data for ${today} (${salesRow.order_count} orders, ${salesRow.total_revenue} revenue)`);
+    } catch (err) {
+      console.error('[Reports] Query error:', err.message);
+      client.release();
+    }
+  } catch (err) {
+    console.error('[Reports] DB connection error:', err.message);
+  }
+}
+
 // ── Vercel polling (fallback when ngrok/tunnel is unavailable) ──
 
-const VERCEL_URL = process.env.VERCEL_BRIDGE_URL; // e.g. https://ozel-cafe.vercel.app
+const VERCEL_URL = process.env.VERCEL_BRIDGE_URL;
 const VERCEL_KEY = process.env.BRIDGE_API_KEY;
 
 async function pollVercel() {
@@ -286,11 +367,16 @@ function parseItems(items) {
   try { return JSON.parse(items); } catch { return []; }
 }
 
-// Start polling every 15 seconds
+// Start polling every 15 seconds for orders
 if (VERCEL_URL) {
   console.log(`[Bridge] Polling Vercel every 15s: ${VERCEL_URL}/api/orders/unsynced`);
   setInterval(pollVercel, 15000);
-  pollVercel(); // initial poll on startup
+  pollVercel();
+
+  // Report sync every 5 minutes
+  console.log('[Bridge] Report sync every 5min');
+  setInterval(syncReports, 300000);
+  syncReports();
 } else {
   console.log('[Bridge] VERCEL_BRIDGE_URL not set — polling disabled (webhook-only mode)');
 }

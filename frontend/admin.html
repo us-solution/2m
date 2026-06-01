@@ -210,6 +210,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       <option value="orders">Orders</option>
       <option value="users">Users</option>
       <option value="tables">Tables QR</option>
+      <option value="reports">Reports</option>
     </select>
     <div class="nav-item active" onclick="showPage('dashboard',this)">Dashboard</div>
     <div class="nav-item" onclick="showPage('menu',this)">Menu Management</div>
@@ -218,6 +219,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
     <div class="nav-item" onclick="showPage('orders',this)">Orders</div>
     <div class="nav-item" onclick="showPage('users',this)">Users</div>
     <div class="nav-item" onclick="showPage('tables',this)">Tables QR</div>
+    <div class="nav-item" onclick="showPage('reports',this)">Reports</div>
   </nav>
   <div style="overflow-y:auto;max-height:calc(100vh - 60px)">
 
@@ -356,6 +358,48 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       </div>
     </div>
 
+    <!-- REPORTS -->
+    <div class="page" id="page-reports">
+      <h1 class="page-title">POS Reports</h1>
+      <p class="page-sub">Sales data synced from the local POS system (updates every 5 minutes)</p>
+
+      <div style="display:flex; gap:.6rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+        <button class="hbtn" onclick="loadReports()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.5rem 1.2rem; font-weight:700;">Refresh</button>
+        <button class="hbtn" onclick="exportReportsCSV()" style="border-color:var(--accent-emerald); color:var(--accent-emerald); padding:.5rem 1.2rem;">Export CSV</button>
+      </div>
+
+      <!-- Daily Summary Cards -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-bottom:2rem;">
+        <div class="stat-card" style="background:var(--bg2); padding:1.2rem; border:1px solid var(--line); border-radius:6px; text-align:center;">
+          <div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--gold);"><span id="r-today-orders">—</span></div>
+          <div style="font-size:.8rem; color:var(--muted); margin-top:.3rem;">Today's Orders</div>
+        </div>
+        <div class="stat-card" style="background:var(--bg2); padding:1.2rem; border:1px solid var(--line); border-radius:6px; text-align:center;">
+          <div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--accent-emerald);"><span id="r-today-revenue">—</span></div>
+          <div style="font-size:.8rem; color:var(--muted); margin-top:.3rem;">Today's Revenue</div>
+        </div>
+        <div class="stat-card" style="background:var(--bg2); padding:1.2rem; border:1px solid var(--line); border-radius:6px; text-align:center;">
+          <div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--text);"><span id="r-avg-order">—</span></div>
+          <div style="font-size:.8rem; color:var(--muted); margin-top:.3rem;">Avg Order Value</div>
+        </div>
+      </div>
+
+      <!-- Top Items -->
+      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">Top Selling Items (Today)</h3>
+        <div id="r-top-items"><p style="color:var(--muted); font-size:.9rem;">No data yet — POS bridge must be running with an active shift.</p></div>
+      </div>
+
+      <!-- Sales History Chart -->
+      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line);">
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">Sales History (Last 7 Days)</h3>
+        <div id="r-sales-chart"><p style="color:var(--muted); font-size:.9rem;">No history yet.</p></div>
+        <div style="margin-top:1rem; font-size:.8rem; color:var(--muted);">
+          <span style="display:inline-block; width:12px; height:12px; background:var(--gold); border-radius:2px; vertical-align:middle; margin-right:4px;"></span> Revenue
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -386,6 +430,7 @@ function showPage(name, el) {
   if (name === 'orders') loadOrders();
   if (name === 'users') loadUsers();
   if (name === 'tables') document.getElementById('tqr-result').style.display = 'none';
+  if (name === 'reports') loadReports();
 }
 
 let _lastTableQR = null;
@@ -961,6 +1006,94 @@ function showModal(title, text, isConfirm = false, isPrompt = false) {
 
 // Load stats on start
 loadStats();
+
+// ── REPORTS ──
+
+let _reportsCache = { daily: null, top: null };
+
+async function loadReports() {
+  try {
+    const [dailyRes, itemsRes] = await Promise.all([
+      fetch('/api/admin/reports/daily_summary?days=7', { headers: getAuthH() }),
+      fetch('/api/admin/reports/top_items?days=1', { headers: getAuthH() })
+    ]);
+    const dailyData = await dailyRes.json();
+    const itemsData = await itemsRes.json();
+
+    _reportsCache = { daily: dailyData, top: itemsData };
+
+    // Today's summary (latest daily entry)
+    const today = dailyData && dailyData[0] && dailyData[0].data;
+    document.getElementById('r-today-orders').textContent = today ? today.order_count : '—';
+    document.getElementById('r-today-revenue').textContent = today ? today.total_revenue + ' EGP' : '—';
+    document.getElementById('r-avg-order').textContent = today ? parseFloat(today.avg_order_value).toFixed(2) + ' EGP' : '—';
+
+    // Top items
+    const items = itemsData && itemsData[0] && itemsData[0].data;
+    const topDiv = document.getElementById('r-top-items');
+    if (items && items.length > 0) {
+      const maxRev = Math.max(...items.map(i => i.revenue));
+      topDiv.innerHTML = items.map((item, idx) => `
+        <div style="display:flex; align-items:center; padding:.5rem 0; border-bottom:1px solid var(--line);">
+          <span style="min-width:1.5rem; color:var(--gold); font-weight:700;">${idx + 1}.</span>
+          <span style="flex:1; color:var(--text);">${item.name}</span>
+          <span style="min-width:3rem; text-align:right; color:var(--muted);">×${item.qty}</span>
+          <span style="min-width:5rem; text-align:right; color:var(--accent-emerald); font-weight:600;">${parseFloat(item.revenue).toFixed(2)} EGP</span>
+        </div>
+      `).join('');
+    } else {
+      topDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">No sales data yet today.</p>';
+    }
+
+    // Sales history chart (last 7 days)
+    const chartDiv = document.getElementById('r-sales-chart');
+    if (dailyData && dailyData.length > 0) {
+      const snapshots = dailyData.reverse(); // oldest first
+      const maxRev = Math.max(...snapshots.map(s => s.data.total_revenue));
+      chartDiv.innerHTML = `<div style="display:flex; align-items:flex-end; gap:.4rem; min-height:160px; padding:.5rem 0;">
+        ${snapshots.map(s => {
+          const rev = s.data.total_revenue;
+          const pct = maxRev > 0 ? (rev / maxRev * 100) : 0;
+          const date = (s.snapshotDate || '').slice(5);
+          return `<div style="flex:1; display:flex; flex-direction:column; align-items:center;">
+            <div style="font-size:.7rem; color:var(--muted); margin-bottom:.3rem;">${rev.toFixed(0)}</div>
+            <div style="width:100%; max-width:50px; height:${Math.max(pct, 5)}%; background:var(--gold); border-radius:3px 3px 0 0; min-height:8px;"></div>
+            <div style="font-size:.7rem; color:var(--muted); margin-top:.3rem;">${date}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    } else {
+      chartDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">No history yet.</p>';
+    }
+  } catch (err) {
+    console.error('[Reports] Error:', err);
+  }
+}
+
+function exportReportsCSV() {
+  const daily = _reportsCache.daily || [];
+  if (!daily.length) { alert('No report data to export.'); return; }
+
+  let csv = 'Date,Orders,Revenue (EGP),Avg Order (EGP),Top Items\n';
+  for (const snap of daily) {
+    const d = snap.data;
+    csv += `${snap.snapshotDate},${d.order_count},${d.total_revenue},${d.avg_order_value},`;
+    // Add top items for this day
+    const top = _reportsCache.top && _reportsCache.top[0] && _reportsCache.top[0].data;
+    if (top) {
+      csv += top.map(t => `${t.name} (×${t.qty})`).join('; ');
+    }
+    csv += '\n';
+  }
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `pos-report-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 </script>
 
 <div id="custom-modal" class="c-modal">

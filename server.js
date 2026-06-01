@@ -83,6 +83,7 @@ app.use('/api/me', requireDB, require('./routes/me'));
 app.use('/api/admin', requireDB, require('./routes/admin'));
 
 app.use('/api/game', requireDB, require('./routes/game'));
+app.use('/api/bridge', requireDB, require('./routes/bridge'));
 
 app.post('/api/debug-log', requireDB, (req, res) => {
   console.log('[FRONTEND LOG]', req.body);

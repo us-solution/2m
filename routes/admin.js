@@ -6,6 +6,7 @@ const Order = require('../models/Order');
 const Category = require('../models/Category');
 const Drink = require('../models/Drink');
 const Offer = require('../models/Offer');
+const ReportSnapshot = require('../models/ReportSnapshot');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 
 // Admin Stats
@@ -494,6 +495,22 @@ router.get('/qr-table/:number', authenticateToken, requireRole('admin'), async (
     const qrUrl = baseUrl + '/cart.html?table=' + tableNum;
     const dataUrl = await QRCode.toDataURL(qrUrl, { width: 400, margin: 2, color: { dark: '#241E1A', light: '#FDFBF7' } });
     res.json({ success: true, qrCodeUrl: dataUrl, table: tableNum, url: qrUrl });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get POS-synced report data
+router.get('/reports/:type', authenticateToken, requireRole('admin'), async (req, res) => {
+  const { type } = req.params;
+  const { days } = req.query;
+  try {
+    const limit = parseInt(days) || 30;
+    const snapshots = await ReportSnapshot.find({ type })
+      .sort({ snapshotDate: -1 })
+      .limit(limit)
+      .lean();
+    res.json(snapshots);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
