@@ -12,3 +12,10 @@ __pycache__/
 local-bridge/node_modules/
 local-bridge/.env
 local-bridge/orders.db
+
+# POS Bridge
+pos-bridge/node_modules/
+pos-bridge/.env
+
+# POS System (separate .NET project)
+POS_system-main/

@@ -326,4 +326,53 @@ router.patch('/:id/confirm-qr', authenticateToken, requireRole('cashier'), async
   }
 });
 
+// ── Bridge API: Polled by local POS bridge (no ngrok needed) ──
+// Get orders not yet synced to POS
+router.get('/unsynced', async (req, res) => {
+  const bridgeKey = req.headers['x-bridge-key'];
+  if (bridgeKey !== process.env.BRIDGE_API_KEY) {
+    return res.status(403).json({ error: 'Invalid bridge key' });
+  }
+  try {
+    const orders = await Order.find({ posSynced: { $ne: true } })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .populate('userId', 'name phone email');
+    res.json(orders.map(o => ({
+      id: o._id,
+      table_number: o.table_number,
+      items: o.items || '[]',
+      total_price: parseFloat(o.total_price) || 0,
+      status: o.status,
+      notes: o.notes || '',
+      customer_name: o.userId ? o.userId.name : (o.customerPhone ? 'Takeaway' : null),
+      customer_phone: o.userId ? (o.userId.phone || '') : (o.customerPhone || null),
+      created_at: o.createdAt,
+    })));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Mark orders as synced to POS
+router.post('/mark-synced', async (req, res) => {
+  const bridgeKey = req.headers['x-bridge-key'];
+  if (bridgeKey !== process.env.BRIDGE_API_KEY) {
+    return res.status(403).json({ error: 'Invalid bridge key' });
+  }
+  const { ids } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'ids array required' });
+  }
+  try {
+    const result = await Order.updateMany(
+      { _id: { $in: ids } },
+      { $set: { posSynced: true } }
+    );
+    res.json({ success: true, matched: result.matchedCount, modified: result.modifiedCount });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

@@ -48,6 +48,10 @@ const orderSchema = new mongoose.Schema({
   customerPhone: {
     type: String,
     default: null
+  },
+  posSynced: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true,
