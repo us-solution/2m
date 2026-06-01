@@ -208,7 +208,9 @@ if (!user || !['cashier','admin'].includes(user.role)) { location.href = 'login.
 
 function getAuthH() {
   const t = localStorage.getItem('ozel_token');
-  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + t };
+  const h = { 'Content-Type': 'application/json' };
+  if (t) h['Authorization'] = 'Bearer ' + t;
+  return h;
 }
 
 let allOrders = [], currentFilter = 'all', knownIds = new Set();
@@ -308,7 +310,7 @@ async function fetchOrders() {
     updateStats();
   } catch(e) {
     console.error('[Cashier] fetchOrders error:', e);
-    document.getElementById('ordersGrid').innerHTML = '<div class="empty-msg" style="color:var(--red)">Connection error — retrying...</div>';
+    document.getElementById('ordersGrid').innerHTML = '<div class="empty-msg" style="color:var(--red)">Connection error: ' + e.message + ' — retrying...</div>';
   }
 }
 
