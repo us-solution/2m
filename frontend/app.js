@@ -77,6 +77,31 @@ const transMap = {
   'Caramel': { en: 'Caramel Syrup', ar: 'كراميل' }
 };
 
+// ===== خيارات التخصيص الديناميكية (من الخادم) =====
+let customizationOptions = null;
+
+// تحميل خيارات السكر والإضافات من الخادم
+async function loadCustomizationOptions() {
+  try {
+    const res = await fetch('/api/customization');
+    if (res.ok) {
+      const data = await res.json();
+      customizationOptions = data;
+      // بناء transMap ديناميكي من البيانات
+      if (data.sugarLevels) {
+        data.sugarLevels.forEach(s => {
+          transMap[s.key] = { en: s.nameEn, ar: s.nameAr };
+        });
+      }
+      if (data.extras) {
+        data.extras.forEach(e => {
+          transMap[e.key] = { en: e.nameEn, ar: e.nameAr };
+        });
+      }
+    }
+  } catch(e) { console.warn('Failed to load customization options', e); }
+}
+
 // ===== التمرير السلس للأقسام =====
 window.scrollToSection = function(id) {
   const el = document.getElementById(id);
@@ -129,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderNavUser();
     updateCartUI();
     fetchMenu();
+    loadCustomizationOptions();
   } catch(e) { console.error('[Init]', e); }
   setTimeout(() => {
     const loader = document.getElementById('loader');
@@ -425,20 +451,61 @@ function renderMenu(drinks) {
 
 // ===== دوال مساعدة لعرض أسماء الإضافات حسب اللغة =====
 function getExtraChipText(value, displayVal, isAr) {
-  if (value === 'None') return isAr ? 'بدون إضافات' : 'None';
-  if (value === 'Extra Shot') return isAr ? 'جرعة إضافية +25' : 'Shot +25';
-  if (value === 'Caramel Syrup') return isAr ? 'سيرب كراميل +15' : 'Caramel +15';
-  if (value === 'Vanilla Syrup') return isAr ? 'سيرب فانيليا +15' : 'Vanilla +15';
-  if (value === 'Ice Cream') return isAr ? 'آيس كريم +20' : 'Ice Cream +20';
-  if (value === 'Marshmallow') return isAr ? 'مارشميلو +10' : 'Marshmallow +10';
-  if (value === 'Nuts') return isAr ? 'مكسرات +15' : 'Nuts +15';
-  
-  if (value === 'Espresso Shot') return isAr ? 'إسبريسو +15' : 'Espresso +15';
-  if (value === 'Almond Milk') return isAr ? 'حليب لوز +20' : 'Almond +20';
-  if (value === 'Caramel Sauce') return isAr ? 'صوص كراميل +10' : 'Caramel +10';
-  if (value === 'Boba Bubbles') return isAr ? 'بوبا +15' : 'Boba +15';
+  // البحث في خيارات التخصيص الديناميكية أولاً
+  if (customizationOptions && customizationOptions.extras) {
+    const found = customizationOptions.extras.find(e => e.key === value);
+    if (found) {
+      const name = isAr ? found.nameAr : found.nameEn;
+      const price = found.price || 0;
+      return price > 0 ? `${name} +${price}` : name;
+    }
+  }
   return displayVal;
 }
+
+// ===== دوال مساعدة لتوليد أزرار السكر والإضافات ديناميكياً =====
+function getSugarChipsHTML(prefix) {
+  const levels = (customizationOptions && customizationOptions.sugarLevels && customizationOptions.sugarLevels.length)
+    ? customizationOptions.sugarLevels
+    : [{ key: 'Normal', nameEn: 'Normal Sugar', nameAr: 'سكر طبيعي' },
+       { key: 'Medium', nameEn: 'Medium Sugar', nameAr: 'سكر وسط' },
+       { key: 'Less', nameEn: 'Less Sugar', nameAr: 'سكر خفيف' },
+       { key: 'No Sugar', nameEn: 'No Sugar', nameAr: 'بدون سكر' }];
+  const isAr = currentLang === 'ar';
+  return levels.map((s, i) => {
+    const label = isAr ? s.nameAr : s.nameEn;
+    const clickHandler = prefix === 'deck' ? 'selectDeckChip' : 'selectChip';
+    return `<button class="${prefix}-chip ${i===0?'active':''}" onclick="${clickHandler}('sugar','${s.key}',this)">${label}</button>`;
+  }).join('');
+}
+
+function getExtrasChipsHTML(prefix) {
+  const extrasList = (customizationOptions && customizationOptions.extras && customizationOptions.extras.length)
+    ? customizationOptions.extras
+    : [{ key: 'None', nameEn: 'No Extras', nameAr: 'بدون إضافات', price: 0 },
+       { key: 'Extra Shot', nameEn: 'Extra Espresso Shot', nameAr: 'جرعة إضافية', price: 25 },
+       { key: 'Caramel Syrup', nameEn: 'Caramel Syrup', nameAr: 'سيرب كراميل', price: 15 },
+       { key: 'Vanilla Syrup', nameEn: 'Vanilla Syrup', nameAr: 'سيرب فانيليا', price: 15 },
+       { key: 'Ice Cream', nameEn: 'Ice Cream', nameAr: 'آيس كريم', price: 20 },
+       { key: 'Marshmallow', nameEn: 'Marshmallow', nameAr: 'مارشميلو', price: 10 },
+       { key: 'Nuts', nameEn: 'Nuts Mix', nameAr: 'مكسرات', price: 15 }];
+  const isAr = currentLang === 'ar';
+  return extrasList.map((e, i) => {
+    const label = isAr ? e.nameAr : e.nameEn;
+    const price = e.price || 0;
+    const displayText = price > 0 ? `${label} +${price}` : label;
+    const clickHandler = prefix === 'deck' ? 'selectDeckChip' : 'selectChip';
+    return `<button class="${prefix}-chip ${i===0?'active':''}" onclick="${clickHandler}('extra','${e.key}',this)">${displayText}</button>`;
+  }).join('');
+}
+
+// دوال مساعدة للاختيار
+window.selectDeckChip = function(type, value, btn) {
+  btn.closest('.deck-chips').querySelectorAll('.deck-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  window.currentPuzzle[type] = value;
+  btn.animate([{transform:'scale(.92)'},{transform:'scale(1)'}], {duration:200, easing:'cubic-bezier(.175,.885,.32,1.275)'});
+};
 
 // ===== نافذة تخصيص المشروب (Drink Modal) =====
 let _modalSessionId = 0;
@@ -494,27 +561,13 @@ window.openDrink = async function(id) {
           <div class="deck-custom-group">
             <span class="deck-custom-label">${isAr ? 'درجة السكر' : 'Sugar Level'}</span>
             <div class="deck-chips" id="deck-chips-sugar">
-              ${['Normal','Medium','Less','No Sugar'].map((v,i) => {
-                const sTrans = transMap[v] ? transMap[v][currentLang] : v;
-                return `<button class="deck-chip ${i===0?'active':''}" onclick="selectDeckChip('sugar','${v}',this)">${sTrans}</button>`;
-              }).join('')}
+              ${getSugarChipsHTML('deck')}
             </div>
           </div>
           <div class="deck-custom-group">
             <span class="deck-custom-label">${isAr ? 'الإضافات' : 'Extras'}</span>
             <div class="deck-chips" id="deck-chips-extra">
-              ${[
-                ['None','None'],
-                ['Extra Shot','Shot +25'],
-                ['Caramel Syrup','Caramel +15'],
-                ['Vanilla Syrup','Vanilla +15'],
-                ['Ice Cream','Ice Cream +20'],
-                ['Marshmallow','Marshmallow +10'],
-                ['Nuts','Nuts +15']
-              ].map((v,i) => {
-                const extTxt = getExtraChipText(v[0], v[1], isAr);
-                return `<button class="deck-chip ${i===0?'active':''}" onclick="selectDeckChip('extra','${v[0]}',this)">${extTxt}</button>`;
-              }).join('')}
+              ${getExtrasChipsHTML('deck')}
             </div>
           </div>
         </div>
@@ -569,22 +622,12 @@ window.openDrink = async function(id) {
 
       <span class="puzzle-label">${sugarTitle}</span>
       <div class="puzzle-chips" id="chips-sugar">
-        ${['Normal','Medium','Less','No Sugar'].map((v,i) => {
-          const sTrans = transMap[v] ? transMap[v][currentLang] : v;
-          return `<button class="chip ${i===0?'active':''}" onclick="selectChip('sugar','${v}',this)">${sTrans}</button>`;
-        }).join('')}
+        ${getSugarChipsHTML('pz')}
       </div>
 
       <span class="puzzle-label">${extraTitle}</span>
       <div class="puzzle-chips" id="chips-extra">
-        ${[
-          ['None','None'],['Espresso Shot','Espresso +15'],['Almond Milk','Almond +20'],
-          ['Caramel Sauce','Caramel +10'],['Boba Bubbles','Boba +15'],
-          ['Ice Cream','Ice Cream +20'],['Marshmallow','Marshmallow +10'],['Nuts','Nuts +15']
-        ].map((v,i) => {
-          const extTxt = getExtraChipText(v[0], v[1], isAr);
-          return `<button class="chip ${i===0?'active':''}" onclick="selectChip('extra','${v[0]}',this)">${extTxt}</button>`;
-        }).join('')}
+        ${getExtrasChipsHTML('pz')}
       </div>
 
       <textarea id="drinkNotes" placeholder="${isAr ? 'أضف ملاحظاتك هنا...' : 'Add your notes here...'}" style="width:100%; background:var(--bg); border:1px solid var(--line); color:var(--text); padding:.7rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.95rem; outline:none; margin-top: 1rem; height: 60px;"></textarea>
@@ -643,9 +686,11 @@ window.addToCart = function(drinkId, behavior = 'continue') {
   const isAr = currentLang === 'ar';
   
   let price = drink.price;
-  if (extra.includes('Espresso') || extra.includes('Boba') || extra.includes('Nuts') || extra.includes('Shot')) price += 15;
-  if (extra.includes('Almond') || extra.includes('Ice Cream')) price += 20;
-  if (extra.includes('Caramel') || extra.includes('Marshmallow')) price += 10;
+  // حساب السعر الإضافي من خيارات التخصيص الديناميكية
+  if (extra && extra !== 'None' && customizationOptions && customizationOptions.extras) {
+    const found = customizationOptions.extras.find(e => e.key === extra);
+    if (found) price += found.price || 0;
+  }
   
   const totalPrice = price * qty;
   cart.push({ drink_id: drink.id, name: drink.name, name_ar: drink.name_ar, sugar, extra, price, notes, quantity: qty });
@@ -1931,14 +1976,6 @@ window.resetTTT = function() {
    ═══════════════════════════════════════════ */
 /* ===== دوال مساعدة للوحة التخصيص المنقسمة (Split-Deck) ===== */
 
-// ===== اختيار خيار السكر أو الإضافات في اللوحة =====
-window.selectDeckChip = function(type, value, btn) {
-  btn.closest('.deck-chips').querySelectorAll('.deck-chip').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  window.currentPuzzle[type] = value;
-  btn.animate([{transform:'scale(.92)'},{transform:'scale(1)'}], {duration:200, easing:'cubic-bezier(.175,.885,.32,1.275)'});
-};
-
 // ===== إضافة المنتج إلى السلة من اللوحة =====
 window.addDeckToCart = function(drinkId) {
   const sessionKey = drinkId + ':' + _modalSessionId;
@@ -1955,9 +1992,11 @@ window.addDeckToCart = function(drinkId) {
   const isAr = currentLang === 'ar';
   
   let price = drink.price;
-  if (extra.includes('Espresso') || extra.includes('Boba') || extra.includes('Nuts') || extra.includes('Shot') || extra.includes('Vanilla')) price += 15;
-  if (extra.includes('Almond') || extra.includes('Ice Cream')) price += 20;
-  if (extra.includes('Caramel') || extra.includes('Marshmallow')) price += 10;
+  // حساب السعر الإضافي من خيارات التخصيص الديناميكية
+  if (extra && extra !== 'None' && customizationOptions && customizationOptions.extras) {
+    const found = customizationOptions.extras.find(e => e.key === extra);
+    if (found) price += found.price || 0;
+  }
   
   cart.push({ drink_id: drink.id, name: drink.name, name_ar: drink.name_ar, sugar, extra, price, notes, quantity: qty });
   localStorage.setItem('ozel_cart', JSON.stringify(cart));

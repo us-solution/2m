@@ -32,6 +32,7 @@ require('./models/InventoryTransaction');
 require('./models/InventoryCount');
 require('./models/StockAlert');
 require('./models/ExpenseCategory');
+require('./models/CustomizationOption');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -120,6 +121,7 @@ app.use('/api/reports', requireDB, require('./routes/reports'));
 app.use('/api/finance', requireDB, require('./routes/finance'));
 app.use('/api/inventory', requireDB, require('./routes/inventory'));
 app.use('/api/recipes', requireDB, require('./routes/recipes'));
+app.use('/api/customization', requireDB, require('./routes/customization'));
 
 app.post('/api/debug-log', requireDB, (req, res) => {
   console.log('[FRONTEND LOG]', req.body);

@@ -223,6 +223,7 @@ td, th { white-space: nowrap; }
       <option value="inventory">📦 المخزون</option>
       <option value="recipes">📝 الوصفات</option>
       <option value="reports">📊 التقارير</option>
+      <option value="customization">⚙ خيارات التخصيص</option>
     </select>
     <div class="nav-item active" onclick="showPage('dashboard',this)">📊 لوحة التحكم</div>
     <div class="nav-item" onclick="showPage('menu',this)">🍽 إدارة القائمة</div>
@@ -236,6 +237,7 @@ td, th { white-space: nowrap; }
     <div class="nav-item" onclick="showPage('inventory',this)">📦 المخزون</div>
     <div class="nav-item" onclick="showPage('recipes',this)">📝 الوصفات</div>
     <div class="nav-item" onclick="showPage('reports',this)">📊 التقارير</div>
+    <div class="nav-item" onclick="showPage('customization',this)">⚙ خيارات التخصيص</div>
   </nav>
   <div style="overflow-y:auto;max-height:calc(100vh - 60px)">
 
@@ -689,6 +691,30 @@ td, th { white-space: nowrap; }
       </div>
     </div>
 
+    <!-- ===== خيارات التخصيص (السكر والإضافات) ===== -->
+    <div class="page" id="page-customization">
+      <h1 class="page-title">⚙ خيارات التخصيص</h1>
+      <p class="page-sub">إدارة مستويات السكر والإضافات المتاحة للمشروبات</p>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem;">
+        <!-- مستويات السكر -->
+        <div style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line);">
+          <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">مستويات السكر</h3>
+          <div id="sugarLevelsList"></div>
+          <button class="hbtn" onclick="addSugarRow()" style="margin-top:.8rem; color:var(--green); border-color:var(--green);">+ إضافة مستوى سكر</button>
+        </div>
+
+        <!-- الإضافات -->
+        <div style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line);">
+          <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">الإضافات</h3>
+          <div id="extrasList"></div>
+          <button class="hbtn" onclick="addExtraRow()" style="margin-top:.8rem; color:var(--green); border-color:var(--green);">+ إضافة إضافة</button>
+        </div>
+      </div>
+
+      <button class="hbtn" onclick="saveCustomization()" style="margin-top:1.5rem; background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.6rem 2rem; font-weight:700;">💾 حفظ التغييرات</button>
+    </div>
+
   </div>
 </div>
 
@@ -727,6 +753,7 @@ function showPage(name, el) {
   if (name === 'inventory') loadInventory();
   if (name === 'recipes') loadRecipes();
   if (name === 'reports') loadReports();
+  if (name === 'customization') loadCustomization();
 }
 
 // تحميل حالة الورديات وحالة الجسر
@@ -2365,6 +2392,123 @@ function exportReportsCSV() {
       URL.revokeObjectURL(url);
     })
     .catch(() => alert('خطأ في تصدير CSV'));
+}
+
+// ===== دوال خيارات التخصيص (السكر والإضافات) =====
+let customizationData = null;
+
+// تحميل خيارات التخصيص من الخادم
+async function loadCustomization() {
+  try {
+    const res = await fetch('/api/customization', { headers: getAuthH() });
+    const data = await res.json();
+    customizationData = data;
+    renderSugarLevels(data.sugarLevels || []);
+    renderExtras(data.extras || []);
+  } catch(e) { console.error(e); }
+}
+
+// عرض مستويات السكر
+function renderSugarLevels(levels) {
+  const container = document.getElementById('sugarLevelsList');
+  if (!levels.length) {
+    container.innerHTML = '<p style="color:var(--muted);">لا توجد مستويات سكر مضافة بعد</p>';
+    return;
+  }
+  container.innerHTML = levels.map((l, i) => `
+    <div style="display:flex; gap:.5rem; align-items:center; margin-bottom:.5rem; padding:.5rem; background:var(--bg3); border:1px solid var(--line); border-radius:4px;">
+      <input type="text" value="${l.key}" placeholder="المعرّف" class="edit-input" style="width:80px;" onchange="editSugarField(${i},'key',this.value)">
+      <input type="text" value="${l.nameEn}" placeholder="الاسم (EN)" class="edit-input" style="flex:1;" onchange="editSugarField(${i},'nameEn',this.value)">
+      <input type="text" value="${l.nameAr}" placeholder="الاسم (AR)" class="edit-input" style="flex:1;" onchange="editSugarField(${i},'nameAr',this.value)">
+      <button class="hbtn" onclick="removeSugarLevel(${i})" style="color:var(--red); border-color:rgba(192,57,43,.3); padding:.2rem .5rem;">✕</button>
+    </div>
+  `).join('');
+}
+
+// تعديل حقل سكر
+function editSugarField(idx, field, val) {
+  if (customizationData && customizationData.sugarLevels[idx]) {
+    customizationData.sugarLevels[idx][field] = val;
+  }
+}
+
+// إضافة مستوى سكر جديد
+function addSugarRow() {
+  if (!customizationData) customizationData = { sugarLevels: [], extras: [] };
+  if (!customizationData.sugarLevels) customizationData.sugarLevels = [];
+  customizationData.sugarLevels.push({ key: 'New', nameEn: 'New Sugar', nameAr: 'سكر جديد', sortOrder: customizationData.sugarLevels.length });
+  renderSugarLevels(customizationData.sugarLevels);
+}
+
+// حذف مستوى سكر
+function removeSugarLevel(idx) {
+  if (!customizationData || !customizationData.sugarLevels) return;
+  customizationData.sugarLevels.splice(idx, 1);
+  renderSugarLevels(customizationData.sugarLevels);
+}
+
+// عرض الإضافات
+function renderExtras(extrasList) {
+  const container = document.getElementById('extrasList');
+  if (!extrasList.length) {
+    container.innerHTML = '<p style="color:var(--muted);">لا توجد إضافات مضافة بعد</p>';
+    return;
+  }
+  container.innerHTML = extrasList.map((e, i) => `
+    <div style="display:flex; gap:.5rem; align-items:center; margin-bottom:.5rem; padding:.5rem; background:var(--bg3); border:1px solid var(--line); border-radius:4px;">
+      <input type="text" value="${e.key}" placeholder="المعرّف" class="edit-input" style="width:80px;" onchange="editExtraField(${i},'key',this.value)">
+      <input type="text" value="${e.nameEn}" placeholder="الاسم (EN)" class="edit-input" style="flex:1;" onchange="editExtraField(${i},'nameEn',this.value)">
+      <input type="text" value="${e.nameAr}" placeholder="الاسم (AR)" class="edit-input" style="flex:1;" onchange="editExtraField(${i},'nameAr',this.value)">
+      <input type="number" value="${e.price}" placeholder="السعر" class="edit-input" style="width:60px;" onchange="editExtraField(${i},'price',parseFloat(this.value)||0)">
+      <span style="font-size:.75rem;color:var(--muted);">ج.م</span>
+      <button class="hbtn" onclick="removeExtra(${i})" style="color:var(--red); border-color:rgba(192,57,43,.3); padding:.2rem .5rem;">✕</button>
+    </div>
+  `).join('');
+}
+
+// تعديل حقل إضافة
+function editExtraField(idx, field, val) {
+  if (customizationData && customizationData.extras[idx]) {
+    customizationData.extras[idx][field] = val;
+  }
+}
+
+// إضافة إضافة جديدة
+function addExtraRow() {
+  if (!customizationData) customizationData = { sugarLevels: [], extras: [] };
+  if (!customizationData.extras) customizationData.extras = [];
+  customizationData.extras.push({ key: 'New', nameEn: 'New Extra', nameAr: 'إضافة جديدة', price: 0, sortOrder: customizationData.extras.length });
+  renderExtras(customizationData.extras);
+}
+
+// حذف إضافة
+function removeExtra(idx) {
+  if (!customizationData || !customizationData.extras) return;
+  customizationData.extras.splice(idx, 1);
+  renderExtras(customizationData.extras);
+}
+
+// حفظ خيارات التخصيص
+async function saveCustomization() {
+  if (!customizationData) return;
+  try {
+    const res = await fetch('/api/customization', {
+      method: 'PUT',
+      headers: getAuthH(),
+      body: JSON.stringify({
+        sugarLevels: customizationData.sugarLevels.map((s, i) => ({ ...s, sortOrder: i })),
+        extras: customizationData.extras.map((e, i) => ({ ...e, sortOrder: i }))
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('تم حفظ خيارات التخصيص بنجاح ✅', 'success');
+    } else {
+      showToast('خطأ في الحفظ: ' + (data.error || 'غير معروف'), 'error');
+    }
+  } catch(e) {
+    showToast('خطأ في الاتصال بالخادم', 'error');
+  }
 }
 </script>
 
