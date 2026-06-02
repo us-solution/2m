@@ -4,6 +4,7 @@ const ReportSnapshot = require('../models/ReportSnapshot');
 const SyncEvent = require('../models/SyncEvent');
 const Order = require('../models/Order');
 const crypto = require('crypto');
+const { authenticateToken, requireRole } = require('../middlewares/auth');
 
 function verifyBridgeKey(req, res, next) {
   const key = req.headers['x-bridge-key'];
@@ -129,7 +130,17 @@ router.post('/inbound-status', verifyBridgeKey, verifyBridgeSignature, async (re
   }
 });
 
-router.get('/status', verifyBridgeKey, async (req, res) => {
+async function authAdminOrBridge(req, res, next) {
+  const bridgeKey = req.headers['x-bridge-key'];
+  if (bridgeKey && bridgeKey === process.env.BRIDGE_API_KEY) return next();
+  authenticateToken(req, res, () => {
+    if (!req.user) return res.status(403).json({ error: 'Unauthorized' });
+    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+    next();
+  });
+}
+
+router.get('/status', authAdminOrBridge, async (req, res) => {
   try {
     const [pendingEvents, failedEvents, ackedEvents, pendingOrders, failedOrders, recentlySynced] = await Promise.all([
       SyncEvent.countDocuments({ status: 'pending' }),

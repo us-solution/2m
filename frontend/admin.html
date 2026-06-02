@@ -555,7 +555,7 @@ async function loadPosOps() {
   try {
     const [activeRes, bridgeRes] = await Promise.all([
       fetch('/api/shifts/active', { headers: getAuthH() }),
-      fetch('/api/bridge/status', { headers: { ...getAuthH(), 'x-bridge-key': localStorage.getItem('bridge_api_key') || '' } })
+      fetch('/api/bridge/status', { headers: getAuthH() })
     ]);
     const active = await activeRes.json();
     activeShiftCache = active.shift || null;
@@ -566,7 +566,7 @@ async function loadPosOps() {
     const bridgeData = bridgeRes.ok ? await bridgeRes.json() : null;
     document.getElementById('pos-sync-health').innerHTML = bridgeData
       ? `<b>حالة مزامنة الجسر</b><br/>الأحداث المعلقة: ${bridgeData.events.pending} | الأحداث الفاشلة: ${bridgeData.events.failed} | آخر نجاح: ${bridgeData.lastSuccessfulSyncAt ? new Date(bridgeData.lastSuccessfulSyncAt).toLocaleString('ar-EG') : '—'}`
-      : '<b>حالة مزامنة الجسر</b><br/><span style="color:var(--red)">حالة الجسر غير متاحة (قم بتعيين bridge_api_key في localStorage).</span>';
+      : '<b>حالة مزامنة الجسر</b><br/><span style="color:var(--red)">الجسر غير متصل — تأكد من تشغيل pos-bridge على جهاز الكافيه.</span>';
   } catch (err) {
     document.getElementById('pos-sync-health').innerHTML = `<span style="color:var(--red)">فشل تحميل حالة نقاط البيع: ${err.message}</span>`;
   }
