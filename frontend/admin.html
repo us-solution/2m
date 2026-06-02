@@ -209,8 +209,10 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       <option value="categories">Categories</option>
       <option value="offers">Offers</option>
       <option value="orders">Orders</option>
+      <option value="pos">POS Operations</option>
       <option value="users">Users</option>
       <option value="tables">Tables QR</option>
+      <option value="finance">Finance</option>
       <option value="reports">Reports</option>
     </select>
     <div class="nav-item active" onclick="showPage('dashboard',this)">Dashboard</div>
@@ -218,8 +220,10 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
     <div class="nav-item" onclick="showPage('categories',this)">Categories</div>
     <div class="nav-item" onclick="showPage('offers',this)">Offers</div>
     <div class="nav-item" onclick="showPage('orders',this)">Orders</div>
+    <div class="nav-item" onclick="showPage('pos',this)">POS Operations</div>
     <div class="nav-item" onclick="showPage('users',this)">Users</div>
     <div class="nav-item" onclick="showPage('tables',this)">Tables QR</div>
+    <div class="nav-item" onclick="showPage('finance',this)">Finance</div>
     <div class="nav-item" onclick="showPage('reports',this)">Reports</div>
   </nav>
   <div style="overflow-y:auto;max-height:calc(100vh - 60px)">
@@ -268,6 +272,20 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
         <th>#</th><th>Table</th><th>Customer</th><th>Total</th><th>Points</th><th>Status</th><th>Time</th><th>Action</th>
       </tr></thead>
       <tbody id="ordersTable"></tbody></table>
+    </div>
+
+    <div class="page" id="page-pos">
+      <h1 class="page-title">POS Operations</h1>
+      <p class="page-sub">Open/close cashier shifts and monitor sync health</p>
+      <div style="display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:1rem;">
+        <input id="pos-opening-balance" type="number" placeholder="Opening balance" class="edit-input" style="width:160px;padding:.5rem;">
+        <button class="hbtn" style="background:var(--gold);color:var(--bg);border-color:var(--gold);" onclick="openShiftFromAdmin()">Open Shift</button>
+        <input id="pos-closing-balance" type="number" placeholder="Closing balance" class="edit-input" style="width:160px;padding:.5rem;">
+        <button class="hbtn" style="border-color:var(--accent-emerald);color:var(--accent-emerald);" onclick="closeActiveShiftFromAdmin()">Close Active Shift</button>
+        <button class="hbtn" onclick="loadPosOps()">Refresh POS</button>
+      </div>
+      <div id="pos-sync-health" style="background:var(--bg2);border:1px solid var(--line);padding:1rem;margin-bottom:1rem;color:var(--muted);">Loading bridge health...</div>
+      <div id="pos-active-shift" style="background:var(--bg2);border:1px solid var(--line);padding:1rem;"></div>
     </div>
 
     <!-- USERS -->
@@ -359,6 +377,31 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       </div>
     </div>
 
+    <div class="page" id="page-finance">
+      <h1 class="page-title">Finance</h1>
+      <p class="page-sub">Daily expenses and cashbox in/out linked with reports</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-bottom:1.2rem;">
+        <div style="background:var(--bg2); border:1px solid var(--line); padding:1rem;">
+          <h3 style="margin-bottom:.8rem;">Add Expense</h3>
+          <input id="fx-title" type="text" placeholder="Expense title" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;">
+          <select id="fx-category" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;">
+            <option value="utilities">Utilities</option><option value="purchase">Purchase</option><option value="maintenance">Maintenance</option><option value="salary">Salary</option><option value="rent">Rent</option><option value="marketing">Marketing</option><option value="other">Other</option>
+          </select>
+          <input id="fx-amount" type="number" placeholder="Amount" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;">
+          <button class="hbtn" style="background:var(--gold);color:var(--bg);border-color:var(--gold);" onclick="addExpense()">Save Expense</button>
+        </div>
+        <div style="background:var(--bg2); border:1px solid var(--line); padding:1rem;">
+          <h3 style="margin-bottom:.8rem;">Cash Movement</h3>
+          <select id="cm-type" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;"><option value="in">Cash In</option><option value="out">Cash Out</option></select>
+          <input id="cm-amount" type="number" placeholder="Amount" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;">
+          <input id="cm-reason" type="text" placeholder="Reason" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;">
+          <button class="hbtn" style="border-color:var(--accent-emerald);color:var(--accent-emerald);" onclick="addCashMovement()">Save Movement</button>
+        </div>
+      </div>
+      <div id="finance-summary" style="background:var(--bg2); border:1px solid var(--line); padding:1rem; margin-bottom:1rem;">Loading finance summary...</div>
+      <div id="finance-items" style="background:var(--bg2); border:1px solid var(--line); padding:1rem;">Loading entries...</div>
+    </div>
+
     <!-- REPORTS -->
     <div class="page" id="page-reports">
       <h1 class="page-title">Reports</h1>
@@ -442,6 +485,7 @@ const user  = JSON.parse(localStorage.getItem('ozel_user') || 'null');
 if (!user || user.role !== 'admin') { location.href = 'login.html?from=admin.html'; }
 
 let menuData = [], usersData = [], ordersData = [], categoriesData = [];
+let activeShiftCache = null;
 
 function getAuthH() {
   const token = localStorage.getItem('ozel_token');
@@ -462,9 +506,126 @@ function showPage(name, el) {
   if (name === 'categories') loadCategories();
   if (name === 'offers') loadOffers();
   if (name === 'orders') loadOrders();
+  if (name === 'pos') loadPosOps();
   if (name === 'users') loadUsers();
   if (name === 'tables') document.getElementById('tqr-result').style.display = 'none';
+  if (name === 'finance') loadFinancePage();
   if (name === 'reports') loadReports();
+}
+
+async function loadPosOps() {
+  try {
+    const [activeRes, bridgeRes] = await Promise.all([
+      fetch('/api/shifts/active', { headers: getAuthH() }),
+      fetch('/api/bridge/status', { headers: { ...getAuthH(), 'x-bridge-key': localStorage.getItem('bridge_api_key') || '' } })
+    ]);
+    const active = await activeRes.json();
+    activeShiftCache = active.shift || null;
+    document.getElementById('pos-active-shift').innerHTML = activeShiftCache
+      ? `<b>Active Shift:</b> ${new Date(activeShiftCache.openedAt).toLocaleString()} | Opening: ${activeShiftCache.openingBalance} EGP | Status: ${activeShiftCache.status}`
+      : '<span style="color:var(--muted)">No active shift</span>';
+
+    const bridgeData = bridgeRes.ok ? await bridgeRes.json() : null;
+    document.getElementById('pos-sync-health').innerHTML = bridgeData
+      ? `<b>Bridge Sync Health</b><br/>Pending Events: ${bridgeData.events.pending} | Failed Events: ${bridgeData.events.failed} | Last Success: ${bridgeData.lastSuccessfulSyncAt ? new Date(bridgeData.lastSuccessfulSyncAt).toLocaleString() : '—'}`
+      : '<b>Bridge Sync Health</b><br/><span style="color:var(--red)">Bridge status unavailable (set bridge_api_key in localStorage).</span>';
+  } catch (err) {
+    document.getElementById('pos-sync-health').innerHTML = `<span style="color:var(--red)">Failed to load POS health: ${err.message}</span>`;
+  }
+}
+
+async function openShiftFromAdmin() {
+  const openingBalance = parseFloat(document.getElementById('pos-opening-balance').value || '0');
+  const res = await fetch('/api/shifts/open', {
+    method: 'POST',
+    headers: getAuthH(),
+    body: JSON.stringify({ openingBalance, notes: 'Opened from Admin POS Ops' })
+  });
+  const data = await res.json();
+  if (data.success) {
+    showModal('Success', 'Shift opened successfully');
+    loadPosOps();
+  } else {
+    showModal('Error', data.error || 'Failed to open shift');
+  }
+}
+
+async function closeActiveShiftFromAdmin() {
+  if (!activeShiftCache) { showModal('Alert', 'No active shift to close'); return; }
+  const closingBalance = parseFloat(document.getElementById('pos-closing-balance').value || '0');
+  const res = await fetch('/api/shifts/close/' + activeShiftCache._id, {
+    method: 'POST',
+    headers: getAuthH(),
+    body: JSON.stringify({ closingBalance, notes: 'Closed from Admin POS Ops' })
+  });
+  const data = await res.json();
+  if (data.success) {
+    showModal('Success', 'Shift closed successfully');
+    loadPosOps();
+    loadReports();
+  } else {
+    showModal('Error', data.error || 'Failed to close shift');
+  }
+}
+
+async function loadFinancePage() {
+  try {
+    const [summaryRes, costsRes, accountsRes] = await Promise.all([
+      fetch('/api/reports/monthly-summary', { headers: getAuthH() }),
+      fetch('/api/reports/costs', { headers: getAuthH() }),
+      fetch('/api/reports/accounts', { headers: getAuthH() })
+    ]);
+    const [summary, costs, accounts] = await Promise.all([summaryRes.json(), costsRes.json(), accountsRes.json()]);
+    document.getElementById('finance-summary').innerHTML = `
+      <div><b>Monthly Run-rate:</b> ${parseFloat(summary.monthlyRunRate || 0).toFixed(2)} EGP</div>
+      <div><b>Revenue:</b> ${parseFloat(summary.revenue || 0).toFixed(2)} EGP</div>
+      <div><b>Total Costs:</b> ${parseFloat(summary.totalCosts || 0).toFixed(2)} EGP</div>
+      <div><b>Net Operating Profit:</b> ${parseFloat(summary.netOperatingProfit || 0).toFixed(2)} EGP</div>
+      <div><b>Cash In/Out:</b> ${parseFloat(accounts.cashIn || 0).toFixed(2)} / ${parseFloat(accounts.cashOut || 0).toFixed(2)} EGP</div>
+    `;
+    const topCosts = Object.entries(costs.breakdown || {}).sort((a,b) => b[1]-a[1]).slice(0,6);
+    document.getElementById('finance-items').innerHTML = topCosts.length
+      ? topCosts.map(([cat, amt]) => `<div style="padding:.4rem 0;border-bottom:1px solid var(--line);"><b>${cat}</b>: ${parseFloat(amt).toFixed(2)} EGP</div>`).join('')
+      : '<span style="color:var(--muted)">No cost records yet.</span>';
+  } catch (err) {
+    document.getElementById('finance-summary').innerHTML = `<span style="color:var(--red)">Failed to load finance data: ${err.message}</span>`;
+  }
+}
+
+async function addExpense() {
+  const title = document.getElementById('fx-title').value.trim();
+  const category = document.getElementById('fx-category').value;
+  const amount = parseFloat(document.getElementById('fx-amount').value || '0');
+  if (!title || !amount) return showModal('Alert', 'Enter title and amount');
+  const res = await fetch('/api/finance/expenses', {
+    method: 'POST',
+    headers: getAuthH(),
+    body: JSON.stringify({ title, category, amount })
+  });
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById('fx-title').value = '';
+    document.getElementById('fx-amount').value = '';
+    loadFinancePage();
+  } else showModal('Error', data.error || 'Failed to save expense');
+}
+
+async function addCashMovement() {
+  const movementType = document.getElementById('cm-type').value;
+  const amount = parseFloat(document.getElementById('cm-amount').value || '0');
+  const reason = document.getElementById('cm-reason').value.trim();
+  if (!amount || !reason) return showModal('Alert', 'Enter movement amount and reason');
+  const res = await fetch('/api/finance/cash-movements', {
+    method: 'POST',
+    headers: getAuthH(),
+    body: JSON.stringify({ movementType, amount, reason, shiftId: activeShiftCache ? activeShiftCache._id : null })
+  });
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById('cm-amount').value = '';
+    document.getElementById('cm-reason').value = '';
+    loadFinancePage();
+  } else showModal('Error', data.error || 'Failed to save movement');
 }
 
 let _lastTableQR = null;
@@ -1153,7 +1314,8 @@ async function loadReports() {
 }
 
 function downloadPDF() {
-  fetch('/api/reports/pdf', { headers: getAuthH() })
+  const period = document.getElementById('r-period').value || 'month';
+  fetch('/api/reports/pdf?period=' + encodeURIComponent(period), { headers: getAuthH() })
     .then(r => r.blob())
     .then(blob => {
       const url = URL.createObjectURL(blob);

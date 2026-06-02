@@ -15,6 +15,9 @@ require('./models/Order');
 require('./models/PointsLog');
 require('./models/Offer');
 require('./models/GameRoom');
+require('./models/SyncEvent');
+require('./models/Expense');
+require('./models/CashMovement');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -86,6 +89,7 @@ app.use('/api/game', requireDB, require('./routes/game'));
 app.use('/api/bridge', requireDB, require('./routes/bridge'));
 app.use('/api/shifts', requireDB, require('./routes/shifts'));
 app.use('/api/reports', requireDB, require('./routes/reports'));
+app.use('/api/finance', requireDB, require('./routes/finance'));
 
 app.post('/api/debug-log', requireDB, (req, res) => {
   console.log('[FRONTEND LOG]', req.body);

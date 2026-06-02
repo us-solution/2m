@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Shift = require('../models/Shift');
 const Order = require('../models/Order');
+const CashMovement = require('../models/CashMovement');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 
 // Open a new shift
@@ -45,7 +46,19 @@ router.post('/close/:id', authenticateToken, requireRole('cashier'), async (req,
     ]);
     const refundTotal = (refunds[0] && refunds[0].total) || 0;
 
-    const expected = shift.openingBalance + cashIn - refundTotal;
+    const cashMovements = await CashMovement.aggregate([
+      { $match: { shiftId: shift._id } },
+      {
+        $group: {
+          _id: '$movementType',
+          total: { $sum: '$amount' }
+        }
+      }
+    ]);
+    const extraCashIn = cashMovements.find(m => m._id === 'in')?.total || 0;
+    const extraCashOut = cashMovements.find(m => m._id === 'out')?.total || 0;
+
+    const expected = shift.openingBalance + cashIn + extraCashIn - extraCashOut - refundTotal;
     const actual = parseFloat(closingBalance) || 0;
     const variance = actual - expected;
 

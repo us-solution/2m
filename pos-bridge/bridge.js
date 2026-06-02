@@ -8,6 +8,8 @@ app.use(express.json({ limit: '1mb' }));
 
 const PORT = process.env.BRIDGE_PORT || 5001;
 const BRIDGE_KEY = process.env.BRIDGE_API_KEY || 'ozel-bridge-secret';
+const pendingRetryQueue = [];
+let bridgeStats = { received: 0, synced: 0, failed: 0, retried: 0, lastSuccessAt: null };
 
 const pool = new Pool({
   host: process.env.PG_HOST || 'localhost',
@@ -24,34 +26,36 @@ pool.on('error', err => console.error('[PG] Pool error:', err.message));
 
 async function ensureInfrastructure(client, branchId) {
   // Ensure "Online" category exists
+  // NOTE: categories uses lowercase/snake_case columns (EF Core HasColumnName override)
   let catResult = await client.query(
-    `SELECT "Id" FROM categories WHERE "name" = 'Online Orders' LIMIT 1`
+    `SELECT id FROM categories WHERE name = 'Online Orders' LIMIT 1`
   );
   if (catResult.rows.length === 0) {
     const catId = uuidv4();
     await client.query(
-      `INSERT INTO categories ("Id", "name", "description", "is_active", "created_at", "updated_at")
+      `INSERT INTO categories (id, name, description, is_active, created_at, updated_at)
        VALUES ($1, 'Online Orders', 'Website & takeaway orders', true, NOW(), NOW())`,
       [catId]
     );
-    catResult = { rows: [{ Id: catId }] };
+    catResult = { rows: [{ id: catId }] };
   }
 
   // Ensure generic "Online Item" menu item exists
+  // NOTE: menu_items uses lowercase/snake_case columns (EF Core HasColumnName override)
   let itemResult = await client.query(
-    `SELECT "Id", "Price" FROM menu_items WHERE "Name" = 'Online Order Item' LIMIT 1`
+    `SELECT id, price FROM menu_items WHERE name = 'Online Order Item' LIMIT 1`
   );
   if (itemResult.rows.length === 0) {
     const itemId = uuidv4();
     await client.query(
-      `INSERT INTO menu_items ("Id", "CategoryId", "Name", "Description", "Price", "IsAvailable", "CreatedAt", "UpdatedAt")
+      `INSERT INTO menu_items (id, category_id, name, description, price, is_available, created_at, updated_at)
        VALUES ($1, $2, 'Online Order Item', 'Generic item for website orders', 0, true, NOW(), NOW())`,
-      [itemId, catResult.rows[0].Id]
+      [itemId, catResult.rows[0].id]
     );
-    itemResult = { rows: [{ Id: itemId, Price: 0 }] };
+    itemResult = { rows: [{ id: itemId, price: 0 }] };
   }
 
-  return { categoryId: catResult.rows[0].Id, genericItemId: itemResult.rows[0].Id };
+  return { categoryId: catResult.rows[0].id, genericItemId: itemResult.rows[0].id };
 }
 
 async function ensureOnlineTable(client, branchId) {
@@ -192,10 +196,34 @@ async function syncOrderToPOS(order) {
   }
 }
 
+function normalizeEnvelopeOrder(payload) {
+  if (payload?.meta && payload?.data) {
+    const data = payload.data;
+    return {
+      envelopeEventId: payload.meta.eventId,
+      envelopeVersion: payload.meta.orderVersion || 1,
+      order_id: data.order_id || payload.meta.orderId,
+      table_number: data.table_number,
+      items: parseItems(data.items),
+      total_price: data.total_price,
+      notes: data.notes,
+      customer_name: data.customer_name,
+      customer_phone: data.customer_phone,
+      created_at: data.created_at
+    };
+  }
+  return payload;
+}
+
 // ── HTTP Endpoints ──
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    bridgeStats,
+    retryQueue: pendingRetryQueue.length
+  });
 });
 
 app.post('/api/inbound', async (req, res) => {
@@ -204,21 +232,27 @@ app.post('/api/inbound', async (req, res) => {
     return res.status(403).json({ error: 'Invalid or missing x-bridge-key' });
   }
 
-  const { event, order } = req.body;
-
-  if (event === 'new-order' && order) {
+  const body = req.body || {};
+  const eventType = body.meta?.eventType || body.event;
+  if ((eventType === 'order.created' || eventType === 'new-order') && (body.data || body.order)) {
+    const order = normalizeEnvelopeOrder(body);
+    bridgeStats.received += 1;
     try {
       const result = await syncOrderToPOS(order);
       if (result.skipped) {
         console.log('[Bridge] Skipped (no shift):', order.order_id);
-        res.json({ received: true, synced: false, reason: result.reason });
+        res.json({ received: true, synced: false, reason: result.reason, ack: { eventId: body.meta?.eventId || null, status: 'failed' } });
       } else {
         console.log('[Bridge] Synced:', order.order_id);
-        res.json({ received: true, synced: true, pos_order_id: result.orderId });
+        bridgeStats.synced += 1;
+        bridgeStats.lastSuccessAt = new Date().toISOString();
+        res.json({ received: true, synced: true, pos_order_id: result.orderId, ack: { eventId: body.meta?.eventId || null, status: 'acked' } });
       }
     } catch (err) {
       console.error('[Bridge] Error processing order:', err.message);
-      res.status(500).json({ error: err.message });
+      bridgeStats.failed += 1;
+      pendingRetryQueue.push({ body, retries: 0, nextTryAt: Date.now() + 5000 });
+      res.status(500).json({ error: err.message, ack: { eventId: body.meta?.eventId || null, status: 'failed', reason: err.message } });
     }
   } else {
     res.json({ received: true });
@@ -324,7 +358,8 @@ async function pollVercel() {
       return;
     }
 
-    const orders = await res.json();
+    const envelopes = await res.json();
+    const orders = envelopes.map(normalizeEnvelopeOrder);
     if (orders.length === 0) return;
 
     console.log(`[Poll] Found ${orders.length} unsynced order(s)`);
@@ -348,7 +383,7 @@ async function pollVercel() {
           const markRes = await fetch(`${VERCEL_URL}/api/orders/mark-synced`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-bridge-key': VERCEL_KEY },
-            body: JSON.stringify({ ids: [order.id] })
+            body: JSON.stringify({ ids: [order.order_id || order.id], eventIds: order.envelopeEventId ? [order.envelopeEventId] : [] })
           });
           if (!markRes.ok) console.warn('[Poll] Failed to mark order synced:', order.id);
         }
@@ -385,3 +420,25 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`[Bridge] OZEL → POS bridge running on port ${PORT}`);
   console.log(`[Bridge] PostgreSQL: ${process.env.PG_HOST || 'localhost'}:${process.env.PG_PORT || '5432'}/${process.env.PG_DATABASE || 'pos_system'}`);
 });
+
+setInterval(async () => {
+  if (!pendingRetryQueue.length) return;
+  const now = Date.now();
+  const ready = pendingRetryQueue.filter(x => x.nextTryAt <= now);
+  for (const item of ready) {
+    try {
+      await syncOrderToPOS(normalizeEnvelopeOrder(item.body));
+      bridgeStats.retried += 1;
+      bridgeStats.synced += 1;
+      bridgeStats.lastSuccessAt = new Date().toISOString();
+      pendingRetryQueue.splice(pendingRetryQueue.indexOf(item), 1);
+    } catch (err) {
+      item.retries += 1;
+      item.nextTryAt = Date.now() + Math.min(60000, 5000 * (2 ** item.retries));
+      if (item.retries > 5) {
+        bridgeStats.failed += 1;
+        pendingRetryQueue.splice(pendingRetryQueue.indexOf(item), 1);
+      }
+    }
+  }
+}, 3000);

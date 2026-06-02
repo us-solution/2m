@@ -4,6 +4,8 @@ const PDFDocument = require('pdfkit');
 const Order = require('../models/Order');
 const Shift = require('../models/Shift');
 const User = require('../models/User');
+const Expense = require('../models/Expense');
+const CashMovement = require('../models/CashMovement');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 
 // ── Report data endpoints ──
@@ -124,6 +126,83 @@ router.get('/cashiers', authenticateToken, requireRole('admin'), async (req, res
 
 // ── PDF Report Generation ──
 
+router.get('/monthly-summary', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const now = new Date();
+    const start = req.query.start ? new Date(req.query.start) : new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = req.query.end ? new Date(req.query.end) : now;
+
+    const [orders, expenses] = await Promise.all([
+      Order.find({ createdAt: { $gte: start, $lte: end } }).lean(),
+      Expense.find({ expenseDate: { $gte: start, $lte: end } }).lean()
+    ]);
+
+    const paidOrders = orders.filter(o => !['cancelled', 'refunded'].includes(o.status));
+    const revenue = paidOrders.reduce((sum, o) => sum + (o.total_price || 0), 0);
+    const totalCosts = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const netOperatingProfit = revenue - totalCosts;
+    const daysElapsed = Math.max(1, Math.ceil((end - start) / 86400000));
+    const monthlyRunRate = (revenue / daysElapsed) * 30;
+
+    res.json({
+      period: { start: start.toISOString(), end: end.toISOString() },
+      ordersCount: orders.length,
+      paidOrders: paidOrders.length,
+      revenue,
+      totalCosts,
+      netOperatingProfit,
+      monthlyRunRate
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/costs', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const now = new Date();
+    const start = req.query.start ? new Date(req.query.start) : new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = req.query.end ? new Date(req.query.end) : now;
+    const expenses = await Expense.find({ expenseDate: { $gte: start, $lte: end } }).sort({ expenseDate: -1 }).lean();
+    const grouped = expenses.reduce((acc, item) => {
+      const key = item.category || 'other';
+      acc[key] = (acc[key] || 0) + (item.amount || 0);
+      return acc;
+    }, {});
+    res.json({ period: { start, end }, total: expenses.reduce((s, e) => s + (e.amount || 0), 0), breakdown: grouped, items: expenses });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/accounts', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const now = new Date();
+    const start = req.query.start ? new Date(req.query.start) : new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = req.query.end ? new Date(req.query.end) : now;
+    const [orders, movements] = await Promise.all([
+      Order.find({ createdAt: { $gte: start, $lte: end } }).lean(),
+      CashMovement.find({ movementDate: { $gte: start, $lte: end } }).sort({ movementDate: -1 }).lean()
+    ]);
+    const paidOrders = orders.filter(o => !['cancelled', 'refunded'].includes(o.status));
+    const refunds = orders.filter(o => o.status === 'refunded');
+    const inflow = movements.filter(m => m.movementType === 'in').reduce((s, m) => s + (m.amount || 0), 0);
+    const outflow = movements.filter(m => m.movementType === 'out').reduce((s, m) => s + (m.amount || 0), 0);
+
+    res.json({
+      period: { start, end },
+      salesRevenue: paidOrders.reduce((s, o) => s + (o.total_price || 0), 0),
+      refunds: refunds.reduce((s, o) => s + (o.total_price || 0), 0),
+      cashIn: inflow,
+      cashOut: outflow,
+      netCashMovement: inflow - outflow,
+      movementItems: movements
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => {
   const { period, start, end } = req.query;
   try {
@@ -141,11 +220,23 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
     }
 
     const orders = await Order.find(match).sort({ createdAt: -1 }).populate('userId', 'name phone').lean();
-    const shifts = await Shift.find({ closedAt: { $gte: match.createdAt.$gte || new Date(0) } }).lean();
+    const sinceDate = match.createdAt && match.createdAt.$gte ? match.createdAt.$gte : new Date(0);
+    const [shifts, expenses, cashMovements] = await Promise.all([
+      Shift.find({ closedAt: { $gte: sinceDate } }).lean(),
+      Expense.find({ expenseDate: { $gte: sinceDate } }).lean(),
+      CashMovement.find({ movementDate: { $gte: sinceDate } }).lean()
+    ]);
 
     const paid = orders.filter(o => !['cancelled','refunded'].includes(o.status));
     const revenue = paid.reduce((s, o) => s + (o.total_price || 0), 0);
     const refundsTotal = orders.filter(o => o.status === 'refunded').reduce((s, o) => s + (o.total_price || 0), 0);
+    const totalCosts = expenses.reduce((s, e) => s + (e.amount || 0), 0);
+    const cashIn = cashMovements.filter(m => m.movementType === 'in').reduce((s, m) => s + (m.amount || 0), 0);
+    const cashOut = cashMovements.filter(m => m.movementType === 'out').reduce((s, m) => s + (m.amount || 0), 0);
+    const netOperating = revenue - totalCosts;
+    const startRef = match.createdAt && match.createdAt.$gte ? match.createdAt.$gte : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const daysElapsed = Math.max(1, Math.ceil((Date.now() - new Date(startRef).getTime()) / 86400000));
+    const monthlyRunRate = (revenue / daysElapsed) * 30;
 
     const doc = new PDFDocument({ margin: 40, size: 'A4' });
     res.setHeader('Content-Type', 'application/pdf');
@@ -167,6 +258,10 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
     doc.text(`Avg Order: EGP ${orders.length ? (revenue / orders.length).toFixed(2) : '0.00'}`, 250, summaryY);
     doc.text(`Cancelled: ${orders.filter(o => o.status === 'cancelled').length}`, 250, summaryY + 18);
     doc.text(`Paid Orders: ${paid.length}`, 250, summaryY + 36);
+    doc.text(`Costs: EGP ${totalCosts.toFixed(2)}`, 40, summaryY + 54);
+    doc.text(`Net Operating: EGP ${netOperating.toFixed(2)}`, 250, summaryY + 54);
+    doc.text(`Monthly Run-rate: EGP ${monthlyRunRate.toFixed(2)}`, 40, summaryY + 72);
+    doc.text(`Cashbox Movement: EGP ${(cashIn - cashOut).toFixed(2)}`, 250, summaryY + 72);
 
     // Items table
     const itemMap = {};
@@ -182,7 +277,7 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
     }
     const topItems = Object.values(itemMap).sort((a, b) => b.revenue - a.revenue).slice(0, 15);
 
-    let yPos = summaryY + 80;
+    let yPos = summaryY + 110;
     if (yPos + topItems.length * 20 + 60 > 700) { doc.addPage(); yPos = 40; }
 
     doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Top Items', 40, yPos);

@@ -62,6 +62,22 @@ const orderSchema = new mongoose.Schema({
     type: String,
     enum: ['cash', 'card', 'wallet', 'split', null],
     default: null
+  },
+  orderVersion: {
+    type: Number,
+    default: 1
+  },
+  syncMeta: {
+    lastEventId: { type: String, default: null },
+    lastEventType: { type: String, default: null },
+    lastSyncedAt: { type: Date, default: null },
+    syncAttempts: { type: Number, default: 0 },
+    syncStatus: {
+      type: String,
+      enum: ['pending', 'acked', 'failed'],
+      default: 'pending'
+    },
+    lastError: { type: String, default: null }
   }
 }, {
   timestamps: true,

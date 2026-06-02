@@ -21,6 +21,7 @@ const fs        = require('fs');
 const Pusher    = require('pusher-js/node');
 const { ThermalPrinter, PrinterTypes, CharacterSet, BreakLine } = require('node-thermal-printer');
 const initSqlJs = require('sql.js');
+const crypto = require('crypto');
 
 // ─── إعداد قاعدة البيانات (sql.js - Pure JavaScript, no compilation) ────────
 const DB_FILE = path.join(__dirname, 'orders.db');
@@ -131,6 +132,8 @@ app.use(express.json());
 
 // ─── SSE Clients (للتحديثات اللحظية) ────────────────────────────────────────
 const sseClients = new Set();
+const retryQueue = [];
+let syncMetrics = { received: 0, processed: 0, failed: 0, retried: 0, lastSuccessAt: null };
 
 function broadcastSSE(event, data) {
   const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
@@ -321,6 +324,21 @@ async function handleNewOrder(data, source = 'Pusher') {
   return true;
 }
 
+function verifyInboundSignature(req) {
+  const secret = process.env.BRIDGE_SIGNATURE_SECRET || process.env.BRIDGE_API_KEY;
+  if (!secret) return true;
+  const eventId = req.headers['x-bridge-event-id'];
+  const timestamp = req.headers['x-bridge-timestamp'];
+  const signature = req.headers['x-bridge-signature'];
+  if (!eventId || !timestamp || !signature) return false;
+  const ts = Number(timestamp);
+  if (!Number.isFinite(ts) || Math.abs(Date.now() - ts) > 5 * 60 * 1000) return false;
+  const rawBody = JSON.stringify(req.body || {});
+  const payload = `${timestamp}.${eventId}.${rawBody}`;
+  const expected = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+  return expected === signature;
+}
+
 channel.bind('new-order', async (data) => {
   await handleNewOrder(data, 'Pusher');
 });
@@ -350,20 +368,33 @@ app.post('/api/inbound', async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized: Invalid bridge key' });
   }
 
-  const { event, order } = req.body;
-  if (!event || !order) {
-    return res.status(400).json({ error: 'Bad Request: Missing event or order payload' });
+  if (!verifyInboundSignature(req)) {
+    return res.status(403).json({ error: 'Invalid signature' });
   }
 
-  if (event === 'new-order') {
-    // Process new order asynchronously so we don't hold the webhook connection
-    handleNewOrder(order, 'Webhook').catch(err => {
-      console.error('[Webhook] ❌ Error handling new order:', err.message);
-    });
-    return res.json({ success: true, message: 'Order received and processing started' });
+  const payload = req.body || {};
+  const eventType = payload.meta?.eventType || payload.event;
+  const eventId = payload.meta?.eventId || req.headers['x-bridge-event-id'];
+  const order = payload.data || payload.order;
+  if (!eventType || !order) {
+    return res.status(400).json({ error: 'Bad Request: Missing event payload' });
   }
 
-  res.status(400).json({ error: `Unknown event: ${event}` });
+  syncMetrics.received += 1;
+  if (eventType === 'order.created') {
+    try {
+      await handleNewOrder(order, 'Webhook');
+      syncMetrics.processed += 1;
+      syncMetrics.lastSuccessAt = new Date().toISOString();
+      return res.json({ success: true, ack: { eventId, status: 'acked' } });
+    } catch (err) {
+      syncMetrics.failed += 1;
+      retryQueue.push({ payload, retries: 0, nextTryAt: Date.now() + 5000 });
+      return res.status(500).json({ success: false, ack: { eventId, status: 'failed', reason: err.message } });
+    }
+  }
+
+  res.status(400).json({ error: `Unknown event: ${eventType}` });
 });
 
 // GET /orders - قائمة الطلبات (مع دعم CORS كامل للكاشير)
@@ -588,6 +619,8 @@ app.get('/status', (req, res) => {
     printer_ip: PRINTER_IP || 'not configured',
     printer_port: PRINTER_PORT,
     sse_clients: sseClients.size,
+    sync_metrics: syncMetrics,
+    retry_queue: retryQueue.length,
     orders_total: total,
     orders_pending: pending,
     endpoints: [
@@ -603,6 +636,29 @@ app.get('/status', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+setInterval(async () => {
+  if (!retryQueue.length) return;
+  const now = Date.now();
+  const ready = retryQueue.filter(i => i.nextTryAt <= now);
+  if (!ready.length) return;
+  for (const item of ready) {
+    try {
+      await handleNewOrder(item.payload.data || item.payload.order, 'RetryQueue');
+      syncMetrics.processed += 1;
+      syncMetrics.retried += 1;
+      syncMetrics.lastSuccessAt = new Date().toISOString();
+      retryQueue.splice(retryQueue.indexOf(item), 1);
+    } catch (err) {
+      item.retries += 1;
+      item.nextTryAt = Date.now() + Math.min(60000, 5000 * (2 ** item.retries));
+      if (item.retries > 5) {
+        syncMetrics.failed += 1;
+        retryQueue.splice(retryQueue.indexOf(item), 1);
+      }
+    }
+  }
+}, 3000);
 
 // ─── تشغيل السيرفر ───────────────────────────────────────────────────────────
 async function start() {

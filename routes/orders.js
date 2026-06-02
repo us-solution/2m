@@ -8,8 +8,12 @@ const PointsLog = require('../models/PointsLog');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 const jwt = require('jsonwebtoken');
 const Pusher = require('pusher');
+const crypto = require('crypto');
+const SyncEvent = require('../models/SyncEvent');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'ozel_cafe_secret_2026';
+const BRIDGE_SIGNATURE_SECRET = process.env.BRIDGE_SIGNATURE_SECRET || process.env.BRIDGE_API_KEY || 'bridge-signature-secret';
+const BRIDGE_TIMEOUT_MS = parseInt(process.env.BRIDGE_TIMEOUT_MS || '5000', 10);
 
 // Initialize Pusher for real-time cashier notifications
 const pusher = new Pusher({
@@ -19,6 +23,108 @@ const pusher = new Pusher({
   cluster: process.env.PUSHER_CLUSTER || 'eu',
   useTLS: true
 });
+
+function safeParseItems(items) {
+  if (Array.isArray(items)) return items;
+  try { return JSON.parse(items || '[]'); } catch (_) { return []; }
+}
+
+function buildOrderPayload(order, user = null) {
+  const parsedItems = safeParseItems(order.items);
+  return {
+    order_id: String(order._id),
+    table_number: order.table_number,
+    items: parsedItems.map(item => ({
+      name: item.name || '',
+      name_ar: item.name_ar || '',
+      quantity: item.quantity || 1,
+      price: Number(item.price) || 0,
+      sugar: item.sugar || 'Normal',
+      extra: item.extra || 'None',
+      notes: item.notes || ''
+    })),
+    total_price: order.total_price,
+    points_earned: order.points_earned,
+    notes: order.notes,
+    status: order.status,
+    qr_token: order.qrCodeToken || null,
+    customer_name: user ? user.name : (order.customerPhone ? 'Takeaway' : null),
+    customer_phone: user ? (user.phone && user.phone.startsWith('email_') ? null : user.phone) : (order.customerPhone || null),
+    created_at: order.createdAt
+  };
+}
+
+function signBridgeBody(rawBody, timestamp, eventId) {
+  const payload = `${timestamp}.${eventId}.${rawBody}`;
+  return crypto.createHmac('sha256', BRIDGE_SIGNATURE_SECRET).update(payload).digest('hex');
+}
+
+async function createSyncEvent(order, eventType, payload) {
+  const eventId = uuidv4();
+  const event = await SyncEvent.create({
+    eventId,
+    eventType,
+    orderId: order._id,
+    orderVersion: order.orderVersion || 1,
+    payload: {
+      meta: {
+        eventId,
+        eventType,
+        orderId: String(order._id),
+        orderVersion: order.orderVersion || 1,
+        source: 'vercel-api',
+        sentAt: new Date().toISOString()
+      },
+      data: payload
+    },
+    status: 'pending'
+  });
+  order.syncMeta = {
+    lastEventId: eventId,
+    lastEventType: eventType,
+    syncStatus: 'pending',
+    syncAttempts: (order.syncMeta?.syncAttempts || 0) + 1,
+    lastError: null,
+    lastSyncedAt: null
+  };
+  await order.save();
+  return event;
+}
+
+async function deliverToBridge(event) {
+  const BRIDGE_URL = process.env.BRIDGE_WEBHOOK_URL;
+  const BRIDGE_KEY = process.env.BRIDGE_API_KEY;
+  if (!BRIDGE_URL || !BRIDGE_KEY) return { skipped: true, reason: 'bridge_not_configured' };
+
+  const rawBody = JSON.stringify(event.payload);
+  const timestamp = Date.now().toString();
+  const signature = signBridgeBody(rawBody, timestamp, event.eventId);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), BRIDGE_TIMEOUT_MS);
+  try {
+    const resp = await fetch(`${BRIDGE_URL}/api/inbound`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-bridge-key': BRIDGE_KEY,
+        'x-bridge-event-id': event.eventId,
+        'x-bridge-timestamp': timestamp,
+        'x-bridge-signature': signature
+      },
+      body: rawBody,
+      signal: controller.signal
+    });
+    if (!resp.ok) {
+      const txt = await resp.text();
+      return { ok: false, reason: `bridge_http_${resp.status}`, details: txt.slice(0, 120) };
+    }
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, reason: 'bridge_network_error', details: err.message };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 // Helper to get authenticated user if token is present
 const getOptionalUser = async (req) => {
@@ -49,9 +155,7 @@ router.post('/', async (req, res) => {
     const points_earned = Math.floor(priceNum);
 
     // Normalize items: ensure we have an array for processing, and a string for storage
-    const parsedItems = Array.isArray(items)
-      ? items
-      : (() => { try { return JSON.parse(items); } catch (_) { return []; } })();
+    const parsedItems = safeParseItems(items);
     const items_str = JSON.stringify(parsedItems);
 
     const order = await Order.create({
@@ -80,71 +184,47 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // ── Respond immediately with success ──
+    // Generate QR code URL (best-effort artifact)
+    try {
+      const host = req.get('host');
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+      const confirmUrl = `${protocol}://${host}/api/orders/confirm-qr?token=${qrCodeToken}`;
+      await QRCode.toDataURL(confirmUrl);
+    } catch (_) {}
+
+    const cashierPayload = buildOrderPayload(order, user);
+    await pusher.trigger('cashier-orders', 'new-order', cashierPayload).catch(() => {});
+
+    const syncEvent = await createSyncEvent(order, 'order.created', cashierPayload);
+    const bridgeResult = await deliverToBridge(syncEvent);
+    if (bridgeResult.ok || bridgeResult.skipped) {
+      syncEvent.status = bridgeResult.ok ? 'acked' : 'pending';
+      syncEvent.acknowledgedAt = bridgeResult.ok ? new Date() : null;
+      syncEvent.failureReason = bridgeResult.skipped ? bridgeResult.reason : null;
+      await syncEvent.save();
+      if (bridgeResult.ok) {
+        await Order.updateOne(
+          { _id: order._id },
+          { $set: { 'syncMeta.syncStatus': 'acked', 'syncMeta.lastSyncedAt': new Date(), 'syncMeta.lastError': null } }
+        );
+      }
+    } else {
+      syncEvent.status = 'failed';
+      syncEvent.failureReason = `${bridgeResult.reason || 'failed'}: ${bridgeResult.details || ''}`;
+      await syncEvent.save();
+      await Order.updateOne(
+        { _id: order._id },
+        { $set: { 'syncMeta.syncStatus': 'failed', 'syncMeta.lastError': syncEvent.failureReason } }
+      );
+    }
+
     res.json({
       success: true,
       order_id: order._id,
-      points_earned: points_earned
-    });
-
-    // ── Background tasks after response is fully flushed ──
-    setImmediate(async () => {
-      try {
-        // Generate QR Code (best-effort)
-        try {
-          const host = req.get('host');
-          const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-          const confirmUrl = `${protocol}://${host}/api/orders/confirm-qr?token=${qrCodeToken}`;
-          await QRCode.toDataURL(confirmUrl);
-        } catch (qrErr) {
-          console.error('[QR Code] Generation failed:', qrErr.message);
-        }
-
-        // ── Structured cashier payload ──
-        const cashierPayload = {
-          order_id: String(order._id),
-          table_number: order.table_number,
-          items: parsedItems.map(item => ({
-            name:     item.name    || '',
-            name_ar:  item.name_ar || '',
-            quantity: item.quantity || 1,
-            price:    Number(item.price) || 0,
-            sugar:    item.sugar || 'Normal',
-            extra:    item.extra || 'None',
-            notes:    item.notes || ''
-          })),
-          total_price:    order.total_price,
-          points_earned:  order.points_earned,
-          notes:          order.notes,
-          status:         order.status,
-          qr_token:       qrCodeToken,
-          customer_name:  user ? user.name : (order.customerPhone ? 'Takeaway' : null),
-          customer_phone: user ? (user.phone && user.phone.startsWith('email_') ? null : user.phone) : (order.customerPhone || null),
-          created_at:     order.createdAt
-        };
-
-        // ── 1. Pusher ──
-        try {
-          await pusher.trigger('cashier-orders', 'new-order', cashierPayload);
-        } catch (pusherErr) {
-          console.error('[Pusher] Failed to notify cashier:', pusherErr.message);
-        }
-
-        // ── 2. Webhook ──
-        const BRIDGE_URL = process.env.BRIDGE_WEBHOOK_URL;
-        const BRIDGE_KEY = process.env.BRIDGE_API_KEY;
-        if (BRIDGE_URL && BRIDGE_KEY) {
-          fetch(`${BRIDGE_URL}/api/inbound`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-bridge-key': BRIDGE_KEY },
-            body: JSON.stringify({ event: 'new-order', order: cashierPayload })
-          }).then(r => {
-            if (!r.ok) r.text().then(t => console.warn('[Bridge Webhook] HTTP', r.status, t.substring(0, 80)));
-            else console.log('[Bridge Webhook] Order delivered to local bridge');
-          }).catch(err => console.warn('[Bridge Webhook] Could not reach bridge:', err.message));
-        }
-      } catch (err) {
-        console.error('[Background] Unhandled error in order post-processing:', err);
+      points_earned: points_earned,
+      sync: {
+        eventId: syncEvent.eventId,
+        status: syncEvent.status
       }
     });
   } catch (err) {
@@ -287,7 +367,7 @@ router.get('/me', authenticateToken, async (req, res) => {
 
 // Update Order Status (Cashier)
 router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (req, res) => {
-  const { status, paymentMethod, shiftId } = req.body;
+  const { status, paymentMethod, shiftId, expectedVersion } = req.body;
   if (!status) {
     return res.status(400).json({ error: 'Missing status' });
   }
@@ -298,14 +378,44 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
       return res.status(404).json({ error: 'Order not found' });
     }
 
+    if (expectedVersion && Number(expectedVersion) !== Number(order.orderVersion || 1)) {
+      return res.status(409).json({ error: 'Version conflict', currentVersion: order.orderVersion || 1 });
+    }
+
     order.status = status;
     if (status === 'confirmed') order.isQrConfirmed = true;
     order.cashierId = req.user._id;
     if (paymentMethod) order.paymentMethod = paymentMethod;
     if (shiftId) order.shiftId = shiftId;
+    order.orderVersion = (order.orderVersion || 1) + 1;
     await order.save();
 
-    res.json({ success: true });
+    const orderPayload = buildOrderPayload(order, null);
+    const syncEvent = await createSyncEvent(order, 'order.status_changed', {
+      ...orderPayload,
+      updated_by: String(req.user._id),
+      status
+    });
+    const bridgeResult = await deliverToBridge(syncEvent);
+    if (bridgeResult.ok) {
+      syncEvent.status = 'acked';
+      syncEvent.acknowledgedAt = new Date();
+      await syncEvent.save();
+      await Order.updateOne(
+        { _id: order._id },
+        { $set: { 'syncMeta.syncStatus': 'acked', 'syncMeta.lastSyncedAt': new Date(), 'syncMeta.lastError': null } }
+      );
+    } else if (!bridgeResult.skipped) {
+      syncEvent.status = 'failed';
+      syncEvent.failureReason = `${bridgeResult.reason || 'failed'}: ${bridgeResult.details || ''}`;
+      await syncEvent.save();
+      await Order.updateOne(
+        { _id: order._id },
+        { $set: { 'syncMeta.syncStatus': 'failed', 'syncMeta.lastError': syncEvent.failureReason } }
+      );
+    }
+
+    res.json({ success: true, orderVersion: order.orderVersion, syncEventId: syncEvent.eventId });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -336,21 +446,27 @@ router.get('/unsynced', async (req, res) => {
     return res.status(403).json({ error: 'Invalid bridge key' });
   }
   try {
-    const orders = await Order.find({ posSynced: { $ne: true } })
+    const orders = await Order.find({ $or: [{ posSynced: { $ne: true } }, { 'syncMeta.syncStatus': { $ne: 'acked' } }] })
       .sort({ createdAt: -1 })
       .limit(20)
       .populate('userId', 'name phone email');
-    res.json(orders.map(o => ({
-      id: o._id,
-      table_number: o.table_number,
-      items: o.items || '[]',
-      total_price: parseFloat(o.total_price) || 0,
-      status: o.status,
-      notes: o.notes || '',
-      customer_name: o.userId ? o.userId.name : (o.customerPhone ? 'Takeaway' : null),
-      customer_phone: o.userId ? (o.userId.phone || '') : (o.customerPhone || null),
-      created_at: o.createdAt,
-    })));
+    const envelopes = [];
+    for (const order of orders) {
+      const payload = buildOrderPayload(order, order.userId || null);
+      const existing = await SyncEvent.findOne({ orderId: order._id, status: { $ne: 'acked' } }).sort({ createdAt: -1 }).lean();
+      envelopes.push(existing?.payload || {
+        meta: {
+          eventId: order.syncMeta?.lastEventId || uuidv4(),
+          eventType: 'order.created',
+          orderId: String(order._id),
+          orderVersion: order.orderVersion || 1,
+          source: 'vercel-api',
+          sentAt: new Date().toISOString()
+        },
+        data: payload
+      });
+    }
+    res.json(envelopes);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -362,16 +478,35 @@ router.post('/mark-synced', async (req, res) => {
   if (bridgeKey !== process.env.BRIDGE_API_KEY) {
     return res.status(403).json({ error: 'Invalid bridge key' });
   }
-  const { ids } = req.body;
-  if (!Array.isArray(ids) || ids.length === 0) {
-    return res.status(400).json({ error: 'ids array required' });
+  const { ids, eventIds } = req.body;
+  if ((!Array.isArray(ids) || ids.length === 0) && (!Array.isArray(eventIds) || eventIds.length === 0)) {
+    return res.status(400).json({ error: 'ids or eventIds array required' });
   }
   try {
+    const targetIds = Array.isArray(ids) ? ids : [];
+    if (Array.isArray(eventIds) && eventIds.length) {
+      const linked = await SyncEvent.find({ eventId: { $in: eventIds } }).select('orderId').lean();
+      linked.forEach(e => e.orderId && targetIds.push(String(e.orderId)));
+      await SyncEvent.updateMany(
+        { eventId: { $in: eventIds } },
+        { $set: { status: 'acked', acknowledgedAt: new Date(), failureReason: null } }
+      );
+    }
     const result = await Order.updateMany(
-      { _id: { $in: ids } },
+      { _id: { $in: [...new Set(targetIds)] } },
       { $set: { posSynced: true } }
     );
-    res.json({ success: true, matched: result.matchedCount, modified: result.modifiedCount });
+    await Order.updateMany(
+      { _id: { $in: [...new Set(targetIds)] } },
+      {
+        $set: {
+          'syncMeta.syncStatus': 'acked',
+          'syncMeta.lastSyncedAt': new Date(),
+          'syncMeta.lastError': null
+        }
+      }
+    );
+    res.json({ success: true, matched: result.matchedCount, modified: result.modifiedCount, eventAcks: (eventIds || []).length });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
