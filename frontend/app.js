@@ -228,16 +228,19 @@ window.openProfileModal = async function() {
     if (cardClass) {
       cardEl.classList.add(cardClass);
       cardEl.dataset.cardColor = colorKey;
-      // Hard override background to guarantee it shows
-      cardEl.style.setProperty('background', userDetails.cardColor, 'important');
-      cardEl.style.setProperty('background-image', 'none', 'important');
-      cardEl.style.setProperty('background-size', '100% 100%', 'important');
-      cardEl.style.setProperty('background-repeat', 'no-repeat', 'important');
-      cardEl.style.setProperty('animation', 'none', 'important');
+    }
+
+    // Inject a <style> rule targeting the card by ID — highest specificity possible
+    let styleTag = document.getElementById('card-color-override');
+    if (!styleTag) {
+      styleTag = document.createElement('style');
+      styleTag.id = 'card-color-override';
+      document.head.appendChild(styleTag);
+    }
+    if (cardClass) {
+      styleTag.textContent = `#profileVipCard { background: ${userDetails.cardColor} !important; background-image: none !important; animation: none !important; background-size: 100% 100% !important; }`;
     } else {
-      cardEl.dataset.cardColor = '';
-      cardEl.style.background = '';
-      cardEl.style.animation = '';
+      styleTag.textContent = '';
     }
 
     // Use custom cardTitle if set, otherwise fall back to tier name
