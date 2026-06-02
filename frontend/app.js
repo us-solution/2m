@@ -218,9 +218,16 @@ window.openProfileModal = async function() {
     const tier = (userDetails.subscriptionTier || 'none').toLowerCase();
     cardEl.classList.add(`tier-${tier}`);
 
-    // Map tier names and discounts
-    let tierName = 'STANDARD';
+    // Apply custom card color if set
+    if (userDetails.cardColor) {
+      cardEl.style.background = userDetails.cardColor;
+    } else {
+      cardEl.style.background = '';
+    }
+
+    // Use custom cardTitle if set, otherwise fall back to tier name
     let discount = '0%';
+    let tierName = '';
     
     if (tier === 'bronze') {
       tierName = isAr ? 'برونزية' : 'BRONZE';
@@ -236,10 +243,15 @@ window.openProfileModal = async function() {
       discount = '20%';
     } else {
       tierName = isAr ? 'عادي' : 'STANDARD';
-      discount = '0%';
     }
 
-    badgeEl.textContent = tierName;
+    // Use custom discount from user profile if set
+    if (userDetails.discountPercent !== undefined && userDetails.discountPercent > 0) {
+      discount = userDetails.discountPercent + '%';
+    }
+
+    // Use custom cardTitle if set
+    badgeEl.textContent = userDetails.cardTitle || tierName;
     discountEl.innerHTML = isAr 
       ? `نسبة الخصم الخاصة بك: <span style="color:var(--gold); font-size:1.15rem; font-weight:700;">${discount}</span>`
       : `Your discount rate: <span style="color:var(--gold); font-size:1.15rem; font-weight:700;">${discount}</span>`;
