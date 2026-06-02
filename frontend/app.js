@@ -249,8 +249,14 @@ window.openProfileModal = async function() {
       tierName = isAr ? 'عادي' : 'STANDARD';
     }
 
-    // Use custom discount from user profile if set
-    if (userDetails.discountPercent !== undefined && userDetails.discountPercent > 0) {
+    // Discount derived from color mapping
+    const COLOR_DISCOUNT = { '#1a2e24': 0, '#1a1a40': 10, '#541a1a': 15, '#7a5a00': 30 };
+    const colorDiscount = COLOR_DISCOUNT[userDetails.cardColor] !== undefined ? COLOR_DISCOUNT[userDetails.cardColor] : null;
+
+    // Use discount from profile if set, otherwise derive from color
+    if (colorDiscount !== null && (!userDetails.discountPercent || userDetails.discountPercent === 0)) {
+      discount = colorDiscount + '%';
+    } else if (userDetails.discountPercent !== undefined && userDetails.discountPercent > 0) {
       discount = userDetails.discountPercent + '%';
     }
 
