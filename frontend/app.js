@@ -220,12 +220,22 @@ window.openProfileModal = async function() {
 
     // Map cardColor to CSS class
     const CARD_CLASSES = { '#1a2e24': 'card-green', '#1a1a40': 'card-blue', '#541a1a': 'card-red', '#7a5a00': 'card-gold' };
-    const cardClass = CARD_CLASSES[userDetails.cardColor] || '';
+    const colorKey = userDetails.cardColor ? userDetails.cardColor.trim().toLowerCase() : '';
+    const cardClass = CARD_CLASSES[colorKey] || '';
 
     // Remove any existing custom card classes and add the matching one
-    Object.values(CARD_CLASSES).forEach(cls => cardEl.classList.remove(cls));
+    ['card-green','card-blue','card-red','card-gold'].forEach(cls => cardEl.classList.remove(cls));
     if (cardClass) {
       cardEl.classList.add(cardClass);
+      cardEl.dataset.cardColor = colorKey;
+    } else {
+      cardEl.dataset.cardColor = '';
+    }
+
+    // Also force background via style attribute (catches any remaining cascade issues)
+    if (cardClass) {
+      const bgColor = userDetails.cardColor;
+      cardEl.style.cssText += `; background: ${bgColor} !important; animation: none !important; background-size: 100% 100% !important; border-color: ${bgColor} !important;`;
     }
 
     // Use custom cardTitle if set, otherwise fall back to tier name
