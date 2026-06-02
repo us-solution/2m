@@ -123,9 +123,7 @@ router.get('/me', authenticateToken, async (req, res) => {
     points: req.user.points,
     total_spent: parseFloat(req.user.total_spent),
     subscriptionTier: req.user.subscriptionTier,
-    cardTitle: req.user.cardTitle || '',
-    discountPercent: req.user.discountPercent || 0,
-    cardColor: req.user.cardColor || '#541a1a'
+    customerStatus: req.user.customerStatus || 'standard'
   });
 });
 

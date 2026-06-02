@@ -311,7 +311,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       </div>
 
       <table><thead><tr>
-        <th>الاسم</th><th>الهاتف</th><th>الدور</th><th>النقاط</th><th>الإنفاق</th><th>اللقب</th><th>الخصم %</th><th>لون البطاقة</th><th>إجراء</th>
+        <th>الاسم</th><th>الهاتف</th><th>الدور</th><th>النقاط</th><th>الإنفاق</th><th>حالة العميل</th><th>إجراء</th>
       </tr></thead>
       <tbody id="usersTable"></tbody></table>
     </div>
@@ -1375,11 +1375,14 @@ async function loadUsers() {
       </td>
       <td class="points-badge"><span class="editable" onclick="editUserPoints('${u.id}',${u.points},this)">${u.points}</span></td>
       <td style="color:var(--gold);font-size:.9rem">${Math.round(u.total_spent)} ج.م</td>
-      <td><span class="editable" onclick="editUserFieldDirect('${u.id}','cardTitle','${(u.cardTitle||'').replace(/'/g,"\\'")}',this)">${u.cardTitle || '—'}</span></td>
-      <td><span class="editable" onclick="editUserPercent('${u.id}','discountPercent',${u.discountPercent||0},this)">${u.discountPercent||0}%</span></td>
-      <td>${[['#541a1a','أحمر 15%'],['#1a2e24','أخضر 0%'],['#1a1a40','أزرق 10%'],['#7a5a00','ذهبي 30%']].map(([c,label]) =>
-        `<span title="${label}" onclick="setCardColor('${u.id}','${c}')" style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${c};margin:0 2px;cursor:pointer;border:2px solid ${c===u.cardColor?'var(--gold)':'transparent'};${c===u.cardColor?'transform:scale(1.2)':''}"></span>`
-      ).join('')}</td>
+      <td>
+        <select onchange="changeCustomerStatus('${u.id}',this.value)" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.3rem;font-family:'Outfit',sans-serif;font-size:.8rem;">
+          <option value="standard" ${u.customerStatus==='standard'?'selected':''}>Standard</option>
+          <option value="gold" ${u.customerStatus==='gold'?'selected':''}>Gold</option>
+          <option value="student" ${u.customerStatus==='student'?'selected':''}>Student</option>
+          <option value="ozel_family" ${u.customerStatus==='ozel_family'?'selected':''}>OZEL FAMILY</option>
+        </select>
+      </td>
       <td>
         <button class="action-btn2" onclick="editUserPassword('${u.id}')">كلمة المرور</button>
         <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteUser('${u.id}')">حذف</button>
@@ -1423,33 +1426,6 @@ function editUserField(id, field, current, el) {
   el.replaceWith(inp); inp.focus(); inp.select();
 }
 
-function editUserFieldDirect(id, field, current, el) {
-  const inp = document.createElement('input');
-  inp.className = 'edit-input'; inp.type = 'text'; inp.value = current === '—' ? '' : current; inp.style.width = '90px';
-  inp.onblur = async () => {
-    const val = inp.value.trim();
-    if (val !== current.replace(/—/g,'')) { await patchUser(id, { [field]: val }); el.textContent = val || '—'; }
-    else { el.textContent = current; }
-    inp.replaceWith(el);
-  };
-  inp.onkeydown = e => { if(e.key==='Enter') inp.blur(); if(e.key==='Escape') inp.replaceWith(el); };
-  el.replaceWith(inp); inp.focus(); inp.select();
-}
-
-function editUserPercent(id, field, current, el) {
-  const inp = document.createElement('input');
-  inp.className = 'edit-input'; inp.type = 'number'; inp.value = current; inp.style.width = '60px'; inp.min = '0'; inp.max = '100';
-  inp.onblur = async () => {
-    const val = parseFloat(inp.value);
-    if (!isNaN(val) && val >= 0 && val <= 100 && val !== current) {
-      await patchUser(id, { [field]: val }); el.textContent = val + '%';
-    } else { el.textContent = current + '%'; }
-    inp.replaceWith(el);
-  };
-  inp.onkeydown = e => { if(e.key==='Enter') inp.blur(); if(e.key==='Escape') inp.replaceWith(el); };
-  el.replaceWith(inp); inp.focus(); inp.select();
-}
-
 function editUserPoints(id, current, el) {
   const inp = document.createElement('input');
   inp.className = 'edit-input'; inp.type = 'number'; inp.value = current; inp.style.width = '70px';
@@ -1479,14 +1455,6 @@ async function patchUser(id, data) {
   await fetch(`/api/admin/users/${id}`, { method:'PATCH', headers: getAuthH(), body: JSON.stringify(data) });
 }
 
-const COLOR_DISCOUNT = { '#1a2e24': 0, '#1a1a40': 10, '#541a1a': 15, '#7a5a00': 30 };
-
-function setCardColor(id, color) {
-  const discount = COLOR_DISCOUNT[color] || 0;
-  patchUser(id, { cardColor: color, discountPercent: discount });
-  loadUsers();
-}
-
 async function deleteUser(id) {
   if(!await showModal('تأكيد', 'هل أنت متأكد من حذف المستخدم نهائياً؟', true)) return;
   const res = await fetch(`/api/admin/users/${id}`, { method:'DELETE', headers: getAuthH() });
@@ -1497,6 +1465,10 @@ async function deleteUser(id) {
 
 async function changeRole(id, role) {
   await fetch(`/api/admin/users/${id}`, { method:'PATCH', headers: getAuthH(), body: JSON.stringify({ role }) });
+}
+
+async function changeCustomerStatus(id, status) {
+  await fetch(`/api/admin/users/${id}`, { method:'PATCH', headers: getAuthH(), body: JSON.stringify({ customerStatus: status }) });
 }
 
 function logout() { localStorage.clear(); location.href = 'login.html'; }

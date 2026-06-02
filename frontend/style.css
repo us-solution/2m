@@ -4579,7 +4579,13 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   animation: none;
   background-size: 100% 100%;
 }
-
+.vip-card.card-purple {
+  background: #1a0a30;
+  border-color: rgba(90, 30, 120, 0.5);
+  box-shadow: 0 12px 30px rgba(90, 30, 120, 0.3);
+  animation: none;
+  background-size: 100% 100%;
+}
 .vip-card-badge {
   position: absolute;
   top: 1rem;

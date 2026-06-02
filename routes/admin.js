@@ -145,9 +145,7 @@ router.get('/users', authenticateToken, requireRole('admin'), async (req, res) =
       total_spent: parseFloat(u.total_spent),
       date_joined: u.createdAt.toISOString(),
       subscriptionTier: u.subscriptionTier,
-      cardTitle: u.cardTitle || '',
-      discountPercent: u.discountPercent || 0,
-      cardColor: u.cardColor || '#541a1a'
+      customerStatus: u.customerStatus || 'standard'
     }));
     res.json(serialized);
   } catch (err) {
@@ -157,7 +155,7 @@ router.get('/users', authenticateToken, requireRole('admin'), async (req, res) =
 
 // Admin create user
 router.post('/users', authenticateToken, requireRole('admin'), async (req, res) => {
-  const { name, phone, email, password, role, points, subscriptionTier, cardTitle, discountPercent, cardColor } = req.body;
+  const { name, phone, email, password, role, points, subscriptionTier, customerStatus } = req.body;
 
   if (!name || !password || (!phone && !email)) {
     return res.status(400).json({ error: 'Missing fields: name, password, and phone/email required' });
@@ -182,9 +180,7 @@ router.post('/users', authenticateToken, requireRole('admin'), async (req, res) 
       role: role || 'customer',
       points: parseInt(points || 0),
       subscriptionTier: subscriptionTier || 'none',
-      cardTitle: cardTitle || '',
-      discountPercent: discountPercent || 0,
-      cardColor: cardColor || '#541a1a'
+      customerStatus: customerStatus || 'standard'
     });
 
     res.json({ success: true, id: u._id });
@@ -195,7 +191,7 @@ router.post('/users', authenticateToken, requireRole('admin'), async (req, res) 
 
 // Admin edit user
 router.patch('/users/:id', authenticateToken, requireRole('admin'), async (req, res) => {
-  const { name, phone, email, role, points, password, subscriptionTier, cardTitle, discountPercent, cardColor } = req.body;
+  const { name, phone, email, role, points, password, subscriptionTier, customerStatus } = req.body;
 
   try {
     const u = await User.findById(req.params.id);
@@ -207,9 +203,7 @@ router.patch('/users/:id', authenticateToken, requireRole('admin'), async (req, 
     if (role !== undefined) u.role = role;
     if (points !== undefined) u.points = parseInt(points);
     if (subscriptionTier !== undefined) u.subscriptionTier = subscriptionTier;
-    if (cardTitle !== undefined) u.cardTitle = cardTitle;
-    if (discountPercent !== undefined) u.discountPercent = discountPercent;
-    if (cardColor !== undefined) u.cardColor = cardColor;
+    if (customerStatus !== undefined) u.customerStatus = customerStatus;
     if (password) {
       u.password = await bcrypt.hash(password, 10);
     }

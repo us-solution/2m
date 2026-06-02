@@ -206,79 +206,45 @@ window.openProfileModal = async function() {
     document.getElementById('profileMemberName').textContent = userDetails.name || 'MEMBER';
   }
 
-  // Handle Dynamic ID Card Styling based on Subscription Tier
+  // Handle Dynamic ID Card Styling based on Customer Status
   const cardEl = document.getElementById('profileVipCard');
   const badgeEl = document.getElementById('profileTierBadge');
   const discountEl = document.getElementById('profileDiscountRate');
 
   if (cardEl && badgeEl && discountEl) {
-    // Reset tier classes
-    cardEl.className = 'vip-card';
-    
-    const tier = (userDetails.subscriptionTier || 'none').toLowerCase();
-    cardEl.classList.add(`tier-${tier}`);
+    // Customer status config: status → [cssClass, bgColor, title, discount%]
+    const STATUS_MAP = {
+      standard:    ['card-green',  '#1a2e24', isAr ? 'عادي' : 'STANDARD',     null],
+      gold:        ['card-red',    '#541a1a', isAr ? 'ذهبي' : 'GOLD',         '10%'],
+      student:     ['card-blue',   '#1a1a40', isAr ? 'طالب' : 'STUDENT',      '15%'],
+      ozel_family: ['card-purple', '#1a0a30', isAr ? 'عائلة OZEL' : 'OZEL FAMILY', '30%']
+    };
+    const status = userDetails.customerStatus || 'standard';
+    const [cssClass, bgColor, title, discountPct] = STATUS_MAP[status] || STATUS_MAP.standard;
 
-    // Map cardColor to CSS class
-    const CARD_CLASSES = { '#1a2e24': 'card-green', '#1a1a40': 'card-blue', '#541a1a': 'card-red', '#7a5a00': 'card-gold' };
-    const colorKey = userDetails.cardColor ? userDetails.cardColor.trim().toLowerCase() : '';
-    const cardClass = CARD_CLASSES[colorKey] || '';
+    // Remove old status classes
+    ['card-green','card-red','card-blue','card-purple','tier-none','tier-bronze','tier-silver','tier-gold','tier-student'].forEach(cls => cardEl.classList.remove(cls));
+    cardEl.classList.add('vip-card', cssClass);
 
-    // Remove any existing custom card classes and add the matching one
-    ['card-green','card-blue','card-red','card-gold'].forEach(cls => cardEl.classList.remove(cls));
-    if (cardClass) {
-      cardEl.classList.add(cardClass);
-      cardEl.dataset.cardColor = colorKey;
-    }
-
-    // Inject a <style> rule targeting the card by ID — highest specificity possible
+    // Inject style rule for the card background
     let styleTag = document.getElementById('card-color-override');
-    if (!styleTag) {
-      styleTag = document.createElement('style');
-      styleTag.id = 'card-color-override';
-      document.head.appendChild(styleTag);
-    }
-    if (cardClass) {
-      styleTag.textContent = `#profileVipCard { background: ${userDetails.cardColor} !important; background-image: none !important; animation: none !important; background-size: 100% 100% !important; }`;
+    if (!styleTag) { styleTag = document.createElement('style'); styleTag.id = 'card-color-override'; document.head.appendChild(styleTag); }
+    styleTag.textContent = `#profileVipCard { background: ${bgColor} !important; background-image: none !important; animation: none !important; background-size: 100% 100% !important; }`;
+
+    badgeEl.textContent = title;
+
+    if (status === 'standard') {
+      // STANDARD: discount based on points (every 100 points = 10 EGP)
+      const pts = userDetails.points || 0;
+      const egpDiscount = Math.floor(pts / 100) * 10;
+      discountEl.innerHTML = isAr
+        ? `نسبة الخصم الخاصة بك: <span style="color:var(--gold); font-size:1.15rem; font-weight:700;">${egpDiscount} ج.م</span>`
+        : `Your discount rate: <span style="color:var(--gold); font-size:1.15rem; font-weight:700;">${egpDiscount} EGP</span>`;
     } else {
-      styleTag.textContent = '';
+      discountEl.innerHTML = isAr
+        ? `نسبة الخصم الخاصة بك: <span style="color:var(--gold); font-size:1.15rem; font-weight:700;">${discountPct}</span>`
+        : `Your discount rate: <span style="color:var(--gold); font-size:1.15rem; font-weight:700;">${discountPct}</span>`;
     }
-
-    // Use custom cardTitle if set, otherwise fall back to tier name
-    let discount = '0%';
-    let tierName = '';
-    
-    if (tier === 'bronze') {
-      tierName = isAr ? 'برونزية' : 'BRONZE';
-      discount = '5%';
-    } else if (tier === 'silver') {
-      tierName = isAr ? 'فضية' : 'SILVER';
-      discount = '10%';
-    } else if (tier === 'gold') {
-      tierName = isAr ? 'ذهبية' : 'GOLD';
-      discount = '15%';
-    } else if (tier === 'student') {
-      tierName = isAr ? 'طالب' : 'STUDENT';
-      discount = '20%';
-    } else {
-      tierName = isAr ? 'عادي' : 'STANDARD';
-    }
-
-    // Discount derived from color mapping
-    const COLOR_DISCOUNT = { '#1a2e24': 0, '#1a1a40': 10, '#541a1a': 15, '#7a5a00': 30 };
-    const colorDiscount = COLOR_DISCOUNT[userDetails.cardColor] !== undefined ? COLOR_DISCOUNT[userDetails.cardColor] : null;
-
-    // Use discount from profile if set, otherwise derive from color
-    if (colorDiscount !== null && (!userDetails.discountPercent || userDetails.discountPercent === 0)) {
-      discount = colorDiscount + '%';
-    } else if (userDetails.discountPercent !== undefined && userDetails.discountPercent > 0) {
-      discount = userDetails.discountPercent + '%';
-    }
-
-    // Use custom cardTitle if set
-    badgeEl.textContent = userDetails.cardTitle || tierName;
-    discountEl.innerHTML = isAr 
-      ? `نسبة الخصم الخاصة بك: <span style="color:var(--gold); font-size:1.15rem; font-weight:700;">${discount}</span>`
-      : `Your discount rate: <span style="color:var(--gold); font-size:1.15rem; font-weight:700;">${discount}</span>`;
   }
 
   // Initialize vanilla tilt on the ID card if present
