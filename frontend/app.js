@@ -218,11 +218,11 @@ window.openProfileModal = async function() {
     const tier = (userDetails.subscriptionTier || 'none').toLowerCase();
     cardEl.classList.add(`tier-${tier}`);
 
-    // Apply custom card color if set
+    // Apply custom card color if set — use !important to override CSS class gradients
     if (userDetails.cardColor) {
-      cardEl.style.background = userDetails.cardColor;
-      cardEl.style.animation = 'none';
-      cardEl.style.backgroundSize = '100% 100%';
+      cardEl.style.setProperty('background', userDetails.cardColor, 'important');
+      cardEl.style.setProperty('animation', 'none', 'important');
+      cardEl.style.setProperty('background-size', '100% 100%', 'important');
     } else {
       cardEl.style.background = '';
       cardEl.style.animation = '';
