@@ -221,8 +221,12 @@ window.openProfileModal = async function() {
     // Apply custom card color if set
     if (userDetails.cardColor) {
       cardEl.style.background = userDetails.cardColor;
+      cardEl.style.animation = 'none';
+      cardEl.style.backgroundSize = '100% 100%';
     } else {
       cardEl.style.background = '';
+      cardEl.style.animation = '';
+      cardEl.style.backgroundSize = '';
     }
 
     // Use custom cardTitle if set, otherwise fall back to tier name

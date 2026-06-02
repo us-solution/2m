@@ -1377,7 +1377,9 @@ async function loadUsers() {
       <td style="color:var(--gold);font-size:.9rem">${Math.round(u.total_spent)} ج.م</td>
       <td><span class="editable" onclick="editUserFieldDirect('${u.id}','cardTitle','${(u.cardTitle||'').replace(/'/g,"\\'")}',this)">${u.cardTitle || '—'}</span></td>
       <td><span class="editable" onclick="editUserPercent('${u.id}','discountPercent',${u.discountPercent||0},this)">${u.discountPercent||0}%</span></td>
-      <td><input type="color" value="${u.cardColor||'#541a1a'}" onchange="patchUser('${u.id}',{cardColor:this.value})" style="width:30px;height:24px;padding:0;border:1px solid var(--line);cursor:pointer;background:none;"></td>
+      <td>${['#541a1a','#1a2e24','#1a1a40','#7a5a00'].map(c =>
+        `<span onclick="setCardColor('${u.id}','${c}')" style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${c};margin:0 2px;cursor:pointer;border:2px solid ${c===u.cardColor?'var(--gold)':'transparent'};${c===u.cardColor?'transform:scale(1.2)':''}"></span>`
+      ).join('')}</td>
       <td>
         <button class="action-btn2" onclick="editUserPassword('${u.id}')">كلمة المرور</button>
         <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteUser('${u.id}')">حذف</button>
@@ -1475,6 +1477,11 @@ async function editUserPassword(id) {
 
 async function patchUser(id, data) {
   await fetch(`/api/admin/users/${id}`, { method:'PATCH', headers: getAuthH(), body: JSON.stringify(data) });
+}
+
+function setCardColor(id, color) {
+  patchUser(id, { cardColor: color });
+  loadUsers();
 }
 
 async function deleteUser(id) {
