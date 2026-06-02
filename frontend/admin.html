@@ -398,8 +398,22 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
           <button class="hbtn" style="border-color:var(--accent-emerald);color:var(--accent-emerald);" onclick="addCashMovement()">حفظ الحركة</button>
         </div>
       </div>
-      <div id="finance-summary" style="background:var(--bg2); border:1px solid var(--line); padding:1rem; margin-bottom:1rem;">جارٍ تحميل الملخص المالي...</div>
-      <div id="finance-items" style="background:var(--bg2); border:1px solid var(--line); padding:1rem;">جارٍ تحميل القيود...</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+        <div>
+          <div id="finance-summary" style="background:var(--bg2); border:1px solid var(--line); padding:1rem; margin-bottom:1rem;">جارٍ تحميل الملخص المالي...</div>
+          <div id="finance-expenses" style="background:var(--bg2); border:1px solid var(--line); padding:1rem;">
+            <h3 style="font-size:.9rem; margin-bottom:.5rem;">آخر المصروفات</h3>
+            <div id="finance-expenses-list">جارٍ التحميل...</div>
+          </div>
+        </div>
+        <div>
+          <div id="finance-cash-movements" style="background:var(--bg2); border:1px solid var(--line); padding:1rem; margin-bottom:1rem;">
+            <h3 style="font-size:.9rem; margin-bottom:.5rem;">آخر الحركات النقدية</h3>
+            <div id="finance-cash-list">جارٍ التحميل...</div>
+          </div>
+          <div id="finance-items" style="background:var(--bg2); border:1px solid var(--line); padding:1rem;">جارٍ تحميل قيود التكاليف...</div>
+        </div>
+      </div>
     </div>
 
     <!-- REPORTS -->
@@ -594,12 +608,16 @@ async function closeActiveShiftFromAdmin() {
 
 async function loadFinancePage() {
   try {
-    const [summaryRes, costsRes, accountsRes] = await Promise.all([
+    const [summaryRes, costsRes, accountsRes, expensesRes, cashRes] = await Promise.all([
       fetch('/api/reports/monthly-summary', { headers: getAuthH() }),
       fetch('/api/reports/costs', { headers: getAuthH() }),
-      fetch('/api/reports/accounts', { headers: getAuthH() })
+      fetch('/api/reports/accounts', { headers: getAuthH() }),
+      fetch('/api/finance/expenses?limit=20', { headers: getAuthH() }),
+      fetch('/api/finance/cash-movements?limit=20', { headers: getAuthH() })
     ]);
-    const [summary, costs, accounts] = await Promise.all([summaryRes.json(), costsRes.json(), accountsRes.json()]);
+    const [summary, costs, accounts, expenses, cashMovements] = await Promise.all([
+      summaryRes.json(), costsRes.json(), accountsRes.json(), expensesRes.json(), cashRes.json()
+    ]);
     document.getElementById('finance-summary').innerHTML = `
       <div><b>معدل التشغيل الشهري:</b> ${parseFloat(summary.monthlyRunRate || 0).toFixed(2)} ج.م</div>
       <div><b>الإيرادات:</b> ${parseFloat(summary.revenue || 0).toFixed(2)} ج.م</div>
@@ -611,9 +629,57 @@ async function loadFinancePage() {
     document.getElementById('finance-items').innerHTML = topCosts.length
       ? topCosts.map(([cat, amt]) => `<div style="padding:.4rem 0;border-bottom:1px solid var(--line);"><b>${cat}</b>: ${parseFloat(amt).toFixed(2)} ج.م</div>`).join('')
       : '<span style="color:var(--muted)">لا توجد سجلات تكاليف بعد.</span>';
+
+    // Expenses list
+    const expList = document.getElementById('finance-expenses-list');
+    if (expenses && expenses.length > 0) {
+      expList.innerHTML = expenses.map(e => `
+        <div style="display:grid; grid-template-columns:1fr auto; gap:.4rem; padding:.4rem 0; border-bottom:1px solid var(--line); font-size:.8rem;">
+          <div><b>${e.title}</b><br/><span style="color:var(--muted);">${e.category} — ${new Date(e.expenseDate).toLocaleDateString('ar-EG')}</span></div>
+          <div style="text-align:left;">
+            <div style="color:var(--red); font-weight:700;">${parseFloat(e.amount).toFixed(2)} ج.م</div>
+            <button class="action-btn2" style="color:var(--red); border-color:var(--red); font-size:.7rem; padding:.15rem .5rem;" onclick="deleteExpense('${e._id}')">حذف</button>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      expList.innerHTML = '<span style="color:var(--muted)">لا توجد مصروفات بعد.</span>';
+    }
+
+    // Cash movements list
+    const cashList = document.getElementById('finance-cash-list');
+    if (cashMovements && cashMovements.length > 0) {
+      cashList.innerHTML = cashMovements.map(m => `
+        <div style="display:grid; grid-template-columns:1fr auto; gap:.4rem; padding:.4rem 0; border-bottom:1px solid var(--line); font-size:.8rem;">
+          <div><b>${m.reason}</b><br/><span style="color:var(--muted);">${m.movementType === 'in' ? 'إيداع' : 'سحب'} — ${new Date(m.movementDate).toLocaleDateString('ar-EG')}</span></div>
+          <div style="text-align:left;">
+            <div style="color:${m.movementType === 'in' ? 'var(--green)' : 'var(--red)'}; font-weight:700;">${parseFloat(m.amount).toFixed(2)} ج.م</div>
+            <button class="action-btn2" style="color:var(--red); border-color:var(--red); font-size:.7rem; padding:.15rem .5rem;" onclick="deleteCashMovement('${m._id}')">حذف</button>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      cashList.innerHTML = '<span style="color:var(--muted)">لا توجد حركات نقدية بعد.</span>';
+    }
   } catch (err) {
     document.getElementById('finance-summary').innerHTML = `<span style="color:var(--red)">فشل تحميل البيانات المالية: ${err.message}</span>`;
   }
+}
+
+async function deleteExpense(id) {
+  if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذا المصروف نهائياً؟', true)) return;
+  const res = await fetch('/api/finance/expenses/' + id, { method: 'DELETE', headers: getAuthH() });
+  const data = await res.json();
+  if (data.success) { loadFinancePage(); showModal('نجاح', 'تم حذف المصروف'); }
+  else showModal('خطأ', data.error || 'فشل في الحذف');
+}
+
+async function deleteCashMovement(id) {
+  if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذه الحركة النقدية نهائياً؟', true)) return;
+  const res = await fetch('/api/finance/cash-movements/' + id, { method: 'DELETE', headers: getAuthH() });
+  const data = await res.json();
+  if (data.success) { loadFinancePage(); showModal('نجاح', 'تم حذف الحركة'); }
+  else showModal('خطأ', data.error || 'فشل في الحذف');
 }
 
 async function addExpense() {
@@ -1063,7 +1129,10 @@ async function loadOrders() {
       <td><span class="badge badge-${o.status==='pending'?'hidden':o.status==='ready'?'cashier':o.status==='cancelled'?'red':'customer'}">${statusMap[o.status]||o.status}</span></td>
       <td style="color:var(--muted);font-size:.78rem">${new Date(o.created_at).toLocaleString('ar-EG')}</td>
       <td>
-        ${o.status !== 'served' && o.status !== 'cancelled' ? `<button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="cancelOrderAdmin(${o.id})">إلغاء</button>` : ''}
+        <div style="display:flex;gap:.3rem;flex-wrap:wrap;">
+          ${o.status !== 'served' && o.status !== 'cancelled' ? `<button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="cancelOrderAdmin(${o.id})">إلغاء</button>` : ''}
+          <button class="action-btn2" style="color:var(--red); border-color:var(--red);" onclick="deleteOrderAdmin('${o.id}')">حذف</button>
+        </div>
       </td>
     </tr>`;
   }).join('');
@@ -1079,6 +1148,14 @@ async function cancelOrderAdmin(id) {
   const data = await res.json();
   if (data.success) loadOrders();
   else showModal('خطأ', 'فشل في إلغاء الطلب');
+}
+
+async function deleteOrderAdmin(id) {
+  if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذا الطلب نهائياً؟ لا يمكن التراجع عن هذا الإجراء.', true)) return;
+  const res = await fetch(`/api/orders/${id}`, { method: 'DELETE', headers: getAuthH() });
+  const data = await res.json();
+  if (data.success) { loadOrders(); showModal('نجاح', 'تم حذف الطلب'); }
+  else showModal('خطأ', data.error || 'فشل في حذف الطلب');
 }
 
 async function loadUsers() {
@@ -1327,20 +1404,21 @@ async function loadReports() {
     // Shift history
     const shiftDiv = document.getElementById('r-shifts');
     if (shifts && shifts.length > 0) {
-      shiftDiv.innerHTML = '<div style="display:grid; grid-template-columns: 1fr auto auto auto auto auto auto; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>الوردية</span><span>الكاشير</span><span>الإيرادات</span><span>نقداً</span><span>الفارق</span><span>الحالة</span></div>' +
+      shiftDiv.innerHTML = '<div style="display:grid; grid-template-columns: 1fr auto auto auto auto auto auto auto; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>الوردية</span><span>الكاشير</span><span>الإيرادات</span><span>نقداً</span><span>الفارق</span><span>الحالة</span><span>إجراء</span></div>' +
         shifts.slice(0, 20).map(s => {
           const exp = s.expectedBalance || 0;
           const actual = s.closingBalance || 0;
           const diff = exp ? ((actual - exp) / exp * 100).toFixed(1) : '—';
           const diffColor = Math.abs(parseFloat(diff)) > 2 ? 'var(--red)' : 'var(--accent-emerald)';
           const cashAmt = (s.paymentBreakdown && s.paymentBreakdown.cash) || 0;
-          return `<div style="display:grid; grid-template-columns: 1fr auto auto auto auto auto auto; gap:.5rem; align-items:center; padding:.4rem 0; border-bottom:1px solid var(--line);">
+          return `<div style="display:grid; grid-template-columns: 1fr auto auto auto auto auto auto auto; gap:.5rem; align-items:center; padding:.4rem 0; border-bottom:1px solid var(--line);">
             <span style="color:var(--text); font-size:.85rem;">${new Date(s.openedAt).toLocaleDateString('ar-EG', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
             <span style="color:var(--muted); font-size:.8rem;">${s.cashierName || 'كاشير'}</span>
             <span style="color:var(--accent-emerald); font-size:.85rem;">${s.totalRevenue ? parseFloat(s.totalRevenue).toFixed(0) : '0'} ج.م</span>
             <span style="color:var(--gold); font-size:.85rem; font-weight:700;">${cashAmt.toFixed(0)} ج.م</span>
             <span style="color:${diffColor}; font-size:.8rem;">${diff}%</span>
             <span style="color:${s.status === 'open' ? 'var(--gold)' : 'var(--muted)'}; font-size:.8rem;">${s.status === 'open' ? 'مفتوحة' : 'مغلقة'}</span>
+            <span><button class="action-btn2" style="color:var(--red); border-color:var(--red); font-size:.7rem; padding:.15rem .5rem;" onclick="deleteShiftAdmin('${s._id}')">حذف</button></span>
           </div>`;
         }).join('');
     } else {
@@ -1481,6 +1559,14 @@ async function loadReports() {
   } catch (err) {
     console.error('[Reports] Error:', err);
   }
+}
+
+async function deleteShiftAdmin(id) {
+  if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذه الوردية نهائياً؟', true)) return;
+  const res = await fetch('/api/shifts/' + id, { method: 'DELETE', headers: getAuthH() });
+  const data = await res.json();
+  if (data.success) { loadReports(); showModal('نجاح', 'تم حذف الوردية'); }
+  else showModal('خطأ', data.error || 'فشل في الحذف');
 }
 
 function downloadPDF() {

@@ -139,4 +139,16 @@ router.get('/:id', authenticateToken, requireRole('cashier'), async (req, res) =
   }
 });
 
+// Admin delete shift (force delete)
+router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const shift = await Shift.findById(req.params.id);
+    if (!shift) return res.status(404).json({ error: 'Shift not found' });
+    await shift.deleteOne();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

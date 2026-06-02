@@ -78,4 +78,28 @@ router.post('/cash-movements', authenticateToken, requireRole('admin'), async (r
   }
 });
 
+// Admin delete expense
+router.delete('/expenses/:id', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const item = await Expense.findById(req.params.id);
+    if (!item) return res.status(404).json({ error: 'Expense not found' });
+    await item.deleteOne();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin delete cash movement
+router.delete('/cash-movements/:id', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const item = await CashMovement.findById(req.params.id);
+    if (!item) return res.status(404).json({ error: 'Cash movement not found' });
+    await item.deleteOne();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

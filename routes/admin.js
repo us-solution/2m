@@ -516,4 +516,16 @@ router.get('/reports/:type', authenticateToken, requireRole('admin'), async (req
   }
 });
 
+// Delete report snapshot
+router.delete('/reports/:id', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const snap = await ReportSnapshot.findById(req.params.id);
+    if (!snap) return res.status(404).json({ error: 'Report snapshot not found' });
+    await snap.deleteOne();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

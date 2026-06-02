@@ -512,4 +512,16 @@ router.post('/mark-synced', async (req, res) => {
   }
 });
 
+// Admin delete order (permanent)
+router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    await order.deleteOne();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
