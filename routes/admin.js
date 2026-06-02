@@ -266,6 +266,7 @@ router.get('/drinks', authenticateToken, requireRole('admin'), async (req, res) 
       image_emoji: d.image_emoji,
       is_featured: d.is_featured,
       is_available: d.is_available,
+      availableExtras: d.availableExtras || [],
       cat_name: d.categoryId ? d.categoryId.name_ar : ''
     }));
     
@@ -280,7 +281,7 @@ router.post('/drinks', authenticateToken, requireRole('admin'), async (req, res)
   const {
     category_id, name, name_ar, tagline, description, ingredients,
     preparation, price, calories, serving_size, temperature, image_emoji,
-    is_featured, is_available
+    is_featured, is_available, availableExtras
   } = req.body;
 
   try {
@@ -304,7 +305,8 @@ router.post('/drinks', authenticateToken, requireRole('admin'), async (req, res)
       temperature: temperature || 'hot',
       image_emoji: image_emoji || 'imgs/espresso.png',
       is_featured: parseInt(is_featured || 0),
-      is_available: parseInt(is_available || 1)
+      is_available: parseInt(is_available || 1),
+      availableExtras: availableExtras || []
     });
     
     res.json({ success: true, id: d._id });
@@ -341,6 +343,7 @@ router.patch('/drinks/:id', authenticateToken, requireRole('admin'), async (req,
     if (data.image_emoji !== undefined) d.image_emoji = data.image_emoji;
     if (data.is_featured !== undefined) d.is_featured = parseInt(data.is_featured);
     if (data.is_available !== undefined) d.is_available = parseInt(data.is_available);
+    if (data.availableExtras !== undefined) d.availableExtras = data.availableExtras;
 
     await d.save();
     res.json({ success: true });

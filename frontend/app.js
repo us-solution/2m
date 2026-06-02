@@ -479,8 +479,8 @@ function getSugarChipsHTML(prefix) {
   }).join('');
 }
 
-function getExtrasChipsHTML(prefix) {
-  const extrasList = (customizationOptions && customizationOptions.extras && customizationOptions.extras.length)
+function getExtrasChipsHTML(prefix, drinkExtras) {
+  let extrasList = (customizationOptions && customizationOptions.extras && customizationOptions.extras.length)
     ? customizationOptions.extras
     : [{ key: 'None', nameEn: 'No Extras', nameAr: 'بدون إضافات', price: 0 },
        { key: 'Extra Shot', nameEn: 'Extra Espresso Shot', nameAr: 'جرعة إضافية', price: 25 },
@@ -489,6 +489,11 @@ function getExtrasChipsHTML(prefix) {
        { key: 'Ice Cream', nameEn: 'Ice Cream', nameAr: 'آيس كريم', price: 20 },
        { key: 'Marshmallow', nameEn: 'Marshmallow', nameAr: 'مارشميلو', price: 10 },
        { key: 'Nuts', nameEn: 'Nuts Mix', nameAr: 'مكسرات', price: 15 }];
+  // تصفية حسب الإضافات المتاحة للمشروب إذا كانت محددة
+  if (drinkExtras && drinkExtras.length) {
+    const allowed = new Set(drinkExtras);
+    extrasList = extrasList.filter(e => allowed.has(e.key));
+  }
   const isAr = currentLang === 'ar';
   return extrasList.map((e, i) => {
     const label = isAr ? e.nameAr : e.nameEn;
@@ -567,7 +572,7 @@ window.openDrink = async function(id) {
           <div class="deck-custom-group">
             <span class="deck-custom-label">${isAr ? 'الإضافات' : 'Extras'}</span>
             <div class="deck-chips" id="deck-chips-extra">
-              ${getExtrasChipsHTML('deck')}
+              ${getExtrasChipsHTML('deck', drink.availableExtras)}
             </div>
           </div>
         </div>
@@ -627,7 +632,7 @@ window.openDrink = async function(id) {
 
       <span class="puzzle-label">${extraTitle}</span>
       <div class="puzzle-chips" id="chips-extra">
-        ${getExtrasChipsHTML('pz')}
+        ${getExtrasChipsHTML('pz', drink.availableExtras)}
       </div>
 
       <textarea id="drinkNotes" placeholder="${isAr ? 'أضف ملاحظاتك هنا...' : 'Add your notes here...'}" style="width:100%; background:var(--bg); border:1px solid var(--line); color:var(--text); padding:.7rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.95rem; outline:none; margin-top: 1rem; height: 60px;"></textarea>

@@ -72,6 +72,11 @@ const drinkSchema = new mongoose.Schema({
   is_available: {
     type: Number,
     default: 1
+  },
+  // قائمة الإضافات المتاحة لهذا المشروب (مصفوفة من مفاتيح الإضافات، فارغة = الكل متاح)
+  availableExtras: {
+    type: [String],
+    default: []
   }
 }, {
   timestamps: false,

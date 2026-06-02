@@ -40,9 +40,10 @@ router.get('/', async (req, res) => {
       temperature: d.temperature,
       image_emoji: d.image_emoji,
       is_featured: d.is_featured,
-      is_available: d.is_available
+      is_available: d.is_available,
+      availableExtras: d.availableExtras || []
     }));
-    
+
     // تخزين مؤقت لمدة 5 دقائق — القائمة نادراً ما تتغير أثناء الخدمة
     res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
     res.json(serialized);
@@ -77,7 +78,8 @@ router.get('/:id', async (req, res) => {
       temperature: d.temperature,
       image_emoji: d.image_emoji,
       is_featured: d.is_featured,
-      is_available: d.is_available
+      is_available: d.is_available,
+      availableExtras: d.availableExtras || []
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

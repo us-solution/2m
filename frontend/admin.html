@@ -273,7 +273,7 @@ td, th { white-space: nowrap; }
         <span onclick="document.getElementById('menu-search').value='';filterMenuTable()" style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--muted); font-size:1.1rem;">×</span>
       </div>
       <table><thead><tr>
-        <th>الصورة</th><th>الاسم</th><th>التصنيف</th><th>السعر</th><th>متاح</th><th>مميز</th><th>إجراء</th>
+        <th>الصورة</th><th>الاسم</th><th>التصنيف</th><th>السعر</th><th>الإضافات</th><th>متاح</th><th>مميز</th><th>إجراء</th>
       </tr></thead>
       <tbody id="menuTable"></tbody></table>
     </div>
@@ -1100,6 +1100,11 @@ function renderMenuTable(data) {
       </td>
       <td style="color:var(--muted);font-size:.8rem">${d.cat_name}</td>
       <td><span class="editable tbl-price" onclick="editPrice('${d.id}',${d.price},this)">${d.price} ج.م</span></td>
+      <td>
+        <button class="hbtn" onclick="openExtrasPicker('${d.id}')" style="font-size:.7rem; padding:.2rem .5rem;">
+          ${(d.availableExtras && d.availableExtras.length) ? d.availableExtras.length + ' إضافة' : 'تحديد'}
+        </button>
+      </td>
       <td>
         <button class="btn-toggle-status ${d.is_available ? 'active-available' : 'inactive-available'}" onclick="toggleDrinkStatus('${d.id}', 'is_available', ${d.is_available})">
           ${d.is_available ? 'متاح' : 'غير متاح'}
@@ -2396,6 +2401,96 @@ function exportReportsCSV() {
 
 // ===== دوال خيارات التخصيص (السكر والإضافات) =====
 let customizationData = null;
+let _extrasPickerDrinkId = null;
+
+// تحميل خيارات التخصيص من الخادم
+async function loadCustomization() {
+  try {
+    const res = await fetch('/api/customization', { headers: getAuthH() });
+    const data = await res.json();
+    customizationData = data;
+    renderSugarLevels(data.sugarLevels || []);
+    renderExtras(data.extras || []);
+  } catch(e) { console.error(e); }
+}
+
+// فتح منتقي الإضافات لمشروب معين
+async function openExtrasPicker(drinkId) {
+  _extrasPickerDrinkId = drinkId;
+  // تحميل خيارات التخصيص إذا لم تكن محملة
+  if (!customizationData) {
+    await loadCustomization();
+  }
+  const extrasList = (customizationData && customizationData.extras) || [];
+  // الحصول على الإضافات المحددة حالياً للمشروب
+  const drink = menuData.find(d => d.id === drinkId);
+  const selected = (drink && drink.availableExtras) || [];
+
+  // بناء نافذة منبثقة
+  const container = document.getElementById('cm-input');
+  container.style.display = 'block';
+  container.type = 'text';
+  container.value = '';
+
+  let html = '<div style="display:flex;flex-direction:column;gap:.6rem;text-align:right;">';
+  extrasList.forEach(e => {
+    const checked = selected.includes(e.key) ? 'checked' : '';
+    html += `<label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.9rem;">
+      <input type="checkbox" value="${e.key}" ${checked} onchange="onExtraToggle('${e.key}',this.checked)">
+      <span>${e.nameAr} (${e.nameEn}) ${e.price > 0 ? '+'+e.price+' ج.م' : ''}</span>
+    </label>`;
+  });
+  html += '</div>';
+  
+  const titleEl = document.getElementById('cm-title');
+  const textEl = document.getElementById('cm-text');
+  titleEl.textContent = 'اختر الإضافات المتاحة';
+  textEl.innerHTML = html;
+  container.style.display = 'none';
+  
+  document.getElementById('cm-cancel').style.display = 'inline-block';
+  document.getElementById('cm-cancel').onclick = () => { document.getElementById('custom-modal').style.display = 'none'; };
+  document.getElementById('cm-ok').textContent = 'حفظ';
+  document.getElementById('cm-ok').onclick = async () => {
+    await saveDrinkExtras(drinkId);
+    document.getElementById('custom-modal').style.display = 'none';
+  };
+  document.getElementById('custom-modal').style.display = 'flex';
+}
+
+// تبديل الإضافات المحددة
+function onExtraToggle(key, checked) {
+  const drink = menuData.find(d => d.id === _extrasPickerDrinkId);
+  if (!drink) return;
+  if (!drink.availableExtras) drink.availableExtras = [];
+  if (checked) {
+    if (!drink.availableExtras.includes(key)) drink.availableExtras.push(key);
+  } else {
+    drink.availableExtras = drink.availableExtras.filter(k => k !== key);
+  }
+}
+
+// حفظ الإضافات للمشروب
+async function saveDrinkExtras(drinkId) {
+  const drink = menuData.find(d => d.id === drinkId);
+  if (!drink) return;
+  try {
+    const res = await fetch('/api/admin/drinks/' + drinkId, {
+      method: 'PATCH',
+      headers: getAuthH(),
+      body: JSON.stringify({ availableExtras: drink.availableExtras || [] })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('تم حفظ الإضافات للمشروب ✅', 'success');
+      loadMenu();
+    } else {
+      showToast('خطأ: ' + (data.error || ''), 'error');
+    }
+  } catch(e) {
+    showToast('خطأ في الاتصال', 'error');
+  }
+}
 
 // تحميل خيارات التخصيص من الخادم
 async function loadCustomization() {
