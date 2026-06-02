@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8"/>
 <script src="api-override.js?v=1"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Admin Panel — OZEL CAFE</title>
+<title>لوحة التحكم — OZEL CAFE</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet"/>
 <style>
 :root {
@@ -30,7 +30,7 @@
   --orange:        #E67E22;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:ltr;}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:rtl;}
 header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:100;}
 .hlogo{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--gold);letter-spacing:.3em;}
 .hbtn{background:transparent;border:1px solid var(--line);color:var(--muted);padding:.4rem .9rem;font-family:'Tajawal',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s;}
@@ -53,7 +53,7 @@ nav{background:var(--bg2);border-right:1px solid var(--line);min-height:calc(100
 
 /* Tables */
 table{width:100%;border-collapse:collapse;}
-th{font-size:.65rem;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;font-family:'Montserrat',sans-serif;padding:.8rem 1rem;border-bottom:1px solid var(--line);text-align:left;font-weight:400;}
+th{font-size:.65rem;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;font-family:'Montserrat',sans-serif;padding:.8rem 1rem;border-bottom:1px solid var(--line);text-align:right;font-weight:400;}
 td{padding:.9rem 1rem;border-bottom:1px solid var(--line);font-size:.9rem;vertical-align:middle;color:var(--text);}
 tr:hover td{background:var(--bg3);}
 .tbl-price{font-family:'Montserrat',sans-serif;color:var(--gold);font-size:1.1rem;font-weight:700;}
@@ -192,287 +192,287 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
 <body>
 <header>
   <div style="display:flex;align-items:center;gap:.6rem;">
-    <img src="imgs/Ozel-Logo--01.png" alt="OZEL CAFE Logo" style="height:50px; width:auto; object-fit:contain;" />
-    <span style="font-size:.7rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase">Admin Panel — </span>
+    <img src="imgs/Ozel-Logo--01.png" alt="شعار OZEL CAFE" style="height:50px; width:auto; object-fit:contain;" />
+    <span style="font-size:.7rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase">لوحة التحكم — </span>
     <span class="hlogo">OZEL</span>
   </div>
   <div style="display:flex;gap:.8rem">
-    <button class="hbtn" onclick="location.href='cashier.html'">Cashier</button>
-    <button class="hbtn" onclick="logout()">Logout</button>
+    <button class="hbtn" onclick="location.href='cashier.html'">الكاشير</button>
+    <button class="hbtn" onclick="logout()">تسجيل خروج</button>
   </div>
 </header>
 <div class="layout">
   <nav>
     <select id="mobile-nav-select" class="mobile-nav" onchange="showPage(this.value, this)" style="display: none; width: 90%; margin: 1rem auto; padding: 0.8rem; background: var(--bg2); border: 1px solid var(--line); border-radius: 4px; font-family: 'Tajawal', sans-serif; font-size: 1rem; color: var(--text);">
-      <option value="dashboard">Dashboard</option>
-      <option value="menu">Menu Management</option>
-      <option value="categories">Categories</option>
-      <option value="offers">Offers</option>
-      <option value="orders">Orders</option>
-      <option value="pos">POS Operations</option>
-      <option value="users">Users</option>
-      <option value="tables">Tables QR</option>
-      <option value="finance">Finance</option>
-      <option value="reports">Reports</option>
+      <option value="dashboard">لوحة التحكم</option>
+      <option value="menu">إدارة القائمة</option>
+      <option value="categories">التصنيفات</option>
+      <option value="offers">العروض</option>
+      <option value="orders">الطلبات</option>
+      <option value="pos">عمليات نقاط البيع</option>
+      <option value="users">المستخدمين</option>
+      <option value="tables">رموز QR للطاولات</option>
+      <option value="finance">المالية</option>
+      <option value="reports">التقارير</option>
     </select>
-    <div class="nav-item active" onclick="showPage('dashboard',this)">Dashboard</div>
-    <div class="nav-item" onclick="showPage('menu',this)">Menu Management</div>
-    <div class="nav-item" onclick="showPage('categories',this)">Categories</div>
-    <div class="nav-item" onclick="showPage('offers',this)">Offers</div>
-    <div class="nav-item" onclick="showPage('orders',this)">Orders</div>
-    <div class="nav-item" onclick="showPage('pos',this)">POS Operations</div>
-    <div class="nav-item" onclick="showPage('users',this)">Users</div>
-    <div class="nav-item" onclick="showPage('tables',this)">Tables QR</div>
-    <div class="nav-item" onclick="showPage('finance',this)">Finance</div>
-    <div class="nav-item" onclick="showPage('reports',this)">Reports</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)">لوحة التحكم</div>
+    <div class="nav-item" onclick="showPage('menu',this)">إدارة القائمة</div>
+    <div class="nav-item" onclick="showPage('categories',this)">التصنيفات</div>
+    <div class="nav-item" onclick="showPage('offers',this)">العروض</div>
+    <div class="nav-item" onclick="showPage('orders',this)">الطلبات</div>
+    <div class="nav-item" onclick="showPage('pos',this)">عمليات نقاط البيع</div>
+    <div class="nav-item" onclick="showPage('users',this)">المستخدمين</div>
+    <div class="nav-item" onclick="showPage('tables',this)">رموز QR للطاولات</div>
+    <div class="nav-item" onclick="showPage('finance',this)">المالية</div>
+    <div class="nav-item" onclick="showPage('reports',this)">التقارير</div>
   </nav>
   <div style="overflow-y:auto;max-height:calc(100vh - 60px)">
 
     <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
-      <h1 class="page-title">Dashboard</h1>
-      <p class="page-sub">Overview of today's performance</p>
-      <div class="stats-grid" id="statsGrid"><p style="color:var(--muted)">Loading...</p></div>
+      <h1 class="page-title">لوحة التحكم</h1>
+      <p class="page-sub">نظرة عامة على أداء اليوم</p>
+      <div class="stats-grid" id="statsGrid"><p style="color:var(--muted)">جارٍ التحميل...</p></div>
       <div id="cashierStatsArea" style="margin-top: 2rem;"></div>
     </div>
 
     <!-- MENU MANAGEMENT -->
     <div class="page" id="page-menu">
-      <h1 class="page-title">Menu Management</h1>
-      <p class="page-sub">Click on price or name to edit directly</p>
+      <h1 class="page-title">إدارة القائمة</h1>
+      <p class="page-sub">انقر على السعر أو الاسم للتعديل مباشرة</p>
       
       <div style="background:var(--bg2); padding: 1rem; border: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-        <input type="text" id="nd-name" placeholder="Name (EN)" class="edit-input" style="width:120px; padding:.4rem">
-        <input type="text" id="nd-name-ar" placeholder="Name (AR)" class="edit-input" style="width:120px; padding:.4rem">
-        <input type="number" id="nd-price" placeholder="Price" class="edit-input" style="width:80px; padding:.4rem" step="0.01">
+        <input type="text" id="nd-name" placeholder="الاسم (EN)" class="edit-input" style="width:120px; padding:.4rem">
+        <input type="text" id="nd-name-ar" placeholder="الاسم (AR)" class="edit-input" style="width:120px; padding:.4rem">
+        <input type="number" id="nd-price" placeholder="السعر" class="edit-input" style="width:80px; padding:.4rem" step="0.01">
         <select id="nd-cat" class="edit-input" style="width:140px; padding:.4rem">
-          <option value="">Select category...</option>
+          <option value="">اختر التصنيف...</option>
         </select>
         <div style="display:flex; flex-direction:column; gap:0.2rem;">
-          <label style="font-size:0.7rem; color:var(--muted);">Drink Image</label>
+          <label style="font-size:0.7rem; color:var(--muted);">صورة المشروب</label>
           <input type="file" id="nd-img" class="edit-input" style="width:150px; padding:.2rem" accept="image/*">
         </div>
-        <button class="hbtn" onclick="addDrink()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.4rem 1rem; font-weight:700;">Add Item +</button>
+        <button class="hbtn" onclick="addDrink()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.4rem 1rem; font-weight:700;">+ إضافة عنصر</button>
       </div>
 
       <div class="search-bar">
-        <input id="menu-search" type="text" placeholder="Search for an item..." oninput="filterMenuTable()"/>
+        <input id="menu-search" type="text" placeholder="ابحث عن عنصر..." oninput="filterMenuTable()"/>
       </div>
       <table><thead><tr>
-        <th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Available</th><th>Featured</th><th>Action</th>
+        <th>الصورة</th><th>الاسم</th><th>التصنيف</th><th>السعر</th><th>متاح</th><th>مميز</th><th>إجراء</th>
       </tr></thead>
       <tbody id="menuTable"></tbody></table>
     </div>
 
     <!-- ORDERS -->
     <div class="page" id="page-orders">
-      <h1 class="page-title">All Orders</h1>
-      <p class="page-sub">Full log of all orders</p>
+      <h1 class="page-title">جميع الطلبات</h1>
+      <p class="page-sub">سجل كامل لجميع الطلبات</p>
       <table><thead><tr>
-        <th>#</th><th>Table</th><th>Customer</th><th>Total</th><th>Points</th><th>Status</th><th>Time</th><th>Action</th>
+        <th>#</th><th>الطاولة</th><th>العميل</th><th>الإجمالي</th><th>النقاط</th><th>الحالة</th><th>الوقت</th><th>إجراء</th>
       </tr></thead>
       <tbody id="ordersTable"></tbody></table>
     </div>
 
     <div class="page" id="page-pos">
-      <h1 class="page-title">POS Operations</h1>
-      <p class="page-sub">Open/close cashier shifts and monitor sync health</p>
+      <h1 class="page-title">عمليات نقاط البيع</h1>
+      <p class="page-sub">فتح وإغلاق ورديات الكاشير ومراقبة حالة المزامنة</p>
       <div style="display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:1rem;">
-        <input id="pos-opening-balance" type="number" placeholder="Opening balance" class="edit-input" style="width:160px;padding:.5rem;">
-        <button class="hbtn" style="background:var(--gold);color:var(--bg);border-color:var(--gold);" onclick="openShiftFromAdmin()">Open Shift</button>
-        <input id="pos-closing-balance" type="number" placeholder="Closing balance" class="edit-input" style="width:160px;padding:.5rem;">
-        <button class="hbtn" style="border-color:var(--accent-emerald);color:var(--accent-emerald);" onclick="closeActiveShiftFromAdmin()">Close Active Shift</button>
-        <button class="hbtn" onclick="loadPosOps()">Refresh POS</button>
+        <input id="pos-opening-balance" type="number" placeholder="الرصيد الافتتاحي" class="edit-input" style="width:160px;padding:.5rem;">
+        <button class="hbtn" style="background:var(--gold);color:var(--bg);border-color:var(--gold);" onclick="openShiftFromAdmin()">فتح وردية</button>
+        <input id="pos-closing-balance" type="number" placeholder="الرصيد الختامي" class="edit-input" style="width:160px;padding:.5rem;">
+        <button class="hbtn" style="border-color:var(--accent-emerald);color:var(--accent-emerald);" onclick="closeActiveShiftFromAdmin()">إغلاق الوردية النشطة</button>
+        <button class="hbtn" onclick="loadPosOps()">تحديث</button>
       </div>
-      <div id="pos-sync-health" style="background:var(--bg2);border:1px solid var(--line);padding:1rem;margin-bottom:1rem;color:var(--muted);">Loading bridge health...</div>
+      <div id="pos-sync-health" style="background:var(--bg2);border:1px solid var(--line);padding:1rem;margin-bottom:1rem;color:var(--muted);">جارٍ تحميل حالة الجسر...</div>
       <div id="pos-active-shift" style="background:var(--bg2);border:1px solid var(--line);padding:1rem;"></div>
     </div>
 
     <!-- USERS -->
     <div class="page" id="page-users">
-      <h1 class="page-title">Users</h1>
-      <p class="page-sub">Manage customer and employee accounts</p>
+      <h1 class="page-title">المستخدمين</h1>
+      <p class="page-sub">إدارة حسابات العملاء والموظفين</p>
       
       <div style="background:var(--bg2); padding: 1rem; border: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-        <input type="text" id="nu-name" placeholder="Name" class="edit-input" style="width:120px; padding:.4rem">
-        <input type="tel" id="nu-phone" placeholder="Phone" class="edit-input" style="width:120px; padding:.4rem">
-        <input type="email" id="nu-email" placeholder="Email (optional)" class="edit-input" style="width:150px; padding:.4rem">
-        <input type="password" id="nu-pass" placeholder="Password" class="edit-input" style="width:120px; padding:.4rem">
+        <input type="text" id="nu-name" placeholder="الاسم" class="edit-input" style="width:120px; padding:.4rem">
+        <input type="tel" id="nu-phone" placeholder="الهاتف" class="edit-input" style="width:120px; padding:.4rem">
+        <input type="email" id="nu-email" placeholder="البريد الإلكتروني (اختياري)" class="edit-input" style="width:150px; padding:.4rem">
+        <input type="password" id="nu-pass" placeholder="كلمة المرور" class="edit-input" style="width:120px; padding:.4rem">
         <select id="nu-role" class="edit-input" style="width:auto; padding:.4rem">
-          <option value="customer">Customer</option>
-          <option value="cashier">Cashier</option>
-          <option value="admin">Admin</option>
+          <option value="customer">عميل</option>
+          <option value="cashier">كاشير</option>
+          <option value="admin">مدير</option>
         </select>
-        <button class="hbtn" onclick="addUser()" style="color:var(--gold); border-color:var(--gold); padding:.4rem 1rem">Add User +</button>
+        <button class="hbtn" onclick="addUser()" style="color:var(--gold); border-color:var(--gold); padding:.4rem 1rem">+ إضافة مستخدم</button>
       </div>
 
       <table><thead><tr>
-        <th>Name</th><th>Phone</th><th>Role</th><th>Points</th><th>Total Spent</th><th>Join Date</th><th>Action</th>
+        <th>الاسم</th><th>الهاتف</th><th>الدور</th><th>النقاط</th><th>إجمالي الإنفاق</th><th>تاريخ التسجيل</th><th>إجراء</th>
       </tr></thead>
       <tbody id="usersTable"></tbody></table>
     </div>
 
     <!-- CATEGORIES -->
     <div class="page" id="page-categories">
-      <h1 class="page-title">Categories</h1>
-      <p class="page-sub">Manage drink categories (add / edit order / delete)</p>
+      <h1 class="page-title">التصنيفات</h1>
+      <p class="page-sub">إدارة تصنيفات المشروبات (إضافة / ترتيب / حذف)</p>
 
       <div style="background:var(--bg2); padding: 1rem; border: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-        <input type="text" id="nc-name" placeholder="Name (EN)" class="edit-input" style="width:130px; padding:.4rem">
-        <input type="text" id="nc-name-ar" placeholder="Name (AR)" class="edit-input" style="width:130px; padding:.4rem">
-        <input type="number" id="nc-order" placeholder="Sort Order" class="edit-input" style="width:80px; padding:.4rem" value="0">
-        <button class="hbtn" onclick="addCategory()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.4rem 1rem; font-weight:700;">Add Category +</button>
+        <input type="text" id="nc-name" placeholder="الاسم (EN)" class="edit-input" style="width:130px; padding:.4rem">
+        <input type="text" id="nc-name-ar" placeholder="الاسم (AR)" class="edit-input" style="width:130px; padding:.4rem">
+        <input type="number" id="nc-order" placeholder="ترتيب الفرز" class="edit-input" style="width:80px; padding:.4rem" value="0">
+        <button class="hbtn" onclick="addCategory()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.4rem 1rem; font-weight:700;">+ إضافة تصنيف</button>
       </div>
 
       <table><thead><tr>
-        <th>Name (EN)</th><th>Name (AR)</th><th>Sort Order</th><th>Action</th>
+        <th>الاسم (EN)</th><th>الاسم (AR)</th><th>ترتيب الفرز</th><th>إجراء</th>
       </tr></thead>
       <tbody id="categoriesTable"></tbody></table>
     </div>
 
     <!-- OFFERS -->
     <div class="page" id="page-offers">
-      <h1 class="page-title">Manage Daily Offers</h1>
-      <p class="page-sub">Add offers and discounts on drinks</p>
+      <h1 class="page-title">إدارة العروض اليومية</h1>
+      <p class="page-sub">أضف عروضاً وخصومات على المشروبات</p>
 
       <!-- Add Offer Form -->
       <div style="background:var(--bg2); padding: 1rem; border: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
         <select id="no-drink" class="edit-input" style="width:150px; padding:.4rem">
-          <option value="">Choose drink...</option>
+          <option value="">اختر مشروب...</option>
         </select>
-        <input type="number" id="no-discount" placeholder="Discount %" class="edit-input" style="width:80px; padding:.4rem">
+        <input type="number" id="no-discount" placeholder="نسبة الخصم %" class="edit-input" style="width:80px; padding:.4rem">
         <div style="display:flex; flex-direction:column; gap:0.2rem;">
-          <label style="font-size:0.7rem; color:var(--muted);">Offer Expiry Date</label>
+          <label style="font-size:0.7rem; color:var(--muted);">تاريخ انتهاء العرض</label>
           <input type="datetime-local" id="no-expiry" class="edit-input" style="width:180px; padding:.2rem">
         </div>
-        <button class="hbtn" onclick="addOffer()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.4rem 1rem; font-weight:700;">Add Offer +</button>
+        <button class="hbtn" onclick="addOffer()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.4rem 1rem; font-weight:700;">+ إضافة عرض</button>
       </div>
 
       <table><thead><tr>
-        <th>Drink</th><th>Original Price</th><th>Discount</th><th>Final Price</th><th>Expires</th><th>Action</th>
+        <th>المشروب</th><th>السعر الأصلي</th><th>الخصم</th><th>السعر النهائي</th><th>ينتهي</th><th>إجراء</th>
       </tr></thead>
       <tbody id="offersTable"></tbody></table>
     </div>
 
     <!-- TABLES QR -->
     <div class="page" id="page-tables">
-      <h1 class="page-title">Table QR Codes</h1>
-      <p class="page-sub">Generate QR codes for tables — customers scan to order from their table</p>
+      <h1 class="page-title">رموز QR للطاولات</h1>
+      <p class="page-sub">إنشاء رموز QR للطاولات — يقوم العملاء بمسحها للطلب من طاولتهم</p>
       
       <div style="background:var(--bg2); padding: 1.5rem; border: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-        <label style="font-size:.85rem;color:var(--muted)">Table Number:</label>
+        <label style="font-size:.85rem;color:var(--muted)">رقم الطاولة:</label>
         <input type="number" id="tqr-number" value="1" min="1" style="width:80px; padding:.5rem; background:var(--bg3); border:1px solid var(--line); color:var(--text); border-radius:4px; font-family:'Tajawal',sans-serif; font-size:1rem; text-align:center;">
-        <button class="hbtn" onclick="generateTableQR()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.5rem 1.2rem; font-weight:700;">Generate QR</button>
+        <button class="hbtn" onclick="generateTableQR()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.5rem 1.2rem; font-weight:700;">إنشاء QR</button>
       </div>
 
       <div id="tqr-result" style="display:none; background:var(--bg2); padding: 2rem; border: 1px solid var(--line); text-align:center;">
-        <div style="font-size:1.2rem; font-family:'Cormorant Garamond',serif; color:var(--text); margin-bottom:.5rem;">Table <span id="tqr-table-num">1</span></div>
-        <img id="tqr-img" src="" alt="QR Code" style="width:250px; height:250px; border:8px solid var(--white); box-shadow:0 4px 20px rgba(0,0,0,.1); margin:1rem auto; display:block; border-radius:4px;">
-        <div style="font-size:.8rem; color:var(--muted); margin-bottom:1rem;">Scan to open cart with this table pre-filled</div>
+        <div style="font-size:1.2rem; font-family:'Cormorant Garamond',serif; color:var(--text); margin-bottom:.5rem;">طاولة <span id="tqr-table-num">1</span></div>
+        <img id="tqr-img" src="" alt="رمز QR" style="width:250px; height:250px; border:8px solid var(--white); box-shadow:0 4px 20px rgba(0,0,0,.1); margin:1rem auto; display:block; border-radius:4px;">
+        <div style="font-size:.8rem; color:var(--muted); margin-bottom:1rem;">امسح الرمز لفتح سلة الطلب مع تعبئة رقم الطاولة تلقائياً</div>
         <div style="display:flex; gap:.6rem; justify-content:center; flex-wrap:wrap;">
-          <button class="hbtn" onclick="downloadTableQR()" style="border-color:var(--gold); color:var(--gold); padding:.5rem 1.2rem;">Download PNG</button>
-          <button class="hbtn" onclick="printTableQR()" style="border-color:var(--accent-emerald); color:var(--accent-emerald); padding:.5rem 1.2rem;">Print</button>
-          <button class="hbtn" onclick="generateTableQR()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.5rem 1.2rem; font-weight:700;">Generate Another +</button>
+          <button class="hbtn" onclick="downloadTableQR()" style="border-color:var(--gold); color:var(--gold); padding:.5rem 1.2rem;">تحميل PNG</button>
+          <button class="hbtn" onclick="printTableQR()" style="border-color:var(--accent-emerald); color:var(--accent-emerald); padding:.5rem 1.2rem;">طباعة</button>
+          <button class="hbtn" onclick="generateTableQR()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.5rem 1.2rem; font-weight:700;">+ إنشاء آخر</button>
         </div>
       </div>
     </div>
 
     <div class="page" id="page-finance">
-      <h1 class="page-title">Finance</h1>
-      <p class="page-sub">Daily expenses and cashbox in/out linked with reports</p>
+      <h1 class="page-title">المالية</h1>
+      <p class="page-sub">المصروفات اليومية والمدفوعات النقدية مرتبطة بالتقارير</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-bottom:1.2rem;">
         <div style="background:var(--bg2); border:1px solid var(--line); padding:1rem;">
-          <h3 style="margin-bottom:.8rem;">Add Expense</h3>
-          <input id="fx-title" type="text" placeholder="Expense title" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;">
+          <h3 style="margin-bottom:.8rem;">إضافة مصروف</h3>
+          <input id="fx-title" type="text" placeholder="عنوان المصروف" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;">
           <select id="fx-category" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;">
-            <option value="utilities">Utilities</option><option value="purchase">Purchase</option><option value="maintenance">Maintenance</option><option value="salary">Salary</option><option value="rent">Rent</option><option value="marketing">Marketing</option><option value="other">Other</option>
+            <option value="utilities">مرافق</option><option value="purchase">مشتريات</option><option value="maintenance">صيانة</option><option value="salary">رواتب</option><option value="rent">إيجار</option><option value="marketing">تسويق</option><option value="other">أخرى</option>
           </select>
-          <input id="fx-amount" type="number" placeholder="Amount" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;">
-          <button class="hbtn" style="background:var(--gold);color:var(--bg);border-color:var(--gold);" onclick="addExpense()">Save Expense</button>
+          <input id="fx-amount" type="number" placeholder="المبلغ" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;">
+          <button class="hbtn" style="background:var(--gold);color:var(--bg);border-color:var(--gold);" onclick="addExpense()">حفظ المصروف</button>
         </div>
         <div style="background:var(--bg2); border:1px solid var(--line); padding:1rem;">
-          <h3 style="margin-bottom:.8rem;">Cash Movement</h3>
-          <select id="cm-type" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;"><option value="in">Cash In</option><option value="out">Cash Out</option></select>
-          <input id="cm-amount" type="number" placeholder="Amount" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;">
-          <input id="cm-reason" type="text" placeholder="Reason" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;">
-          <button class="hbtn" style="border-color:var(--accent-emerald);color:var(--accent-emerald);" onclick="addCashMovement()">Save Movement</button>
+          <h3 style="margin-bottom:.8rem;">حركة نقدية</h3>
+          <select id="cm-type" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;"><option value="in">إيداع نقدي</option><option value="out">سحب نقدي</option></select>
+          <input id="cm-amount" type="number" placeholder="المبلغ" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;">
+          <input id="cm-reason" type="text" placeholder="السبب" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;">
+          <button class="hbtn" style="border-color:var(--accent-emerald);color:var(--accent-emerald);" onclick="addCashMovement()">حفظ الحركة</button>
         </div>
       </div>
-      <div id="finance-summary" style="background:var(--bg2); border:1px solid var(--line); padding:1rem; margin-bottom:1rem;">Loading finance summary...</div>
-      <div id="finance-items" style="background:var(--bg2); border:1px solid var(--line); padding:1rem;">Loading entries...</div>
+      <div id="finance-summary" style="background:var(--bg2); border:1px solid var(--line); padding:1rem; margin-bottom:1rem;">جارٍ تحميل الملخص المالي...</div>
+      <div id="finance-items" style="background:var(--bg2); border:1px solid var(--line); padding:1rem;">جارٍ تحميل القيود...</div>
     </div>
 
     <!-- REPORTS -->
     <div class="page" id="page-reports">
-      <h1 class="page-title">Reports</h1>
-      <p class="page-sub">Full sales reports, shift history, and exports</p>
+      <h1 class="page-title">التقارير</h1>
+      <p class="page-sub">تقارير المبيعات الكاملة، سجل الورديات، والتصدير</p>
 
       <!-- Controls -->
       <div style="display:flex; gap:.6rem; margin-bottom:1.5rem; flex-wrap:wrap; align-items:center;">
         <select id="r-period" onchange="loadReports()" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.5rem;font-family:'Tajawal',sans-serif;border-radius:4px;">
-          <option value="today">Today</option>
-          <option value="week" selected>This Week</option>
-          <option value="month">This Month</option>
-          <option value="all">All Time</option>
+          <option value="today">اليوم</option>
+          <option value="week" selected>هذا الأسبوع</option>
+          <option value="month">هذا الشهر</option>
+          <option value="all">كل الوقت</option>
         </select>
-        <button class="hbtn" onclick="loadReports()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.5rem 1.2rem; font-weight:700;">Refresh</button>
-        <button class="hbtn" onclick="downloadPDF()" style="background:var(--accent-emerald); color:var(--white); border-color:var(--accent-emerald); padding:.5rem 1.2rem;">Download PDF</button>
-        <button class="hbtn" onclick="exportReportsCSV()" style="border-color:var(--accent-emerald); color:var(--accent-emerald); padding:.5rem 1.2rem;">Export CSV</button>
+        <button class="hbtn" onclick="loadReports()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.5rem 1.2rem; font-weight:700;">تحديث</button>
+        <button class="hbtn" onclick="downloadPDF()" style="background:var(--accent-emerald); color:var(--white); border-color:var(--accent-emerald); padding:.5rem 1.2rem;">تحميل PDF</button>
+        <button class="hbtn" onclick="exportReportsCSV()" style="border-color:var(--accent-emerald); color:var(--accent-emerald); padding:.5rem 1.2rem;">تصدير CSV</button>
       </div>
 
       <!-- Summary Cards -->
       <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:1rem; margin-bottom:2rem;">
         <div class="stat-card" style="background:var(--bg2); padding:1.2rem; border:1px solid var(--line); border-radius:6px; text-align:center;">
           <div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--gold);"><span id="r-total-orders">—</span></div>
-          <div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">Orders</div>
+          <div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">الطلبات</div>
         </div>
         <div class="stat-card" style="background:var(--bg2); padding:1.2rem; border:1px solid var(--line); border-radius:6px; text-align:center;">
           <div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--accent-emerald);"><span id="r-total-revenue">—</span></div>
-          <div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">Revenue (EGP)</div>
+          <div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">الإيرادات (ج.م)</div>
         </div>
         <div class="stat-card" style="background:var(--bg2); padding:1.2rem; border:1px solid var(--line); border-radius:6px; text-align:center;">
           <div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--text);"><span id="r-avg-order">—</span></div>
-          <div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">Avg Order</div>
+          <div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">متوسط الطلب</div>
         </div>
         <div class="stat-card" style="background:var(--bg2); padding:1.2rem; border:1px solid var(--line); border-radius:6px; text-align:center;">
           <div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:#C0392B;"><span id="r-cancelled">—</span></div>
-          <div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">Cancelled</div>
+          <div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">ملغى</div>
         </div>
       </div>
 
       <!-- Status breakdown -->
       <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem;">
-        <span style="font-size:.8rem;color:var(--muted);">Status:</span>
-        <span id="r-st-pending" style="font-size:.8rem;color:var(--orange);">Pending: —</span>
-        <span id="r-st-ready" style="font-size:.8rem;color:var(--green);">Ready: —</span>
-        <span id="r-st-served" style="font-size:.8rem;color:var(--muted);">Served: —</span>
-        <span id="r-st-refunded" style="font-size:.8rem;color:#C0392B;">Refunded: —</span>
+        <span style="font-size:.8rem;color:var(--muted);">الحالة:</span>
+        <span id="r-st-pending" style="font-size:.8rem;color:var(--orange);">قيد الانتظار: —</span>
+        <span id="r-st-ready" style="font-size:.8rem;color:var(--green);">جاهز: —</span>
+        <span id="r-st-served" style="font-size:.8rem;color:var(--muted);">مُقدم: —</span>
+        <span id="r-st-refunded" style="font-size:.8rem;color:#C0392B;">مسترد: —</span>
       </div>
 
       <!-- Top Items -->
       <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">Top Selling Items</h3>
-        <div id="r-top-items"><p style="color:var(--muted); font-size:.9rem;">Loading...</p></div>
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">أفضل العناصر مبيعاً</h3>
+        <div id="r-top-items"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
       </div>
 
       <!-- Cashier Performance -->
       <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">Cashier Performance</h3>
-        <div id="r-cashiers"><p style="color:var(--muted); font-size:.9rem;">Loading...</p></div>
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">أداء الكاشير</h3>
+        <div id="r-cashiers"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
       </div>
 
       <!-- Shift History -->
       <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">Shift History</h3>
-        <div id="r-shifts"><p style="color:var(--muted); font-size:.9rem;">Loading...</p></div>
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">سجل الورديات</h3>
+        <div id="r-shifts"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
       </div>
 
       <!-- Sales History Chart -->
       <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line);">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">Sales History (Last 7 Days)</h3>
-        <div id="r-sales-chart"><p style="color:var(--muted); font-size:.9rem;">Loading...</p></div>
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">سجل المبيعات (آخر 7 أيام)</h3>
+        <div id="r-sales-chart"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
         <div style="margin-top:1rem; font-size:.8rem; color:var(--muted);">
-          <span style="display:inline-block; width:12px; height:12px; background:var(--gold); border-radius:2px; vertical-align:middle; margin-right:4px;"></span> Revenue
+          <span style="display:inline-block; width:12px; height:12px; background:var(--gold); border-radius:2px; vertical-align:middle; margin-left:4px;"></span> الإيرادات
         </div>
       </div>
     </div>
@@ -522,15 +522,15 @@ async function loadPosOps() {
     const active = await activeRes.json();
     activeShiftCache = active.shift || null;
     document.getElementById('pos-active-shift').innerHTML = activeShiftCache
-      ? `<b>Active Shift:</b> ${new Date(activeShiftCache.openedAt).toLocaleString()} | Opening: ${activeShiftCache.openingBalance} EGP | Status: ${activeShiftCache.status}`
-      : '<span style="color:var(--muted)">No active shift</span>';
+      ? `<b>الوردية النشطة:</b> ${new Date(activeShiftCache.openedAt).toLocaleString('ar-EG')} | الرصيد الافتتاحي: ${activeShiftCache.openingBalance} ج.م | الحالة: ${activeShiftCache.status === 'open' ? 'مفتوحة' : 'مغلقة'}`
+      : '<span style="color:var(--muted)">لا توجد وردية نشطة</span>';
 
     const bridgeData = bridgeRes.ok ? await bridgeRes.json() : null;
     document.getElementById('pos-sync-health').innerHTML = bridgeData
-      ? `<b>Bridge Sync Health</b><br/>Pending Events: ${bridgeData.events.pending} | Failed Events: ${bridgeData.events.failed} | Last Success: ${bridgeData.lastSuccessfulSyncAt ? new Date(bridgeData.lastSuccessfulSyncAt).toLocaleString() : '—'}`
-      : '<b>Bridge Sync Health</b><br/><span style="color:var(--red)">Bridge status unavailable (set bridge_api_key in localStorage).</span>';
+      ? `<b>حالة مزامنة الجسر</b><br/>الأحداث المعلقة: ${bridgeData.events.pending} | الأحداث الفاشلة: ${bridgeData.events.failed} | آخر نجاح: ${bridgeData.lastSuccessfulSyncAt ? new Date(bridgeData.lastSuccessfulSyncAt).toLocaleString('ar-EG') : '—'}`
+      : '<b>حالة مزامنة الجسر</b><br/><span style="color:var(--red)">حالة الجسر غير متاحة (قم بتعيين bridge_api_key في localStorage).</span>';
   } catch (err) {
-    document.getElementById('pos-sync-health').innerHTML = `<span style="color:var(--red)">Failed to load POS health: ${err.message}</span>`;
+    document.getElementById('pos-sync-health').innerHTML = `<span style="color:var(--red)">فشل تحميل حالة نقاط البيع: ${err.message}</span>`;
   }
 }
 
@@ -543,15 +543,15 @@ async function openShiftFromAdmin() {
   });
   const data = await res.json();
   if (data.success) {
-    showModal('Success', 'Shift opened successfully');
+    showModal('نجاح', 'تم فتح الوردية بنجاح');
     loadPosOps();
   } else {
-    showModal('Error', data.error || 'Failed to open shift');
+    showModal('خطأ', data.error || 'فشل في فتح الوردية');
   }
 }
 
 async function closeActiveShiftFromAdmin() {
-  if (!activeShiftCache) { showModal('Alert', 'No active shift to close'); return; }
+  if (!activeShiftCache) { showModal('تنبيه', 'لا توجد وردية نشطة للإغلاق'); return; }
   const closingBalance = parseFloat(document.getElementById('pos-closing-balance').value || '0');
   const res = await fetch('/api/shifts/close/' + activeShiftCache._id, {
     method: 'POST',
@@ -560,11 +560,11 @@ async function closeActiveShiftFromAdmin() {
   });
   const data = await res.json();
   if (data.success) {
-    showModal('Success', 'Shift closed successfully');
+    showModal('نجاح', 'تم إغلاق الوردية بنجاح');
     loadPosOps();
     loadReports();
   } else {
-    showModal('Error', data.error || 'Failed to close shift');
+    showModal('خطأ', data.error || 'فشل في إغلاق الوردية');
   }
 }
 
@@ -577,18 +577,18 @@ async function loadFinancePage() {
     ]);
     const [summary, costs, accounts] = await Promise.all([summaryRes.json(), costsRes.json(), accountsRes.json()]);
     document.getElementById('finance-summary').innerHTML = `
-      <div><b>Monthly Run-rate:</b> ${parseFloat(summary.monthlyRunRate || 0).toFixed(2)} EGP</div>
-      <div><b>Revenue:</b> ${parseFloat(summary.revenue || 0).toFixed(2)} EGP</div>
-      <div><b>Total Costs:</b> ${parseFloat(summary.totalCosts || 0).toFixed(2)} EGP</div>
-      <div><b>Net Operating Profit:</b> ${parseFloat(summary.netOperatingProfit || 0).toFixed(2)} EGP</div>
-      <div><b>Cash In/Out:</b> ${parseFloat(accounts.cashIn || 0).toFixed(2)} / ${parseFloat(accounts.cashOut || 0).toFixed(2)} EGP</div>
+      <div><b>معدل التشغيل الشهري:</b> ${parseFloat(summary.monthlyRunRate || 0).toFixed(2)} ج.م</div>
+      <div><b>الإيرادات:</b> ${parseFloat(summary.revenue || 0).toFixed(2)} ج.م</div>
+      <div><b>إجمالي التكاليف:</b> ${parseFloat(summary.totalCosts || 0).toFixed(2)} ج.م</div>
+      <div><b>صافي الربح التشغيلي:</b> ${parseFloat(summary.netOperatingProfit || 0).toFixed(2)} ج.م</div>
+      <div><b>إيداع/سحب نقدي:</b> ${parseFloat(accounts.cashIn || 0).toFixed(2)} / ${parseFloat(accounts.cashOut || 0).toFixed(2)} ج.م</div>
     `;
     const topCosts = Object.entries(costs.breakdown || {}).sort((a,b) => b[1]-a[1]).slice(0,6);
     document.getElementById('finance-items').innerHTML = topCosts.length
-      ? topCosts.map(([cat, amt]) => `<div style="padding:.4rem 0;border-bottom:1px solid var(--line);"><b>${cat}</b>: ${parseFloat(amt).toFixed(2)} EGP</div>`).join('')
-      : '<span style="color:var(--muted)">No cost records yet.</span>';
+      ? topCosts.map(([cat, amt]) => `<div style="padding:.4rem 0;border-bottom:1px solid var(--line);"><b>${cat}</b>: ${parseFloat(amt).toFixed(2)} ج.م</div>`).join('')
+      : '<span style="color:var(--muted)">لا توجد سجلات تكاليف بعد.</span>';
   } catch (err) {
-    document.getElementById('finance-summary').innerHTML = `<span style="color:var(--red)">Failed to load finance data: ${err.message}</span>`;
+    document.getElementById('finance-summary').innerHTML = `<span style="color:var(--red)">فشل تحميل البيانات المالية: ${err.message}</span>`;
   }
 }
 
@@ -596,7 +596,7 @@ async function addExpense() {
   const title = document.getElementById('fx-title').value.trim();
   const category = document.getElementById('fx-category').value;
   const amount = parseFloat(document.getElementById('fx-amount').value || '0');
-  if (!title || !amount) return showModal('Alert', 'Enter title and amount');
+  if (!title || !amount) return showModal('تنبيه', 'أدخل عنوان المصروف والمبلغ');
   const res = await fetch('/api/finance/expenses', {
     method: 'POST',
     headers: getAuthH(),
@@ -607,14 +607,14 @@ async function addExpense() {
     document.getElementById('fx-title').value = '';
     document.getElementById('fx-amount').value = '';
     loadFinancePage();
-  } else showModal('Error', data.error || 'Failed to save expense');
+  } else showModal('خطأ', data.error || 'فشل في حفظ المصروف');
 }
 
 async function addCashMovement() {
   const movementType = document.getElementById('cm-type').value;
   const amount = parseFloat(document.getElementById('cm-amount').value || '0');
   const reason = document.getElementById('cm-reason').value.trim();
-  if (!amount || !reason) return showModal('Alert', 'Enter movement amount and reason');
+  if (!amount || !reason) return showModal('تنبيه', 'أدخل مبلغ الحركة والسبب');
   const res = await fetch('/api/finance/cash-movements', {
     method: 'POST',
     headers: getAuthH(),
@@ -625,14 +625,14 @@ async function addCashMovement() {
     document.getElementById('cm-amount').value = '';
     document.getElementById('cm-reason').value = '';
     loadFinancePage();
-  } else showModal('Error', data.error || 'Failed to save movement');
+  } else showModal('خطأ', data.error || 'فشل في حفظ الحركة');
 }
 
 let _lastTableQR = null;
 
 async function generateTableQR() {
   const num = parseInt(document.getElementById('tqr-number').value) || 1;
-  if (num < 1) { alert('Invalid table number'); return; }
+  if (num < 1) { alert('رقم طاولة غير صالح'); return; }
   try {
     const res = await fetch('/api/admin/qr-table/' + num, { headers: getAuthH() });
     const data = await res.json();
@@ -642,10 +642,10 @@ async function generateTableQR() {
       document.getElementById('tqr-img').src = data.qrCodeUrl;
       document.getElementById('tqr-result').style.display = 'block';
     } else {
-      alert(data.error || 'Failed to generate QR');
+      alert(data.error || 'فشل في إنشاء QR');
     }
   } catch(e) {
-    alert('Connection error');
+    alert('خطأ في الاتصال');
   }
 }
 
@@ -662,13 +662,13 @@ function downloadTableQR() {
 function printTableQR() {
   if (!_lastTableQR) return;
   const win = window.open('', '_blank');
-  win.document.write('<html><head><title>Table ' + _lastTableQR.table + ' QR</title>' +
+  win.document.write('<html><head><title>طاولة ' + _lastTableQR.table + ' QR</title>' +
     '<style>body{text-align:center;padding:40px;font-family:sans-serif}' +
     'img{width:350px;height:350px;margin:20px auto;display:block}' +
     'h1{font-size:24px;margin-bottom:5px}' +
     '.sub{color:#666;font-size:14px}</style></head><body>' +
-    '<h1>Table ' + _lastTableQR.table + '</h1>' +
-    '<div class="sub">OZEL CAFE &mdash; Scan to Order</div>' +
+    '<h1>طاولة ' + _lastTableQR.table + '</h1>' +
+    '<div class="sub">OZEL CAFE &mdash; امسح للطلب</div>' +
     '<img src="' + _lastTableQR.qrCodeUrl + '" />' +
     '<div class="sub">' + _lastTableQR.url + '</div>' +
     '</body></html>');
@@ -684,38 +684,38 @@ async function loadStats() {
     const s = await res.json();
   
   document.getElementById('statsGrid').innerHTML = `
-    <div class="stat-card"><span class="stat-n">${s.today_orders}</span><span class="stat-l">Today's Orders</span></div>
-    <div class="stat-card"><span class="stat-n">${Math.round(s.today_revenue)}</span><span class="stat-l">Today's Revenue (EGP)</span></div>
-    <div class="stat-card"><span class="stat-n">${Math.round(s.monthly_revenue || 0)}</span><span class="stat-l">Monthly Revenue (EGP)</span></div>
-    <div class="stat-card"><span class="stat-n">${s.pending_orders}</span><span class="stat-l">Pending Orders</span></div>
-    <div class="stat-card"><span class="stat-n">${s.total_orders}</span><span class="stat-l">Total Orders</span></div>
-    <div class="stat-card"><span class="stat-n">${Math.round(s.total_revenue)}</span><span class="stat-l">Total Revenue</span></div>
+    <div class="stat-card"><span class="stat-n">${s.today_orders}</span><span class="stat-l">طلبات اليوم</span></div>
+    <div class="stat-card"><span class="stat-n">${Math.round(s.today_revenue)}</span><span class="stat-l">إيرادات اليوم (ج.م)</span></div>
+    <div class="stat-card"><span class="stat-n">${Math.round(s.monthly_revenue || 0)}</span><span class="stat-l">الإيرادات الشهرية (ج.م)</span></div>
+    <div class="stat-card"><span class="stat-n">${s.pending_orders}</span><span class="stat-l">الطلبات المعلقة</span></div>
+    <div class="stat-card"><span class="stat-n">${s.total_orders}</span><span class="stat-l">إجمالي الطلبات</span></div>
+    <div class="stat-card"><span class="stat-n">${Math.round(s.total_revenue)}</span><span class="stat-l">إجمالي الإيرادات</span></div>
   `;
 
   let cashierHTML = '';
   if (s.cashier_stats && s.cashier_stats.length > 0) {
     cashierHTML = `
-      <h2 style="font-family:'Cormorant Garamond',serif; color:var(--gold); margin-bottom:1rem; font-size:1.5rem;">Cashier Sales Today</h2>
+      <h2 style="font-family:'Cormorant Garamond',serif; color:var(--gold); margin-bottom:1rem; font-size:1.5rem;">مبيعات الكاشير اليوم</h2>
       <table><thead><tr>
-        <th>Cashier Name</th><th>Order Count</th><th>Total Sales</th>
+        <th>اسم الكاشير</th><th>عدد الطلبات</th><th>إجمالي المبيعات</th>
       </tr></thead><tbody>
         ${s.cashier_stats.map(c => `
           <tr>
             <td style="color:var(--text)">${c.cashier_name}</td>
             <td>${c.order_count}</td>
-            <td class="tbl-price">${c.total_rev} EGP</td>
+            <td class="tbl-price">${c.total_rev} ج.م</td>
           </tr>
         `).join('')}
       </tbody></table>
     `;
   } else {
-    cashierHTML = `<p style="color:var(--muted)">No recorded sales for cashier today</p>`;
+    cashierHTML = `<p style="color:var(--muted)">لا توجد مبيعات مسجلة للكاشير اليوم</p>`;
   }
   
   const area = document.getElementById('cashierStatsArea');
   if (area) area.innerHTML = cashierHTML;
   } catch (err) {
-    document.getElementById('statsGrid').innerHTML = `<p style="color:var(--muted);text-align:center;padding:2rem;">Failed to load stats — ${err.message}</p>`;
+    document.getElementById('statsGrid').innerHTML = `<p style="color:var(--muted);text-align:center;padding:2rem;">فشل تحميل الإحصائيات — ${err.message}</p>`;
   }
 }
 
@@ -730,7 +730,7 @@ async function loadMenu() {
     categoriesData = await catRes.json();
     const sel = document.getElementById('nd-cat');
     if (sel && Array.isArray(categoriesData)) {
-      sel.innerHTML = '<option value="">Select category...</option>' +
+      sel.innerHTML = '<option value="">اختر التصنيف...</option>' +
         categoriesData.map(c => `<option value="${c._id}">${c.name_ar || c.name}</option>`).join('');
     }
   } catch(e) {
@@ -744,27 +744,27 @@ function renderMenuTable(data) {
       <td>
         <div style="display:flex; flex-direction:column; align-items:center; gap:0.2rem;">
           <img src="${d.image_emoji}" class="img-thumb" onerror="this.style.display='none'"/>
-          <span class="editable" onclick="editField('${d.id}','image_emoji','${(d.image_emoji||'').replace(/'/g,"\\'")}',this)" style="font-size:.7rem; color:var(--muted)">Edit</span>
+          <span class="editable" onclick="editField('${d.id}','image_emoji','${(d.image_emoji||'').replace(/'/g,"\\'")}',this)" style="font-size:.7rem; color:var(--muted)">تعديل</span>
         </div>
       </td>
       <td>
         <span class="editable" onclick="editField('${d.id}','name','${d.name.replace(/'/g,"\\'")}',this)">${d.name}</span><br/>
-        <small style="color:var(--muted); cursor:pointer;" class="editable" onclick="editField('${d.id}','name_ar','${(d.name_ar||'').replace(/'/g,"\\'")}',this)">${d.name_ar || 'Add Arabic name'}</small>
+        <small style="color:var(--muted); cursor:pointer;" class="editable" onclick="editField('${d.id}','name_ar','${(d.name_ar||'').replace(/'/g,"\\'")}',this)">${d.name_ar || 'أضف اسماً بالعربية'}</small>
       </td>
       <td style="color:var(--muted);font-size:.8rem">${d.cat_name}</td>
-      <td><span class="editable tbl-price" onclick="editPrice('${d.id}',${d.price},this)">${d.price} EGP</span></td>
+      <td><span class="editable tbl-price" onclick="editPrice('${d.id}',${d.price},this)">${d.price} ج.م</span></td>
       <td>
         <button class="btn-toggle-status ${d.is_available ? 'active-available' : 'inactive-available'}" onclick="toggleDrinkStatus('${d.id}', 'is_available', ${d.is_available})">
-          ${d.is_available ? 'Available' : 'Unavailable'}
+          ${d.is_available ? 'متاح' : 'غير متاح'}
         </button>
       </td>
       <td>
         <button class="btn-toggle-status ${d.is_featured ? 'active-featured' : 'inactive-featured'}" onclick="toggleDrinkStatus('${d.id}', 'is_featured', ${d.is_featured})">
-          ${d.is_featured ? 'Featured' : 'Normal'}
+          ${d.is_featured ? 'مميز' : 'عادي'}
         </button>
       </td>
       <td>
-        <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteDrink('${d.id}')">Delete</button>
+        <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteDrink('${d.id}')">حذف</button>
       </td>
     </tr>
   `).join('');
@@ -782,7 +782,7 @@ function editPrice(id, current, el) {
     const val = parseFloat(inp.value);
     if (!isNaN(val) && val > 0) {
       await patchDrink(id, { price: val });
-      el.textContent = val + ' EGP';
+      el.textContent = val + ' ج.م';
     }
     inp.replaceWith(el);
   };
@@ -833,7 +833,7 @@ async function addDrink() {
     });
   }
   
-  if(!name || isNaN(price) || !category_id) { showModal('Alert', 'Please fill name, price and category'); return; }
+  if(!name || isNaN(price) || !category_id) { showModal('تنبيه', 'يرجى ملء الاسم والسعر والتصنيف'); return; }
   
   try {
     const res = await fetch('/api/admin/drinks', { method:'POST', headers: getAuthH(), body: JSON.stringify({name, name_ar, price, category_id, image_emoji}) });
@@ -845,17 +845,17 @@ async function addDrink() {
       document.getElementById('nd-cat').value = '';
       document.getElementById('nd-img').value = '';
       loadMenu();
-      showModal('Success', 'Added successfully');
-    } else { showModal('Error', data.error); }
-  } catch(e) { showModal('Error', 'Error adding'); }
+      showModal('نجاح', 'تمت الإضافة بنجاح');
+    } else { showModal('خطأ', data.error); }
+  } catch(e) { showModal('خطأ', 'خطأ في الإضافة'); }
 }
 
 async function deleteDrink(id) {
-  if(!await showModal('Confirm', 'Are you sure you want to delete this item?', true)) return;
+  if(!await showModal('تأكيد', 'هل أنت متأكد من حذف هذا العنصر؟', true)) return;
   const res = await fetch(`/api/admin/drinks/${id}`, { method:'DELETE', headers: getAuthH() });
   const data = await res.json();
   if(data.success) loadMenu();
-  else alert('Error deleting');
+  else alert('خطأ في الحذف');
 }
 
 async function loadOffers() {
@@ -865,7 +865,7 @@ async function loadOffers() {
     
     const resD = await fetch('/api/admin/drinks', { headers: getAuthH() });
     if (!resD.ok) {
-      showModal('Error', 'Failed to load drinks. Check session validity.');
+      showModal('خطأ', 'فشل تحميل المشروبات. تحقق من صلاحية الجلسة.');
       return;
     }
     menuData = await resD.json();
@@ -873,11 +873,11 @@ async function loadOffers() {
     const select = document.getElementById('no-drink');
     if (select) {
       if (Array.isArray(menuData)) {
-        select.innerHTML = '<option value="">Choose drink...</option>' + menuData.map(d => `
+        select.innerHTML = '<option value="">اختر مشروب...</option>' + menuData.map(d => `
           <option value="${d.id}">${d.name_ar || d.name}</option>
         `).join('');
       } else {
-        select.innerHTML = '<option value="">Error loading drinks</option>';
+        select.innerHTML = '<option value="">خطأ في تحميل المشروبات</option>';
       }
     }
 
@@ -889,29 +889,29 @@ async function loadOffers() {
           const discount = o.discount_percent;
           const finalPrice = originalPrice * (1 - discount / 100);
           const expiry = o.expires_at ? new Date(o.expires_at) : null;
-          const expiryStr = expiry ? expiry.toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }) : 'Never';
+          const expiryStr = expiry ? expiry.toLocaleDateString('ar-EG', { year:'numeric', month:'short', day:'numeric' }) : 'أبداً';
           const isExpired = expiry && expiry < new Date();
           return `
             <tr>
               <td>${o.name_ar || o.name}</td>
-              <td>${originalPrice} EGP</td>
+              <td>${originalPrice} ج.م</td>
               <td style="color:var(--red)">${discount}%</td>
-              <td style="color:var(--gold); font-weight:700;">${finalPrice.toFixed(2)} EGP</td>
-              <td style="color:${isExpired ? 'var(--red)' : 'var(--muted)'}; font-size:.8rem">${expiryStr}${isExpired ? ' (Expired)' : ''}</td>
+              <td style="color:var(--gold); font-weight:700;">${finalPrice.toFixed(2)} ج.م</td>
+               <td style="color:${isExpired ? 'var(--red)' : 'var(--muted)'}; font-size:.8rem">${expiryStr}${isExpired ? ' (منتهي)' : ''}</td>
               <td>
-                <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteOffer('${o.id}')">Delete</button>
+                <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteOffer('${o.id}')">حذف</button>
               </td>
             </tr>
           `;
         }).join('');
       } else {
         console.error('Offers is not an array:', offers);
-        table.innerHTML = `<tr><td colspan="6" style="color:var(--red); text-align:center;">Failed to load offers: ${offers.error || 'Unexpected response'}</td></tr>`;
+        table.innerHTML = `<tr><td colspan="6" style="color:var(--red); text-align:center;">فشل تحميل العروض: ${offers.error || 'استجابة غير متوقعة'}</td></tr>`;
       }
     }
   } catch (e) {
     console.error(e);
-    showModal('Error', 'An error occurred while loading offers page: ' + e.message);
+    showModal('خطأ', 'حدث خطأ أثناء تحميل صفحة العروض: ' + e.message);
   }
 }
 
@@ -921,7 +921,7 @@ async function addOffer() {
   const expires_at = document.getElementById('no-expiry').value;
   
   if (!drink_id || !discount_percent) {
-    showModal('Alert', 'Please choose drink and discount percentage');
+    showModal('تنبيه', 'يرجى اختيار المشروب ونسبة الخصم');
     return;
   }
   
@@ -936,21 +936,21 @@ async function addOffer() {
       document.getElementById('no-discount').value = '';
       document.getElementById('no-expiry').value = '';
       loadOffers();
-      showModal('Success', 'Added successfully');
+      showModal('نجاح', 'تمت الإضافة بنجاح');
     } else {
-      showModal('Error', data.error);
+      showModal('خطأ', data.error);
     }
   } catch(e) {
-    showModal('Error', 'Error adding');
+    showModal('خطأ', 'خطأ في الإضافة');
   }
 }
 
 async function deleteOffer(id) {
-  if (!await showModal('Confirm', 'Are you sure you want to delete this offer?', true)) return;
+  if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذا العرض؟', true)) return;
   const res = await fetch(`/api/admin/offers/${id}`, { method: 'DELETE', headers: getAuthH() });
   const data = await res.json();
   if (data.success) loadOffers();
-  else showModal('Error', 'Error deleting');
+  else showModal('خطأ', 'خطأ في الحذف');
 }
 
 // ── CATEGORY MANAGEMENT ─────────────────────
@@ -963,7 +963,7 @@ async function loadCategories() {
       <td><span class="editable" onclick="editCatField('${c._id}','name_ar','${(c.name_ar||'').replace(/'/g,"\\'")}',this)">${c.name_ar || '-'}</span></td>
       <td><span class="editable" onclick="editCatSort('${c._id}',${c.sort_order || 0},this)">${c.sort_order || 0}</span></td>
       <td>
-        <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteCategory('${c._id}')">Delete</button>
+        <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteCategory('${c._id}')">حذف</button>
       </td>
     </tr>
   `).join('');
@@ -1003,7 +1003,7 @@ async function addCategory() {
   const name = document.getElementById('nc-name').value.trim();
   const name_ar = document.getElementById('nc-name-ar').value.trim();
   const sort_order = parseInt(document.getElementById('nc-order').value) || 0;
-  if (!name) { showModal('Alert', 'Category name (EN) is required'); return; }
+  if (!name) { showModal('تنبيه', 'اسم التصنيف (EN) مطلوب'); return; }
   try {
     const res = await fetch('/api/admin/categories', { method:'POST', headers: getAuthH(), body: JSON.stringify({ name, name_ar, sort_order }) });
     const data = await res.json();
@@ -1012,41 +1012,41 @@ async function addCategory() {
       document.getElementById('nc-name-ar').value = '';
       document.getElementById('nc-order').value = '0';
       loadCategories();
-      showModal('Success', 'Category added');
-    } else { showModal('Error', data.error); }
-  } catch(e) { showModal('Error', 'Error adding category'); }
+      showModal('نجاح', 'تمت إضافة التصنيف');
+    } else { showModal('خطأ', data.error); }
+  } catch(e) { showModal('خطأ', 'خطأ في إضافة التصنيف'); }
 }
 
 async function deleteCategory(id) {
-  if (!await showModal('Confirm', 'Delete this category? Drinks using it must be reassigned first.', true)) return;
+  if (!await showModal('تأكيد', 'حذف هذا التصنيف؟ يجب إعادة تعيين المشروبات المرتبطة به أولاً.', true)) return;
   const res = await fetch('/api/admin/categories/' + id, { method:'DELETE', headers: getAuthH() });
   const data = await res.json();
-  if (data.success) { loadCategories(); showModal('Success', 'Category deleted'); }
-  else showModal('Error', data.error || 'Error deleting');
+  if (data.success) { loadCategories(); showModal('نجاح', 'تم حذف التصنيف'); }
+  else showModal('خطأ', data.error || 'خطأ في الحذف');
 }
 
 async function loadOrders() {
   const res = await fetch('/api/orders', { headers: getAuthH() });
   ordersData = await res.json();
   document.getElementById('ordersTable').innerHTML = ordersData.map(o => {
-    const statusMap = { pending:'Pending', ready:'Ready', served:'Served', cancelled:'Cancelled' };
+    const statusMap = { pending:'قيد الانتظار', ready:'جاهز', served:'مُقدم', cancelled:'ملغى' };
     return `<tr>
       <td style="color:var(--muted);font-size:.8rem">#${o.id}</td>
-      <td style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--text)">Table ${o.table_number}</td>
-      <td>${o.customer_name||'Guest'}</td>
-      <td class="tbl-price">${o.total_price} EGP</td>
+      <td style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--text)">طاولة ${o.table_number}</td>
+      <td>${o.customer_name||'زائر'}</td>
+      <td class="tbl-price">${o.total_price} ج.م</td>
       <td class="points-badge">+${o.points_earned||0}</td>
       <td><span class="badge badge-${o.status==='pending'?'hidden':o.status==='ready'?'cashier':o.status==='cancelled'?'red':'customer'}">${statusMap[o.status]||o.status}</span></td>
-      <td style="color:var(--muted);font-size:.78rem">${new Date(o.created_at).toLocaleString('en-US')}</td>
+      <td style="color:var(--muted);font-size:.78rem">${new Date(o.created_at).toLocaleString('ar-EG')}</td>
       <td>
-        ${o.status !== 'served' && o.status !== 'cancelled' ? `<button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="cancelOrderAdmin(${o.id})">Cancel</button>` : ''}
+        ${o.status !== 'served' && o.status !== 'cancelled' ? `<button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="cancelOrderAdmin(${o.id})">إلغاء</button>` : ''}
       </td>
     </tr>`;
   }).join('');
 }
 
 async function cancelOrderAdmin(id) {
-  if (!await showModal('Confirm', 'Are you sure you want to cancel this order?', true)) return;
+  if (!await showModal('تأكيد', 'هل أنت متأكد من إلغاء هذا الطلب؟', true)) return;
   const res = await fetch(`/api/orders/${id}/status`, { 
     method: 'PATCH', 
     headers: getAuthH(), 
@@ -1054,7 +1054,7 @@ async function cancelOrderAdmin(id) {
   });
   const data = await res.json();
   if (data.success) loadOrders();
-  else showModal('Error', 'Failed to cancel order');
+  else showModal('خطأ', 'فشل في إلغاء الطلب');
 }
 
 async function loadUsers() {
@@ -1066,17 +1066,17 @@ async function loadUsers() {
       <td style="font-size:.8rem;color:var(--muted)"><span class="editable" onclick="editUserField('${u.id}','phone','${u.phone}',this)">${u.phone}</span></td>
       <td>
         <select onchange="changeRole('${u.id}',this.value)" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.3rem;font-family:'Outfit',sans-serif;font-size:.8rem;">
-          <option value="customer" ${u.role==='customer'?'selected':''}>Customer</option>
-          <option value="cashier" ${u.role==='cashier'?'selected':''}>Cashier</option>
-          <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+          <option value="customer" ${u.role==='customer'?'selected':''}>عميل</option>
+          <option value="cashier" ${u.role==='cashier'?'selected':''}>كاشير</option>
+          <option value="admin" ${u.role==='admin'?'selected':''}>مدير</option>
         </select>
       </td>
       <td class="points-badge"><span class="editable" onclick="editUserPoints('${u.id}',${u.points},this)">${u.points}</span></td>
-      <td style="color:var(--gold);font-size:.9rem">${Math.round(u.total_spent)} EGP</td>
-      <td style="color:var(--muted);font-size:.78rem">${new Date(u.created_at).toLocaleDateString('en-US')}</td>
+      <td style="color:var(--gold);font-size:.9rem">${Math.round(u.total_spent)} ج.م</td>
+      <td style="color:var(--muted);font-size:.78rem">${new Date(u.created_at).toLocaleDateString('ar-EG')}</td>
       <td>
-        <button class="action-btn2" onclick="editUserPassword('${u.id}')">Pass</button>
-        <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteUser('${u.id}')">Delete</button>
+        <button class="action-btn2" onclick="editUserPassword('${u.id}')">كلمة المرور</button>
+        <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteUser('${u.id}')">حذف</button>
       </td>
     </tr>
   `).join('');
@@ -1088,8 +1088,8 @@ async function addUser() {
   const email = document.getElementById('nu-email').value.trim();
   const password = document.getElementById('nu-pass').value;
   const role = document.getElementById('nu-role').value;
-  if(!name || !password) { showModal('Alert', 'Please fill name and password'); return; }
-  if(!phone && !email) { showModal('Alert', 'Please provide at least phone or email'); return; }
+  if(!name || !password) { showModal('تنبيه', 'يرجى إدخال الاسم وكلمة المرور'); return; }
+  if(!phone && !email) { showModal('تنبيه', 'يرجى تقديم الهاتف أو البريد الإلكتروني على الأقل'); return; }
   try {
     const res = await fetch('/api/admin/users', { method:'POST', headers: getAuthH(), body: JSON.stringify({name, phone, email: email || undefined, password, role}) });
     const data = await res.json();
@@ -1099,9 +1099,9 @@ async function addUser() {
       document.getElementById('nu-email').value = '';
       document.getElementById('nu-pass').value = '';
       loadUsers();
-      showModal('Success', 'User added');
-    } else { showModal('Error', data.error); }
-  } catch(e) { showModal('Error', 'Error adding user'); }
+      showModal('نجاح', 'تمت إضافة المستخدم');
+    } else { showModal('خطأ', data.error); }
+  } catch(e) { showModal('خطأ', 'خطأ في إضافة المستخدم'); }
 }
 
 function editUserField(id, field, current, el) {
@@ -1133,12 +1133,12 @@ function editUserPoints(id, current, el) {
 }
 
 async function editUserPassword(id) {
-  const newPass = await showModal('Change Password', 'Enter new password:', false, true);
+  const newPass = await showModal('تغيير كلمة المرور', 'أدخل كلمة المرور الجديدة:', false, true);
   if(newPass && newPass.trim().length >= 4) {
     await patchUser(id, { password: newPass.trim() });
-    showModal('Success', 'Password changed successfully');
+    showModal('نجاح', 'تم تغيير كلمة المرور بنجاح');
   } else if (newPass !== null) { 
-    showModal('Alert', 'Password too short (less than 4 characters)'); 
+    showModal('تنبيه', 'كلمة المرور قصيرة جداً (أقل من 4 أحرف)'); 
   }
 }
 
@@ -1147,11 +1147,11 @@ async function patchUser(id, data) {
 }
 
 async function deleteUser(id) {
-  if(!await showModal('Confirm', 'Are you sure you want to permanently delete the user?', true)) return;
+  if(!await showModal('تأكيد', 'هل أنت متأكد من حذف المستخدم نهائياً؟', true)) return;
   const res = await fetch(`/api/admin/users/${id}`, { method:'DELETE', headers: getAuthH() });
   const data = await res.json();
   if(data.success) loadUsers();
-  else showModal('Error', data.error || 'Error deleting');
+  else showModal('خطأ', data.error || 'خطأ في الحذف');
 }
 
 async function changeRole(id, role) {
@@ -1227,67 +1227,67 @@ async function loadReports() {
 
     // Summary cards
     document.getElementById('r-total-orders').textContent = sales.totalOrders || '—';
-    document.getElementById('r-total-revenue').textContent = sales.totalRevenue ? parseFloat(sales.totalRevenue).toFixed(2) + ' EGP' : '—';
-    document.getElementById('r-avg-order').textContent = sales.avgOrderValue ? parseFloat(sales.avgOrderValue).toFixed(2) + ' EGP' : '—';
+    document.getElementById('r-total-revenue').textContent = sales.totalRevenue ? parseFloat(sales.totalRevenue).toFixed(2) + ' ج.م' : '—';
+    document.getElementById('r-avg-order').textContent = sales.avgOrderValue ? parseFloat(sales.avgOrderValue).toFixed(2) + ' ج.م' : '—';
     document.getElementById('r-cancelled').textContent = sales.cancelledOrders || '—';
 
     // Status breakdown
     const st = sales.statusBreakdown || {};
-    document.getElementById('r-st-pending').textContent = 'Pending: ' + (st.pending || 0);
-    document.getElementById('r-st-ready').textContent = 'Ready: ' + (st.ready || 0);
-    document.getElementById('r-st-served').textContent = 'Served: ' + (st.served || 0);
-    document.getElementById('r-st-refunded').textContent = 'Refunded: ' + (st.cancelled || 0);
+    document.getElementById('r-st-pending').textContent = 'قيد الانتظار: ' + (st.pending || 0);
+    document.getElementById('r-st-ready').textContent = 'جاهز: ' + (st.ready || 0);
+    document.getElementById('r-st-served').textContent = 'مُقدم: ' + (st.served || 0);
+    document.getElementById('r-st-refunded').textContent = 'مسترد: ' + (st.cancelled || 0);
 
     // Top items
     const topDiv = document.getElementById('r-top-items');
     if (topItems && topItems.length > 0) {
-      topDiv.innerHTML = '<div style="display:grid; grid-template-columns: 1fr auto auto; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>Item</span><span>Qty</span><span>Revenue</span></div>' +
+      topDiv.innerHTML = '<div style="display:grid; grid-template-columns: 1fr auto auto; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>العنصر</span><span>الكمية</span><span>الإيرادات</span></div>' +
         topItems.map(item => `
         <div style="display:grid; grid-template-columns: 1fr auto auto; gap:.5rem; align-items:center; padding:.5rem 0; border-bottom:1px solid var(--line);">
           <span style="color:var(--text);">${item.name}</span>
           <span style="text-align:right; color:var(--muted);">×${item.qty}</span>
-          <span style="text-align:right; color:var(--accent-emerald); font-weight:600; min-width:80px;">${parseFloat(item.revenue).toFixed(2)} EGP</span>
+          <span style="text-align:right; color:var(--accent-emerald); font-weight:600; min-width:80px;">${parseFloat(item.revenue).toFixed(2)} ج.م</span>
         </div>
       `).join('');
     } else {
-      topDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">No items sold yet.</p>';
+      topDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لم يتم بيع أي عناصر بعد.</p>';
     }
 
     // Cashier performance
     const cashDiv = document.getElementById('r-cashiers');
     if (cashiers && cashiers.length > 0) {
-      cashDiv.innerHTML = '<div style="display:grid; grid-template-columns: 1fr auto auto auto; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>Cashier</span><span>Shifts</span><span>Orders</span><span>Revenue</span></div>' +
+      cashDiv.innerHTML = '<div style="display:grid; grid-template-columns: 1fr auto auto auto; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>الكاشير</span><span>الورديات</span><span>الطلبات</span><span>الإيرادات</span></div>' +
         cashiers.map(c => `
         <div style="display:grid; grid-template-columns: 1fr auto auto auto; gap:.5rem; align-items:center; padding:.5rem 0; border-bottom:1px solid var(--line);">
-          <span style="color:var(--text);">${c.cashierName || 'Cashier'}</span>
+          <span style="color:var(--text);">${c.cashierName || 'كاشير'}</span>
           <span style="text-align:right; color:var(--muted);">${c.shifts || 0}</span>
           <span style="text-align:right; color:var(--muted);">${c.totalOrders || 0}</span>
-          <span style="text-align:right; color:var(--accent-emerald); font-weight:600;">${parseFloat(c.totalRevenue || 0).toFixed(2)} EGP</span>
+          <span style="text-align:right; color:var(--accent-emerald); font-weight:600;">${parseFloat(c.totalRevenue || 0).toFixed(2)} ج.م</span>
         </div>
       `).join('');
     } else {
-      cashDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">No cashier data yet.</p>';
+      cashDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا توجد بيانات كاشير بعد.</p>';
     }
 
     // Shift history
     const shiftDiv = document.getElementById('r-shifts');
     if (shifts && shifts.length > 0) {
-      shiftDiv.innerHTML = '<div style="display:grid; grid-template-columns: 1fr auto auto auto auto; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>Shift</span><span>Cashier</span><span>Revenue</span><span>Diff</span><span>Status</span></div>' +
+      shiftDiv.innerHTML = '<div style="display:grid; grid-template-columns: 1fr auto auto auto auto; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>الوردية</span><span>الكاشير</span><span>الإيرادات</span><span>الفارق</span><span>الحالة</span></div>' +
         shifts.slice(0, 20).map(s => {
           const exp = s.expectedBalance || 0;
           const actual = s.closingBalance || 0;
           const diff = exp ? ((actual - exp) / exp * 100).toFixed(1) : '—';
           const diffColor = Math.abs(parseFloat(diff)) > 2 ? 'var(--red)' : 'var(--accent-emerald)';
           return `<div style="display:grid; grid-template-columns: 1fr auto auto auto auto; gap:.5rem; align-items:center; padding:.4rem 0; border-bottom:1px solid var(--line);">
-            <span style="color:var(--text); font-size:.85rem;">${new Date(s.openedAt).toLocaleDateString('en-US', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
-            <span style="color:var(--muted); font-size:.8rem;">Cashier</span>
-            <span style="color:var(--accent-emerald); font-size:.85rem;">${s.totalRevenue ? parseFloat(s.totalRevenue).toFixed(0) : '0'} EGP</span>
+            <span style="color:var(--text); font-size:.85rem;">${new Date(s.openedAt).toLocaleDateString('ar-EG', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
+            <span style="color:var(--muted); font-size:.8rem;">كاشير</span>
+            <span style="color:var(--accent-emerald); font-size:.85rem;">${s.totalRevenue ? parseFloat(s.totalRevenue).toFixed(0) : '0'} ج.م</span>
             <span style="color:${diffColor}; font-size:.8rem;">${diff}%</span>
-            <span style="color:${s.status === 'open' ? 'var(--gold)' : 'var(--muted)'}; font-size:.8rem;">${s.status}</span>
+            <span style="color:${s.status === 'open' ? 'var(--gold)' : 'var(--muted)'}; font-size:.8rem;">${s.status === 'open' ? 'مفتوحة' : 'مغلقة'}</span>
           </div>`;
         }).join('');
     } else {
-      shiftDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">No shifts yet.</p>';
+      shiftDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا توجد ورديات بعد.</p>';
     }
 
     // Sales history chart (last 7 days from sales data)
@@ -1306,7 +1306,7 @@ async function loadReports() {
         }).join('')}
       </div>`;
     } else {
-      chartDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">No history yet.</p>';
+      chartDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا يوجد سجل بعد.</p>';
     }
   } catch (err) {
     console.error('[Reports] Error:', err);
@@ -1325,7 +1325,7 @@ function downloadPDF() {
       a.click();
       URL.revokeObjectURL(url);
     })
-    .catch(() => alert('Error downloading PDF'));
+    .catch(() => alert('خطأ في تحميل PDF'));
 }
 
 function exportReportsCSV() {
@@ -1333,9 +1333,9 @@ function exportReportsCSV() {
     .then(r => r.json())
     .then(sales => {
       const history = sales.dailyHistory || [];
-      if (!history.length) { alert('No data to export.'); return; }
+      if (!history.length) { alert('لا توجد بيانات للتصدير.'); return; }
 
-      let csv = 'Date,Orders,Revenue (EGP),Avg Order (EGP)\n';
+      let csv = 'التاريخ,الطلبات,الإيرادات (ج.م),متوسط الطلب (ج.م)\n';
       for (const h of history) {
         csv += `${h.date},${h.orders},${h.revenue},${h.avgValue}\n`;
       }
@@ -1348,18 +1348,18 @@ function exportReportsCSV() {
       a.click();
       URL.revokeObjectURL(url);
     })
-    .catch(() => alert('Error exporting CSV'));
+    .catch(() => alert('خطأ في تصدير CSV'));
 }
 </script>
 
 <div id="custom-modal" class="c-modal">
   <div class="c-modal-content">
-    <h2 id="cm-title">Alert</h2>
+    <h2 id="cm-title">تنبيه</h2>
     <p id="cm-text"></p>
     <input type="text" id="cm-input" class="edit-input" style="width:100%; display:none; margin-bottom:1.5rem; text-align:center;">
     <div class="c-modal-actions">
-      <button id="cm-cancel" class="hbtn">Cancel</button>
-      <button id="cm-ok" class="hbtn" style="color:var(--gold); border-color:var(--gold);">OK</button>
+      <button id="cm-cancel" class="hbtn">إلغاء</button>
+      <button id="cm-ok" class="hbtn" style="color:var(--gold); border-color:var(--gold);">موافق</button>
     </div>
   </div>
 </div>
