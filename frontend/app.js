@@ -238,12 +238,12 @@ window.openProfileModal = async function() {
       const pts = userDetails.points || 0;
       const egpDiscount = Math.floor(pts / 100) * 10;
       discountEl.innerHTML = isAr
-        ? `نسبة الخصم الخاصة بك: <span style="color:var(--gold); font-size:1.15rem; font-weight:700;">${egpDiscount} ج.م</span>`
-        : `Your discount rate: <span style="color:var(--gold); font-size:1.15rem; font-weight:700;">${egpDiscount} EGP</span>`;
+        ? `نسبة الخصم الخاصة بك: <span style="color:#fff; font-size:1.15rem; font-weight:700;">${egpDiscount} ج.م</span>`
+        : `Your discount rate: <span style="color:#fff; font-size:1.15rem; font-weight:700;">${egpDiscount} EGP</span>`;
     } else {
       discountEl.innerHTML = isAr
-        ? `نسبة الخصم الخاصة بك: <span style="color:var(--gold); font-size:1.15rem; font-weight:700;">${discountPct}</span>`
-        : `Your discount rate: <span style="color:var(--gold); font-size:1.15rem; font-weight:700;">${discountPct}</span>`;
+        ? `نسبة الخصم الخاصة بك: <span style="color:#fff; font-size:1.15rem; font-weight:700;">${discountPct}</span>`
+        : `Your discount rate: <span style="color:#fff; font-size:1.15rem; font-weight:700;">${discountPct}</span>`;
     }
   }
 
