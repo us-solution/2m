@@ -1,3 +1,4 @@
+// ===== مسار المصادقة (Auth) - تسجيل الدخول وإنشاء الحساب وتغيير كلمة المرور والملف الشخصي =====
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
@@ -9,17 +10,17 @@ require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'ozel_cafe_secret_2026';
 
-// Register Endpoint
+// تسجيل مستخدم جديد (يتطلب الاسم وكلمة المرور ورقم الهاتف أو البريد)
 router.post('/register', async (req, res) => {
   const { name, phone, email, password, subscriptionTier } = req.body;
 
-  // We need name, password, and at least one of phone or email
+  // التحقق من وجود الاسم وكلمة المرور ورقم الهاتف أو البريد الإلكتروني
   if (!name || !password || (!phone && !email)) {
     return res.status(400).json({ error: 'Name, password, and at least a Phone number or Email are required' });
   }
 
   try {
-    // Check if phone or email already registered
+    // التحقق من عدم تسجيل رقم الهاتف مسبقاً
     if (phone) {
       const existingPhone = await User.findOne({ phone });
       if (existingPhone) {
@@ -27,6 +28,7 @@ router.post('/register', async (req, res) => {
       }
     }
 
+    // التحقق من عدم تسجيل البريد الإلكتروني مسبقاً
     if (email) {
       const existingEmail = await User.findOne({ email });
       if (existingEmail) {
@@ -34,22 +36,24 @@ router.post('/register', async (req, res) => {
       }
     }
 
+    // تشفير كلمة المرور
     const hashedPassword = await bcrypt.hash(password, 10);
     const tier = subscriptionTier || 'none';
 
-    // Validate tier
+    // التحقق من صلاحية مستوى الاشتراك
     const validTiers = ['none', 'bronze', 'silver', 'gold', 'student'];
     const chosenTier = validTiers.includes(tier.toLowerCase()) ? tier.toLowerCase() : 'none';
 
     const user = await User.create({
       name,
-      phone: phone || `email_${Date.now()}`, // Fallback unique string if only email is used
+      phone: phone || `email_${Date.now()}`,
       email: email || null,
       password: hashedPassword,
       role: 'customer',
       subscriptionTier: chosenTier
     });
 
+    // إنشاء رمز JWT صالح لمدة 30 يوماً
     const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '30d' });
 
     res.json({
@@ -69,17 +73,17 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login Endpoint
+// تسجيل الدخول باستخدام رقم الهاتف أو البريد الإلكتروني
 router.post('/login', async (req, res) => {
   const { identifier, phone, password } = req.body;
-  const loginKey = identifier || phone; // support old parameter name "phone"
+  const loginKey = identifier || phone;
 
   if (!loginKey || !password) {
     return res.status(400).json({ error: 'Missing credentials: Phone/Email and password required' });
   }
 
   try {
-    // Search by email or phone
+    // البحث عن المستخدم بالبريد أو الهاتف
     const user = await User.findOne({
       $or: [
         { phone: loginKey },
@@ -88,6 +92,7 @@ router.post('/login', async (req, res) => {
     });
 
     if (!user || !user.password) return res.status(401).json({ error: 'Invalid credentials' });
+    // التحقق من كلمة المرور
     if (!(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -112,7 +117,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Get Profile Info
+// جلب الملف الشخصي للمستخدم الحالي
 router.get('/me', authenticateToken, async (req, res) => {
   res.json({
     id: req.user._id,
@@ -127,7 +132,7 @@ router.get('/me', authenticateToken, async (req, res) => {
   });
 });
 
-// Change Password
+// تغيير كلمة المرور (يتطلب كلمة المرور القديمة والجديدة)
 router.post('/change-password', authenticateToken, async (req, res) => {
   const { oldPassword, newPassword } = req.body;
 
@@ -136,6 +141,7 @@ router.post('/change-password', authenticateToken, async (req, res) => {
   }
 
   try {
+    // التحقق من صحة كلمة المرور القديمة
     if (!req.user || !req.user.password || !(await bcrypt.compare(oldPassword, req.user.password))) {
       return res.status(401).json({ error: 'Incorrect old password' });
     }
@@ -150,7 +156,7 @@ router.post('/change-password', authenticateToken, async (req, res) => {
   }
 });
 
-// Customer Points Log
+// جلب سجل نقاط الولاء للعميل الحالي
 router.get('/me/points', authenticateToken, async (req, res) => {
   try {
     const logs = await PointsLog.find({ userId: req.user._id }).sort({ created_at: -1 });

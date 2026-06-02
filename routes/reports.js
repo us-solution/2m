@@ -1,3 +1,4 @@
+// ===== مسار التقارير - تقارير المبيعات والأصناف الأكثر مبيعاً وأداء الكاشير والتكاليف والأرباح =====
 const express = require('express');
 const router = express.Router();
 const PDFDocument = require('pdfkit');
@@ -8,9 +9,9 @@ const Expense = require('../models/Expense');
 const CashMovement = require('../models/CashMovement');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 
-// ── Report data endpoints ──
+// ===== نقاط نهاية بيانات التقارير =====
 
-// Sales overview (daily/weekly/monthly)
+// نظرة عامة على المبيعات (يومي/أسبوعي/شهري)
 router.get('/sales', authenticateToken, requireRole('admin'), async (req, res) => {
   const { period, start, end } = req.query;
   try {
@@ -35,7 +36,7 @@ router.get('/sales', authenticateToken, requireRole('admin'), async (req, res) =
     const cancelled = orders.filter(o => o.status === 'cancelled');
     const refunded = orders.filter(o => o.status === 'refunded');
 
-    // Daily history for chart (last 7 days)
+    // التاريخ اليومي للرسم البياني (آخر 7 أيام)
     const dailyHistory = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date(); d.setDate(d.getDate() - i); d.setHours(0,0,0,0);
@@ -71,7 +72,7 @@ router.get('/sales', authenticateToken, requireRole('admin'), async (req, res) =
   }
 });
 
-// Top items report
+// تقرير الأصناف الأكثر مبيعاً
 router.get('/top-items', authenticateToken, requireRole('admin'), async (req, res) => {
   const { days, start, end } = req.query;
   try {
@@ -106,7 +107,7 @@ router.get('/top-items', authenticateToken, requireRole('admin'), async (req, re
   }
 });
 
-// Cashier performance
+// أداء الكاشير (عدد الورديات والإيرادات والمبيعات)
 router.get('/cashiers', authenticateToken, requireRole('admin'), async (req, res) => {
   const { days, start, end } = req.query;
   try {
@@ -121,6 +122,7 @@ router.get('/cashiers', authenticateToken, requireRole('admin'), async (req, res
       Order.find(orderFilter).lean()
     ]);
 
+    // تجميع الإحصائيات لكل كاشير
     const byCashier = {};
     for (const s of shifts) {
       if (!byCashier[s.cashierId]) byCashier[s.cashierId] = { cashierId: s.cashierId, cashierName: s.cashierName, shifts: 0, totalRevenue: 0, totalOrders: 0, cashCollected: 0, cardCollected: 0, walletCollected: 0, splitCollected: 0, totalRefunds: 0 };
@@ -134,7 +136,7 @@ router.get('/cashiers', authenticateToken, requireRole('admin'), async (req, res
       byCashier[s.cashierId].splitCollected += (s.paymentBreakdown && s.paymentBreakdown.split) || 0;
     }
 
-    // Also add cash collected from orders with cashierId
+    // إضافة المبيعات من الطلبات المرتبطة بالكاشير
     for (const o of orders) {
       if (!o.cashierId) continue;
       const cid = o.cashierId.toString();
@@ -151,7 +153,7 @@ router.get('/cashiers', authenticateToken, requireRole('admin'), async (req, res
   }
 });
 
-// Payment methods breakdown
+// توزيع طرق الدفع
 router.get('/payment-methods', authenticateToken, requireRole('admin'), async (req, res) => {
   const { start, end } = req.query;
   try {
@@ -180,7 +182,7 @@ router.get('/payment-methods', authenticateToken, requireRole('admin'), async (r
   }
 });
 
-// Hourly sales breakdown
+// توزيع المبيعات حسب الساعة
 router.get('/hourly-sales', authenticateToken, requireRole('admin'), async (req, res) => {
   const { start, end } = req.query;
   try {
@@ -209,7 +211,7 @@ router.get('/hourly-sales', authenticateToken, requireRole('admin'), async (req,
   }
 });
 
-// Expense vs Revenue comparison
+// مقارنة المصروفات مقابل الإيرادات
 router.get('/expense-vs-revenue', authenticateToken, requireRole('admin'), async (req, res) => {
   const { start, end } = req.query;
   try {
@@ -233,13 +235,14 @@ router.get('/expense-vs-revenue', authenticateToken, requireRole('admin'), async
     const daysElapsed = Math.max(1, Math.ceil((e - s) / 86400000));
     const monthlyRunRate = (revenue / daysElapsed) * 30;
 
-    // Cost breakdown by category
+    // توزيع التكاليف حسب الفئة
     const costByCategory = expenses.reduce((acc, item) => {
       const key = item.category || 'other';
       acc[key] = (acc[key] || 0) + (item.amount || 0);
       return acc;
     }, {});
 
+    // البيانات اليومية لآخر 30 يوماً
     const days = [];
     for (let i = 29; i >= 0; i--) {
       const d = new Date(e); d.setDate(d.getDate() - i); d.setHours(0,0,0,0);
@@ -273,8 +276,9 @@ router.get('/expense-vs-revenue', authenticateToken, requireRole('admin'), async
   }
 });
 
-// ── PDF Report Generation ──
+// ===== إنشاء تقارير PDF =====
 
+// الملخص الشهري (JSON)
 router.get('/monthly-summary', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const now = new Date();
@@ -307,6 +311,7 @@ router.get('/monthly-summary', authenticateToken, requireRole('admin'), async (r
   }
 });
 
+// تقرير التكاليف
 router.get('/costs', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const now = new Date();
@@ -324,6 +329,7 @@ router.get('/costs', authenticateToken, requireRole('admin'), async (req, res) =
   }
 });
 
+// تقرير الحسابات (الإيرادات وحركات الخزينة)
 router.get('/accounts', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const now = new Date();
@@ -352,6 +358,7 @@ router.get('/accounts', authenticateToken, requireRole('admin'), async (req, res
   }
 });
 
+// إنشاء تقرير PDF كامل مع جميع التفاصيل
 router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => {
   const { period, start, end } = req.query;
   try {
@@ -388,14 +395,14 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
     const daysElapsed = Math.max(1, Math.ceil((Date.now() - new Date(startRef).getTime()) / 86400000));
     const monthlyRunRate = (revenue / daysElapsed) * 30;
 
-    // Payment method breakdown
+    // توزيع طرق الدفع
     const pmBreakdown = { cash: 0, card: 0, wallet: 0, split: 0 };
     for (const o of paid) {
       const pm = o.paymentMethod;
       if (pm && pmBreakdown[pm] !== undefined) pmBreakdown[pm] += o.total_price || 0;
     }
 
-    // Hourly sales
+    // المبيعات حسب الساعة
     const hourly = {};
     for (let h = 0; h < 24; h++) hourly[h] = { h, orders: 0, revenue: 0 };
     for (const o of orders) {
@@ -405,7 +412,7 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
       if (!['cancelled', 'refunded'].includes(o.status)) hourly[h].revenue += o.total_price || 0;
     }
 
-    // Cost breakdown by category
+    // توزيع التكاليف حسب الفئة
     const costCategories = {};
     for (const e of expenses) {
       const cat = e.category || 'other';
@@ -420,12 +427,12 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
     const font = 'Helvetica';
     let pageNum = 0;
 
-    // ── PAGE 1: Header + Summary + Payment Methods ──
+    // الصفحة 1: رأس التقرير + الملخص + طرق الدفع
     pageNum++;
     doc.fontSize(22).font(`${font}-Bold`).text('OZEL Cafe', 40, 40);
     doc.fontSize(10).font(font).fillColor('#666').text(`Report — ${new Date().toISOString().slice(0,10)} (${periodLabel})`, 40, 68);
 
-    // Summary
+    // الملخص
     doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Summary', 40, 100);
     doc.fontSize(11).font(font).fillColor('#333');
     const sY = 120;
@@ -440,7 +447,7 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
     doc.text(`Monthly Run-rate: EGP ${monthlyRunRate.toFixed(2)}`, 40, sY + 72);
     doc.text(`Cashbox: In EGP ${cashIn.toFixed(2)} / Out EGP ${cashOut.toFixed(2)}`, 250, sY + 72);
 
-    // Payment Methods
+    // طرق الدفع
     let yPos = sY + 110;
     doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Payment Methods', 40, yPos);
     yPos += 22;
@@ -458,12 +465,12 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
       yPos += 16;
     }
 
-    // ── PAGE 2: Top Items + Cashier Performance ──
+    // الصفحة 2: الأصناف الأكثر مبيعاً + أداء الكاشير
     doc.addPage();
     yPos = 40;
     pageNum++;
 
-    // Top Items
+    // الأصناف الأكثر مبيعاً
     const itemMap = {};
     for (const o of orders) {
       let items = [];
@@ -492,7 +499,7 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
       yPos += 16;
     }
 
-    // Cashier Performance
+    // أداء الكاشير
     yPos += 20;
     if (yPos > 700) { doc.addPage(); yPos = 40; pageNum++; }
     doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Cashier Performance', 40, yPos);
@@ -515,12 +522,12 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
       yPos += 14;
     }
 
-    // ── PAGE 3: Shifts + Hourly Sales + Cost Breakdown ──
+    // الصفحة 3: الورديات + المبيعات حسب الساعة + توزيع التكاليف
     doc.addPage();
     yPos = 40;
     pageNum++;
 
-    // Shifts
+    // الورديات
     doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Shifts', 40, yPos);
     yPos += 22;
     doc.fontSize(9).font(`${font}-Bold`).fillColor('#555');
@@ -542,7 +549,7 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
       yPos += 14;
     }
 
-    // Hourly Sales
+    // المبيعات حسب الساعة
     yPos += 20;
     if (yPos > 700) { doc.addPage(); yPos = 40; pageNum++; }
     doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Hourly Sales', 40, yPos);
@@ -553,7 +560,7 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
     doc.moveTo(40, yPos).lineTo(520, yPos).strokeColor('#ddd').stroke();
     yPos += 8;
     doc.fontSize(9).font(font).fillColor('#333');
-    // Show only hours with activity
+    // عرض الساعات التي بها نشاط فقط
     const activeHours = Object.values(hourly).filter(h => h.orders > 0);
     for (const h of activeHours) {
       if (yPos > 740) { doc.addPage(); yPos = 40; pageNum++; }
@@ -564,7 +571,7 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
       yPos += 14;
     }
 
-    // Cost Breakdown
+    // توزيع التكاليف
     yPos += 20;
     if (yPos > 700) { doc.addPage(); yPos = 40; pageNum++; }
     doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Cost Breakdown', 40, yPos);
@@ -590,7 +597,7 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
   }
 });
 
-// ── Product Profitability Report ──
+// ===== تقرير ربحية المنتجات =====
 router.get('/profitability', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const { start, end } = req.query;
@@ -632,7 +639,7 @@ router.get('/profitability', authenticateToken, requireRole('admin'), async (req
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ── Ingredient Consumption Report ──
+// ===== تقرير استهلاك الخامات =====
 router.get('/consumption', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const { start, end } = req.query;
@@ -657,7 +664,7 @@ router.get('/consumption', authenticateToken, requireRole('admin'), async (req, 
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ── Waste Report ──
+// ===== تقرير الهدر =====
 router.get('/waste', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const { start, end } = req.query;
@@ -673,7 +680,7 @@ router.get('/waste', authenticateToken, requireRole('admin'), async (req, res) =
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ── Cost Analysis (recipe cost vs selling price) ──
+// ===== تحليل التكاليف (تكلفة الوصفة مقابل سعر البيع) =====
 router.get('/cost-analysis', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const Recipe = require('../models/Recipe');

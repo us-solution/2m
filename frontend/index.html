@@ -1,10 +1,12 @@
 <!DOCTYPE html>
+<!-- ===== أوزيل كافيه — الصفحة الرئيسية ===== -->
 <html lang="en" dir="ltr">
 
 <head>
   <meta charset="UTF-8" />
   <script src="api-override.js?v=1"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- عنوان الموقع ووصف محرك البحث -->
   <title>OZEL CAFE — Hidden Gem</title>
   <meta name="description" content="OZEL CAFE — Hidden Gem. An exceptional coffee experience in a special place." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -19,6 +21,7 @@
 
 <body>
 
+  <!-- ===== شاشة التحميل (Splash Screen) ===== -->
   <div id="loader">
     <div class="loader-glass"></div>
     <div class="loader-shimmer"></div>
@@ -34,7 +37,7 @@
     </div>
   </div>
 
-  <!-- NAV -->
+  <!-- ===== شريط التنقل العلوي ===== -->
   <nav id="nav">
     <div class="nav-logo">
       <a href="index.html"><img src="imgs/Ozel-Logo--01.png" alt="OZEL Logo" class="nav-logo-img" /></a>
@@ -56,7 +59,7 @@
       <div id="nav-user-area"></div>
       <button class="nav-cta" onclick="scrollToSection('menu')" data-en="Order Now" data-ar="اطلب الآن">Order Now</button>
     </div>
-    <!-- Hamburger Button (Mobile Only) -->
+    <!-- ===== زر القائمة المتنقلة (للجوال فقط) ===== -->
     <button class="nav-hamburger" id="navHamburger" aria-label="Menu" onclick="toggleMobileMenu()">
       <span></span>
       <span></span>
@@ -64,7 +67,7 @@
     </button>
   </nav>
 
-  <!-- MOBILE DRAWER MENU -->
+  <!-- ===== القائمة الجانبية المتنقلة (Drawer) ===== -->
   <div class="mobile-drawer" id="mobileDrawer">
     <div class="drawer-overlay" onclick="toggleMobileMenu()"></div>
     <div class="drawer-content">
@@ -101,7 +104,7 @@
     </div>
   </div>
 
-  <!-- HERO -->
+  <!-- ===== القسم الرئيسي (Hero) ===== -->
   <section id="hero">
     <div class="hero-bg"></div>
     <div class="hero-grain"></div>
@@ -133,7 +136,7 @@
     </div>
   </section>
 
-  <!-- MARQUEE -->
+  <!-- ===== شريط العلامات المتحرك (Marquee) ===== -->
   <div class="marquee-wrap">
     <div class="marquee-track">
       <span>Espresso Rituals</span><span class="sep">✦</span>
@@ -153,7 +156,7 @@
     </div>
   </div>
 
-  <!-- ABOUT -->
+  <!-- ===== قسم قصة الكافيه (About) ===== -->
   <section id="about">
     <div class="about-inner">
       <div class="about-visual">
@@ -199,7 +202,7 @@
     </div>
   </section>
 
-  <!-- TABLE LOUNGE -->
+  <!-- ===== قسم ركن التسلية والألعاب (Table Lounge) ===== -->
   <section id="lounge">
     <div class="section-head-center">
       <p class="section-eyebrow" data-en="/ Table Lounge /" data-ar="/ ركن التسلية /">/ Table Lounge /</p>
@@ -227,7 +230,7 @@
       </div>
 
       <div class="lounge-content">
-        <!-- IMPOSTER -->
+        <!-- ===== لعبة مين الدخيل (Imposter) ===== -->
         <div id="lounge-imposter" class="lounge-panel active">
           <div class="imposter-game-wrap" style="width: 100%;">
             <div id="imposter-setup" class="imposter-setup-panel" style="text-align: center; padding: 2rem 0;">
@@ -244,7 +247,7 @@
           </div>
         </div>
 
-        <!-- TIC-TAC-COFFEE -->
+        <!-- ===== لعبة إكس-أو (Tic-Tac-Coffee) ===== -->
         <div id="lounge-ttt" class="lounge-panel">
           <div class="ttt-game-wrap">
             <div class="ttt-modes-row">
@@ -275,7 +278,7 @@
           </div>
         </div>
 
-        <!-- UNO CARD GAME -->
+        <!-- ===== لعبة أونو (UNO) ===== -->
         <div id="lounge-uno" class="lounge-panel">
           <div class="uno-game-wrap" style="width: 100%;">
             <!-- Lobby -->
@@ -379,7 +382,7 @@
   </section>
 
 
-  <!-- MENU -->
+  <!-- ===== قسم القائمة (Menu) ===== -->
   <section id="menu">
     <div class="section-head-center">
       <p class="section-eyebrow" data-en="/ Ozel Menu /" data-ar="/ قائمة أوزيل /">/ Ozel Menu /</p>
@@ -419,7 +422,7 @@
     </div>
   </section>
 
-  <!-- DRINK MODAL -->
+  <!-- ===== نافذة تخصيص المشروب (Drink Modal) ===== -->
   <div id="drinkModal" class="modal-overlay" onclick="closeModal(event)">
     <div class="modal-panel" id="modalBox">
       <button class="modal-x" onclick="closeModal()">✕</button>
@@ -427,14 +430,14 @@
     </div>
   </div>
 
-  <!-- CART BUTTON -->
+  <!-- ===== زر السلة العائم (Cart FAB) ===== -->
   <a href="cart.html" class="cart-fab" id="cartFab"
     style="display: flex; align-items: center; justify-content: center; text-decoration: none; padding: 0.5rem 1rem; border-radius: 30px; gap: 0.4rem;">
     <span class="cart-fab-text" style="font-family: 'Tajawal', sans-serif; font-weight: 700; font-size: 0.85rem; color: var(--white);" data-en="Cart" data-ar="الطلب">Cart</span>
     <span class="cart-fab-badge" id="cartCount" style="position: static; transform: none;">0</span>
   </a>
 
-  <!-- CONTACT -->
+  <!-- ===== قسم التواصل (Contact) ===== -->
   <section id="contact">
     <div class="contact-wrap">
       <div class="contact-info">
@@ -468,7 +471,7 @@
     </div>
   </section>
 
-  <!-- FOOTER -->
+  <!-- ===== قسم التذييل (Footer) ===== -->
   <footer id="footer">
     <img src="imgs/Ozel-Logo--01.png" alt="OZEL Logo" class="footer-logo-img" />
     <div class="footer-logo">OZEL <span>CAFE</span></div>
@@ -476,7 +479,7 @@
     <p class="footer-copy" data-en="© 2025 OZEL CAFE — All rights reserved" data-ar="© 2025 أوزيل كافيه — جميع الحقوق محفوظة">© 2025 OZEL CAFE — All rights reserved</p>
   </footer>
 
-  <!-- PROFILE MODAL -->
+  <!-- ===== نافذة الملف الشخصي (Profile Modal) ===== -->
   <div class="modal-overlay" id="profileModal">
     <div class="modal-panel" style="max-width: 480px; border-radius: var(--rad-lg);">
       <div class="modal-x" onclick="closeProfileModal()">✕</div>

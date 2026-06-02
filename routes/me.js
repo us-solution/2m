@@ -1,10 +1,11 @@
+// ===== مسار العميل الشخصي - عرض طلبات العميل السابقة ونقاط الولاء =====
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 const PointsLog = require('../models/PointsLog');
 const { authenticateToken } = require('../middlewares/auth');
 
-// Customer's Personal Order History (GET /api/me/orders)
+// جلب تاريخ طلبات العميل المسجل (آخر 20 طلب)
 router.get('/orders', authenticateToken, async (req, res) => {
   try {
     const orders = await Order.find({ userId: req.user._id })
@@ -31,7 +32,7 @@ router.get('/orders', authenticateToken, async (req, res) => {
   }
 });
 
-// Customer's Points Log (GET /api/me/points)
+// جلب نقاط الولاء وسجل النقاط للعميل
 router.get('/points', authenticateToken, async (req, res) => {
   try {
     const logs = await PointsLog.find({ userId: req.user._id }).sort({ created_at: -1 });

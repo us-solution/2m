@@ -1,3 +1,8 @@
+// ===== أوزيل كافيه — لعبة أونو (UNO) متعددة اللاعبين عبر الإنترنت =====
+// هذا الملف يدير منطق لعبة الأونو بالكامل بما في ذلك إنشاء الغرف
+// والانضمام إليها واللعب عبر Pusher للاتصال الفوري
+
+// متغيرات الحالة العامة للعبة
 let pusherClient = null;
 let gameChannel = null;
 let myRoomCode = '';
@@ -5,21 +10,26 @@ let myName = '';
 let gameState = null;
 let drawnCard = null;
 
+// خريطة الألوان والنصوص الخاصة باللعبة
 const COLOR_HEX = { red: '#E74C3C', yellow: '#F1C40F', green: '#2ECC71', blue: '#3498DB', wild: '#2C3E50' };
 const COLOR_AR = { red: 'أحمر', yellow: 'أصفر', green: 'أخضر', blue: 'أزرق', wild: 'وايلد' };
 const VALUE_LABELS = { skip: '⊘', reverse: '⟳', draw2: '+2', wild: '★', wild4: '+4' };
 
+// دالة مساعدة للترجمة بين اللغتين
 function tEnAr(en, ar) { return (window.currentLang === 'ar') ? ar : en; }
 
+// ===== تهيئة بهو اللعبة =====
 window.initUnoLobby = function() {
   const user = JSON.parse(localStorage.getItem('ozel_user') || 'null');
   if (user && user.name) document.getElementById('uno-player-name').value = user.name;
 };
 
+// ===== إظهار حقل الانضمام للغرفة =====
 window.showJoinUnoInput = function() {
   document.getElementById('uno-join-box').style.display = 'flex';
 };
 
+// ===== إنشاء غرفة جديدة =====
 window.createUnoRoom = async function() {
   const name = document.getElementById('uno-player-name').value.trim();
   if (!name) return alert(tEnAr('Enter your nickname', 'أدخل اسمك'));
@@ -31,6 +41,7 @@ window.createUnoRoom = async function() {
   } catch (e) { alert(tEnAr('Error', 'خطأ')); }
 };
 
+// ===== الانضمام إلى غرفة موجودة =====
 window.submitJoinUnoRoom = async function() {
   const name = document.getElementById('uno-player-name').value.trim();
   const code = document.getElementById('uno-room-code').value.trim().toUpperCase();
@@ -43,6 +54,7 @@ window.submitJoinUnoRoom = async function() {
   } catch (e) { alert(tEnAr('Error', 'خطأ')); }
 };
 
+// ===== إعداد غرفة الانتظار =====
 function setupWaitingRoom(code, name, isHost) {
   myRoomCode = code; myName = name;
   document.getElementById('uno-lobby').style.display = 'none';
@@ -55,6 +67,7 @@ function setupWaitingRoom(code, name, isHost) {
   if (!window.unoInterval) window.unoInterval = setInterval(fetchState, 3000);
 }
 
+// ===== الاشتراك في قناة Pusher للغرفة =====
 function subscribeToChannel(code) {
   if (typeof Pusher === 'undefined') return;
   if (!pusherClient) pusherClient = new Pusher('d7010f3c5b8b98295a04', { cluster: 'eu', forceTLS: true });
@@ -69,6 +82,7 @@ function subscribeToChannel(code) {
   gameChannel.bind('said-uno', d => addLog(d.player + ' ' + tEnAr('said UNO!', 'قال أونو!')));
 }
 
+// ===== جلب حالة اللعبة من الخادم =====
 async function fetchState() {
   if (!myRoomCode) return;
   try {
@@ -78,12 +92,14 @@ async function fetchState() {
   } catch (e) { console.error(e); }
 }
 
+// ===== تحديث قائمة اللاعبين في بهو الانتظار =====
 function updatePlayerList(players) {
   const el = document.getElementById('uno-player-list');
   if (!el) return;
   el.innerHTML = players.map((p, i) => `<div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg3);padding:.6rem 1rem;border-radius:6px;"><span style="font-weight:bold;">${i+1}. ${p.name} ${p.name===myName?'(You)':''}</span><span style="font-size:.7rem;background:${p.isHost?'var(--gold)':'var(--accent-emerald)'};color:var(--white);padding:2px 6px;border-radius:3px;">${p.isHost?'Host':'Ready'}</span></div>`).join('');
 }
 
+// ===== بدء اللعبة (للمضيف فقط) =====
 window.startUnoGame = async function() {
   try {
     const r = await fetch('/api/game/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ roomCode: myRoomCode, playerName: myName }) });
@@ -92,6 +108,7 @@ window.startUnoGame = async function() {
   } catch (e) { alert('Error'); }
 };
 
+// ===== العرض الرئيسي للعبة =====
 function render() {
   if (!gameState) return;
   if (gameState.status === 'lobby') {
@@ -110,6 +127,7 @@ function render() {
   if (gameState.status === 'playing') renderBoard();
 }
 
+// ===== عرض لوحة اللعبة =====
 function renderBoard() {
   if (!gameState || gameState.status !== 'playing') return;
   document.getElementById('uno-lobby').style.display = 'none';
@@ -124,7 +142,7 @@ function renderBoard() {
   const top = gameState.topCard;
   const cc = gameState.currentColor;
 
-  // Top card
+  // عرض البطاقة العلوية
   const topEl = document.getElementById('uno-top-card');
   if (top) {
     const c = top.chosenColor || top.color;
@@ -137,10 +155,10 @@ function renderBoard() {
     topEl.style.background = 'var(--bg3)';
   }
 
-  // Current color indicator
+  // مؤشر اللون الحالي
   document.getElementById('uno-current-color').innerHTML = cc ? `${tEnAr('Color:','اللون:')} <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${COLOR_HEX[cc]||'#2C3E50'};vertical-align:middle;border:1px solid rgba(255,255,255,.3);"></span> ${isAr?COLOR_AR[cc]:cc}` : '';
 
-  // Turn indicator
+  // مؤشر الدور
   const turnEl = document.getElementById('uno-turn-indicator');
   if (isMyTurn) {
     turnEl.textContent = tEnAr('Your Turn!', 'دورك!');
@@ -150,10 +168,10 @@ function renderBoard() {
     turnEl.style.color = 'var(--accent-emerald)';
   }
 
-  // Direction
+  // اتجاه اللعب
   document.getElementById('uno-direction').textContent = gameState.direction === 1 ? tEnAr('→ Clockwise', '→ مع عقارب الساعة') : tEnAr('← Counter-clockwise', '← عكس عقارب الساعة');
 
-  // Other players
+  // عرض اللاعبين الآخرين
   const othersEl = document.getElementById('uno-other-players');
   const others = gameState.players.filter(p => p.name !== myName);
   othersEl.innerHTML = others.map(p => {
@@ -162,10 +180,10 @@ function renderBoard() {
     return `<div style="background:var(--bg2);border:${border};border-radius:8px;padding:.6rem 1rem;text-align:center;min-width:100px;"><strong style="display:block;font-size:.85rem;">${p.name}</strong><span style="font-size:.75rem;color:var(--gold);font-weight:bold;">${p.cardCount} ${tEnAr('cards','بطاقات')}</span></div>`;
   }).join('');
 
-  // Deck count
+  // عدد البطاقات المتبقية
   document.getElementById('uno-deck-count').textContent = `${gameState.drawCount} cards`;
 
-  // My cards
+  // عرض بطاقاتي
   const handEl = document.getElementById('uno-my-hand');
   handEl.innerHTML = '';
   if (me && me.cards) {
@@ -198,12 +216,13 @@ function renderBoard() {
     });
   }
 
-  // Controls
+  // أزرار التحكم
   document.getElementById('uno-draw-btn').disabled = !isMyTurn;
   document.getElementById('uno-pass-btn').disabled = !isMyTurn || !drawnCard;
   document.getElementById('uno-uno-btn').style.display = (me && me.cards && me.cards.length === 2 && !me.saidUno) ? 'inline-block' : 'none';
 }
 
+// ===== التحقق من إمكانية لعب البطاقة =====
 function canPlayCard(card, top, currentColor) {
   if (card.color === 'wild') return true;
   if (card.color === currentColor) return true;
@@ -212,6 +231,7 @@ function canPlayCard(card, top, currentColor) {
   return false;
 }
 
+// ===== لعب بطاقة =====
 async function playCard(index) {
   if (!gameState) return;
   const me = gameState.players.find(p => p.name === myName);
@@ -244,6 +264,7 @@ async function playCard(index) {
   } catch (e) { alert('Error'); }
 }
 
+// ===== اختيار اللون للبطاقات البرية =====
 function pickColor() {
   return new Promise(resolve => {
     const overlay = document.getElementById('uno-color-picker');
@@ -258,6 +279,7 @@ function pickColor() {
   });
 }
 
+// ===== سحب بطاقة من الكومة =====
 window.drawUnoCard = async function() {
   if (!gameState) return;
   const active = gameState.players[gameState.turnIndex];
@@ -271,7 +293,7 @@ window.drawUnoCard = async function() {
     const d = await r.json();
     if (d.success) {
       drawnCard = d.card;
-      // Check if drawn card is playable
+      // التحقق إذا كانت البطاقة المسحوبة قابلة للعب
       if (canPlayCard(d.card, gameState.topCard, gameState.currentColor)) {
         if (confirm(tEnAr('Play drawn card?', 'هل تلعب البطاقة المسحوبة؟'))) {
           const me = gameState.players.find(p => p.name === myName);
@@ -291,6 +313,7 @@ window.drawUnoCard = async function() {
   } catch (e) { alert('Error'); }
 };
 
+// ===== تخطي الدور =====
 async function passTurn() {
   try {
     await fetch(`/api/game/${myRoomCode}/pass`, {
@@ -303,6 +326,7 @@ async function passTurn() {
   } catch (e) {}
 }
 
+// ===== قول أونو (عند بقاء بطاقتين) =====
 window.sayUno = async function() {
   try {
     await fetch(`/api/game/${myRoomCode}/say-uno`, {
@@ -315,6 +339,7 @@ window.sayUno = async function() {
   } catch (e) {}
 };
 
+// ===== عرض شاشة نهاية اللعبة =====
 function showGameOver(d) {
   const el = document.getElementById('uno-finish');
   el.style.display = 'block';
@@ -338,6 +363,7 @@ function showGameOver(d) {
   el.innerHTML = html;
 }
 
+// ===== إضافة سجل إلى شريط الأحداث =====
 function addLog(msg) {
   const el = document.getElementById('uno-logs');
   if (!el) return;
@@ -346,6 +372,7 @@ function addLog(msg) {
   el.scrollTop = el.scrollHeight;
 }
 
+// ===== إعادة تعيين اللعبة =====
 window.resetUno = function() {
   myRoomCode = ''; myName = ''; gameState = null; drawnCard = null;
   if (window.unoInterval) { clearInterval(window.unoInterval); window.unoInterval = null; }

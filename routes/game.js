@@ -1,3 +1,4 @@
+// ===== مسار اللعبة - إدارة غرف لعبة UNO متعددة اللاعبين عبر Pusher (بث مباشر) =====
 const express = require('express');
 const router = express.Router();
 const Pusher = require('pusher');
@@ -5,6 +6,7 @@ const GameRoom = require('../models/GameRoom');
 require('dotenv').config();
 
 let pusher = null;
+// تهيئة Pusher للبث المباشر إذا كانت الإعدادات متوفرة
 if (process.env.PUSHER_APP_ID && process.env.PUSHER_KEY && process.env.PUSHER_SECRET) {
   try {
     pusher = new Pusher({
@@ -19,6 +21,7 @@ if (process.env.PUSHER_APP_ID && process.env.PUSHER_KEY && process.env.PUSHER_SE
   }
 }
 
+// دالة البث لجميع اللاعبين في الغرفة
 async function broadcast(roomCode, event, data) {
   if (pusher) {
     try { await pusher.trigger(`room-${roomCode}`, event, data); }
@@ -29,6 +32,7 @@ async function broadcast(roomCode, event, data) {
 const COLORS = ['red', 'yellow', 'green', 'blue'];
 const COLOR_EMOJI = { red: '🔴', yellow: '🟡', green: '🟢', blue: '🔵', wild: '🃏' };
 
+// إنشاء أوراق لعبة UNO
 function createUnoDeck() {
   const deck = [];
   for (const c of COLORS) {
@@ -46,6 +50,7 @@ function createUnoDeck() {
     deck.push({ color: 'wild', value: 'wild', type: 'wild' });
     deck.push({ color: 'wild', value: 'wild4', type: 'wild' });
   }
+  // خلط الأوراق
   for (let i = deck.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -53,12 +58,14 @@ function createUnoDeck() {
   return deck;
 }
 
+// حساب نقاط الورقة
 function cardPoints(card) {
   if (card.type === 'number') return card.value || 10;
   if (['skip', 'reverse', 'draw2'].includes(card.value)) return 20;
   return 50;
 }
 
+// التحقق من إمكانية لعب الورقة
 function canPlay(card, top) {
   if (!top) return true;
   if (card.color === 'wild') return true;
@@ -68,14 +75,16 @@ function canPlay(card, top) {
   return false;
 }
 
+// حساب الفهرس التالي (باتجاه عقارب الساعة أو عكسه)
 function nextIndex(players, current, direction) {
   return (current + direction + players.length) % players.length;
 }
 
-// Create Room
+// إنشاء غرفة جديدة
 router.post('/create', async (req, res) => {
   const { playerName } = req.body;
   if (!playerName) return res.status(400).json({ error: 'Name required' });
+  // توليد كود غرفة عشوائي من 4 أحرف
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   let roomCode = '', exists = true;
   while (exists) {
@@ -92,7 +101,7 @@ router.post('/create', async (req, res) => {
   }
 });
 
-// Join Room
+// الانضمام إلى غرفة موجودة
 router.post('/join', async (req, res) => {
   const { roomCode, playerName } = req.body;
   if (!roomCode || !playerName) return res.status(400).json({ error: 'Room code and name required' });
@@ -106,6 +115,7 @@ router.post('/join', async (req, res) => {
     players.push({ name: playerName, cards: [], score: 0, isHost: false, saidUno: false });
     room.players = JSON.stringify(players);
     await room.save();
+    // إعلام اللاعبين بانضمام عضو جديد
     await broadcast(room.roomCode, 'player-joined', { players: players.map(p => ({ name: p.name, isHost: p.isHost })) });
     res.json({ success: true, roomCode: room.roomCode, playerName, isHost: false });
   } catch (err) {
@@ -113,7 +123,7 @@ router.post('/join', async (req, res) => {
   }
 });
 
-// Start Game
+// بدء اللعبة (فقط المضيف يمكنه البدء)
 router.post('/start', async (req, res) => {
   const { roomCode, playerName } = req.body;
   try {
@@ -124,11 +134,13 @@ router.post('/start', async (req, res) => {
     if (!host || host.name !== playerName) return res.status(403).json({ error: 'Only host can start' });
     if (players.length < 2) return res.status(400).json({ error: 'Need 2+ players' });
 
+    // توزيع الأوراق (7 لكل لاعب)
     const deck = createUnoDeck();
     for (const p of players) {
       p.cards = [];
       for (let i = 0; i < 7; i++) p.cards.push(deck.pop());
     }
+    // أول ورقة في الكومة (تتخطى الـ Wild)
     let firstDiscard = deck.pop();
     while (firstDiscard.color === 'wild') {
       deck.unshift(firstDiscard);
@@ -154,7 +166,7 @@ router.post('/start', async (req, res) => {
   }
 });
 
-// Get Room State
+// جلب حالة الغرفة الحالية (لللاعبين)
 router.get('/:roomCode', async (req, res) => {
   const { playerName } = req.query;
   try {
@@ -165,6 +177,7 @@ router.get('/:roomCode', async (req, res) => {
     const draw = JSON.parse(room.drawPile);
     const uno = JSON.parse(room.unoState || '{}');
 
+    // إخفاء أوراق اللاعبين الآخرين
     const sanitized = players.map(p => ({
       name: p.name,
       isHost: p.isHost,
@@ -192,7 +205,7 @@ router.get('/:roomCode', async (req, res) => {
   }
 });
 
-// Play Card
+// لعب ورقة
 router.post('/:roomCode/play', async (req, res) => {
   const { playerName, cardIndex, chosenColor } = req.body;
   const roomCode = req.params.roomCode.toUpperCase();
@@ -211,12 +224,14 @@ router.post('/:roomCode/play', async (req, res) => {
     const top = discard[discard.length - 1];
     const uno = JSON.parse(room.unoState || '{}');
 
+    // التحقق من إمكانية لعب الورقة
     if (!canPlay(card, top) && card.color !== uno.currentColor) {
       return res.status(400).json({ error: 'Cannot play that card' });
     }
 
     const chosen = (card.color === 'wild' && chosenColor) ? chosenColor : (card.color === 'wild' ? 'red' : card.color);
 
+    // إزالة الورقة من يد اللاعب وإضافتها لكومة الطرح
     active.cards.splice(cardIndex, 1);
     discard.push({ ...card, chosenColor: card.color === 'wild' ? chosen : undefined });
     room.discardPile = JSON.stringify(discard);
@@ -224,6 +239,7 @@ router.post('/:roomCode/play', async (req, res) => {
     let nextIdx = nextIndex(players, room.turnIndex, uno.direction);
     let phase = 'play';
 
+    // إذا نفذت أوراق اللاعب → انتهت اللعبة
     if (active.cards.length === 0) {
       room.status = 'finished';
       const total = players.reduce((sum, p) => sum + (p === active ? 0 : p.cards.reduce((s, c) => s + cardPoints(c), 0)), 0);
@@ -237,6 +253,7 @@ router.post('/:roomCode/play', async (req, res) => {
       return res.json({ success: true, gameOver: true });
     }
 
+    // تطبيق تأثيرات الأوراق الخاصة
     if (card.value === 'skip') {
       nextIdx = nextIndex(players, nextIndex(players, room.turnIndex, uno.direction), uno.direction);
     } else if (card.value === 'reverse') {
@@ -260,7 +277,7 @@ router.post('/:roomCode/play', async (req, res) => {
     room.turnIndex = nextIdx;
     room.turnPhase = 'play';
 
-    // Reset saidUno for all players each turn
+    // إعادة تعيين حالة UNO لكل اللاعبين
     players.forEach(p => p.saidUno = false);
     active.saidUno = true;
 
@@ -283,7 +300,7 @@ router.post('/:roomCode/play', async (req, res) => {
   }
 });
 
-// Draw Card
+// سحب ورقة من الكومة
 router.post('/:roomCode/draw', async (req, res) => {
   const { playerName } = req.body;
   const roomCode = req.params.roomCode.toUpperCase();
@@ -295,6 +312,7 @@ router.post('/:roomCode/draw', async (req, res) => {
     if (active.name !== playerName) return res.status(403).json({ error: 'Not your turn' });
 
     const draw = JSON.parse(room.drawPile);
+    // إعادة خلط الكومة إذا نفدت
     if (draw.length === 0) {
       const discard = JSON.parse(room.discardPile);
       const top = discard.pop();
@@ -321,7 +339,7 @@ router.post('/:roomCode/draw', async (req, res) => {
   }
 });
 
-// Pass Turn
+// تخطي الدور
 router.post('/:roomCode/pass', async (req, res) => {
   const { playerName } = req.body;
   const roomCode = req.params.roomCode.toUpperCase();
@@ -349,7 +367,7 @@ router.post('/:roomCode/pass', async (req, res) => {
   }
 });
 
-// Say UNO
+// قول UNO
 router.post('/:roomCode/say-uno', async (req, res) => {
   const { playerName } = req.body;
   const roomCode = req.params.roomCode.toUpperCase();

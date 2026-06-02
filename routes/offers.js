@@ -1,10 +1,11 @@
+// ===== مسار العروض - عرض العروض النشطة المتاحة (غير منتهية الصلاحية) =====
 const express = require('express');
 const router = express.Router();
 const Offer = require('../models/Offer');
 const Drink = require('../models/Drink');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 
-// Public Active Offers List
+// جلب العروض النشطة (غير المنتهية والتي لا يزال المشروب متاحاً فيها)
 router.get('/', async (req, res) => {
   const now = new Date();
   try {
@@ -18,7 +19,7 @@ router.get('/', async (req, res) => {
       match: { is_available: 1 }
     });
 
-    // Filter out offers where drink didn't match (populate returns null)
+    // استبعاد العروض التي لم يعد المشروب متاحاً فيها
     const validOffers = offers.filter(o => o.drinkId != null);
 
     const serialized = validOffers.map(o => ({

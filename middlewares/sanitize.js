@@ -1,6 +1,13 @@
+// ============================================
+// Middleware تنظيف المدخلات (Sanitization) - OZEL Cafe
+// حماية من XSS و SQL Injection
+// ============================================
+
 const xssClean = require('xss-clean')();
 
-// Clean strings from HTML tags and SQL-like patterns
+// ============================
+// تنظيف النصوص من وسوم HTML وأنماط SQL الضارة
+// ============================
 const cleanValue = (val) => {
   if (typeof val === 'string') {
     // Basic SQL Injection prevention: escape single quotes and semicolons if suspicious
@@ -18,10 +25,13 @@ const cleanValue = (val) => {
   return val;
 };
 
+// ============================
+// Middleware لتنظيف جميع مدخلات الطلب (body, query, params)
+// ============================
 const sanitizeInput = (req, res, next) => {
-  // 1. Run standard xss-clean to strip out any XSS payloads from body, query, params
+  // 1. تشغيل xss-clean لإزالة أكواد XSS من body و query و params
   xssClean(req, res, () => {
-    // 2. Perform custom deep cleaning of strings
+    // 2. تنظيف عميق مخصص للنصوص
     if (req.body) req.body = cleanValue(req.body);
     if (req.query) req.query = cleanValue(req.query);
     if (req.params) req.params = cleanValue(req.params);
@@ -29,4 +39,7 @@ const sanitizeInput = (req, res, next) => {
   });
 };
 
+// ============================
+// تصدير الدالة
+// ============================
 module.exports = { sanitizeInput };

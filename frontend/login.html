@@ -1,9 +1,11 @@
 <!DOCTYPE html>
+<!-- ===== أوزيل كافيه — صفحة تسجيل الدخول والتسجيل ===== -->
 <html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8"/>
 <script src="api-override.js?v=1"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
+<!-- عنوان الصفحة -->
 <title>Login — OZEL CAFE</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet"/>
 <style>
@@ -242,7 +244,7 @@ body::before{
 }
 .pw-toggle:hover{color:var(--burgundy);}
 
-/* Responsive */
+/* ===== تنسيقات متجاوبة مع الشاشات الصغيرة ===== */
 @media(max-width:480px){
   .wrap{padding:1rem;}
   .card{padding:1.5rem;}
@@ -252,22 +254,30 @@ body::before{
 </style>
 </head>
 <body>
+
+<!-- ===== زر تبديل اللغة (ثابت في الأعلى) ===== -->
 <div class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN / AR</div>
 
+<!-- ===== الحاوية الرئيسية للصفحة ===== -->
 <div class="wrap">
+
+  <!-- ===== رأس الصفحة والشعار ===== -->
   <div class="header">
     <img src="imgs/Ozel-Logo--02.png" alt="OZEL" class="logo-img"/>
     <h1>OZEL</h1>
     <p data-en="Hidden Gem Café" data-ar="الجوهرة المخفية">Hidden Gem Café</p>
   </div>
 
+  <!-- ===== بطاقة تسجيل الدخول/التسجيل ===== -->
   <div class="card">
+
+    <!-- ===== علامات التبويب (تسجيل دخول / تسجيل جديد) ===== -->
     <div class="tabs" id="tabGroup">
       <button class="tab active" data-tab="login" data-en="Login" data-ar="تسجيل الدخول">Login</button>
       <button class="tab" data-tab="register" data-en="Register" data-ar="تسجيل جديد">Register</button>
     </div>
 
-    <!-- LOGIN -->
+    <!-- ===== نموذج تسجيل الدخول ===== -->
     <div class="page active" id="page-login">
       <div class="field">
         <label data-en="Phone or Email" data-ar="رقم الهاتف أو البريد">Phone or Email</label>
@@ -287,7 +297,7 @@ body::before{
       </div>
     </div>
 
-    <!-- REGISTER -->
+    <!-- ===== نموذج التسجيل الجديد ===== -->
     <div class="page" id="page-register">
       <div class="field">
         <label data-en="Name" data-ar="الاسم">Name</label>
@@ -314,13 +324,19 @@ body::before{
     </div>
   </div>
 
+  <!-- ===== رابط تخطي تسجيل الدخول ===== -->
   <span class="skip" id="skipLink" data-en="Skip &mdash; browse the menu" data-ar="تخطي &mdash; تصفح المنيو">Skip — browse the menu</span>
 </div>
 
+<!-- ===== بداية كود JavaScript الخاص بالصفحة ===== -->
 <script>
+// ===== أوزيل كافيه — منطق تسجيل الدخول والتسجيل =====
+
+// رابط إعادة التوجيه بعد تسجيل الدخول
 const redirect = new URLSearchParams(location.search).get('from') || 'index.html';
 let currentLang = localStorage.getItem('ozel_lang') || 'en';
 
+// ===== التبديل بين علامات تبويب تسجيل الدخول والتسجيل =====
 function switchTab(t){
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.getAttribute('data-tab')===t));
   document.getElementById('page-login').classList.toggle('active',t==='login');
@@ -329,6 +345,7 @@ function switchTab(t){
   const re=document.getElementById('r-err');if(re)re.textContent='';
 }
 
+// ===== إظهار/إخفاء كلمة المرور =====
 function togglePw(id){
   const inp = document.getElementById(id);
   if(!inp)return;
@@ -340,6 +357,7 @@ function togglePw(id){
   else{inp.type='password';btn.textContent='\u{1F441}';}
 }
 
+// ===== ترجمة رسائل الخطأ من الخادم إلى العربية =====
 function translateError(msg){
   if(!msg) return currentLang==='ar'?'حدث خطأ غير متوقع':'Unexpected error';
   console.error('[API Error]', msg);
@@ -354,6 +372,7 @@ function translateError(msg){
   return a? msg : msg;
 }
 
+// ===== تنفيذ عملية تسجيل الدخول =====
 async function doLogin(){
   const a=currentLang==='ar';
   const btn=document.getElementById('l-btn');
@@ -379,6 +398,7 @@ async function doLogin(){
   }
 }
 
+// ===== تنفيذ عملية إنشاء حساب جديد =====
 async function doRegister(){
   const a=currentLang==='ar';
   const btn=document.getElementById('r-btn');
@@ -406,18 +426,22 @@ async function doRegister(){
   }
 }
 
+// ===== معالجة طلب استعادة كلمة المرور =====
 function forgotPassword(){
   alert(currentLang==='ar'?'لاستعادة كلمة المرور، يرجى مراجعة الكاشير في الكافيه.':'To reset your password, please see the cashier at the cafe.');
 }
 
+// ===== تخطي تسجيل الدخول والذهاب للقائمة =====
 function skipLogin(){location.href=redirect;}
 
+// ===== تبديل اللغة بين العربية والإنجليزية =====
 function toggleLanguage(){
   currentLang=currentLang==='en'?'ar':'en';
   localStorage.setItem('ozel_lang',currentLang);
   applyLanguage(currentLang);
 }
 
+// ===== تطبيق اللغة على جميع عناصر الصفحة =====
 function applyLanguage(lang){
   const a=lang==='ar';
   document.documentElement.lang=lang;
@@ -426,7 +450,7 @@ function applyLanguage(lang){
   document.querySelectorAll('[data-placeholder-en]').forEach(el=>{el.placeholder=a?el.getAttribute('data-placeholder-ar'):el.getAttribute('data-placeholder-en');});
 }
 
-// Bind all clicks via addEventListener (safer than onclick with innerHTML)
+// ===== ربط جميع أحداث النقر عبر addEventListener (أكثر أماناً) =====
 document.querySelectorAll('.tab').forEach(el => {
   el.addEventListener('click', function(){switchTab(this.getAttribute('data-tab'));});
 });
@@ -435,7 +459,7 @@ document.getElementById('r-btn').addEventListener('click', doRegister);
 document.getElementById('forgotLink').addEventListener('click', forgotPassword);
 document.getElementById('skipLink').addEventListener('click', skipLogin);
 
-// Auto-redirect only if token valid
+// ===== إعادة التوجيه التلقائي إذا كان رمز الدخول لا يزال صالحاً =====
 (async function(){
   const u=JSON.parse(localStorage.getItem('ozel_user')||'null');
   const t=localStorage.getItem('ozel_token');

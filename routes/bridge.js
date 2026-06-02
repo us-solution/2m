@@ -1,3 +1,4 @@
+// ===== مسار الجسر (Bridge) - مزامنة البيانات بين السيرفر ونظام نقاط البيع المحلي (POS) =====
 const express = require('express');
 const router = express.Router();
 const ReportSnapshot = require('../models/ReportSnapshot');
@@ -6,6 +7,7 @@ const Order = require('../models/Order');
 const crypto = require('crypto');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 
+// التحقق من مفتاح API للجسر
 function verifyBridgeKey(req, res, next) {
   const key = req.headers['x-bridge-key'];
   if (key !== process.env.BRIDGE_API_KEY) {
@@ -14,6 +16,7 @@ function verifyBridgeKey(req, res, next) {
   next();
 }
 
+// التحقق من التوقيع الرقمي للجسر (HMAC-SHA256)
 function verifyBridgeSignature(req, res, next) {
   const secret = process.env.BRIDGE_SIGNATURE_SECRET || process.env.BRIDGE_API_KEY;
   if (!secret) return next();
@@ -25,6 +28,7 @@ function verifyBridgeSignature(req, res, next) {
     return res.status(400).json({ error: 'Missing bridge signature headers' });
   }
   const ts = Number(timestamp);
+  // التحقق من عدم انتهاء صلاحية الطلب (أكثر من 5 دقائق)
   if (!Number.isFinite(ts) || Math.abs(Date.now() - ts) > 5 * 60 * 1000) {
     return res.status(400).json({ error: 'Stale bridge request timestamp' });
   }
@@ -37,13 +41,14 @@ function verifyBridgeSignature(req, res, next) {
   next();
 }
 
-// POST /api/bridge/report - Bridge pushes POS report data to MongoDB
+// استقبال بيانات التقرير من نظام نقاط البيع وحفظها في MongoDB
 router.post('/report', verifyBridgeKey, async (req, res) => {
   const { type, data, snapshotDate } = req.body;
   if (!type || data === undefined) {
     return res.status(400).json({ error: 'type and data required' });
   }
   try {
+    // حفظ أو تحديث التقرير حسب التاريخ والنوع
     const date = snapshotDate || new Date().toISOString().split('T')[0];
     await ReportSnapshot.findOneAndUpdate(
       { type, snapshotDate: date },
@@ -56,6 +61,7 @@ router.post('/report', verifyBridgeKey, async (req, res) => {
   }
 });
 
+// استقبال إقرار (ACK) من الجسر بعد معالجة حدث المزامنة
 router.post('/ack', verifyBridgeKey, async (req, res) => {
   const { eventId, status, reason } = req.body || {};
   if (!eventId) return res.status(400).json({ error: 'eventId required' });
@@ -67,6 +73,7 @@ router.post('/ack', verifyBridgeKey, async (req, res) => {
     event.failureReason = status === 'failed' ? (reason || 'bridge_failed') : null;
     await event.save();
 
+    // تحديث حالة المزامنة للطلب المرتبط
     if (event.orderId) {
       await Order.updateOne(
         { _id: event.orderId },
@@ -85,6 +92,7 @@ router.post('/ack', verifyBridgeKey, async (req, res) => {
   }
 });
 
+// استقبال تحديث حالة الطلب من نظام نقاط البيع (مع التوقيع الرقمي)
 router.post('/inbound-status', verifyBridgeKey, verifyBridgeSignature, async (req, res) => {
   const { meta, data } = req.body || {};
   if (!meta?.eventId || !meta?.orderId || !data?.status) {
@@ -93,6 +101,7 @@ router.post('/inbound-status', verifyBridgeKey, verifyBridgeSignature, async (re
   try {
     const order = await Order.findById(meta.orderId);
     if (!order) return res.status(404).json({ error: 'Order not found' });
+    // التحقق من عدم وجود تعارض في الإصدار
     if ((meta.orderVersion || 1) < (order.orderVersion || 1)) {
       return res.status(409).json({ error: 'Stale order version', currentVersion: order.orderVersion || 1 });
     }
@@ -109,6 +118,7 @@ router.post('/inbound-status', verifyBridgeKey, verifyBridgeSignature, async (re
     };
     await order.save();
 
+    // تسجيل حدث المزامنة
     await SyncEvent.findOneAndUpdate(
       { eventId: meta.eventId },
       {
@@ -130,6 +140,7 @@ router.post('/inbound-status', verifyBridgeKey, verifyBridgeSignature, async (re
   }
 });
 
+// السماح بالدخول للأدمن أو الجسر (أحدهما يكفي)
 async function authAdminOrBridge(req, res, next) {
   const bridgeKey = req.headers['x-bridge-key'];
   if (bridgeKey && bridgeKey === process.env.BRIDGE_API_KEY) return next();
@@ -140,6 +151,7 @@ async function authAdminOrBridge(req, res, next) {
   });
 }
 
+// جلب حالة المزامنة (الأحداث المعلقة والفاشلة والناجحة)
 router.get('/status', authAdminOrBridge, async (req, res) => {
   try {
     const [pendingEvents, failedEvents, ackedEvents, pendingOrders, failedOrders, recentlySynced] = await Promise.all([

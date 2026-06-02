@@ -1,3 +1,4 @@
+// ===== مسار الوصفات - إدارة وصفات المشروبات وحساب تكاليف المكونات =====
 const express = require('express');
 const router = express.Router();
 const Recipe = require('../models/Recipe');
@@ -6,7 +7,7 @@ const Ingredient = require('../models/Ingredient');
 const Drink = require('../models/Drink');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 
-// ── All Recipes with full items + cost ──
+// جلب جميع الوصفات النشطة مع المكونات وتكلفة كل وصفة
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const recipes = await Recipe.find({ isActive: true }).sort({ name: 1 }).lean();
@@ -19,6 +20,7 @@ router.get('/', authenticateToken, async (req, res) => {
       if (!itemMap[i.recipeId]) itemMap[i.recipeId] = [];
       itemMap[i.recipeId].push(i);
     });
+    // حساب التكلفة الإجمالية لكل وصفة
     const enriched = recipes.map(r => {
       const recipeItems = itemMap[r._id] || [];
       let totalCost = 0;
@@ -37,6 +39,7 @@ router.get('/', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// جلب وصفة محددة بالمعرف مع المكونات
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const recipe = await Recipe.findById(req.params.id).lean();
@@ -52,6 +55,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// إنشاء وصفة جديدة
 router.post('/', requireRole('admin'), async (req, res) => {
   try {
     const { name, drinkId, yield: yieldQty } = req.body;
@@ -60,6 +64,7 @@ router.post('/', requireRole('admin'), async (req, res) => {
   } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
+// تعديل وصفة
 router.put('/:id', requireRole('admin'), async (req, res) => {
   try {
     const recipe = await Recipe.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -68,6 +73,7 @@ router.put('/:id', requireRole('admin'), async (req, res) => {
   } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
+// حذف وصفة (مع حذف مكوناتها المرتبطة)
 router.delete('/:id', requireRole('admin'), async (req, res) => {
   try {
     await RecipeItem.deleteMany({ recipeId: req.params.id });
@@ -76,7 +82,9 @@ router.delete('/:id', requireRole('admin'), async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ── Recipe Items ──
+// ===== مكونات الوصفة =====
+
+// جلب مكونات وصفة محددة
 router.get('/:id/items', authenticateToken, async (req, res) => {
   try {
     const items = await RecipeItem.find({ recipeId: req.params.id }).populate('ingredientId', 'name name_ar unit unitCost');
@@ -84,6 +92,7 @@ router.get('/:id/items', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// إضافة مكون لوصفة (أو تحديث كميته إذا كان موجوداً)
 router.post('/:id/items', requireRole('admin'), async (req, res) => {
   try {
     const { ingredientId, quantity } = req.body;
@@ -100,6 +109,7 @@ router.post('/:id/items', requireRole('admin'), async (req, res) => {
   } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
+// حذف مكون من وصفة
 router.delete('/:recipeId/items/:itemId', requireRole('admin'), async (req, res) => {
   try {
     await RecipeItem.findByIdAndDelete(req.params.itemId);
@@ -107,7 +117,7 @@ router.delete('/:recipeId/items/:itemId', requireRole('admin'), async (req, res)
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ── Calculate cost for all recipes ──
+// إعادة حساب تكاليف جميع الوصفات النشطة
 router.post('/calculate-costs', requireRole('admin'), async (req, res) => {
   try {
     const recipes = await Recipe.find({ isActive: true });

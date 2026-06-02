@@ -187,9 +187,16 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
     align-items: flex-start;
   }
 }
+.toast-container{position:fixed;bottom:20px;left:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--bg2);border:1px solid var(--line);padding:12px 20px;border-radius:8px;box-shadow:0 8px 25px rgba(0,0,0,0.12);font-family:'Tajawal',sans-serif;font-size:.9rem;color:var(--text);animation:slideIn .3s ease;max-width:350px;}
+.toast.success{border-right:3px solid var(--green);}
+.toast.error{border-right:3px solid var(--red);}
+@keyframes slideIn{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
+td, th { white-space: nowrap; }
 </style>
 </head>
 <body>
+<div class="toast-container" id="toastContainer"></div>
 <header>
   <div style="display:flex;align-items:center;gap:.6rem;">
     <img src="imgs/Ozel-Logo--01.png" alt="شعار OZEL CAFE" style="height:50px; width:auto; object-fit:contain;" />
@@ -204,35 +211,35 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
 <div class="layout">
   <nav>
     <select id="mobile-nav-select" class="mobile-nav" onchange="showPage(this.value, this)" style="display: none; width: 90%; margin: 1rem auto; padding: 0.8rem; background: var(--bg2); border: 1px solid var(--line); border-radius: 4px; font-family: 'Tajawal', sans-serif; font-size: 1rem; color: var(--text);">
-      <option value="dashboard">لوحة التحكم</option>
-      <option value="menu">إدارة القائمة</option>
-      <option value="categories">التصنيفات</option>
-      <option value="offers">العروض</option>
-      <option value="orders">الطلبات</option>
-      <option value="pos">عمليات نقاط البيع</option>
-      <option value="users">المستخدمين</option>
-      <option value="tables">رموز QR للطاولات</option>
-      <option value="finance">المالية</option>
-      <option value="inventory">المخزون</option>
-      <option value="recipes">الوصفات</option>
-      <option value="reports">التقارير</option>
+      <option value="dashboard">📊 لوحة التحكم</option>
+      <option value="menu">🍽 إدارة القائمة</option>
+      <option value="categories">📂 التصنيفات</option>
+      <option value="offers">🏷 العروض</option>
+      <option value="orders">📋 الطلبات</option>
+      <option value="pos">💳 عمليات نقاط البيع</option>
+      <option value="users">👥 المستخدمين</option>
+      <option value="tables">📱 رموز QR للطاولات</option>
+      <option value="finance">💰 المالية</option>
+      <option value="inventory">📦 المخزون</option>
+      <option value="recipes">📝 الوصفات</option>
+      <option value="reports">📊 التقارير</option>
     </select>
-    <div class="nav-item active" onclick="showPage('dashboard',this)">لوحة التحكم</div>
-    <div class="nav-item" onclick="showPage('menu',this)">إدارة القائمة</div>
-    <div class="nav-item" onclick="showPage('categories',this)">التصنيفات</div>
-    <div class="nav-item" onclick="showPage('offers',this)">العروض</div>
-    <div class="nav-item" onclick="showPage('orders',this)">الطلبات</div>
-    <div class="nav-item" onclick="showPage('pos',this)">عمليات نقاط البيع</div>
-    <div class="nav-item" onclick="showPage('users',this)">المستخدمين</div>
-    <div class="nav-item" onclick="showPage('tables',this)">رموز QR للطاولات</div>
-    <div class="nav-item" onclick="showPage('finance',this)">المالية</div>
-    <div class="nav-item" onclick="showPage('inventory',this)">المخزون</div>
-    <div class="nav-item" onclick="showPage('recipes',this)">الوصفات</div>
-    <div class="nav-item" onclick="showPage('reports',this)">التقارير</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)">📊 لوحة التحكم</div>
+    <div class="nav-item" onclick="showPage('menu',this)">🍽 إدارة القائمة</div>
+    <div class="nav-item" onclick="showPage('categories',this)">📂 التصنيفات</div>
+    <div class="nav-item" onclick="showPage('offers',this)">🏷 العروض</div>
+    <div class="nav-item" onclick="showPage('orders',this)">📋 الطلبات</div>
+    <div class="nav-item" onclick="showPage('pos',this)">💳 عمليات نقاط البيع</div>
+    <div class="nav-item" onclick="showPage('users',this)">👥 المستخدمين</div>
+    <div class="nav-item" onclick="showPage('tables',this)">📱 رموز QR للطاولات</div>
+    <div class="nav-item" onclick="showPage('finance',this)">💰 المالية</div>
+    <div class="nav-item" onclick="showPage('inventory',this)">📦 المخزون</div>
+    <div class="nav-item" onclick="showPage('recipes',this)">📝 الوصفات</div>
+    <div class="nav-item" onclick="showPage('reports',this)">📊 التقارير</div>
   </nav>
   <div style="overflow-y:auto;max-height:calc(100vh - 60px)">
 
-    <!-- DASHBOARD -->
+    <!-- ===== لوحة التحكم ===== -->
     <div class="page active" id="page-dashboard">
       <h1 class="page-title">لوحة التحكم</h1>
       <p class="page-sub">نظرة عامة على أداء اليوم</p>
@@ -240,7 +247,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       <div id="cashierStatsArea" style="margin-top: 2rem;"></div>
     </div>
 
-    <!-- MENU MANAGEMENT -->
+    <!-- ===== إدارة القائمة ===== -->
     <div class="page" id="page-menu">
       <h1 class="page-title">إدارة القائمة</h1>
       <p class="page-sub">انقر على السعر أو الاسم للتعديل مباشرة</p>
@@ -259,8 +266,9 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
         <button class="hbtn" onclick="addDrink()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.4rem 1rem; font-weight:700;">+ إضافة عنصر</button>
       </div>
 
-      <div class="search-bar">
-        <input id="menu-search" type="text" placeholder="ابحث عن عنصر..." oninput="filterMenuTable()"/>
+      <div class="search-bar" style="position:relative;">
+        <input id="menu-search" type="text" placeholder="🔍 ابحث عن عنصر..." oninput="filterMenuTable()" style="flex:1; padding-right:2.5rem;"/>
+        <span onclick="document.getElementById('menu-search').value='';filterMenuTable()" style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--muted); font-size:1.1rem;">×</span>
       </div>
       <table><thead><tr>
         <th>الصورة</th><th>الاسم</th><th>التصنيف</th><th>السعر</th><th>متاح</th><th>مميز</th><th>إجراء</th>
@@ -268,7 +276,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       <tbody id="menuTable"></tbody></table>
     </div>
 
-    <!-- ORDERS -->
+    <!-- ===== الطلبات ===== -->
     <div class="page" id="page-orders">
       <h1 class="page-title">جميع الطلبات</h1>
       <p class="page-sub">سجل كامل لجميع الطلبات</p>
@@ -278,6 +286,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       <tbody id="ordersTable"></tbody></table>
     </div>
 
+    <!-- ===== عمليات نقاط البيع ===== -->
     <div class="page" id="page-pos">
       <h1 class="page-title">عمليات نقاط البيع</h1>
       <p class="page-sub">فتح وإغلاق ورديات الكاشير ومراقبة حالة المزامنة</p>
@@ -292,7 +301,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       <div id="pos-active-shift" style="background:var(--bg2);border:1px solid var(--line);padding:1rem;"></div>
     </div>
 
-    <!-- USERS -->
+    <!-- ===== المستخدمين ===== -->
     <div class="page" id="page-users">
       <h1 class="page-title">المستخدمين</h1>
       <p class="page-sub">إدارة حسابات العملاء والموظفين</p>
@@ -316,7 +325,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       <tbody id="usersTable"></tbody></table>
     </div>
 
-    <!-- CATEGORIES -->
+    <!-- ===== التصنيفات ===== -->
     <div class="page" id="page-categories">
       <h1 class="page-title">التصنيفات</h1>
       <p class="page-sub">إدارة تصنيفات المشروبات (إضافة / ترتيب / حذف)</p>
@@ -334,7 +343,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       <tbody id="categoriesTable"></tbody></table>
     </div>
 
-    <!-- OFFERS -->
+    <!-- ===== العروض ===== -->
     <div class="page" id="page-offers">
       <h1 class="page-title">إدارة العروض اليومية</h1>
       <p class="page-sub">أضف عروضاً وخصومات على المشروبات</p>
@@ -358,7 +367,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       <tbody id="offersTable"></tbody></table>
     </div>
 
-    <!-- TABLES QR -->
+    <!-- ===== رموز QR للطاولات ===== -->
     <div class="page" id="page-tables">
       <h1 class="page-title">رموز QR للطاولات</h1>
       <p class="page-sub">إنشاء رموز QR للطاولات — يقوم العملاء بمسحها للطلب من طاولتهم</p>
@@ -381,6 +390,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       </div>
     </div>
 
+    <!-- ===== المالية ===== -->
     <div class="page" id="page-finance">
       <h1 class="page-title">المالية</h1>
       <p class="page-sub">المصروفات اليومية والمدفوعات النقدية مرتبطة بالتقارير</p>
@@ -433,7 +443,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       </div>
     </div>
 
-    <!-- INVENTORY -->
+    <!-- ===== المخزون ===== -->
     <div class="page" id="page-inventory">
       <h1 class="page-title">المخزون</h1>
       <p class="page-sub">إدارة الخامات، الجرد الفعلي، التنبيهات، والحركات</p>
@@ -453,7 +463,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
         <button class="hbtn" style="border-color:var(--red);color:var(--red);" onclick="showInvSection('alerts')">التنبيهات</button>
       </div>
 
-      <!-- Ingredients -->
+      <!-- ===== الخامات ===== -->
       <div id="inv-ingredients" style="display:block;">
         <div style="background:var(--bg2);border:1px solid var(--line);padding:1rem;margin-bottom:1rem;">
           <h3 style="margin-bottom:.5rem;">إضافة خامة جديدة</h3>
@@ -477,7 +487,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
         <div id="inv-ingredients-list" style="background:var(--bg2);border:1px solid var(--line);"><p style="padding:1rem;color:var(--muted);">جارٍ التحميل...</p></div>
       </div>
 
-      <!-- Transactions -->
+      <!-- ===== الحركات ===== -->
       <div id="inv-transactions" style="display:none;">
         <div style="background:var(--bg2);border:1px solid var(--line);padding:1rem;margin-bottom:1rem;">
           <h3 style="margin-bottom:.5rem;">تسجيل حركة مخزون</h3>
@@ -495,7 +505,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
         <div id="inv-transactions-list" style="background:var(--bg2);border:1px solid var(--line);"><p style="padding:1rem;color:var(--muted);">جارٍ التحميل...</p></div>
       </div>
 
-      <!-- Physical Counts -->
+      <!-- ===== الجرد الفعلي ===== -->
       <div id="inv-counts" style="display:none;">
         <div style="background:var(--bg2);border:1px solid var(--line);padding:1rem;margin-bottom:1rem;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
@@ -509,13 +519,13 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
         <div id="inv-counts-history" style="background:var(--bg2);border:1px solid var(--line);"><p style="padding:1rem;color:var(--muted);">سجل الجرد...</p></div>
       </div>
 
-      <!-- Alerts -->
+      <!-- ===== التنبيهات ===== -->
       <div id="inv-alerts" style="display:none;">
         <div id="inv-alerts-list" style="background:var(--bg2);border:1px solid var(--line);"><p style="padding:1rem;color:var(--muted);">جارٍ التحميل...</p></div>
       </div>
     </div>
 
-    <!-- RECIPES -->
+    <!-- ===== الوصفات ===== -->
     <div class="page" id="page-recipes">
       <h1 class="page-title">الوصفات</h1>
       <p class="page-sub">تحديد مكونات كل منتج لحساب التكلفة والخصم التلقائي من المخزون</p>
@@ -556,7 +566,7 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       </div>
     </div>
 
-    <!-- REPORTS -->
+    <!-- ===== التقارير ===== -->
     <div class="page" id="page-reports">
       <h1 class="page-title">التقارير</h1>
       <p class="page-sub">تقارير المبيعات الكاملة، سجل الورديات، والتصدير</p>
@@ -689,11 +699,13 @@ if (!user || user.role !== 'admin') { location.href = 'login.html?from=admin.htm
 let menuData = [], usersData = [], ordersData = [], categoriesData = [];
 let activeShiftCache = null;
 
+// الحصول على ترويسة المصادقة للطلبات
 function getAuthH() {
   const token = localStorage.getItem('ozel_token');
   return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
 }
 
+// عرض الصفحة المحددة وتحميل بياناتها
 function showPage(name, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -717,6 +729,7 @@ function showPage(name, el) {
   if (name === 'reports') loadReports();
 }
 
+// تحميل حالة الورديات وحالة الجسر
 async function loadPosOps() {
   try {
     const [activeRes, bridgeRes] = await Promise.all([
@@ -738,6 +751,7 @@ async function loadPosOps() {
   }
 }
 
+// فتح وردية جديدة من لوحة التحكم
 async function openShiftFromAdmin() {
   const openingBalance = parseFloat(document.getElementById('pos-opening-balance').value || '0');
   const res = await fetch('/api/shifts/open', {
@@ -754,6 +768,7 @@ async function openShiftFromAdmin() {
   }
 }
 
+// إغلاق الوردية النشطة من لوحة التحكم
 async function closeActiveShiftFromAdmin() {
   if (!activeShiftCache) { showModal('تنبيه', 'لا توجد وردية نشطة للإغلاق'); return; }
   const closingBalance = parseFloat(document.getElementById('pos-closing-balance').value || '0');
@@ -772,6 +787,7 @@ async function closeActiveShiftFromAdmin() {
   }
 }
 
+// ????? ???? ??????? ???????
 async function loadFinancePage() {
   try {
     const [summaryRes, costsRes, accountsRes, expensesRes, cashRes] = await Promise.all([
@@ -834,6 +850,7 @@ async function loadFinancePage() {
   }
 }
 
+// ????? ??????? ?????????
 async function loadExpenseCategories() {
   try {
     const res = await fetch('/api/finance/expense-categories', { headers: getAuthH() });
@@ -850,6 +867,7 @@ async function loadExpenseCategories() {
   } catch (e) { console.error(e); }
 }
 
+// ????? ????? ????? ????
 async function addExpenseCategory() {
   const name = document.getElementById('ec-name').value;
   const name_ar = document.getElementById('ec-name-ar').value;
@@ -861,12 +879,14 @@ async function addExpenseCategory() {
   loadExpenseCategories();
 }
 
+// ??? ????? ?????
 async function deleteExpenseCategory(id) {
   if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذا التصنيف؟', true)) return;
   await fetch('/api/finance/expense-categories/' + id, { method: 'DELETE', headers: getAuthH() });
   loadExpenseCategories();
 }
 
+// ??? ?????
 async function deleteExpense(id) {
   if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذا المصروف نهائياً؟', true)) return;
   const res = await fetch('/api/finance/expenses/' + id, { method: 'DELETE', headers: getAuthH() });
@@ -875,6 +895,7 @@ async function deleteExpense(id) {
   else showModal('خطأ', data.error || 'فشل في الحذف');
 }
 
+// ??? ???? ?????
 async function deleteCashMovement(id) {
   if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذه الحركة النقدية نهائياً؟', true)) return;
   const res = await fetch('/api/finance/cash-movements/' + id, { method: 'DELETE', headers: getAuthH() });
@@ -883,6 +904,7 @@ async function deleteCashMovement(id) {
   else showModal('خطأ', data.error || 'فشل في الحذف');
 }
 
+// ????? ????? ????
 async function addExpense() {
   const title = document.getElementById('fx-title').value.trim();
   const category = document.getElementById('fx-category').value;
@@ -901,6 +923,7 @@ async function addExpense() {
   } else showModal('خطأ', data.error || 'فشل في حفظ المصروف');
 }
 
+// ????? ???? ????? (?????/???)
 async function addCashMovement() {
   const movementType = document.getElementById('cm-type').value;
   const amount = parseFloat(document.getElementById('cm-amount').value || '0');
@@ -921,6 +944,7 @@ async function addCashMovement() {
 
 let _lastTableQR = null;
 
+// ????? ??? QR ??????
 async function generateTableQR() {
   const num = parseInt(document.getElementById('tqr-number').value) || 1;
   if (num < 1) { alert('رقم طاولة غير صالح'); return; }
@@ -940,6 +964,7 @@ async function generateTableQR() {
   }
 }
 
+// ????? ??? QR ??????? ?????
 function downloadTableQR() {
   if (!_lastTableQR) return;
   const a = document.createElement('a');
@@ -950,6 +975,7 @@ function downloadTableQR() {
   document.body.removeChild(a);
 }
 
+// ????? ??? QR ???????
 function printTableQR() {
   if (!_lastTableQR) return;
   const win = window.open('', '_blank');
@@ -968,6 +994,7 @@ function printTableQR() {
   setTimeout(function() { win.print(); }, 500);
 }
 
+// ????? ???????? ???? ??????
 async function loadStats() {
   try {
     const res = await fetch('/api/admin/stats', { headers: getAuthH() });
@@ -975,12 +1002,12 @@ async function loadStats() {
     const s = await res.json();
   
   document.getElementById('statsGrid').innerHTML = `
-    <div class="stat-card"><span class="stat-n">${s.today_orders}</span><span class="stat-l">طلبات اليوم</span></div>
-    <div class="stat-card"><span class="stat-n">${Math.round(s.today_revenue)}</span><span class="stat-l">إيرادات اليوم (ج.م)</span></div>
-    <div class="stat-card"><span class="stat-n">${Math.round(s.monthly_revenue || 0)}</span><span class="stat-l">الإيرادات الشهرية (ج.م)</span></div>
-    <div class="stat-card"><span class="stat-n">${s.pending_orders}</span><span class="stat-l">الطلبات المعلقة</span></div>
-    <div class="stat-card"><span class="stat-n">${s.total_orders}</span><span class="stat-l">إجمالي الطلبات</span></div>
-    <div class="stat-card"><span class="stat-n">${Math.round(s.total_revenue)}</span><span class="stat-l">إجمالي الإيرادات</span></div>
+    <div class="stat-card"><span class="stat-n">${s.today_orders}</span><span class="stat-l">📋 طلبات اليوم</span></div>
+    <div class="stat-card"><span class="stat-n">${Math.round(s.today_revenue)}</span><span class="stat-l">💰 إيرادات اليوم (ج.م)</span></div>
+    <div class="stat-card"><span class="stat-n">${Math.round(s.monthly_revenue || 0)}</span><span class="stat-l">💰 الإيرادات الشهرية (ج.م)</span></div>
+    <div class="stat-card"><span class="stat-n">${s.pending_orders}</span><span class="stat-l">⏳ الطلبات المعلقة</span></div>
+    <div class="stat-card"><span class="stat-n">${s.total_orders}</span><span class="stat-l">📋 إجمالي الطلبات</span></div>
+    <div class="stat-card"><span class="stat-n">${Math.round(s.total_revenue)}</span><span class="stat-l">💰 إجمالي الإيرادات</span></div>
   `;
 
   let cashierHTML = '';
@@ -1010,6 +1037,7 @@ async function loadStats() {
   }
 }
 
+// ????? ????? ?????????
 async function loadMenu() {
   const res = await fetch('/api/admin/drinks', { headers: getAuthH() });
   menuData = await res.json();
@@ -1029,6 +1057,7 @@ async function loadMenu() {
   }
 }
 
+// ??? ???? ???????
 function renderMenuTable(data) {
   document.getElementById('menuTable').innerHTML = data.map(d => `
     <tr id="row-${d.id}">
@@ -1061,11 +1090,13 @@ function renderMenuTable(data) {
   `).join('');
 }
 
+// ????? ???? ??????? ??? ?????
 function filterMenuTable() {
   const q = document.getElementById('menu-search').value.toLowerCase();
   renderMenuTable(menuData.filter(d => d.name.toLowerCase().includes(q) || (d.name_ar||'').includes(q)));
 }
 
+// ????? ??? ??????? ?????? ?? ??????
 function editPrice(id, current, el) {
   const inp = document.createElement('input');
   inp.className = 'edit-input'; inp.type = 'number'; inp.value = current;
@@ -1081,6 +1112,7 @@ function editPrice(id, current, el) {
   el.replaceWith(inp); inp.focus(); inp.select();
 }
 
+// ????? ??? ??? ?????? ?????? ?? ??????
 function editField(id, field, current, el) {
   const inp = document.createElement('input');
   inp.className = 'edit-input'; inp.type = 'text'; inp.value = current; inp.style.width = '150px';
@@ -1093,10 +1125,12 @@ function editField(id, field, current, el) {
   el.replaceWith(inp); inp.focus(); inp.select();
 }
 
+// ????? ????? ????? ??? ??????
 async function patchDrink(id, data) {
   await fetch(`/api/admin/drinks/${id}`, { method:'PATCH', headers: getAuthH(), body: JSON.stringify(data) });
 }
 
+// ????? ???? ??????? (????/????)
 async function toggleDrinkStatus(id, field, currentVal) {
   const newVal = currentVal ? 0 : 1;
   await fetch(`/api/admin/drinks/${id}`, { 
@@ -1107,6 +1141,7 @@ async function toggleDrinkStatus(id, field, currentVal) {
   loadMenu(); // Reload to update UI
 }
 
+// ????? ????? ???? ??? ???????
 async function addDrink() {
   const name = document.getElementById('nd-name').value.trim();
   const name_ar = document.getElementById('nd-name-ar').value.trim();
@@ -1141,6 +1176,7 @@ async function addDrink() {
   } catch(e) { showModal('خطأ', 'خطأ في الإضافة'); }
 }
 
+// ??? ????? ?? ???????
 async function deleteDrink(id) {
   if(!await showModal('تأكيد', 'هل أنت متأكد من حذف هذا العنصر؟', true)) return;
   const res = await fetch(`/api/admin/drinks/${id}`, { method:'DELETE', headers: getAuthH() });
@@ -1149,6 +1185,7 @@ async function deleteDrink(id) {
   else alert('خطأ في الحذف');
 }
 
+// ????? ????? ??????
 async function loadOffers() {
   try {
     const res = await fetch('/api/admin/offers', { headers: getAuthH() });
@@ -1206,6 +1243,7 @@ async function loadOffers() {
   }
 }
 
+// ????? ??? ????
 async function addOffer() {
   const drink_id = document.getElementById('no-drink').value;
   const discount_percent = parseInt(document.getElementById('no-discount').value);
@@ -1236,6 +1274,7 @@ async function addOffer() {
   }
 }
 
+// ??? ???
 async function deleteOffer(id) {
   if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذا العرض؟', true)) return;
   const res = await fetch(`/api/admin/offers/${id}`, { method: 'DELETE', headers: getAuthH() });
@@ -1245,6 +1284,7 @@ async function deleteOffer(id) {
 }
 
 // ── CATEGORY MANAGEMENT ─────────────────────
+// ????? ?????????
 async function loadCategories() {
   const res = await fetch('/api/admin/categories', { headers: getAuthH() });
   categoriesData = await res.json();
@@ -1260,6 +1300,7 @@ async function loadCategories() {
   `).join('');
 }
 
+// ????? ??? ??? ??????
 async function editCatField(id, field, current, el) {
   const inp = document.createElement('input');
   inp.className = 'edit-input'; inp.type = 'text'; inp.value = current; inp.style.width = '140px';
@@ -1275,6 +1316,7 @@ async function editCatField(id, field, current, el) {
   el.replaceWith(inp); inp.focus(); inp.select();
 }
 
+// ????? ????? ??? ???????
 async function editCatSort(id, current, el) {
   const inp = document.createElement('input');
   inp.className = 'edit-input'; inp.type = 'number'; inp.value = current; inp.style.width = '70px';
@@ -1290,6 +1332,7 @@ async function editCatSort(id, current, el) {
   el.replaceWith(inp); inp.focus(); inp.select();
 }
 
+// ????? ????? ????
 async function addCategory() {
   const name = document.getElementById('nc-name').value.trim();
   const name_ar = document.getElementById('nc-name-ar').value.trim();
@@ -1308,6 +1351,7 @@ async function addCategory() {
   } catch(e) { showModal('خطأ', 'خطأ في إضافة التصنيف'); }
 }
 
+// ??? ?????
 async function deleteCategory(id) {
   if (!await showModal('تأكيد', 'حذف هذا التصنيف؟ يجب إعادة تعيين المشروبات المرتبطة به أولاً.', true)) return;
   const res = await fetch('/api/admin/categories/' + id, { method:'DELETE', headers: getAuthH() });
@@ -1316,6 +1360,7 @@ async function deleteCategory(id) {
   else showModal('خطأ', data.error || 'خطأ في الحذف');
 }
 
+// ????? ???? ???????
 async function loadOrders() {
   const res = await fetch('/api/orders', { headers: getAuthH() });
   ordersData = await res.json();
@@ -1339,6 +1384,7 @@ async function loadOrders() {
   }).join('');
 }
 
+// ????? ??? ?? ???? ??????
 async function cancelOrderAdmin(id) {
   if (!await showModal('تأكيد', 'هل أنت متأكد من إلغاء هذا الطلب؟', true)) return;
   const res = await fetch(`/api/orders/${id}/status`, { 
@@ -1351,6 +1397,7 @@ async function cancelOrderAdmin(id) {
   else showModal('خطأ', 'فشل في إلغاء الطلب');
 }
 
+// ??? ??? ???????
 async function deleteOrderAdmin(id) {
   if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذا الطلب نهائياً؟ لا يمكن التراجع عن هذا الإجراء.', true)) return;
   const res = await fetch(`/api/orders/${id}`, { method: 'DELETE', headers: getAuthH() });
@@ -1359,6 +1406,7 @@ async function deleteOrderAdmin(id) {
   else showModal('خطأ', data.error || 'فشل في حذف الطلب');
 }
 
+// ????? ????? ??????????
 async function loadUsers() {
   const res = await fetch('/api/admin/users', { headers: getAuthH() });
   usersData = await res.json();
@@ -1391,6 +1439,7 @@ async function loadUsers() {
   `).join('');
 }
 
+// ????? ?????? ????
 async function addUser() {
   const name = document.getElementById('nu-name').value.trim();
   const phone = document.getElementById('nu-phone').value.trim();
@@ -1413,6 +1462,7 @@ async function addUser() {
   } catch(e) { showModal('خطأ', 'خطأ في إضافة المستخدم'); }
 }
 
+// ????? ??? ?????? ??????
 function editUserField(id, field, current, el) {
   const inp = document.createElement('input');
   inp.className = 'edit-input'; inp.type = 'text'; inp.value = current; inp.style.width = '120px';
@@ -1426,6 +1476,7 @@ function editUserField(id, field, current, el) {
   el.replaceWith(inp); inp.focus(); inp.select();
 }
 
+// ????? ???? ????????
 function editUserPoints(id, current, el) {
   const inp = document.createElement('input');
   inp.className = 'edit-input'; inp.type = 'number'; inp.value = current; inp.style.width = '70px';
@@ -1441,6 +1492,7 @@ function editUserPoints(id, current, el) {
   el.replaceWith(inp); inp.focus(); inp.select();
 }
 
+// ????? ???? ???? ????????
 async function editUserPassword(id) {
   const newPass = await showModal('تغيير كلمة المرور', 'أدخل كلمة المرور الجديدة:', false, true);
   if(newPass && newPass.trim().length >= 4) {
@@ -1451,10 +1503,12 @@ async function editUserPassword(id) {
   }
 }
 
+// ????? ????? ?????? ??? ??????
 async function patchUser(id, data) {
   await fetch(`/api/admin/users/${id}`, { method:'PATCH', headers: getAuthH(), body: JSON.stringify(data) });
 }
 
+// ??? ??????
 async function deleteUser(id) {
   if(!await showModal('تأكيد', 'هل أنت متأكد من حذف المستخدم نهائياً؟', true)) return;
   const res = await fetch(`/api/admin/users/${id}`, { method:'DELETE', headers: getAuthH() });
@@ -1463,17 +1517,34 @@ async function deleteUser(id) {
   else showModal('خطأ', data.error || 'خطأ في الحذف');
 }
 
+// ????? ?????? ????????
 async function changeRole(id, role) {
   await fetch(`/api/admin/users/${id}`, { method:'PATCH', headers: getAuthH(), body: JSON.stringify({ role }) });
 }
 
+// ????? ???? ??????
 async function changeCustomerStatus(id, status) {
   await fetch(`/api/admin/users/${id}`, { method:'PATCH', headers: getAuthH(), body: JSON.stringify({ customerStatus: status }) });
 }
 
+// ????? ??????
 function logout() { localStorage.clear(); location.href = 'login.html'; }
 
+// ???????
+function showToast(msg, type) {
+  const c = document.getElementById('toastContainer');
+  if (!c) return;
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type || 'success');
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300); }, 2500);
+}
+
+// ??? ????? ?????? (????? / ????? / ????? ??)
 function showModal(title, text, isConfirm = false, isPrompt = false) {
+  if (title === 'نجاح' || title === 'Success') showToast(text, 'success');
+  if (title === 'خطأ' || title === 'Error') showToast(text, 'error');
   return new Promise((resolve) => {
     const modal = document.getElementById('custom-modal');
     const titleEl = document.getElementById('cm-title');
@@ -1518,6 +1589,7 @@ loadReports();
 
 // ── REPORTS ──
 
+// ???? ??????? ???????? ??? ?????? ???????
 function buildReportParams() {
   const period = document.getElementById('r-period').value;
   if (period === 'custom') {
@@ -1534,6 +1606,7 @@ function buildReportParams() {
   return { period, params: `?period=${period}`, itemsParams: `?days=${days}` };
 }
 
+// ?????? ????? ???? ???????
 function onPeriodChange() {
   const sel = document.getElementById('r-period');
   const customDates = document.getElementById('r-custom-dates');
@@ -1546,6 +1619,7 @@ function onPeriodChange() {
   }
 }
 
+// ????? ???? ?????? ????????
 async function loadReports() {
   try {
     const { period, params, itemsParams } = buildReportParams();
@@ -1858,6 +1932,7 @@ async function loadReports() {
   }
 }
 
+// ??? ?????
 async function deleteShiftAdmin(id) {
   if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذه الوردية نهائياً؟', true)) return;
   const res = await fetch('/api/shifts/' + id, { method: 'DELETE', headers: getAuthH() });
@@ -1866,6 +1941,7 @@ async function deleteShiftAdmin(id) {
   else showModal('خطأ', data.error || 'فشل في الحذف');
 }
 
+// ????? ????? PDF
 function downloadPDF() {
   const period = document.getElementById('r-period').value || 'month';
   let url = '/api/reports/pdf?period=' + encodeURIComponent(period);
@@ -1891,6 +1967,7 @@ function downloadPDF() {
 // ── Inventory Functions ──
 let allIngredients = [];
 
+// ????? ???? ??????? ???????
 async function loadInventory() {
   loadInvStatus();
   loadIngredients();
@@ -1899,6 +1976,7 @@ async function loadInventory() {
   loadAlerts();
 }
 
+// ????? ???????? ???????
 async function loadInvStatus() {
   try {
     const res = await fetch('/api/inventory/status', { headers: getAuthH() });
@@ -1911,11 +1989,13 @@ async function loadInvStatus() {
   } catch (e) { console.error(e); }
 }
 
+// ??? ??? ??????? ??????
 function showInvSection(s) {
   ['ingredients','transactions','counts','alerts'].forEach(id => document.getElementById('inv-' + id).style.display = id === s ? 'block' : 'none');
   if (s === 'counts') loadCountIngredients();
 }
 
+// ????? ????? ???????
 async function loadIngredients() {
   try {
     const res = await fetch('/api/inventory/ingredients?active=true', { headers: getAuthH() });
@@ -1945,6 +2025,7 @@ async function loadIngredients() {
   } catch (e) { console.error(e); }
 }
 
+// ????? ??? ????
 async function editIngredientField(id, field, val) {
   if (val === null) return;
   const parsed = field === 'unitCost' ? parseFloat(val) : val;
@@ -1953,6 +2034,7 @@ async function editIngredientField(id, field, val) {
   loadInvStatus();
 }
 
+// ????? ???? ?????
 async function addIngredient() {
   const body = {
     name: document.getElementById('ig-name').value,
@@ -1975,6 +2057,7 @@ async function addIngredient() {
   } catch (e) { showModal('خطأ في الاتصال', e.message); }
 }
 
+// ??? ????
 async function deleteIngredient(id) {
   if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذه الخامة؟', true)) return;
   await fetch('/api/inventory/ingredients/' + id, { method: 'DELETE', headers: getAuthH() });
@@ -1982,6 +2065,7 @@ async function deleteIngredient(id) {
   loadInvStatus();
 }
 
+// ????? ????? ???????
 async function loadTransactions() {
   try {
     const res = await fetch('/api/inventory/transactions?limit=100', { headers: getAuthH() });
@@ -2000,6 +2084,7 @@ async function loadTransactions() {
   } catch (e) { console.error(e); }
 }
 
+// ????? ???? ????? ?????
 async function addTransaction() {
   const body = {
     type: document.getElementById('tx-type').value,
@@ -2020,6 +2105,7 @@ async function addTransaction() {
   } catch (e) { showModal('خطأ في الاتصال', e.message); }
 }
 
+// ????? ??????? ????? ??????
 async function loadCountIngredients() {
   try {
     const res = await fetch('/api/inventory/ingredients?active=true', { headers: getAuthH() });
@@ -2043,6 +2129,7 @@ async function loadCountIngredients() {
   } catch (e) { console.error(e); }
 }
 
+// ??? ????? ?????? ????? ??????
 async function submitCount() {
   try {
     const res = await fetch('/api/inventory/ingredients?active=true', { headers: getAuthH() });
@@ -2066,6 +2153,7 @@ async function submitCount() {
   } catch (e) { showModal('خطأ', e.message); }
 }
 
+// ????? ??? ?????
 async function loadCounts() {
   try {
     const res = await fetch('/api/inventory/counts', { headers: getAuthH() });
@@ -2083,6 +2171,7 @@ async function loadCounts() {
   } catch (e) { console.error(e); }
 }
 
+// ????? ?????????
 async function loadAlerts() {
   try {
     const res = await fetch('/api/inventory/alerts?resolved=false', { headers: getAuthH() });
@@ -2098,6 +2187,7 @@ async function loadAlerts() {
   } catch (e) { console.error(e); }
 }
 
+// ?? ?????
 async function resolveAlert(id) {
   await fetch('/api/inventory/alerts/' + id + '/resolve', { method: 'POST', headers: getAuthH() });
   loadAlerts();
@@ -2107,6 +2197,7 @@ async function resolveAlert(id) {
 // ── Recipes Functions ──
 let currentRecipeId = null;
 
+// ????? ????? ???????
 async function loadRecipes() {
   try {
     const res = await fetch('/api/recipes', { headers: getAuthH() });
@@ -2136,6 +2227,7 @@ async function loadRecipes() {
   } catch (e) { console.error(e); }
 }
 
+// ??? ??? ??????? ??????
 function showRecipeSection(s) {
   document.getElementById('recipe-list').style.display = s === 'list' ? 'block' : 'none';
   document.getElementById('recipe-editor').style.display = s === 'editor' ? 'block' : 'none';
@@ -2144,6 +2236,7 @@ function showRecipeSection(s) {
   }
 }
 
+// ????? ????? ??????
 function cancelRecipeEdit() {
   currentRecipeId = null;
   document.getElementById('rc-edit-id').value = '';
@@ -2153,6 +2246,7 @@ function cancelRecipeEdit() {
   showRecipeSection('list');
 }
 
+// ??? ??????
 async function saveRecipe() {
   const name = document.getElementById('rc-name').value;
   const drinkId = document.getElementById('rc-drink').value || null;
@@ -2178,6 +2272,7 @@ async function saveRecipe() {
   } catch (e) { showModal('خطأ في الاتصال', e.message); }
 }
 
+// ????? ????
 async function editRecipe(id) {
   const res = await fetch('/api/recipes/' + id, { headers: getAuthH() });
   const r = await res.json();
@@ -2190,12 +2285,14 @@ async function editRecipe(id) {
   loadRecipeIngredients(r._id);
 }
 
+// ??? ????
 async function deleteRecipe(id) {
   if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذه الوصفة؟', true)) return;
   await fetch('/api/recipes/' + id, { method: 'DELETE', headers: getAuthH() });
   loadRecipes();
 }
 
+// ????? ?????? ??????
 async function loadRecipeIngredients(recipeId) {
   if (!recipeId) { document.getElementById('recipe-items-list').innerHTML = '<p style="color:var(--muted);font-size:.85rem;">احفظ الوصفة أولاً ثم أضف المكونات</p>'; return; }
   try {
@@ -2214,6 +2311,7 @@ async function loadRecipeIngredients(recipeId) {
   } catch (e) { console.error(e); }
 }
 
+// ????? ???? ??? ??????
 async function addRecipeItem() {
   if (!currentRecipeId) return showModal('خطأ', 'احفظ الوصفة أولاً');
   const ingredientId = document.getElementById('rc-ingredient').value;
@@ -2229,6 +2327,7 @@ async function addRecipeItem() {
   } catch (e) { showModal('خطأ في الاتصال', e.message); }
 }
 
+// ??? ???? ?? ??????
 async function removeRecipeItem(itemId) {
   if (!currentRecipeId) return;
   await fetch('/api/recipes/' + currentRecipeId + '/items/' + itemId, { method: 'DELETE', headers: getAuthH() });
@@ -2236,6 +2335,7 @@ async function removeRecipeItem(itemId) {
   loadRecipes();
 }
 
+// ????? ???? ?????? ???? ???????
 async function recalcCosts() {
   const res = await fetch('/api/recipes/calculate-costs', { method: 'POST', headers: getAuthH() });
   const d = await res.json();
@@ -2243,6 +2343,7 @@ async function recalcCosts() {
   loadRecipes();
 }
 
+// ????? ???????? ??? CSV
 function exportReportsCSV() {
   fetch('/api/reports/sales?period=all', { headers: getAuthH() })
     .then(r => r.json())

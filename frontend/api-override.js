@@ -1,7 +1,11 @@
+// ===== تجاوز عنوان API لتوجيه الطلبات إلى الخادم الخلفي =====
+// هذا الملف يكتشف ما إذا كان التطبيق يعمل على بيئة محلية أو إنتاج
+// ويقوم بتوجيه طلبات API إلى الخادم الصحيح تلقائياً
+
 (function() {
-  // Detect if backend server is at a different origin than frontend
-  // If running on Vercel (https://ozel-weld.vercel.app), relative URLs work fine (no override)
-  // If running from file:// protocol or different host/port, redirect to production URL
+  // الكشف عن حالة الخادم الخلفي — إذا كان في نفس نطاق الواجهة الأمامية
+  // إذا كان يعمل على Vercel، فإن عناوين URL النسبية تعمل بشكل طبيعي (لا حاجة للتجاوز)
+  // إذا كان يعمل من بروتوكول file:// أو من host/port مختلف، يتم التوجيه إلى رابط الإنتاج
   var isLive = window.location.hostname === 'ozel-weld.vercel.app' || window.location.hostname === 'localhost' && window.location.port === '5000';
   var BACKEND_URL = isLive ? '' : 'https://ozel-weld.vercel.app';
 

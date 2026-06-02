@@ -1,8 +1,10 @@
 /* ═══════════════════════════════════════
    OZEL CAFE — Frontend JS (Premium v2.1 - Bilingual & Turn-Based Imposter)
    ═══════════════════════════════════════ */
+/* ===== أوزيل كافيه — ملف JavaScript الرئيسي للواجهة الأمامية ===== */
+/* يتضمن هذا الملف جميع وظائف التطبيق: القائمة، السلة، الألعاب، الترجمة، وغيرها */
 
-// Generic debounce utility for rapid-click protection
+// ===== أداة منع النقر المتكرر (Debounce) =====
 window._debounceTimers = {};
 window.debounceClick = function(key, fn, ms = 300) {
   if (window._debounceTimers[key]) return;
@@ -11,12 +13,13 @@ window.debounceClick = function(key, fn, ms = 300) {
   fn();
 };
 
+// ===== متغيرات الحالة العامة للتطبيق =====
 let allDrinks = [], allCategories = [], currentCat = 'all', cart = JSON.parse(localStorage.getItem('ozel_cart') || '[]');
 const urlParams  = new URLSearchParams(window.location.search);
 const tableParam = urlParams.get('table');
 window.currentPuzzle = { sugar: 'Normal', extra: 'None' };
 
-// ── Lounge & Games State ──────────────────
+// ===== حالة غرفة التسلية والألعاب الجماعية =====
 let loungePlayers = [];
 
 let imposterGame = {
@@ -42,7 +45,7 @@ let tttActive = true;
 let tttWinner = null;
 let tttMode = 'local'; 
 
-// ── Auth State ───────────────────────────
+// ===== حالة المصادقة والمستخدم =====
 const CUSER = JSON.parse(localStorage.getItem('ozel_user') || 'null');
 
 function getAuthHeaders() {
@@ -50,7 +53,7 @@ function getAuthHeaders() {
   return tok ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok } : { 'Content-Type': 'application/json' };
 }
 
-// ── Bilingual Language Setup ──────────────
+// ===== إعداد اللغة الثنائية (عربي / إنجليزي) =====
 let currentLang = localStorage.getItem('ozel_lang') || 'en';
 
 const transMap = {
@@ -74,17 +77,20 @@ const transMap = {
   'Caramel': { en: 'Caramel Syrup', ar: 'كراميل' }
 };
 
+// ===== التمرير السلس للأقسام =====
 window.scrollToSection = function(id) {
   const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
+// ===== تبديل اللغة بين العربية والإنجليزية =====
 window.toggleLanguage = function() {
   currentLang = currentLang === 'en' ? 'ar' : 'en';
   localStorage.setItem('ozel_lang', currentLang);
   applyLanguage(currentLang);
 };
 
+// ===== تطبيق اللغة على جميع عناصر الصفحة =====
 window.applyLanguage = function(lang) {
   const isAr = lang === 'ar';
   document.documentElement.lang = lang;
@@ -116,7 +122,7 @@ window.applyLanguage = function(lang) {
   updateTTTStatus();
 };
 
-// ── Loader ──────────────────────────────
+// ===== تهيئة التطبيق عند تحميل الصفحة =====
 document.addEventListener('DOMContentLoaded', () => {
   try {
     applyLanguage(currentLang);
@@ -133,10 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 1000);
 });
 
-// --- Global guard: prevent double-fire from mobile tap generating two click events ---
-// We don't need a delegation — native onclick handles everything.
-// Protection is at function level (debounce guards in addToCart, etc.)
-
+// ===== عرض حالة المستخدم في شريط التنقل =====
 function renderNavUser() {
   const area = document.getElementById('nav-user-area');
   const drawerArea = document.getElementById('drawer-user-area');
@@ -168,6 +171,7 @@ function renderNavUser() {
   if (drawerArea) drawerArea.innerHTML = html;
 }
 
+// ===== فتح/إغلاق القائمة الجانبية المتنقلة =====
 window.toggleMobileMenu = function() {
   const drawer = document.getElementById('mobileDrawer');
   const hamburger = document.getElementById('navHamburger');
@@ -179,8 +183,10 @@ window.toggleMobileMenu = function() {
   }
 };
 
+// ===== تسجيل الخروج =====
 window.logoutUser = function() { localStorage.clear(); location.reload(); };
 
+// ===== فتح نافذة الملف الشخصي =====
 window.openProfileModal = async function() {
   const modal = document.getElementById('profileModal');
   if (!modal) return;
@@ -188,7 +194,7 @@ window.openProfileModal = async function() {
   
   const isAr = currentLang === 'ar';
   
-  // Fetch latest user details from server to keep stats synchronized
+  // جلب أحدث بيانات المستخدم من الخادم للحفاظ على تحديث الإحصائيات
   let userDetails = CUSER;
   try {
     const meRes = await fetch('/api/auth/me', { headers: getAuthHeaders() });
@@ -200,19 +206,19 @@ window.openProfileModal = async function() {
     console.warn('Failed to fetch latest user stats, using cached user data', e);
   }
   
-  // Render details on ID Card
+  // عرض التفاصيل على بطاقة العضوية
   document.getElementById('profilePoints').textContent = userDetails.points || 0;
   if (document.getElementById('profileMemberName')) {
     document.getElementById('profileMemberName').textContent = userDetails.name || 'MEMBER';
   }
 
-  // Handle Dynamic ID Card Styling based on Customer Status
+  // معالجة تنسيق بطاقة العضوية الديناميكي حسب حالة العميل
   const cardEl = document.getElementById('profileVipCard');
   const badgeEl = document.getElementById('profileTierBadge');
   const discountEl = document.getElementById('profileDiscountRate');
 
   if (cardEl && badgeEl && discountEl) {
-    // Customer status config: status → [cssClass, bgColor, title, discount%]
+    // تكوين حالة العميل: الحالة → [classCSS, لون الخلفية, اللقب, نسبة الخصم]
     const STATUS_MAP = {
       standard:    ['card-green',  '#1a2e24', isAr ? 'عادي' : 'STANDARD',     null],
       gold:        ['card-red',    '#541a1a', isAr ? 'ذهبي' : 'GOLD',         '10%'],
@@ -222,11 +228,11 @@ window.openProfileModal = async function() {
     const status = userDetails.customerStatus || 'standard';
     const [cssClass, bgColor, title, discountPct] = STATUS_MAP[status] || STATUS_MAP.standard;
 
-    // Remove old status classes
+    // إزالة كلاسات الحالة القديمة
     ['card-green','card-red','card-blue','card-purple','tier-none','tier-bronze','tier-silver','tier-gold','tier-student'].forEach(cls => cardEl.classList.remove(cls));
     cardEl.classList.add('vip-card', cssClass);
 
-    // Inject style rule for the card background
+    // إضافة تنسيق لون الخلفية للبطاقة
     let styleTag = document.getElementById('card-color-override');
     if (!styleTag) { styleTag = document.createElement('style'); styleTag.id = 'card-color-override'; document.head.appendChild(styleTag); }
     styleTag.textContent = `#profileVipCard { background: ${bgColor} !important; background-image: none !important; animation: none !important; background-size: 100% 100% !important; }`;
@@ -234,7 +240,7 @@ window.openProfileModal = async function() {
     badgeEl.textContent = title;
 
     if (status === 'standard') {
-      // STANDARD: discount based on points (every 100 points = 10 EGP)
+      // الحالة العادية: الخصم بناءً على النقاط (كل 100 نقطة = 10 جنيه)
       const pts = userDetails.points || 0;
       const egpDiscount = Math.floor(pts / 100) * 10;
       discountEl.innerHTML = isAr
@@ -247,7 +253,7 @@ window.openProfileModal = async function() {
     }
   }
 
-  // Initialize vanilla tilt on the ID card if present
+  // تفعيل تأثير الميلان على بطاقة العضوية
   if (typeof VanillaTilt !== 'undefined' && cardEl) {
     VanillaTilt.init(cardEl);
   }
@@ -291,15 +297,16 @@ window.openProfileModal = async function() {
   } catch(e) { console.error(e); }
 }
 
+// ===== إغلاق نافذة الملف الشخصي =====
 window.closeProfileModal = function() { document.getElementById('profileModal').classList.remove('open'); };
 
-// ── Navbar scroll ────────────────────────
+// ===== تأثير شريط التنقل عند التمرير =====
 window.addEventListener('scroll', () => {
   const nav = document.getElementById('nav');
   if (nav) nav.classList.toggle('scrolled', window.scrollY > 60);
 });
 
-// ── Fetch Menu ───────────────────────────
+// ===== جلب بيانات القائمة من الخادم =====
 async function fetchMenu() {
   try {
     const [catRes, drinksRes, offersRes] = await Promise.all([
@@ -330,7 +337,7 @@ async function fetchMenu() {
   }
 }
 
-// ── Category Tabs ─────────────────────────
+// ===== بناء أزرار تصنيفات القائمة =====
 function buildCatTabs() {
   const bar = document.getElementById('catTabs');
   if (!bar) return;
@@ -364,7 +371,7 @@ function buildCatTabs() {
   });
 }
 
-// ── Render Cards ─────────────────────────
+// ===== عرض بطاقات المشروبات في القائمة =====
 function renderMenu(drinks) {
   const grid = document.getElementById('menuGrid');
   if (!grid) return;
@@ -416,7 +423,7 @@ function renderMenu(drinks) {
   });
 }
 
-// Helpers to map extras names and costs dynamically
+// ===== دوال مساعدة لعرض أسماء الإضافات حسب اللغة =====
 function getExtraChipText(value, displayVal, isAr) {
   if (value === 'None') return isAr ? 'بدون إضافات' : 'None';
   if (value === 'Extra Shot') return isAr ? 'جرعة إضافية +25' : 'Shot +25';
@@ -433,7 +440,7 @@ function getExtraChipText(value, displayVal, isAr) {
   return displayVal;
 }
 
-// ── Drink Modal ───────────────────────────
+// ===== نافذة تخصيص المشروب (Drink Modal) =====
 let _modalSessionId = 0;
 
 window.openDrink = async function(id) {
@@ -443,12 +450,12 @@ window.openDrink = async function(id) {
   const isAr = currentLang === 'ar';
   const displayName = isAr ? (drink.name_ar || drink.name) : drink.name;
 
-  // Split-Deck logic on desktop
+  // منطق اللوحة المنقسمة (Split-Deck) لأجهزة الكمبيوتر
   const deck = document.getElementById('alchemyDeck');
   const isDesktop = window.innerWidth > 1024;
   if (deck && isDesktop) {
     const deckContent = document.getElementById('deckContent');
-    // Generate dynamic sensory profile
+    // إنشاء ملف حسي ديناميكي للمشروب
     const intensity = drink.temperature === 'hot' ? 4 : 2;
     const sweetness = drink.name.toLowerCase().includes('latte') ? 3 : (drink.name.toLowerCase().includes('espresso') ? 1 : 4);
     const creaminess = drink.name.toLowerCase().includes('shake') || drink.name.toLowerCase().includes('latte') ? 4 : 1;
@@ -534,7 +541,7 @@ window.openDrink = async function(id) {
     return;
   }
 
-  // Fallback to Modal (for Mobile/Tablet)
+  // الوضع البديل: النافذة المنبثقة (للجوال/التابلت)
   const modal   = document.getElementById('drinkModal');
   const content = document.getElementById('modalContent');
   if (!modal || !content) return;
@@ -603,6 +610,7 @@ window.openDrink = async function(id) {
   document.body.style.overflow = 'hidden';
 }
 
+// ===== اختيار خيار السكر أو الإضافات في النافذة =====
 window.selectChip = function(type, value, btn) {
   btn.closest('.puzzle-chips').querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -610,6 +618,7 @@ window.selectChip = function(type, value, btn) {
   btn.animate([{transform:'scale(.92)'},{transform:'scale(1)'}], {duration:200, easing:'cubic-bezier(.175,.885,.32,1.275)'});
 };
 
+// ===== إغلاق النافذة المنبثقة =====
 window.closeModal = function(e) {
   if (e && e.target !== document.getElementById('drinkModal') && !e.target.classList.contains('modal-x')) return;
   const modal = document.getElementById('drinkModal');
@@ -617,7 +626,7 @@ window.closeModal = function(e) {
   document.body.style.overflow = '';
 }
 
-// ── Cart ──────────────────────────────────
+// ===== إضافة المنتج إلى سلة المشتريات =====
 let _sessionUsed = new Set();
 
 window.addToCart = function(drinkId, behavior = 'continue') {
@@ -653,6 +662,7 @@ window.addToCart = function(drinkId, behavior = 'continue') {
   }
 }
 
+// ===== تحديث واجهة السلة =====
 function updateCartUI() {
   const fab   = document.getElementById('cartFab');
   const count = document.getElementById('cartCount');
@@ -660,12 +670,14 @@ function updateCartUI() {
   if (fab) fab.style.transform = cart.length > 0 ? 'scale(1)' : 'scale(0)';
 }
 
+// ===== حذف عنصر من السلة =====
 function removeFromCart(idx) { 
   cart.splice(idx, 1); 
   localStorage.setItem('ozel_cart', JSON.stringify(cart));
   updateCartUI(); 
 }
 
+// ===== إرسال الطلب إلى الخادم =====
 async function submitOrder() {
   const isAr = currentLang === 'ar';
   if (!cart.length) return alert(isAr ? 'السلة فارغة!' : 'Cart is empty!');
@@ -693,6 +705,7 @@ async function submitOrder() {
   }
 }
 
+// ===== معالجة نموذج التواصل عبر واتساب =====
 window.handleContact = function(e) {
   e.preventDefault();
   const name = document.getElementById('contact-name').value.trim();
@@ -706,6 +719,7 @@ window.handleContact = function(e) {
   window.open(whatsappUrl, '_blank');
 }
 
+// ===== عرض بطاقات العروض الخاصة =====
 async function renderOffersCards() {
   const container = document.getElementById('offersContainer');
   if (!container) return;
@@ -782,6 +796,7 @@ async function renderOffersCards() {
   }
 }
 
+// ===== تغيير كلمة المرور =====
 window.changePassword = async function() {
   const oldPassword = document.getElementById('old-pass').value;
   const newPassword = document.getElementById('new-pass').value;
@@ -826,7 +841,9 @@ window.changePassword = async function() {
 /* ═══════════════════════════════════════════
    TABLE LOUNGE & GROUP GAMES LOGIC
    ═══════════════════════════════════════════ */
+/* ===== منطق ركن التسلية والألعاب الجماعية ===== */
 
+// ===== التبديل بين علامات تبويب الألعاب =====
 window.switchLoungeTab = function(tabName) {
   document.querySelectorAll('.lounge-game-card').forEach(btn => btn.classList.remove('active'));
   document.querySelectorAll('.lounge-panel').forEach(panel => {
@@ -861,7 +878,7 @@ window.switchLoungeTab = function(tabName) {
 
 
 
-// --- Imposter Game Logic ---
+// ===== كلمات لعبة الدخيل (ثنائية اللغة) =====
 const imposterWordPairs = [
   { wordA_en: "Coffee", wordB_en: "Tea", wordA_ar: "قهوة", wordB_ar: "شاي" },
   { wordA_en: "Milk", wordB_en: "Cream", wordA_ar: "حليب", wordB_ar: "كريمة" },
@@ -885,6 +902,7 @@ const imposterWordPairs = [
   { wordA_en: "Chair", wordB_en: "Sofa", wordA_ar: "كرسي", wordB_ar: "كنبة" }
 ];
 
+// ===== نصوص لعبة الدخيل باللغتين =====
 const imposterTexts = {
   en: {
     title: "Who is the Imposter?",
@@ -1001,6 +1019,7 @@ const imposterTexts = {
 };
 
 
+// ===== عرض مؤشر مراحل اللعبة =====
 function renderStepsIndicator(activeStep) {
   const steps = [
     { key: 'setup', en: 'Setup', ar: 'الإعداد' },
@@ -1032,6 +1051,7 @@ function renderStepsIndicator(activeStep) {
   `;
 }
 
+// ===== عرض شاشة إعداد لعبة الدخيل =====
 window.renderImposterSetup = function() {
   const setupPanel = document.getElementById('imposter-setup');
   const gameplayPanel = document.getElementById('imposter-gameplay');
@@ -1095,6 +1115,7 @@ window.renderImposterSetup = function() {
   `;
 };
 
+// ===== إضافة لاعب إلى اللعبة =====
 window.addImposterSetupPlayer = function() {
   const isAr = currentLang === 'ar';
   const input = document.getElementById('imposter-player-input');
@@ -1109,11 +1130,13 @@ window.addImposterSetupPlayer = function() {
   renderImposterSetup();
 };
 
+// ===== إزالة لاعب من الإعداد =====
 window.removeImposterSetupPlayer = function(idx) {
   loungePlayers.splice(idx, 1);
   renderImposterSetup();
 };
 
+// ===== بدء لعبة الدخيل =====
 window.startImposterGame = function() {
   if (loungePlayers.length < 3) return;
   
@@ -1155,6 +1178,7 @@ window.startImposterGame = function() {
   renderImposterGameplay();
 };
 
+// ===== عرض شاشة اللعب الرئيسية للعبة الدخيل =====
 window.renderImposterGameplay = function() {
   const setupPanel = document.getElementById('imposter-setup');
   const gameplayPanel = document.getElementById('imposter-gameplay');
@@ -1408,6 +1432,7 @@ window.renderImposterGameplay = function() {
   }
 };
 
+// ===== عرض بطاقة كلمة اللاعب السرية =====
 window.revealImposterCard = function(idx) {
   const player = imposterGame.players[idx];
   if (player.isSeen) return;
@@ -1429,6 +1454,7 @@ window.revealImposterCard = function(idx) {
   document.body.appendChild(overlay);
 };
 
+// ===== إظهار الكلمة السرية للاعب =====
 window.showSecretWord = function(idx, btn) {
   const player = imposterGame.players[idx];
   const modal = btn.closest('.imposter-reveal-modal');
@@ -1446,6 +1472,7 @@ window.showSecretWord = function(idx, btn) {
   `;
 };
 
+// ===== إخفاء الكلمة السرية بعد مشاهدتها =====
 window.hideSecretWord = function(idx) {
   const player = imposterGame.players[idx];
   player.isSeen = true;
@@ -1456,21 +1483,25 @@ window.hideSecretWord = function(idx) {
   renderImposterGameplay();
 };
 
+// ===== الانتقال إلى اللاعب التالي في مرحلة الوصف =====
 window.nextDescribeTurn = function() {
   imposterGame.currentTurnIdx++;
   renderImposterGameplay();
 };
 
+// ===== الانتقال إلى اللاعب التالي في مرحلة الأسئلة =====
 window.nextAskTurn = function() {
   imposterGame.currentTurnIdx++;
   renderImposterGameplay();
 };
 
+// ===== بدء اختيار المشتبه به من قبل المصوت =====
 window.startVoterSelection = function() {
   imposterGame.isSelectingSuspect = true;
   renderImposterGameplay();
 };
 
+// ===== تسجيل التصويت السري =====
 window.castSecretVote = function(voterName, suspectName) {
   imposterGame.votes[voterName] = suspectName;
   imposterGame.isSelectingSuspect = false;
@@ -1491,12 +1522,14 @@ window.castSecretVote = function(voterName, suspectName) {
   document.body.appendChild(overlay);
 };
 
+// ===== إغلاق نافذة نجاح التصويت =====
 window.closeVoteSuccessOverlay = function() {
   const overlay = document.querySelector('.glass-overlay-wrap');
   if (overlay) overlay.remove();
   renderImposterGameplay();
 };
 
+// ===== معالجة نتائج التصويت =====
 function processVotingTally() {
   const activePlayers = imposterGame.players.filter(p => !p.isEliminated);
   const counts = {};
@@ -1556,6 +1589,7 @@ function processVotingTally() {
   }
 }
 
+// ===== بدء الجولة التالية =====
 window.startNextRound = function() {
   imposterGame.round++;
   imposterGame.currentTurnIdx = 0;
@@ -1563,6 +1597,7 @@ window.startNextRound = function() {
   renderImposterGameplay();
 };
 
+// ===== عرض نتائج لعبة الدخيل =====
 window.showImposterResults = function(winner) {
   const setupPanel = document.getElementById('imposter-setup');
   const gameplayPanel = document.getElementById('imposter-gameplay');
@@ -1636,6 +1671,7 @@ window.showImposterResults = function(winner) {
   `;
 };
 
+// ===== إعادة تعيين لعبة الدخيل =====
 window.resetImposterGame = function() {
   imposterGame = {
     players: [],
@@ -1656,7 +1692,7 @@ window.resetImposterGame = function() {
   renderImposterSetup();
 };
 
-// --- Tic-Tac-Coffee Logic ---
+// ===== منطق لعبة إكس-أو (Tic-Tac-Coffee) =====
 
 const winPatterns = [
   [0, 1, 2], [3, 4, 5], [6, 7, 8], 
@@ -1664,6 +1700,7 @@ const winPatterns = [
   [0, 4, 8], [2, 4, 6]             
 ];
 
+// ===== تعيين وضع اللعبة (لاعب ضد لاعب أو ضد الذكاء الاصطناعي) =====
 window.setTTTMode = function(mode) {
   tttMode = mode;
   document.querySelectorAll('.ttt-mode-btn').forEach(b => b.classList.remove('active'));
@@ -1672,6 +1709,7 @@ window.setTTTMode = function(mode) {
   resetTTT();
 };
 
+// ===== لعب حركة في إكس-أو =====
 window.playTTT = function(idx) {
   if (!tttActive || tttBoard[idx]) return;
   if (tttMode === 'ai' && tttCurrentPlayer === 'X') return;
@@ -1688,6 +1726,7 @@ window.playTTT = function(idx) {
   }
 };
 
+// ===== تنفيذ الحركة على اللوحة =====
 function makeTTTMove(idx, player) {
   tttBoard[idx] = player;
   const cell = document.querySelector(`.ttt-cell[data-idx="${idx}"]`);
@@ -1703,6 +1742,7 @@ function makeTTTMove(idx, player) {
   }
 }
 
+// ===== تحديث حالة اللعبة والنص =====
 function updateTTTStatus() {
   const statusEl = document.getElementById('ttt-status');
   if (!statusEl) return;
@@ -1756,6 +1796,7 @@ function updateTTTStatus() {
   }
 }
 
+// ===== التحقق من وجود فائز في إكس-أو =====
 function checkTTTWinner() {
   let roundWon = false;
   let winningPattern = null;
@@ -1793,10 +1834,12 @@ function checkTTTWinner() {
   return false;
 }
 
+// ===== الحصول على الخلايا الفارغة =====
 function getEmptyCells() {
   return tttBoard.reduce((acc, cell, i) => cell === null ? acc.concat(i) : acc, []);
 }
 
+// ===== خوارزمية Minimax للذكاء الاصطناعي =====
 function minimax(board, depth, isMaximizing) {
   const scores = { X: 10, O: -10, draw: 0 };
   const available = board.reduce((acc, cell, i) => cell === null ? acc.concat(i) : acc, []);
@@ -1824,6 +1867,7 @@ function minimax(board, depth, isMaximizing) {
   }
 }
 
+// ===== التحقق من الفائز على لوحة معينة =====
 function checkBoardWinner(board) {
   for (const [a, b, c] of winPatterns) {
     if (board[a] && board[a] === board[b] && board[a] === board[c]) return board[a];
@@ -1831,6 +1875,7 @@ function checkBoardWinner(board) {
   return null;
 }
 
+// ===== حساب أفضل حركة للذكاء الاصطناعي =====
 function getBestMove() {
   let bestScore = -Infinity;
   let bestMove = null;
@@ -1849,6 +1894,7 @@ function getBestMove() {
   return bestMove;
 }
 
+// ===== تنفيذ حركة الذكاء الاصطناعي =====
 function makeAIMove() {
   if (!tttActive || tttCurrentPlayer !== 'X') return;
   const move = getBestMove();
@@ -1859,6 +1905,7 @@ function makeAIMove() {
   updateTTTStatus();
 }
 
+// ===== إعادة تعيين لعبة إكس-أو =====
 window.resetTTT = function() {
   tttBoard = Array(9).fill(null);
   tttCurrentPlayer = 'O';
@@ -1882,7 +1929,9 @@ window.resetTTT = function() {
 /* ═══════════════════════════════════════════
    SENSORY SPLIT-DECK HELPERS
    ═══════════════════════════════════════════ */
+/* ===== دوال مساعدة للوحة التخصيص المنقسمة (Split-Deck) ===== */
 
+// ===== اختيار خيار السكر أو الإضافات في اللوحة =====
 window.selectDeckChip = function(type, value, btn) {
   btn.closest('.deck-chips').querySelectorAll('.deck-chip').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -1890,6 +1939,7 @@ window.selectDeckChip = function(type, value, btn) {
   btn.animate([{transform:'scale(.92)'},{transform:'scale(1)'}], {duration:200, easing:'cubic-bezier(.175,.885,.32,1.275)'});
 };
 
+// ===== إضافة المنتج إلى السلة من اللوحة =====
 window.addDeckToCart = function(drinkId) {
   const sessionKey = drinkId + ':' + _modalSessionId;
   if (_sessionUsed.has(sessionKey)) return;

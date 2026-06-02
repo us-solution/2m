@@ -1,3 +1,4 @@
+// ===== مسار المالية - إدارة المصروفات وحركات الخزينة وفئات المصروفات =====
 const express = require('express');
 const router = express.Router();
 const Expense = require('../models/Expense');
@@ -5,6 +6,7 @@ const CashMovement = require('../models/CashMovement');
 const ExpenseCategory = require('../models/ExpenseCategory');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 
+// دالة مساعدة لبناء فلتر التاريخ
 function buildDateFilter(start, end, fieldName) {
   if (!start && !end) return {};
   const filter = {};
@@ -14,6 +16,7 @@ function buildDateFilter(start, end, fieldName) {
   return filter;
 }
 
+// جلب قائمة المصروفات (مع إمكانية الفلترة حسب التاريخ والفئة)
 router.get('/expenses', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const { start, end, category, limit = 100 } = req.query;
@@ -26,6 +29,7 @@ router.get('/expenses', authenticateToken, requireRole('admin'), async (req, res
   }
 });
 
+// إضافة مصروف جديد
 router.post('/expenses', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const { title, category, amount, expenseDate, paymentMethod, shiftId, notes } = req.body;
@@ -46,6 +50,7 @@ router.post('/expenses', authenticateToken, requireRole('admin'), async (req, re
   }
 });
 
+// جلب حركات الخزينة (إيداع/سحب نقدي)
 router.get('/cash-movements', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const { start, end, shiftId, limit = 100 } = req.query;
@@ -58,6 +63,7 @@ router.get('/cash-movements', authenticateToken, requireRole('admin'), async (re
   }
 });
 
+// إضافة حركة خزينة جديدة
 router.post('/cash-movements', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const { movementType, amount, reason, shiftId, movementDate, notes } = req.body;
@@ -79,7 +85,7 @@ router.post('/cash-movements', authenticateToken, requireRole('admin'), async (r
   }
 });
 
-// Admin delete expense
+// حذف مصروف
 router.delete('/expenses/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const item = await Expense.findById(req.params.id);
@@ -91,7 +97,7 @@ router.delete('/expenses/:id', authenticateToken, requireRole('admin'), async (r
   }
 });
 
-// Admin delete cash movement
+// حذف حركة خزينة
 router.delete('/cash-movements/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const item = await CashMovement.findById(req.params.id);
@@ -103,7 +109,9 @@ router.delete('/cash-movements/:id', authenticateToken, requireRole('admin'), as
   }
 });
 
-// ── Expense Categories ──
+// ===== فئات المصروفات =====
+
+// جلب فئات المصروفات
 router.get('/expense-categories', authenticateToken, async (req, res) => {
   try {
     const cats = await ExpenseCategory.find().sort({ name: 1 });
@@ -111,6 +119,7 @@ router.get('/expense-categories', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// إنشاء فئة مصروفات جديدة
 router.post('/expense-categories', requireRole('admin'), async (req, res) => {
   try {
     const { name, name_ar, type } = req.body;
@@ -120,6 +129,7 @@ router.post('/expense-categories', requireRole('admin'), async (req, res) => {
   } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
+// تعديل فئة مصروفات
 router.put('/expense-categories/:id', requireRole('admin'), async (req, res) => {
   try {
     const cat = await ExpenseCategory.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -128,6 +138,7 @@ router.put('/expense-categories/:id', requireRole('admin'), async (req, res) => 
   } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
+// حذف فئة مصروفات
 router.delete('/expense-categories/:id', requireRole('admin'), async (req, res) => {
   try {
     await ExpenseCategory.findByIdAndDelete(req.params.id);

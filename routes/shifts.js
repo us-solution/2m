@@ -1,3 +1,4 @@
+// ===== مسار الورديات - فتح وإغلاق ومراجعة ورديات الكاشير =====
 const express = require('express');
 const router = express.Router();
 const Shift = require('../models/Shift');
@@ -5,10 +6,11 @@ const Order = require('../models/Order');
 const CashMovement = require('../models/CashMovement');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 
-// Open a new shift
+// فتح وردية جديدة للكاشير
 router.post('/open', authenticateToken, requireRole('cashier'), async (req, res) => {
   const { openingBalance, notes } = req.body;
   try {
+    // التحقق من عدم وجود وردية مفتوحة بالفعل
     const active = await Shift.findOne({ cashierId: req.user._id, status: 'open' });
     if (active) {
       return res.status(400).json({ error: 'You already have an open shift' });
@@ -26,14 +28,14 @@ router.post('/open', authenticateToken, requireRole('cashier'), async (req, res)
   }
 });
 
-// Close shift
+// إغلاق الوردية مع حساب الرصيد المتوقع والفروقات
 router.post('/close/:id', authenticateToken, requireRole('cashier'), async (req, res) => {
   const { closingBalance, notes } = req.body;
   try {
     const shift = await Shift.findOne({ _id: req.params.id, cashierId: req.user._id, status: 'open' });
     if (!shift) return res.status(404).json({ error: 'Open shift not found' });
 
-    // Calculate expected balance = opening + cash payments - refunds
+    // حساب الرصيد المتوقع = الرصيد الافتتاحي + المدفوعات النقدية - المبالغ المستردة
     const cashPayments = await Order.aggregate([
       { $match: { shiftId: shift._id, paymentMethod: 'cash', status: { $nin: ['cancelled', 'refunded'] } } },
       { $group: { _id: null, total: { $sum: '$total_price' } } }
@@ -46,6 +48,7 @@ router.post('/close/:id', authenticateToken, requireRole('cashier'), async (req,
     ]);
     const refundTotal = (refunds[0] && refunds[0].total) || 0;
 
+    // حركات الخزينة الإضافية
     const cashMovements = await CashMovement.aggregate([
       { $match: { shiftId: shift._id } },
       {
@@ -62,7 +65,7 @@ router.post('/close/:id', authenticateToken, requireRole('cashier'), async (req,
     const actual = parseFloat(closingBalance) || 0;
     const variance = actual - expected;
 
-    // Get totals
+    // إحصائيات الطلبات في الوردية
     const orderStats = await Order.aggregate([
       { $match: { shiftId: shift._id } },
       {
@@ -80,7 +83,7 @@ router.post('/close/:id', authenticateToken, requireRole('cashier'), async (req,
     ]);
     const stats = orderStats[0] || { count: 0, revenue: 0, refunds: 0 };
 
-    // Payment breakdown
+    // توزيع طرق الدفع
     const paymentBreakdown = await Order.aggregate([
       { $match: { shiftId: shift._id, status: { $nin: ['cancelled', 'refunded'] }, paymentMethod: { $ne: null } } },
       { $group: { _id: '$paymentMethod', total: { $sum: '$total_price' } } }
@@ -88,6 +91,7 @@ router.post('/close/:id', authenticateToken, requireRole('cashier'), async (req,
     const breakdown = { cash: 0, card: 0, wallet: 0, split: 0 };
     paymentBreakdown.forEach(p => { if (p._id) breakdown[p._id] = p.total; });
 
+    // تحديث الوردية
     shift.closingBalance = actual;
     shift.expectedBalance = expected;
     shift.variance = variance;
@@ -106,7 +110,7 @@ router.post('/close/:id', authenticateToken, requireRole('cashier'), async (req,
   }
 });
 
-// Get my active shift
+// جلب الوردية النشطة الحالية للكاشير
 router.get('/active', authenticateToken, requireRole('cashier'), async (req, res) => {
   try {
     const shift = await Shift.findOne({ cashierId: req.user._id, status: 'open' });
@@ -116,7 +120,7 @@ router.get('/active', authenticateToken, requireRole('cashier'), async (req, res
   }
 });
 
-// List shifts (admin sees all, cashier sees own)
+// جلب قائمة الورديات (الأدمن يرى الكل، الكاشير يرى وردياته فقط)
 router.get('/', authenticateToken, requireRole('cashier'), async (req, res) => {
   try {
     const filter = req.user.role === 'admin' ? {} : { cashierId: req.user._id };
@@ -127,7 +131,7 @@ router.get('/', authenticateToken, requireRole('cashier'), async (req, res) => {
   }
 });
 
-// Get single shift with order details
+// جلب وردية محددة مع تفاصيل الطلبات المرتبطة بها
 router.get('/:id', authenticateToken, requireRole('cashier'), async (req, res) => {
   try {
     const shift = await Shift.findById(req.params.id).lean();
@@ -139,7 +143,7 @@ router.get('/:id', authenticateToken, requireRole('cashier'), async (req, res) =
   }
 });
 
-// Admin delete shift (force delete)
+// حذف وردية (بواسطة الأدمن)
 router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const shift = await Shift.findById(req.params.id);

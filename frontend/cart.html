@@ -1,16 +1,18 @@
 <!DOCTYPE html>
+<!-- ===== أوزيل كافيه — صفحة سلة المشتريات ===== -->
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8"/>
   <script src="api-override.js?v=1"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- عنوان الصفحة -->
   <title>Shopping Cart — OZEL CAFE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css?v=1"/>
   <style>
-    /* Custom styles for cart page */
+    /* ===== تنسيقات خاصة بصفحة السلة ===== */
     .cart-page {
       padding: 120px 2rem 5rem;
       max-width: 800px;
@@ -115,7 +117,7 @@
 </head>
 <body>
 
-<!-- NAV -->
+<!-- ===== شريط التنقل العلوي ===== -->
 <nav id="nav" class="scrolled">
   <div class="nav-logo">
     <a href="index.html"><img src="imgs/Ozel-Logo--01.png" alt="OZEL CAFE Logo" class="nav-logo-img" /></a>
@@ -141,7 +143,7 @@
     </div>
     <button class="nav-cta" onclick="location.href='index.html#menu'" data-en="Order Now" data-ar="اطلب الآن">Order Now</button>
   </div>
-  <!-- Hamburger Button (Mobile Only) -->
+  <!-- ===== زر القائمة المتنقلة (للجوال فقط) ===== -->
   <button class="nav-hamburger" id="navHamburger" aria-label="Menu" onclick="toggleMobileMenu()">
     <span></span>
     <span></span>
@@ -149,7 +151,7 @@
   </button>
 </nav>
 
-<!-- MOBILE DRAWER MENU -->
+<!-- ===== القائمة الجانبية المتنقلة ===== -->
 <div class="mobile-drawer" id="mobileDrawer">
   <div class="drawer-overlay" onclick="toggleMobileMenu()"></div>
   <div class="drawer-content">
@@ -165,7 +167,7 @@
       </div>
     <div class="drawer-divider"></div>
     <div class="drawer-footer">
-      <!-- Language Switcher in Drawer -->
+      <!-- ===== مربع تبديل اللغة في القائمة الجانبية ===== -->
       <div class="drawer-lang-wrapper">
         <span style="font-size:0.75rem; color:var(--muted);" data-en="Language" data-ar="اللغة">Language</span>
         <div class="lang-switch-wrapper" onclick="toggleLanguage()">
@@ -177,63 +179,76 @@
         </div>
       </div>
       
-      <!-- User Area in Drawer -->
+      <!-- ===== منطقة عرض المستخدم في القائمة الجانبية ===== -->
       <div id="drawer-user-area"></div>
       
-      <!-- Order Now CTA in Drawer -->
+      <!-- ===== زر الطلب الآن في القائمة الجانبية ===== -->
       <button class="drawer-cta" onclick="toggleMobileMenu(); location.href='index.html#menu'" data-en="Order Now ✦" data-ar="اطلب الآن ✦">Order Now ✦</button>
     </div>
   </div>
 </div>
 
+<!-- ===== محتوى صفحة السلة ===== -->
 <div class="cart-page">
+
+  <!-- ===== رأس صفحة السلة ===== -->
   <div class="cart-header">
     <h1 data-en="Your Shopping Cart" data-ar="سلة مشترياتك">Your Shopping Cart</h1>
     <p style="color:var(--muted)" data-en="Review your orders before confirmation" data-ar="راجع طلباتك قبل التأكيد">Review your orders before confirmation</p>
   </div>
 
+  <!-- ===== رسالة السلة الفارغة ===== -->
   <div id="emptyCartMsg" style="display:none; text-align:center; padding:3rem; color:var(--muted);">
     <p style="font-size:1.2rem; margin-bottom:1.5rem;" data-en="Your cart is currently empty" data-ar="سلة مشترياتك فارغة حالياً">Your cart is currently empty</p>
     <a href="index.html#menu" class="btn-gold" style="display:inline-flex; text-decoration:none;" data-en="Browse Menu" data-ar="تصفح المنيو">Browse Menu</a>
   </div>
 
+  <!-- ===== منطقة محتوى السلة الأساسية ===== -->
   <div id="cartContentArea">
+    <!-- ===== قائمة عناصر السلة ===== -->
     <div class="cart-items-list" id="cartItemsList">
-      <!-- Items will be loaded here -->
+      <!-- سيتم تحميل العناصر هنا ديناميكياً -->
     </div>
 
+    <!-- ===== ملخص الطلب ونموذج الإرسال ===== -->
     <div class="cart-summary">
+      <!-- ===== حقل رقم الطاولة ===== -->
       <div class="form-group">
         <label data-en="Table Number" data-ar="رقم الطاولة">Table Number</label>
         <input type="number" id="tableNum" data-placeholder-en="Enter your table number" data-placeholder-ar="أدخل رقم طاولتك" placeholder="Enter your table number"/>
       </div>
       
+      <!-- ===== خيار الطلب السفري (تيك أواي) ===== -->
       <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1.5rem;">
         <input type="checkbox" id="isTakeaway" style="width:auto; cursor:pointer;" onchange="handleTakeawayToggle(this)"/>
         <label for="isTakeaway" style="margin-bottom:0; cursor:pointer; font-size:.8rem; color:var(--muted); letter-spacing:.1em;" data-en="Takeaway order" data-ar="طلب سفري (تيك أواي)">Takeaway order</label>
       </div>
 
+      <!-- ===== حقل رقم الهاتف للطلبات السفرية ===== -->
       <div class="form-group" id="takeawayPhoneGroup" style="display:none;">
         <label data-en="Phone Number (required)" data-ar="رقم الهاتف (مطلوب)">Phone Number</label>
         <input type="tel" id="takeawayPhone" data-placeholder-en="e.g. 01000000000" data-placeholder-ar="مثال ٠١٠٠٠٠٠٠٠٠٠" placeholder="e.g. 01000000000"/>
       </div>
 
+      <!-- ===== حقل الملاحظات الخاصة ===== -->
       <div class="form-group">
         <label data-en="Special Notes" data-ar="ملاحظات خاصة">Special Notes</label>
         <textarea id="orderNotes" data-placeholder-en="Write any special requests here..." data-placeholder-ar="اكتب أي طلبات خاصة هنا..." placeholder="Write any special requests here..."></textarea>
       </div>
 
+      <!-- ===== إجمالي السعر ===== -->
       <div class="summary-row total">
         <span data-en="Total" data-ar="الإجمالي">Total</span>
         <span id="cartTotal">0 EGP</span>
       </div>
 
+      <!-- ===== زر تأكيد الطلب ===== -->
       <button class="btn-gold" id="confirmOrderBtn" style="width:100%; justify-content:center; margin-top:1.5rem" onclick="submitOrder()" data-en="Confirm Order ✦" data-ar="تأكيد الطلب ✦">Confirm Order ✦</button>
     </div>
   </div>
 </div>
 
-<!-- THANK YOU MODAL (success) -->
+<!-- ===== نافذة شكراً بعد نجاح الطلب ===== -->
 <div class="modal-overlay" id="thankYouModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); backdrop-filter:blur(12px); justify-content:center; align-items:center; z-index:9999; padding:1.5rem;">
   <div class="modal-panel" style="max-width:420px; width:100%; background:var(--bg2); border:1px solid var(--gold); border-radius:16px; padding:2.5rem 2rem; text-align:center; box-shadow:0 12px 40px rgba(0,0,0,0.4); position:relative; animation:fadeIn 0.4s ease;">
     <div style="margin-bottom:1.5rem;">
@@ -248,17 +263,25 @@
 </div>
 
 <script>
+  // ===== أوزيل كافيه — منطق صفحة سلة المشتريات =====
+
+  // بيانات المستخدم المخزنة محلياً
   const user  = JSON.parse(localStorage.getItem('ozel_user') || 'null');
+  
+  // ===== الحصول على رؤوس الطلب مع رمز المصادقة =====
   function getAuthH() {
     const t = localStorage.getItem('ozel_token');
     return t ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + t } : { 'Content-Type': 'application/json' };
   }
   
+  // معاملات URL ورقم الطاولة
   const urlParams  = new URLSearchParams(window.location.search);
   const tableParam = urlParams.get('table');
 
+  // تحميل السلة من التخزين المحلي
   let cart = JSON.parse(localStorage.getItem('ozel_cart') || '[]');
 
+  // ===== خريطة الترجمة للإضافات والسكر =====
   const transMap = {
     'Normal': { en: 'Normal Sugar', ar: 'سكر طبيعي' },
     'Medium': { en: 'Medium Sugar', ar: 'سكر وسط' },
@@ -280,15 +303,19 @@
     'Caramel': { en: 'Caramel Syrup', ar: 'كراميل' }
   };
 
+  // اللغة الحالية للتطبيق
   let currentLang = localStorage.getItem('ozel_lang') || 'en';
+  // مانع إرسال الطلب مرتين
   let _submittingOrder = false;
 
+  // ===== تبديل اللغة بين العربية والإنجليزية =====
   function toggleLanguage() {
     currentLang = currentLang === 'en' ? 'ar' : 'en';
     localStorage.setItem('ozel_lang', currentLang);
     applyLanguage(currentLang);
   }
 
+  // ===== تطبيق اللغة على جميع عناصر الصفحة =====
   function applyLanguage(lang) {
     const isAr = lang === 'ar';
     document.documentElement.lang = lang;
@@ -307,6 +334,7 @@
     renderNavUser();
   }
 
+  // ===== عرض حالة المستخدم في شريط التنقل =====
   function renderNavUser() {
     const isAr = currentLang === 'ar';
     const area = document.getElementById('nav-user-area');
@@ -339,6 +367,7 @@
     if (drawerArea) drawerArea.innerHTML = html;
   }
 
+  // ===== معالجة اختيار الطلب السفري (تيك أواي) =====
   window.handleTakeawayToggle = function(el) {
     const tableField = document.getElementById('tableNum');
     const phoneGroup = document.getElementById('takeawayPhoneGroup');
@@ -354,6 +383,7 @@
     }
   }
 
+  // ===== فتح/إغلاق القائمة الجانبية =====
   window.toggleMobileMenu = function() {
     const drawer = document.getElementById('mobileDrawer');
     const hamburger = document.getElementById('navHamburger');
@@ -365,6 +395,7 @@
     }
   };
 
+  // ===== تحميل وعرض محتويات السلة =====
   function loadCart() {
     const list = document.getElementById('cartItemsList');
     const totalEl = document.getElementById('cartTotal');
@@ -420,12 +451,14 @@
     }
   }
 
+  // ===== إزالة عنصر من السلة =====
   function removeFromCart(idx) {
     cart.splice(idx, 1);
     localStorage.setItem('ozel_cart', JSON.stringify(cart));
     loadCart();
   }
 
+  // ===== إرسال الطلب إلى الخادم =====
   async function submitOrder() {
     if (_submittingOrder) return;
     _submittingOrder = true;
@@ -513,19 +546,20 @@
     }
   }
 
-  // ── THANK YOU / NOT CONFIRMED MODALS ──
+  // ===== إظهار نافذة الشكر والتأكيد بعد نجاح الطلب =====
   function showThankYou(orderId, msg) {
     document.getElementById('tyOrderId').textContent = '#' + orderId;
     document.getElementById('thankYouMsg').textContent = msg;
     document.getElementById('thankYouModal').style.display = 'flex';
   }
 
+  // ===== إغلاق نافذة الشكر والعودة للصفحة الرئيسية =====
   function closeThankYou() {
     document.getElementById('thankYouModal').style.display = 'none';
     location.href = 'index.html';
   }
 
-  // Initial Load
+  // ===== التحميل الأولي للصفحة =====
   applyLanguage(currentLang);
 </script>
 

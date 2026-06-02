@@ -77,7 +77,8 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
 .order-card.ready{border-color:rgba(39,174,96,.3);}
 .order-card.served{opacity:.5;}
 .order-card.cancelled{opacity:.6;border-color:rgba(192,57,43,.3);background:rgba(192,57,43,.02);}
-.order-card.urgent{box-shadow:0 0 0 2px var(--red),0 4px 15px rgba(192,57,43,.15);}
+.order-card.urgent{box-shadow:0 0 0 2px var(--red),0 4px 15px rgba(192,57,43,.15);animation:urgentPulse 2s infinite;}
+@keyframes urgentPulse{0%,100%{box-shadow:0 0 0 2px var(--red),0 4px 15px rgba(192,57,43,.15)}50%{box-shadow:0 0 0 4px var(--red),0 4px 20px rgba(192,57,43,.3)}}
 .oc-header{padding:1rem;background:var(--bg3);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);}
 .oc-table{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--text);font-weight:600;}
 .oc-status{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .6rem;font-family:'Montserrat',sans-serif;border-radius:2px;}
@@ -136,6 +137,10 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
   #mobile-filter-select{display:block!important;}
   .orders-area{padding:1rem;}
   .modal-content{max-width:95%;margin:1rem;}
+  .order-card{min-width:0;}
+  .oc-header{flex-wrap:wrap;gap:.5rem;}
+  .oc-actions{flex-wrap:wrap;}
+  .oc-actions .action-btn{min-width:70px;font-size:.75rem;}
 }
 </style>
 </head>
@@ -148,6 +153,7 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
   </div>
   <div class="hright">
     <div class="hlive"><div class="hdot"></div><span>Live</span></div>
+    <button class="hbtn" onclick="fetchOrders()" style="font-size:0.7rem;padding:0.2rem 0.5rem;">⟳</button>
     <div id="shiftIndicator" style="display:flex;align-items:center;gap:.5rem;font-size:.75rem;">
       <span id="shiftStatus" style="color:var(--orange);font-weight:700;">No Shift</span>
       <button class="hbtn" id="shiftBtn" onclick="toggleShift()" style="border-color:var(--gold);color:var(--gold);">Open Shift</button>
@@ -156,6 +162,7 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
     <button class="hbtn" onclick="logout()">Logout</button>
   </div>
 </header>
+<!-- ===== القسم الرئيسي (الشريط الجانبي + الطلبات) ===== -->
 <div class="main">
   <div class="sidebar">
     <div class="sb-title">Statistics</div>
@@ -191,7 +198,7 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
   </div>
 </div>
 
-<!-- Order Detail Modal -->
+<!-- ===== نافذة تفاصيل الطلب المنبثقة ===== -->
 <div class="modal-overlay" id="orderModal" onclick="if(event.target===this)closeOrderModal()">
   <div class="modal-content">
     <div class="modal-header">
@@ -206,6 +213,7 @@ header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2r
 const user = JSON.parse(localStorage.getItem('ozel_user') || 'null');
 if (!user || !['cashier','admin'].includes(user.role)) { location.href = 'login.html?from=cashier.html'; }
 
+// ?????? ??? ?????? ???????? ???????
 function getAuthH() {
   const t = localStorage.getItem('ozel_token');
   const h = { 'Content-Type': 'application/json' };
@@ -218,6 +226,7 @@ let soundEnabled = localStorage.getItem('ozel_cashier_sound') !== 'off';
 let currentShift = null;
 let _paymentMethod = null; // temp payment for modal
 
+// ????? ??????? ?????? ???????
 async function loadActiveShift() {
   try {
     const res = await fetch('/api/shifts/active', { headers: getAuthH() });
@@ -227,6 +236,7 @@ async function loadActiveShift() {
   } catch(e) {}
 }
 
+// ??? ????? ?????
 async function openShift() {
   const val = prompt('Opening balance (EGP):', '0');
   if (val === null) return;
@@ -241,6 +251,7 @@ async function openShift() {
   } catch(e) { alert('Error opening shift'); }
 }
 
+// ????? ??????? ???????
 async function closeShift() {
   const val = prompt('Closing balance (EGP):', '0');
   if (val === null) return;
@@ -257,11 +268,13 @@ async function closeShift() {
   } catch(e) { alert('Error closing shift'); }
 }
 
+// ????? ???? ??????? (???/?????)
 function toggleShift() {
   if (currentShift) closeShift();
   else openShift();
 }
 
+// ????? ????? ???????
 function updateShiftUI() {
   const st = document.getElementById('shiftStatus');
   const btn = document.getElementById('shiftBtn');
@@ -279,6 +292,7 @@ function updateShiftUI() {
   }
 }
 
+// ?????/????? ??? ?????????
 function toggleSound() {
   soundEnabled = !soundEnabled;
   localStorage.setItem('ozel_cashier_sound', soundEnabled ? 'on' : 'off');
@@ -287,6 +301,7 @@ function toggleSound() {
   btn.className = 'hbtn ' + (soundEnabled ? 'sound-on' : 'sound-off');
 }
 
+// ??? ??????? ?? ??????
 async function fetchOrders() {
   try {
     const res = await fetch('/api/orders', { headers: getAuthH() });
@@ -316,6 +331,7 @@ async function fetchOrders() {
 
 let _audioCtx = null;
 
+// ????? ??? ???????
 function playBeep() {
   try {
     if (!_audioCtx) {
@@ -336,13 +352,15 @@ function playBeep() {
   } catch(e) { /* audio not supported */ }
 }
 
+// ????? ????????
 function vibrate() {
   try { navigator.vibrate && navigator.vibrate(200); } catch(e) {}
 }
 
+// ????? ??? ???? ??? ????
 function notifyNewOrder(count, firstOrder) {
   if (soundEnabled) { playBeep(); vibrate(); }
-  document.title = '(' + count + ') New — Cashier';
+  document.title = '(' + count + ') \ud83d\udd14 Cashier \u2014 OZEL CAFE';
   const link = document.querySelector('link[rel*="icon"]') || document.createElement('link');
   link.type = 'image/x-icon';
   link.rel = 'shortcut icon';
@@ -389,6 +407,7 @@ function notifyNewOrder(count, firstOrder) {
   }
 })();
 
+// ????? ???????? ?????? ???????
 function updateStats() {
   const today = new Date().toISOString().split('T')[0];
   const pending = allOrders.filter(o => o.status === 'pending').length;
@@ -399,6 +418,7 @@ function updateStats() {
   document.getElementById('st-rev').textContent = Math.round(rev);
 }
 
+// ???? ??? ?????
 function getAge(minutes) {
   if (minutes < 5) return { label: Math.round(minutes) + 'm ago', cls: '' };
   if (minutes < 10) return { label: Math.round(minutes) + 'm ago', cls: '' };
@@ -406,6 +426,7 @@ function getAge(minutes) {
   return { label: Math.round(minutes) + 'm', cls: 'urgent' };
 }
 
+// ??? ?????? ???????
 function renderOrders() {
   const grid = document.getElementById('ordersGrid');
   const query = document.getElementById('orderSearch').value.toLowerCase().trim();
@@ -417,6 +438,7 @@ function renderOrders() {
       String(o.id).toLowerCase().includes(query)
     );
   }
+  filtered.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
   if (!filtered.length) { grid.innerHTML = '<div class="empty-msg">No orders found</div>'; return; }
   grid.innerHTML = filtered.map(o => {
     let items = [];
@@ -458,6 +480,7 @@ function renderOrders() {
   }).join('');
 }
 
+// ??? ????? ?????? ?????
 function openOrderModal(id) {
   const o = allOrders.find(x => x.id === id);
   if (!o) return;
@@ -501,15 +524,18 @@ function openOrderModal(id) {
   document.getElementById('orderModal').style.display = 'flex';
 }
 
+// ????? ????? ?????? ?????
 function closeOrderModal() {
   document.getElementById('orderModal').style.display = 'none';
 }
 
+// ????? ????? ??? QR
 async function confirmOrder(id) {
   await fetch('/api/orders/' + id + '/confirm-qr', { method:'PATCH', headers: getAuthH() });
   fetchOrders();
 }
 
+// ????? ???? ?????
 async function updateStatus(id, status, paymentMethod) {
   const body = { status };
   if (paymentMethod) body.paymentMethod = paymentMethod;
@@ -520,6 +546,7 @@ async function updateStatus(id, status, paymentMethod) {
   } catch(e) {}
 }
 
+// ????? ????? ??????
 function serveOrder(id) {
   const methods = ['cash', 'card', 'wallet'];
   const m = prompt('Payment method? (cash / card / wallet)', 'cash');
@@ -529,6 +556,7 @@ function serveOrder(id) {
   updateStatus(id, 'served', pm);
 }
 
+// ????? ????? ?????
 function printOrder(id) {
   const o = allOrders.find(x => x.id === id);
   if (!o) return;
@@ -561,6 +589,7 @@ function printOrder(id) {
   win.print();
 }
 
+// ????? ??????? ??? ??????
 function filterOrders(f, btn) {
   currentFilter = f;
   document.querySelectorAll('.fbtn').forEach(function(b) { b.classList.remove('active'); });
@@ -570,6 +599,7 @@ function filterOrders(f, btn) {
   renderOrders();
 }
 
+// ????? ??????
 function logout() { localStorage.clear(); location.href = 'login.html'; }
 
 fetchOrders();
@@ -586,6 +616,21 @@ document.addEventListener('click', function() {
 if ('Notification' in window && Notification.permission === 'default') {
   Notification.requestPermission();
 }
+// Keyboard shortcuts for cashier
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  const modal = document.getElementById('orderModal');
+  if (modal.style.display === 'flex') {
+    if (e.key === 'Escape') closeOrderModal();
+    return;
+  }
+  if (e.key === '1') filterOrders('all', document.querySelector('.fbtn'));
+  else if (e.key === '2') filterOrders('pending', document.querySelectorAll('.fbtn')[1]);
+  else if (e.key === '3') filterOrders('confirmed', document.querySelectorAll('.fbtn')[2]);
+  else if (e.key === '4') filterOrders('ready', document.querySelectorAll('.fbtn')[3]);
+  else if (e.key === '5') filterOrders('served', document.querySelectorAll('.fbtn')[4]);
+  else if (e.key === 'r' || e.key === 'R') { fetchOrders(); }
+});
 </script>
 </body>
 </html>

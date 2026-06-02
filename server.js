@@ -1,3 +1,8 @@
+// ============================================
+// الملف الرئيسي للخادم - OZEL Cafe
+// يحتوي على إعدادات Express Routes, Middleware, Seeding
+// ============================================
+
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
@@ -7,7 +12,9 @@ const { sanitizeInput } = require('./middlewares/sanitize');
 const connectDB = require('./config/database');
 require('dotenv').config();
 
-// Initialize Models (register Mongoose models)
+// ============================
+// تسجيل نماذج Mongoose (Models)
+// ============================
 require('./models/User');
 require('./models/Category');
 require('./models/Drink');
@@ -29,7 +36,9 @@ require('./models/ExpenseCategory');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// 0. Middleware to connect MongoDB only for API routes
+// ============================
+// 0. Middleware لتوصيل MongoDB فقط لمسارات API
+// ============================
 async function requireDB(req, res, next) {
   try {
     await connectDB();
@@ -43,7 +52,9 @@ async function requireDB(req, res, next) {
   }
 }
 
-// 1. Security Headers (with Helmet configured to allow CDNs for frontend)
+// ============================
+// 1. رؤوس الأمان (Helmet) مع السماح لـ CDNs بالواجهة الأمامية
+// ============================
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -59,31 +70,41 @@ app.use(helmet({
   }
 }));
 
-// 2. CORS configurations
+// ============================
+// 2. إعدادات CORS (السماح بالنطاقات الأخرى)
+// ============================
 app.use(cors());
 
-// 3. Compression middleware (Gzip)
+// ============================
+// 3. Middleware للضغط (Gzip)
+// ============================
 app.use(compression());
 
-// 4. Body parsers & sanitization
+// ============================
+// 4. تفسير جسم الطلب (Body parsers) وتنظيف البيانات
+// ============================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(sanitizeInput);
 
-// 5. Caching headers middleware for static assets
+// ============================
+// 5. Middleware لتخزين الملفات الثابتة في الذاكرة المؤقتة (Caching)
+// ============================
 app.use((req, res, next) => {
   const ext = path.extname(req.path);
   if (['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2'].includes(ext)) {
-    // Cache static files for 1 year
+    // تخزين الملفات الثابتة لمدة سنة
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   } else if (['.html', '.htm'].includes(ext) || req.path === '/' || req.path === '') {
-    // HTML files should validate cache
+    // ملفات HTML يجب التحقق من التخزين المؤقت
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   }
   next();
 });
 
-// 6. API Routes (with DB middleware)
+// ============================
+// 6. مسارات API (مع Middleware قاعدة البيانات)
+// ============================
 app.use('/api/auth', requireDB, require('./routes/auth'));
 app.use('/api/categories', requireDB, require('./routes/categories'));
 app.use('/api/drinks', requireDB, require('./routes/drinks'));
@@ -105,38 +126,48 @@ app.post('/api/debug-log', requireDB, (req, res) => {
   res.json({ success: true });
 });
 
-// Create admin (GET from browser — remove after use)
+// ============================
+// 7. (محجوز) إنشاء مشرف عبر المتصفح - يُزال بعد الاستخدام
+// ============================
 
 
 
 
-// 8. Serve Frontend Static Pages
+// ============================
+// 8. خدمة الصفحات الثابتة للواجهة الأمامية
+// ============================
 app.use(express.static(path.join(__dirname, 'frontend')));
 
-// Serve custom page fallbacks if not ending in extension
+// مسارات مخصصة للصفحات عند عدم وجود امتداد
 app.get('/cashier', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'cashier.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'admin.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'login.html')));
 
-// Global error handler
+// ============================
+// معالج الأخطاء العام (Global error handler)
+// ============================
 app.use((err, req, res, next) => {
   console.error('[Unhandled Error]', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Catch-all to serve index.html
+// ============================
+// مسار Catch-all لإرجاع index.html
+// ============================
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
-// Database seeding logic
+// ============================
+// منطق البذر الأولي لقاعدة البيانات (Seeding)
+// ============================
 async function seedDatabase() {
   const Category = require('./models/Category');
   const Drink = require('./models/Drink');
   const User = require('./models/User');
   const bcrypt = require('bcryptjs');
 
-  // Clear existing data
+  // حذف البيانات الحالية
   await Category.deleteMany({});
   await Drink.deleteMany({});
 
@@ -207,7 +238,7 @@ async function seedDatabase() {
     });
   }
 
-  // Create default admin and cashier (only if they don't exist)
+  // إنشاء مشرف وكاشير افتراضيين (إذا لم يكونوا موجودين)
   const existingAdmin = await User.findOne({ email: 'admin@ozel.cafe' });
   if (!existingAdmin) {
     const adminPassword = await bcrypt.hash('admin123', 10);
@@ -237,12 +268,16 @@ async function seedDatabase() {
   console.log('Database seeding finished.');
 }
 
-// 9. Start Server (only for local dev, not on Vercel)
+// ============================
+// 9. بدء الخادم (للتطوير المحلي فقط، وليس على Vercel)
+// ============================
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
   });
 }
 
-// Export for Vercel serverless
+// ============================
+// تصدير التطبيق لاستخدام Vercel Serverless
+// ============================
 module.exports = app;

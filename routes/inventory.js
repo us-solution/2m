@@ -1,3 +1,4 @@
+// ===== مسار المخزون - إدارة الخامات والمخزون والجرد الفعلي والتنبيهات =====
 const express = require('express');
 const router = express.Router();
 const Ingredient = require('../models/Ingredient');
@@ -6,7 +7,8 @@ const InventoryCount = require('../models/InventoryCount');
 const StockAlert = require('../models/StockAlert');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 
-// ── Ingredients ──
+// ===== الخامات (المكونات) =====
+// جلب جميع الخامات مع إمكانية فلترة النشطة فقط
 router.get('/ingredients', authenticateToken, async (req, res) => {
   try {
     const filter = {};
@@ -16,6 +18,7 @@ router.get('/ingredients', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// جلب خامة محددة بالمعرف
 router.get('/ingredients/:id', authenticateToken, async (req, res) => {
   try {
     const item = await Ingredient.findById(req.params.id);
@@ -24,6 +27,7 @@ router.get('/ingredients/:id', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// إضافة خامة جديدة
 router.post('/ingredients', requireRole('admin'), async (req, res) => {
   try {
     const { name, name_ar, category, unit, unitCost, currentStock, minStock } = req.body;
@@ -32,6 +36,7 @@ router.post('/ingredients', requireRole('admin'), async (req, res) => {
   } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
+// تعديل خامة
 router.put('/ingredients/:id', requireRole('admin'), async (req, res) => {
   try {
     const updates = { ...req.body };
@@ -42,6 +47,7 @@ router.put('/ingredients/:id', requireRole('admin'), async (req, res) => {
   } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
+// حذف خامة
 router.delete('/ingredients/:id', requireRole('admin'), async (req, res) => {
   try {
     await Ingredient.findByIdAndDelete(req.params.id);
@@ -49,7 +55,8 @@ router.delete('/ingredients/:id', requireRole('admin'), async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ── Inventory Transactions ──
+// ===== حركات المخزون =====
+// جلب حركات المخزون (مع فلترة حسب الخامة والنوع والتاريخ)
 router.get('/transactions', authenticateToken, async (req, res) => {
   try {
     const filter = {};
@@ -65,6 +72,7 @@ router.get('/transactions', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// تطبيق حركة مخزون (شراء/استهلاك/هدر/تسوية)
 async function applyTransaction(type, ingredientId, qty, unitCost, note, performedBy, relatedOrderId) {
   const ingredient = await Ingredient.findById(ingredientId);
   if (!ingredient) throw new Error('الخامة غير موجودة');
@@ -84,6 +92,7 @@ async function applyTransaction(type, ingredientId, qty, unitCost, note, perform
   return tx;
 }
 
+// التحقق من انخفاض المخزون وإنشاء تنبيه إذا لزم الأمر
 async function checkLowStock(ingredient) {
   if (ingredient.minStock <= 0) return;
   if (ingredient.currentStock <= ingredient.minStock) {
@@ -101,6 +110,7 @@ async function checkLowStock(ingredient) {
   }
 }
 
+// إنشاء حركة مخزون جديدة
 router.post('/transactions', requireRole('admin'), async (req, res) => {
   try {
     const { type, ingredientId, quantity, unitCost, note } = req.body;
@@ -110,7 +120,8 @@ router.post('/transactions', requireRole('admin'), async (req, res) => {
   } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
-// ── Physical Inventory Count ──
+// ===== الجرد الفعلي =====
+// جلب سجلات الجرد
 router.get('/counts', authenticateToken, async (req, res) => {
   try {
     const items = await InventoryCount.find().populate('items.ingredientId', 'name name_ar unit').populate('performedBy', 'username').sort({ createdAt: -1 }).limit(50);
@@ -118,6 +129,7 @@ router.get('/counts', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// إجراء جرد فعلي جديد
 router.post('/counts', requireRole('admin'), async (req, res) => {
   try {
     const { items, note } = req.body;
@@ -131,9 +143,11 @@ router.post('/counts', requireRole('admin'), async (req, res) => {
       const diffCost = diff * ingredient.unitCost;
       countItems.push({ ingredientId: it.ingredientId, expectedQty: it.expectedQty, actualQty: it.actualQty, diff, diffCost });
       totalDiffCost += diffCost;
+      // تسوية المخزون مع الكمية الفعلية
       if (Math.abs(diff) > 0.001) {
         await applyTransaction('adjustment', it.ingredientId, it.actualQty, ingredient.unitCost, `جرد فعلي: توقع ${it.expectedQty}، فعلي ${it.actualQty}`, req.user?.id);
       }
+      // إنشاء تنبيه إذا كان الفرق كبيراً
       if (Math.abs(diff) > ingredient.minStock * 0.5 && ingredient.minStock > 0) {
         await StockAlert.create({
           ingredientId: it.ingredientId,
@@ -151,6 +165,7 @@ router.post('/counts', requireRole('admin'), async (req, res) => {
   } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
+// حذف سجل جرد
 router.delete('/counts/:id', requireRole('admin'), async (req, res) => {
   try {
     await InventoryCount.findByIdAndDelete(req.params.id);
@@ -158,7 +173,8 @@ router.delete('/counts/:id', requireRole('admin'), async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ── Stock Alerts ──
+// ===== تنبيهات المخزون =====
+// جلب التنبيهات (مع إمكانية فلترة غير المحلولة)
 router.get('/alerts', authenticateToken, async (req, res) => {
   try {
     const filter = {};
@@ -168,6 +184,7 @@ router.get('/alerts', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// حل تنبيه (تحديد كمحلول)
 router.post('/alerts/:id/resolve', requireRole('admin'), async (req, res) => {
   try {
     const alert = await StockAlert.findByIdAndUpdate(req.params.id, { resolved: true, resolvedAt: new Date(), resolvedBy: req.user?.id }, { new: true });
@@ -176,7 +193,7 @@ router.post('/alerts/:id/resolve', requireRole('admin'), async (req, res) => {
   } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
-// ── Stock Status (dashboard) ──
+// ===== حالة المخزون (لوحة المعلومات) =====
 router.get('/status', authenticateToken, async (req, res) => {
   try {
     const totalIngredients = await Ingredient.countDocuments({ isActive: true });

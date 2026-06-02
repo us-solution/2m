@@ -1,3 +1,4 @@
+// ===== مسار لوحة التحكم (Admin) - إدارة المستخدمين والمشروبات والعروض والفئات والتقارير والنسخ الاحتياطي =====
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
@@ -9,23 +10,23 @@ const Offer = require('../models/Offer');
 const ReportSnapshot = require('../models/ReportSnapshot');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 
-// Admin Stats
+// جلب إحصائيات عامة للوحة التحكم (إجمالي الطلبات، إيرادات اليوم والشهر، أداء الكاشير)
 router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
+    // بداية الشهر الحالي
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-    // Total orders count
+    // إجمالي عدد الطلبات الكلي
     const total_orders = await Order.countDocuments();
 
-    // Today's orders count
+    // عدد طلبات اليوم
     const today_orders = await Order.countDocuments({
       createdAt: { $gte: today }
     });
 
-    // Today's revenue
+    // إيرادات اليوم (بدون الملغاة)
     const todayRevenueAgg = await Order.aggregate([
       {
         $match: {
@@ -42,7 +43,7 @@ router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) =
     ]);
     const today_revenue = todayRevenueAgg.length > 0 ? parseFloat(todayRevenueAgg[0].total) : 0;
 
-    // Monthly revenue
+    // إيرادات الشهر الحالي
     const monthlyRevenueAgg = await Order.aggregate([
       {
         $match: {
@@ -59,7 +60,7 @@ router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) =
     ]);
     const monthly_revenue = monthlyRevenueAgg.length > 0 ? parseFloat(monthlyRevenueAgg[0].total) : 0;
 
-    // Total revenue
+    // إجمالي الإيرادات لكل الوقت
     const totalRevenueAgg = await Order.aggregate([
       {
         $match: {
@@ -75,13 +76,13 @@ router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) =
     ]);
     const total_revenue = totalRevenueAgg.length > 0 ? parseFloat(totalRevenueAgg[0].total) : 0;
 
-    // Total customers
+    // إجمالي عدد العملاء المسجلين
     const total_customers = await User.countDocuments({ role: 'customer' });
 
-    // Pending orders
+    // الطلبات المعلقة
     const pending_orders = await Order.countDocuments({ status: 'pending' });
 
-    // Cashier stats (Orders processed today)
+    // إحصائيات أداء الكاشير (الطلبات التي تمت معالجتها اليوم)
     const cashierStatsAgg = await Order.aggregate([
       {
         $match: {
@@ -131,7 +132,7 @@ router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) =
   }
 });
 
-// Admin list users
+// جلب قائمة جميع المستخدمين (sorted by newest first)
 router.get('/users', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const users = await User.find().sort({ createdAt: -1 });
@@ -153,7 +154,7 @@ router.get('/users', authenticateToken, requireRole('admin'), async (req, res) =
   }
 });
 
-// Admin create user
+// إنشاء مستخدم جديد بواسطة الأدمن (مع تشفير كلمة المرور)
 router.post('/users', authenticateToken, requireRole('admin'), async (req, res) => {
   const { name, phone, email, password, role, points, subscriptionTier, customerStatus } = req.body;
 
@@ -189,7 +190,7 @@ router.post('/users', authenticateToken, requireRole('admin'), async (req, res) 
   }
 });
 
-// Admin edit user
+// تعديل بيانات مستخدم موجود
 router.patch('/users/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   const { name, phone, email, role, points, password, subscriptionTier, customerStatus } = req.body;
 
@@ -215,7 +216,7 @@ router.patch('/users/:id', authenticateToken, requireRole('admin'), async (req, 
   }
 });
 
-// Admin delete user
+// حذف مستخدم (يمنع حذف النفس)
 router.delete('/users/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   if (String(req.params.id) === String(req.user._id)) {
     return res.status(400).json({ error: 'Cannot delete yourself' });
@@ -232,14 +233,14 @@ router.delete('/users/:id', authenticateToken, requireRole('admin'), async (req,
   }
 });
 
-// --- ADMIN DRINKS ENDPOINTS ---
+// ===== إدارة المشروبات =====
 
-// Admin list all drinks (GET /api/admin/drinks)
+// جلب جميع المشروبات مع الفئة (مرتبة حسب ترتيب الفئة)
 router.get('/drinks', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const drinks = await Drink.find().populate('categoryId');
     
-    // Sort similar to Django settings
+    // ترتيب حسب sort_order للفئة ثم حسب id
     const sortedDrinks = drinks.sort((a, b) => {
       const orderA = a.categoryId ? a.categoryId.sort_order : 999;
       const orderB = b.categoryId ? b.categoryId.sort_order : 999;
@@ -274,7 +275,7 @@ router.get('/drinks', authenticateToken, requireRole('admin'), async (req, res) 
   }
 });
 
-// Admin create drink (POST /api/admin/drinks)
+// إضافة مشروب جديد
 router.post('/drinks', authenticateToken, requireRole('admin'), async (req, res) => {
   const {
     category_id, name, name_ar, tagline, description, ingredients,
@@ -312,7 +313,7 @@ router.post('/drinks', authenticateToken, requireRole('admin'), async (req, res)
   }
 });
 
-// Admin edit drink (PATCH /api/admin/drinks/:id)
+// تعديل مشروب موجود
 router.patch('/drinks/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const d = await Drink.findById(req.params.id);
@@ -348,7 +349,7 @@ router.patch('/drinks/:id', authenticateToken, requireRole('admin'), async (req,
   }
 });
 
-// Admin delete drink (DELETE /api/admin/drinks/:id)
+// حذف مشروب
 router.delete('/drinks/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const d = await Drink.findById(req.params.id);
@@ -362,9 +363,9 @@ router.delete('/drinks/:id', authenticateToken, requireRole('admin'), async (req
   }
 });
 
-// --- ADMIN OFFERS ENDPOINTS ---
+// ===== إدارة العروض =====
 
-// Admin list all offers (GET /api/admin/offers)
+// جلب جميع العروض مع المشروبات المرتبطة
 router.get('/offers', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const offers = await Offer.find({}).populate('drinkId').sort({ created_at: -1 });
@@ -385,7 +386,7 @@ router.get('/offers', authenticateToken, requireRole('admin'), async (req, res) 
   }
 });
 
-// Admin create offer (POST /api/admin/offers)
+// إنشاء عرض جديد (خصم على مشروب)
 router.post('/offers', authenticateToken, requireRole('admin'), async (req, res) => {
   const { drink_id, discount_percent, expires_at } = req.body;
 
@@ -409,7 +410,7 @@ router.post('/offers', authenticateToken, requireRole('admin'), async (req, res)
   }
 });
 
-// Admin delete offer (DELETE /api/admin/offers/:id)
+// حذف عرض
 router.delete('/offers/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const o = await Offer.findById(req.params.id);
@@ -422,9 +423,9 @@ router.delete('/offers/:id', authenticateToken, requireRole('admin'), async (req
   }
 });
 
-// --- ADMIN CATEGORIES ENDPOINTS ---
+// ===== إدارة الفئات =====
 
-// Admin list all categories
+// جلب جميع الفئات مرتبة
 router.get('/categories', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const cats = await Category.find().sort({ sort_order: 1, _id: 1 });
@@ -434,7 +435,7 @@ router.get('/categories', authenticateToken, requireRole('admin'), async (req, r
   }
 });
 
-// Admin create category
+// إنشاء فئة جديدة
 router.post('/categories', authenticateToken, requireRole('admin'), async (req, res) => {
   const { name, name_ar, sort_order } = req.body;
   if (!name) return res.status(400).json({ error: 'Category name (EN) is required' });
@@ -451,7 +452,7 @@ router.post('/categories', authenticateToken, requireRole('admin'), async (req, 
   }
 });
 
-// Admin edit category
+// تعديل فئة
 router.patch('/categories/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const c = await Category.findById(req.params.id);
@@ -469,13 +470,13 @@ router.patch('/categories/:id', authenticateToken, requireRole('admin'), async (
   }
 });
 
-// Admin delete category
+// حذف فئة (يمنع إذا كان هناك مشروبات مرتبطة بها)
 router.delete('/categories/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const c = await Category.findById(req.params.id);
     if (!c) return res.status(404).json({ error: 'Category not found' });
 
-    // Check if any drinks reference this category
+    // التحقق من عدم وجود مشروبات تستخدم هذه الفئة
     const drinksUsing = await Drink.countDocuments({ categoryId: req.params.id });
     if (drinksUsing > 0) {
       return res.status(400).json({ error: `Cannot delete: ${drinksUsing} drink(s) use this category. Reassign them first.` });
@@ -488,7 +489,7 @@ router.delete('/categories/:id', authenticateToken, requireRole('admin'), async 
   }
 });
 
-// ── Table QR Code Generator ────────────────
+// إنشاء رمز QR لرقم طاولة معين
 router.get('/qr-table/:number', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const tableNum = parseInt(req.params.number);
@@ -503,7 +504,7 @@ router.get('/qr-table/:number', authenticateToken, requireRole('admin'), async (
   }
 });
 
-// Get POS-synced report data
+// جلب تقارير متزامنة من نظام نقاط البيع (POS)
 router.get('/reports/:type', authenticateToken, requireRole('admin'), async (req, res) => {
   const { type } = req.params;
   const { days } = req.query;
@@ -519,7 +520,7 @@ router.get('/reports/:type', authenticateToken, requireRole('admin'), async (req
   }
 });
 
-// Backup endpoint
+// تصدير نسخة احتياطية لجميع المجموعات
 router.get('/backup', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const collections = ['User', 'Category', 'Drink', 'Order', 'Offer', 'Expense', 'CashMovement', 'Shift', 'SyncEvent', 'Ingredient', 'Recipe', 'RecipeItem', 'InventoryTransaction', 'InventoryCount', 'StockAlert', 'ExpenseCategory'];
@@ -536,6 +537,7 @@ router.get('/backup', authenticateToken, requireRole('admin'), async (req, res) 
   }
 });
 
+// استعادة مجموعة محددة من النسخة الاحتياطية (يمنع استعادة المستخدمين والطلبات عبر API)
 router.post('/restore', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const { collection, records } = req.body;
@@ -550,7 +552,7 @@ router.post('/restore', authenticateToken, requireRole('admin'), async (req, res
   }
 });
 
-// Delete report snapshot
+// حذف لقطة تقرير
 router.delete('/reports/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const snap = await ReportSnapshot.findById(req.params.id);

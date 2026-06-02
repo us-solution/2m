@@ -1,3 +1,4 @@
+// ===== مسار الطلبات - إنشاء وعرض وتحديث الطلبات، تأكيد QR، والمزامنة مع نظام نقاط البيع =====
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
@@ -15,7 +16,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'ozel_cafe_secret_2026';
 const BRIDGE_SIGNATURE_SECRET = process.env.BRIDGE_SIGNATURE_SECRET || process.env.BRIDGE_API_KEY || 'bridge-signature-secret';
 const BRIDGE_TIMEOUT_MS = parseInt(process.env.BRIDGE_TIMEOUT_MS || '5000', 10);
 
-// Initialize Pusher for real-time cashier notifications
+// تهيئة Pusher للإشعارات الفورية للكاشير
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID,
   key: process.env.PUSHER_KEY,
@@ -24,11 +25,13 @@ const pusher = new Pusher({
   useTLS: true
 });
 
+// تحليل آمن لعناصر الطلب
 function safeParseItems(items) {
   if (Array.isArray(items)) return items;
   try { return JSON.parse(items || '[]'); } catch (_) { return []; }
 }
 
+// بناء بيانات الطلب للإرسال (للكاشير والجسر)
 function buildOrderPayload(order, user = null) {
   const parsedItems = safeParseItems(order.items);
   return {
@@ -54,11 +57,13 @@ function buildOrderPayload(order, user = null) {
   };
 }
 
+// توقيع البيانات المرسلة للجسر (HMAC-SHA256)
 function signBridgeBody(rawBody, timestamp, eventId) {
   const payload = `${timestamp}.${eventId}.${rawBody}`;
   return crypto.createHmac('sha256', BRIDGE_SIGNATURE_SECRET).update(payload).digest('hex');
 }
 
+// إنشاء حدث مزامنة للطلب
 async function createSyncEvent(order, eventType, payload) {
   const eventId = uuidv4();
   const event = await SyncEvent.create({
@@ -91,6 +96,7 @@ async function createSyncEvent(order, eventType, payload) {
   return event;
 }
 
+// إيصال الحدث إلى الجسر المحلي
 async function deliverToBridge(event) {
   const BRIDGE_URL = process.env.BRIDGE_WEBHOOK_URL;
   const BRIDGE_KEY = process.env.BRIDGE_API_KEY;
@@ -126,7 +132,7 @@ async function deliverToBridge(event) {
   }
 }
 
-// Helper to get authenticated user if token is present
+// الحصول على المستخدم إذا كان رمز المصادقة موجوداً (اختياري)
 const getOptionalUser = async (req) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -139,7 +145,7 @@ const getOptionalUser = async (req) => {
   }
 };
 
-// Create Order (with optional Auth)
+// إنشاء طلب جديد (مع مصادقة اختيارية)
 router.post('/', async (req, res) => {
   const { table_number, items, total_price, notes, customer_phone } = req.body;
 
@@ -147,14 +153,14 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'Missing fields: table_number, items, and total_price are required' });
   }
 
-  const qrCodeToken = uuidv4(); // Unique token for checkout validation
+  // رمز فريد لتأكيد الطلب عبر QR
+  const qrCodeToken = uuidv4();
 
   try {
     const user = await getOptionalUser(req);
     const priceNum = parseFloat(total_price) || 0;
     const points_earned = Math.floor(priceNum);
 
-    // Normalize items: ensure we have an array for processing, and a string for storage
     const parsedItems = safeParseItems(items);
     const items_str = JSON.stringify(parsedItems);
 
@@ -171,6 +177,7 @@ router.post('/', async (req, res) => {
       customerPhone: customer_phone || null
     });
 
+    // إضافة النقاط للعميل إذا كان مسجلاً
     if (user) {
       user.points += points_earned;
       user.total_spent = parseFloat(user.total_spent) + priceNum;
@@ -184,7 +191,7 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Generate QR code URL (best-effort artifact)
+    // إنشاء رمز QR للطلب (للتأكيد)
     try {
       const host = req.get('host');
       const protocol = req.headers['x-forwarded-proto'] || req.protocol;
@@ -192,9 +199,11 @@ router.post('/', async (req, res) => {
       await QRCode.toDataURL(confirmUrl);
     } catch (_) {}
 
+    // إعلام الكاشير بالطلب الجديد عبر Pusher
     const cashierPayload = buildOrderPayload(order, user);
     await pusher.trigger('cashier-orders', 'new-order', cashierPayload).catch(() => {});
 
+    // مزامنة الطلب مع نظام نقاط البيع (إن وجد)
     const syncEvent = await createSyncEvent(order, 'order.created', cashierPayload);
     const bridgeResult = await deliverToBridge(syncEvent);
     if (bridgeResult.ok || bridgeResult.skipped) {
@@ -236,7 +245,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// List Orders for Cashier/Admin
+// جلب قائمة الطلبات (للكاشير والأدمن، مع فلتر بالحالة)
 router.get('/', authenticateToken, requireRole('cashier'), async (req, res) => {
   const { status } = req.query;
   const query = {};
@@ -272,7 +281,7 @@ router.get('/', authenticateToken, requireRole('cashier'), async (req, res) => {
   }
 });
 
-// Confirm Order via QR Scan (Cashier/Admin Scans)
+// تأكيد الطلب عبر QR (صفحة HTML)
 router.get('/confirm-qr', async (req, res) => {
   const { token } = req.query;
 
@@ -286,6 +295,7 @@ router.get('/confirm-qr', async (req, res) => {
       return res.status(404).send('<h1>Not Found</h1><p>Order not found or invalid token</p>');
     }
 
+    // إذا كان الطلب مؤكداً بالفعل
     if (order.isQrConfirmed) {
       return res.send(`
         <html>
@@ -308,6 +318,7 @@ router.get('/confirm-qr', async (req, res) => {
       `);
     }
 
+    // تأكيد الطلب
     order.isQrConfirmed = true;
     order.status = 'confirmed';
     await order.save();
@@ -338,7 +349,7 @@ router.get('/confirm-qr', async (req, res) => {
   }
 });
 
-// Customer's Personal Order History
+// جلب تاريخ طلبات العميل المسجل
 router.get('/me', authenticateToken, async (req, res) => {
   try {
     const orders = await Order.find({ userId: req.user._id })
@@ -365,7 +376,7 @@ router.get('/me', authenticateToken, async (req, res) => {
   }
 });
 
-// Update Order Status (Cashier)
+// تحديث حالة الطلب (الكاشير) مع خصم المخزون تلقائياً عند التقديم
 router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (req, res) => {
   const { status, paymentMethod, shiftId, expectedVersion } = req.body;
   if (!status) {
@@ -378,6 +389,7 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
       return res.status(404).json({ error: 'Order not found' });
     }
 
+    // التحقق من عدم وجود تعارض في الإصدار
     if (expectedVersion && Number(expectedVersion) !== Number(order.orderVersion || 1)) {
       return res.status(409).json({ error: 'Version conflict', currentVersion: order.orderVersion || 1 });
     }
@@ -390,7 +402,7 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
     order.orderVersion = (order.orderVersion || 1) + 1;
     await order.save();
 
-    // Auto-deduct inventory when order is served
+    // خصم المخزون تلقائياً عند تقديم الطلب (حسب الوصفة)
     if (status === 'served' && order.items && order.items.length > 0) {
       setImmediate(async () => {
         try {
@@ -420,6 +432,7 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
                 performedBy: req.user._id,
                 relatedOrderId: order._id
               });
+              // إنشاء تنبيه إذا انخفض المخزون عن الحد الأدنى
               if (ingredient.minStock > 0 && ingredient.currentStock <= ingredient.minStock) {
                 const exists = await StockAlert.findOne({ ingredientId: ingredient._id, type: 'low_stock', resolved: false });
                 if (!exists) {
@@ -441,6 +454,7 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
       });
     }
 
+    // مزامنة تغيير الحالة مع الجسر
     const orderPayload = buildOrderPayload(order, null);
     const syncEvent = await createSyncEvent(order, 'order.status_changed', {
       ...orderPayload,
@@ -472,7 +486,7 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
   }
 });
 
-// Cashier manually confirms QR for an order (without scanning)
+// تأكيد QR يدوياً للطلب (الكاشير بدون مسح QR)
 router.patch('/:id/confirm-qr', authenticateToken, requireRole('cashier'), async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -489,8 +503,9 @@ router.patch('/:id/confirm-qr', authenticateToken, requireRole('cashier'), async
   }
 });
 
-// ── Bridge API: Polled by local POS bridge (no ngrok needed) ──
-// Get orders not yet synced to POS
+// ===== نقاط البيع (Bridge API) - استعلام عن الطلبات غير المتزامنة =====
+
+// جلب الطلبات التي لم تتم مزامنتها بعد مع نقاط البيع
 router.get('/unsynced', async (req, res) => {
   const bridgeKey = req.headers['x-bridge-key'];
   if (bridgeKey !== process.env.BRIDGE_API_KEY) {
@@ -523,7 +538,7 @@ router.get('/unsynced', async (req, res) => {
   }
 });
 
-// Mark orders as synced to POS
+// تعليم الطلبات كمزامنة مع نقاط البيع
 router.post('/mark-synced', async (req, res) => {
   const bridgeKey = req.headers['x-bridge-key'];
   if (bridgeKey !== process.env.BRIDGE_API_KEY) {
@@ -563,7 +578,7 @@ router.post('/mark-synced', async (req, res) => {
   }
 });
 
-// Admin delete order (permanent)
+// حذف طلب (بواسطة الأدمن فقط)
 router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);

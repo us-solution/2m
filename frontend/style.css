@@ -1,6 +1,7 @@
 /* ═══════════════════════════════════════════
    OZEL CAFE — Premium Light Luxury Theme
    ═══════════════════════════════════════════ */
+/* ===== أوزيل كافيه — ملف التنسيقات الرئيسي للواجهة الأمامية ===== */
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Tajawal:wght@300;400;500;700&display=swap');
 
 html { scroll-behavior: smooth; }
@@ -84,6 +85,7 @@ body {
   background: var(--gold);
 }
 
+/* ===== شاشة التحميل الأولية (Splash Screen) ===== */
 /* ── LOADER (Dark Luxury Cinematic Splash) ── */
 #loader {
   position: fixed;
@@ -303,6 +305,7 @@ body {
   to { opacity: 1; }
 }
 
+/* ===== مفتاح تبديل اللغة (عائم فاخر) ===== */
 /* ── LANGUAGE SWITCH (Premium Floating Pill) ── */
 .lang-switch-wrapper {
   display: flex;
@@ -372,6 +375,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   color: #a07830; /* Highlight active English with gold */
 }
 
+/* ===== شريط التنقل العلوي ===== */
 /* ── NAV ── */
 #nav {
   position: fixed;
@@ -436,6 +440,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   box-shadow: 0 4px 15px var(--gold-glow);
 }
 
+/* ===== القسم الرئيسي (Hero) ===== */
 /* ── HERO ── */
 #hero {
   position: relative;
@@ -582,6 +587,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   background: var(--line);
 }
 
+/* ===== الأزرار العامة ===== */
 /* ── BUTTONS ── */
 .btn-gold, .btn, button, .lmi-btn, .puzzle-add-btn, .logout-btn {
   touch-action: manipulation;
@@ -628,6 +634,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   background: var(--gold-glow);
 }
 
+/* ===== شريط العلامات المتحرك ===== */
 /* ── MARQUEE ── */
 .marquee-wrap {
   overflow: hidden;
@@ -657,6 +664,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   to { transform: translateX(-50%) }
 }
 
+/* ===== قسم قصة الكافيه (About) ===== */
 /* ── ABOUT ── */
 #about {
   padding: 8rem 4rem;
@@ -812,11 +820,8 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   line-height: 1.6;
 }
 
+/* ===== قسم القائمة (Menu) ===== */
 /* ── MENU ── */
-#menu {
-  padding: 8rem 4rem;
-  background: var(--bg3);
-}
 .section-head-center {
   text-align: center;
   margin-bottom: 4rem;
@@ -881,8 +886,8 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   margin: 0 auto 1rem;
 }
 
+/* ===== بطاقة المشروب (Drink Card) ===== */
 /* ── DRINK CARD ── */
-.drink-card {
   background: var(--bg2);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -1032,8 +1037,8 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   box-shadow: 0 2px 6px rgba(181, 145, 59, 0.15);
 }
 
+/* ===== النافذة المنبثقة (Modal) ===== */
 /* ── MODAL ── */
-.modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 1000;
@@ -1173,8 +1178,8 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   border-bottom: 1px solid var(--line);
 }
 
+/* ===== نظام تخصيص المشروب (Puzzle Builder) ===== */
 /* ── PUZZLE BUILDER ── */
-.puzzle-label {
   display: block;
   color: var(--muted);
   font-size: .85rem;
@@ -1231,8 +1236,8 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   box-shadow: 0 8px 25px var(--gold-glow);
 }
 
+/* ===== سلة المشتريات والزر العائم ===== */
 /* ── CART Drawer & FAB ── */
-.cart-fab {
   position: fixed;
   bottom: 2rem;
   left: 2rem;
@@ -1403,11 +1408,8 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   border-color: var(--gold);
 }
 
+/* ===== قسم التواصل (Contact) ===== */
 /* ── CONTACT ── */
-#contact {
-  padding: 8rem 4rem;
-  background: var(--bg);
-}
 .contact-wrap {
   max-width: 1100px;
   margin: 0 auto;
@@ -1495,13 +1497,8 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   text-align: center;
 }
 
+/* ===== التذييل (Footer) ===== */
 /* ── FOOTER ── */
-#footer {
-  background: var(--bg2);
-  border-top: 1px solid var(--line);
-  text-align: center;
-  padding: 4rem 2rem;
-}
 .footer-logo {
   font-family: 'Playfair Display', serif;
   font-size: 2rem;
@@ -1526,9 +1523,8 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   opacity: 0.6;
 }
 
+/* ===== عرض القائمة (Menu List View) ===== */
 /* ── MENU LIST VIEW ── */
-.menu-grid {
-  display: grid !important;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem 3rem;
   max-width: 1000px;
@@ -1607,12 +1603,14 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   background: var(--gold-glow);
 }
 
+/* ===== الحركات والأنيميشن ===== */
 /* ── ANIMATIONS ── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(25px) }
   to { opacity: 1; transform: translateY(0) }
 }
 
+/* ===== منطقة المستخدم في شريط التنقل ===== */
 /* ── NAV USER AREA ── */
 .nav-user-btn {
   display: flex;
@@ -1735,8 +1733,8 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   color: var(--muted);
 }
 
+/* ===== تنسيقات متجاوبة (Responsive) ===== */
 /* ── RESPONSIVE ── */
-@media(max-width:900px){
   #nav { padding: .9rem 1.5rem; }
   #nav.scrolled { padding: .8rem 1.5rem; }
   .nav-links { display: none; }
@@ -1761,6 +1759,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   .user-name { font-size: 0.75rem; max-width: 50px; }
 }
 
+/* ===== بطاقات العروض الخاصة ===== */
 /* ── PREMIUM OFFERS CARDS ── */
 .offers-scroll-track {
   display: flex;
@@ -1950,6 +1949,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   50% { transform: scale(1.06); opacity: 1; }
 }
 
+/* ===== منطقة اللونج وألعاب المجموعات ===== */
 /* ═══════════════════════════════════════════
    TABLE LOUNGE & GROUP GAMES
    ═══════════════════════════════════════════ */
@@ -2067,6 +2067,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   display: block;
 }
 
+/* ===== لعبة الحقيقة أم الجرأة (Truth or Dare) ===== */
 /* Truth or Dare */
 .truth-game-wrap {
   max-width: 500px;
@@ -2118,6 +2119,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   justify-content: center;
 }
 
+/* ===== لعبة إكس-أو (Tic Tac Coffee) ===== */
 /* Tic Tac Coffee */
 .ttt-game-wrap {
   max-width: 320px;
@@ -2158,6 +2160,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   pointer-events: none;
 }
 
+/* ===== تخطيط المقسم الحسي (Split-Deck Layout) ===== */
 /* ═══════════════════════════════════════════
    SENSORY SPLIT-DECK LAYOUT
    ═══════════════════════════════════════════ */
@@ -2363,6 +2366,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
 
 
 
+/* ===== لعبة الحقيقة أم الجرأة — نسخة متجاوبة ===== */
 /* --- Truth or Dare --- */
 .truth-game-wrap {
   display: flex;
@@ -2811,6 +2815,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   }
 }
 
+/* ===== واجهة لعبة المحتال (Imposter Game) ===== */
 /* ── IMPOSTER GAME UI ────────────────────── */
 .imposter-setup-panel, .imposter-gameplay-panel, .imposter-result-panel {
   display: flex;
@@ -3198,6 +3203,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   }
 }
 
+/* ===== واجهة المحتال الزجاجية الجديدة (Imposter UI) ===== */
 /* ═══════════════════════════════════════════
    NEW IMPOSTER GLASSMORPHISM UI (REDESIGN)
    ═══════════════════════════════════════════ */
@@ -3672,10 +3678,12 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   font-weight: normal;
 }
 
+/* ===== تنسيقات الجوال المتجاوبة الشاملة ===== */
 /* ═══════════════════════════════════════════
    COMPREHENSIVE MOBILE RESPONSIVE
    ═══════════════════════════════════════════ */
 
+/* ===== الأجهزة اللوحية وشاشات سطح المكتب الصغيرة ===== */
 /* ── Tablets & Small Desktops ── */
 @media (max-width: 900px) {
   /* Nav */
@@ -3761,6 +3769,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   }
 }
 
+/* ===== الهواتف الذكية ===== */
 /* ── Phones ── */
 @media (max-width: 600px) {
   /* Nav — compact for phones */
@@ -4290,6 +4299,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   }
 }
 
+/* ===== الهواتف الصغيرة جداً ===== */
 /* ── Very small phones ── */
 @media (max-width: 380px) {
   #nav {
@@ -4315,6 +4325,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   }
 }
 
+/* ===== زر القائمة الثلاثي (هامبرغر) ===== */
 /* ── MOBILE HAMBURGER BUTTON ── */
 .nav-hamburger {
   display: none;
@@ -4349,6 +4360,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   background: var(--gold);
 }
 
+/* ===== القائمة الجانبية للجوال (Drawer Menu) ===== */
 /* ── MOBILE DRAWER MENU ── */
 .mobile-drawer {
   position: fixed;
@@ -4495,6 +4507,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   }
 }
 
+/* ===== ثيمات بطاقة العضوية الرقمية الديناميكية ===== */
 /* ── Dynamic HSL VIP Digital ID Card Themes ── */
 .vip-card {
   position: relative;

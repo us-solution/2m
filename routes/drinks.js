@@ -1,12 +1,14 @@
+// ===== مسار المشروبات - عرض قائمة المشروبات العامة للعملاء وتفاصيل مشروب محدد =====
 const express = require('express');
 const router = express.Router();
 const Drink = require('../models/Drink');
 const Category = require('../models/Category');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 
-// Public list of available drinks
+// جلب قائمة المشروبات المتاحة (مع إمكانية الفلترة حسب الفئة أو المميز)
 router.get('/', async (req, res) => {
   const { category, featured } = req.query;
+  // فلترة المشروبات المتاحة فقط
   const query = { is_available: 1 };
   
   if (category) {
@@ -19,7 +21,7 @@ router.get('/', async (req, res) => {
   try {
     const drinks = await Drink.find(query).populate('categoryId');
     
-    // Map to include fields similar to Django serializers
+    // تحويل البيانات إلى JSON مخصص
     const serialized = drinks.map(d => ({
       id: d._id,
       category_id: d.categoryId ? d.categoryId._id : null,
@@ -41,7 +43,7 @@ router.get('/', async (req, res) => {
       is_available: d.is_available
     }));
     
-    // Cache menu for 5 minutes — menu rarely changes during service
+    // تخزين مؤقت لمدة 5 دقائق — القائمة نادراً ما تتغير أثناء الخدمة
     res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
     res.json(serialized);
   } catch (err) {
@@ -49,7 +51,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Public single drink details
+// جلب تفاصيل مشروب محدد بالمعرف
 router.get('/:id', async (req, res) => {
   try {
     const d = await Drink.findById(req.params.id).populate('categoryId');
