@@ -246,10 +246,10 @@ window.openProfileModal = async function() {
   if (cardEl && badgeEl && discountEl) {
     // تكوين حالة العميل: الحالة → [classCSS, لون الخلفية, اللقب, نسبة الخصم]
     const STATUS_MAP = {
-      standard:    ['card-green',  '#1a2e24', isAr ? 'عادي' : 'STANDARD',     null],
-      gold:        ['card-red',    '#541a1a', isAr ? 'ذهبي' : 'GOLD',         '10%'],
-      student:     ['card-blue',   '#1a5276', isAr ? 'طالب' : 'STUDENT',      '15%'],
-      ozel_family: ['card-purple', '#1a0a30', isAr ? 'عائلة OZEL' : 'OZEL FAMILY', '30%']
+      standard:    ['card-green',  '#1a2e24', 'STANDARD',     null],
+      gold:        ['card-red',    '#541a1a', 'GOLD',         '10%'],
+      student:     ['card-blue',   '#1a5276', 'STUDENT',      '15%'],
+      ozel_family: ['card-purple', '#1a0a30', 'OZEL FAMILY', '30%']
     };
     const status = userDetails.customerStatus || 'standard';
     const [cssClass, bgColor, title, discountPct] = STATUS_MAP[status] || STATUS_MAP.standard;
@@ -269,13 +269,9 @@ window.openProfileModal = async function() {
       // الحالة العادية: الخصم بناءً على النقاط (كل 100 نقطة = 10 جنيه)
       const pts = userDetails.points || 0;
       const egpDiscount = Math.floor(pts / 100) * 10;
-      discountEl.innerHTML = isAr
-        ? `نسبة الخصم الخاصة بك: <span style="color:#fff; font-size:1.15rem; font-weight:700;">${egpDiscount} ج.م</span>`
-        : `Your discount rate: <span style="color:#fff; font-size:1.15rem; font-weight:700;">${egpDiscount} EGP</span>`;
+      discountEl.innerHTML = `Your discount rate: <span style="color:#fff; font-size:1.15rem; font-weight:700;">${egpDiscount} EGP</span>`;
     } else {
-      discountEl.innerHTML = isAr
-        ? `نسبة الخصم الخاصة بك: <span style="color:#fff; font-size:1.15rem; font-weight:700;">${discountPct}</span>`
-        : `Your discount rate: <span style="color:#fff; font-size:1.15rem; font-weight:700;">${discountPct}</span>`;
+      discountEl.innerHTML = `Your discount rate: <span style="color:#fff; font-size:1.15rem; font-weight:700;">${discountPct}</span>`;
     }
   }
 
@@ -298,7 +294,7 @@ window.openProfileModal = async function() {
       }
       if (Array.isArray(items)) {
         items.forEach(item => {
-          const nameKey = isAr ? (item.name_ar || item.name) : item.name;
+          const nameKey = item.name;
           drinkCounts[nameKey] = (drinkCounts[nameKey] || 0) + 1;
         });
       }
@@ -308,15 +304,12 @@ window.openProfileModal = async function() {
     
     const listEl = document.getElementById('topDrinksList');
     if (topDrinks.length === 0) {
-      listEl.innerHTML = isAr 
-        ? `<p style="color: var(--muted); font-size: 0.85rem; text-align: center;">لا توجد طلبات سابقة بعد</p>`
-        : `<p style="color: var(--muted); font-size: 0.85rem; text-align: center;">No previous orders yet</p>`;
+      listEl.innerHTML = `<p style="color: var(--muted); font-size: 0.85rem; text-align: center;">No previous orders yet</p>`;
     } else {
-      const timesLabel = isAr ? 'مرات' : 'times';
       listEl.innerHTML = topDrinks.map(([name, count]) => `
         <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg3); padding: 0.8rem 1rem; border-radius: var(--rad); border: 1px solid var(--line);">
           <span style="color: var(--text); font-size: 0.95rem;">${name}</span>
-          <span style="color: var(--gold); font-size: 0.85rem; font-weight: 700;">${count} ${timesLabel}</span>
+          <span style="color: var(--gold); font-size: 0.85rem; font-weight: 700;">${count} times</span>
         </div>
       `).join('');
     }
@@ -852,10 +845,9 @@ window.changePassword = async function() {
   const newPassword = document.getElementById('new-pass').value;
   const msgEl = document.getElementById('cp-msg');
   if (!msgEl) return;
-  const isAr = currentLang === 'ar';
   
   if (!oldPassword || !newPassword) {
-    msgEl.textContent = isAr ? 'يرجى ملء جميع الحقول' : 'Please fill all fields';
+    msgEl.textContent = 'Please fill all fields';
     msgEl.style.color = '#C0392B';
     return;
   }
@@ -873,12 +865,12 @@ window.changePassword = async function() {
     const data = await res.json();
     
     if (res.ok) {
-      msgEl.textContent = isAr ? 'تم تغيير كلمة المرور بنجاح' : 'Password changed successfully';
+      msgEl.textContent = 'Password changed successfully';
       msgEl.style.color = '#27AE60';
       document.getElementById('old-pass').value = '';
       document.getElementById('new-pass').value = '';
     } else {
-      msgEl.textContent = data.error || (isAr ? 'حدث خطأ ما' : 'Something went wrong');
+      msgEl.textContent = data.error || 'Something went wrong';
       msgEl.style.color = '#C0392B';
     }
   } catch (e) {
