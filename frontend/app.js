@@ -228,14 +228,16 @@ window.openProfileModal = async function() {
     if (cardClass) {
       cardEl.classList.add(cardClass);
       cardEl.dataset.cardColor = colorKey;
+      // Hard override background to guarantee it shows
+      cardEl.style.setProperty('background', userDetails.cardColor, 'important');
+      cardEl.style.setProperty('background-image', 'none', 'important');
+      cardEl.style.setProperty('background-size', '100% 100%', 'important');
+      cardEl.style.setProperty('background-repeat', 'no-repeat', 'important');
+      cardEl.style.setProperty('animation', 'none', 'important');
     } else {
       cardEl.dataset.cardColor = '';
-    }
-
-    // Also force background via style attribute (catches any remaining cascade issues)
-    if (cardClass) {
-      const bgColor = userDetails.cardColor;
-      cardEl.style.cssText += `; background: ${bgColor} !important; animation: none !important; background-size: 100% 100% !important; border-color: ${bgColor} !important;`;
+      cardEl.style.background = '';
+      cardEl.style.animation = '';
     }
 
     // Use custom cardTitle if set, otherwise fall back to tier name
