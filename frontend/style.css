@@ -4559,9 +4559,9 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   background-size: 100% 100%;
 }
 .vip-card.card-blue {
-  background: #1a1a40;
-  border-color: rgba(26, 26, 64, 0.5);
-  box-shadow: 0 12px 30px rgba(26, 26, 64, 0.25);
+  background: #1a5276;
+  border-color: rgba(26, 82, 118, 0.5);
+  box-shadow: 0 12px 30px rgba(26, 82, 118, 0.25);
   animation: none;
   background-size: 100% 100%;
 }

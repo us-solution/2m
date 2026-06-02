@@ -216,7 +216,7 @@ window.openProfileModal = async function() {
     const STATUS_MAP = {
       standard:    ['card-green',  '#1a2e24', isAr ? 'عادي' : 'STANDARD',     null],
       gold:        ['card-red',    '#541a1a', isAr ? 'ذهبي' : 'GOLD',         '10%'],
-      student:     ['card-blue',   '#1a1a40', isAr ? 'طالب' : 'STUDENT',      '15%'],
+      student:     ['card-blue',   '#1a5276', isAr ? 'طالب' : 'STUDENT',      '15%'],
       ozel_family: ['card-purple', '#1a0a30', isAr ? 'عائلة OZEL' : 'OZEL FAMILY', '30%']
     };
     const status = userDetails.customerStatus || 'standard';
