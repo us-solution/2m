@@ -390,6 +390,57 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
     order.orderVersion = (order.orderVersion || 1) + 1;
     await order.save();
 
+    // Auto-deduct inventory when order is served
+    if (status === 'served' && order.items && order.items.length > 0) {
+      setImmediate(async () => {
+        try {
+          const Recipe = require('../models/Recipe');
+          const RecipeItem = require('../models/RecipeItem');
+          const Ingredient = require('../models/Ingredient');
+          const InventoryTransaction = require('../models/InventoryTransaction');
+          const StockAlert = require('../models/StockAlert');
+          for (const item of order.items) {
+            if (!item.drinkId) continue;
+            const recipe = await Recipe.findOne({ drinkId: item.drinkId, isActive: true });
+            if (!recipe) continue;
+            const recipeItems = await RecipeItem.find({ recipeId: recipe._id }).populate('ingredientId');
+            for (const ri of recipeItems) {
+              if (!ri.ingredientId) continue;
+              const qtyToDeduct = (ri.quantity || 0) * (item.qty || 1) / (recipe.yield || 1);
+              const ingredient = ri.ingredientId;
+              ingredient.currentStock -= qtyToDeduct;
+              await ingredient.save();
+              await InventoryTransaction.create({
+                ingredientId: ingredient._id,
+                type: 'consumption',
+                quantity: -qtyToDeduct,
+                unitCost: ingredient.unitCost,
+                totalCost: qtyToDeduct * ingredient.unitCost,
+                note: `خصم تلقائي - طلب #${order.tableNumber || order._id}`,
+                performedBy: req.user._id,
+                relatedOrderId: order._id
+              });
+              if (ingredient.minStock > 0 && ingredient.currentStock <= ingredient.minStock) {
+                const exists = await StockAlert.findOne({ ingredientId: ingredient._id, type: 'low_stock', resolved: false });
+                if (!exists) {
+                  await StockAlert.create({
+                    ingredientId: ingredient._id,
+                    type: 'low_stock',
+                    message: `نقص في خامة ${ingredient.name_ar || ingredient.name}: المخزون ${ingredient.currentStock.toFixed(1)} ${ingredient.unit}`,
+                    currentStock: ingredient.currentStock,
+                    minStock: ingredient.minStock,
+                    severity: ingredient.currentStock <= ingredient.minStock * 0.5 ? 'critical' : 'warning'
+                  });
+                }
+              }
+            }
+          }
+        } catch (invErr) {
+          console.error('[Inventory Auto-Deduct Error]', invErr.message);
+        }
+      });
+    }
+
     const orderPayload = buildOrderPayload(order, null);
     const syncEvent = await createSyncEvent(order, 'order.status_changed', {
       ...orderPayload,

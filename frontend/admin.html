@@ -213,6 +213,8 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       <option value="users">المستخدمين</option>
       <option value="tables">رموز QR للطاولات</option>
       <option value="finance">المالية</option>
+      <option value="inventory">المخزون</option>
+      <option value="recipes">الوصفات</option>
       <option value="reports">التقارير</option>
     </select>
     <div class="nav-item active" onclick="showPage('dashboard',this)">لوحة التحكم</div>
@@ -224,6 +226,8 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
     <div class="nav-item" onclick="showPage('users',this)">المستخدمين</div>
     <div class="nav-item" onclick="showPage('tables',this)">رموز QR للطاولات</div>
     <div class="nav-item" onclick="showPage('finance',this)">المالية</div>
+    <div class="nav-item" onclick="showPage('inventory',this)">المخزون</div>
+    <div class="nav-item" onclick="showPage('recipes',this)">الوصفات</div>
     <div class="nav-item" onclick="showPage('reports',this)">التقارير</div>
   </nav>
   <div style="overflow-y:auto;max-height:calc(100vh - 60px)">
@@ -414,6 +418,142 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
           <div id="finance-items" style="background:var(--bg2); border:1px solid var(--line); padding:1rem;">جارٍ تحميل قيود التكاليف...</div>
         </div>
       </div>
+      <div style="background:var(--bg2); border:1px solid var(--line); padding:1rem; margin-top:1rem;">
+        <h3 style="margin-bottom:.5rem;">تصنيفات المصروفات</h3>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.5rem;">
+          <input id="ec-name" placeholder="الاسم (إنجليزي)" class="edit-input" style="width:150px;">
+          <input id="ec-name-ar" placeholder="الاسم (عربي)" class="edit-input" style="width:150px;">
+          <select id="ec-type" class="edit-input" style="width:120px;">
+            <option value="purchase">مشتريات</option><option value="salary">رواتب</option><option value="rent">إيجار</option>
+            <option value="utilities">مرافق</option><option value="maintenance">صيانة</option><option value="marketing">تسويق</option><option value="other">أخرى</option>
+          </select>
+          <button class="hbtn" style="background:var(--gold);color:var(--bg);border-color:var(--gold);" onclick="addExpenseCategory()">إضافة تصنيف</button>
+        </div>
+        <div id="expense-categories-list"><p style="color:var(--muted);font-size:.85rem;">جارٍ التحميل...</p></div>
+      </div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div class="page" id="page-inventory">
+      <h1 class="page-title">المخزون</h1>
+      <p class="page-sub">إدارة الخامات، الجرد الفعلي، التنبيهات، والحركات</p>
+
+      <div class="stats-grid" id="inv-stats">
+        <div class="stat-card"><span class="stat-n" id="inv-total">0</span><span class="stat-l">إجمالي الخامات</span></div>
+        <div class="stat-card"><span class="stat-n" id="inv-low">0</span><span class="stat-l">مخزون منخفض</span></div>
+        <div class="stat-card"><span class="stat-n" id="inv-out">0</span><span class="stat-l">نفد من المخزون</span></div>
+        <div class="stat-card"><span class="stat-n" id="inv-value">0</span><span class="stat-l">قيمة المخزون</span></div>
+        <div class="stat-card"><span class="stat-n" id="inv-alerts">0</span><span class="stat-l">تنبيهات نشطة</span></div>
+      </div>
+
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;">
+        <button class="hbtn" style="background:var(--gold);color:var(--bg);border-color:var(--gold);" onclick="showInvSection('ingredients')">الخامات</button>
+        <button class="hbtn" style="border-color:var(--accent-emerald);color:var(--accent-emerald);" onclick="showInvSection('transactions')">الحركات</button>
+        <button class="hbtn" style="border-color:var(--orange);color:var(--orange);" onclick="showInvSection('counts')">الجرد الفعلي</button>
+        <button class="hbtn" style="border-color:var(--red);color:var(--red);" onclick="showInvSection('alerts')">التنبيهات</button>
+      </div>
+
+      <!-- Ingredients -->
+      <div id="inv-ingredients" style="display:block;">
+        <div style="background:var(--bg2);border:1px solid var(--line);padding:1rem;margin-bottom:1rem;">
+          <h3 style="margin-bottom:.5rem;">إضافة خامة جديدة</h3>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
+            <input id="ig-name" placeholder="الاسم (إنجليزي)" class="edit-input" style="width:140px;">
+            <input id="ig-name-ar" placeholder="الاسم (عربي)" class="edit-input" style="width:140px;">
+            <select id="ig-cat" class="edit-input" style="width:100px;">
+              <option value="beans">بن</option><option value="milk">حليب</option><option value="syrup">سيرب</option>
+              <option value="topping">إضافات</option><option value="cup">كوب/تغليف</option><option value="other">أخرى</option>
+            </select>
+            <select id="ig-unit" class="edit-input" style="width:80px;">
+              <option value="g">جرام</option><option value="kg">كجم</option><option value="ml">مل</option><option value="l">لتر</option>
+              <option value="pcs">حبة</option><option value="cup">كوب</option><option value="tsp">ملعقة ص</option><option value="tbsp">ملعقة ك</option>
+            </select>
+            <input id="ig-cost" type="number" placeholder="تكلفة الوحدة" class="edit-input" style="width:100px;" step="0.01">
+            <input id="ig-stock" type="number" placeholder="المخزون الحالي" class="edit-input" style="width:100px;" step="0.01">
+            <input id="ig-min" type="number" placeholder="الحد الأدنى" class="edit-input" style="width:80px;" step="0.01">
+            <button class="hbtn" style="background:var(--gold);color:var(--bg);border-color:var(--gold);" onclick="addIngredient()">إضافة</button>
+          </div>
+        </div>
+        <div id="inv-ingredients-list" style="background:var(--bg2);border:1px solid var(--line);"><p style="padding:1rem;color:var(--muted);">جارٍ التحميل...</p></div>
+      </div>
+
+      <!-- Transactions -->
+      <div id="inv-transactions" style="display:none;">
+        <div style="background:var(--bg2);border:1px solid var(--line);padding:1rem;margin-bottom:1rem;">
+          <h3 style="margin-bottom:.5rem;">تسجيل حركة مخزون</h3>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
+            <select id="tx-type" class="edit-input" style="width:100px;">
+              <option value="purchase">مشتريات</option><option value="consumption">استهلاك</option><option value="waste">هالك</option><option value="adjustment">تعديل</option><option value="return">مرتجع</option>
+            </select>
+            <select id="tx-ingredient" class="edit-input" style="width:160px;"><option value="">اختر الخامة...</option></select>
+            <input id="tx-qty" type="number" placeholder="الكمية" class="edit-input" style="width:80px;" step="any">
+            <input id="tx-cost" type="number" placeholder="تكلفة الوحدة (اختياري)" class="edit-input" style="width:120px;" step="0.01">
+            <input id="tx-note" placeholder="ملاحظة" class="edit-input" style="width:140px;">
+            <button class="hbtn" style="border-color:var(--accent-emerald);color:var(--accent-emerald);" onclick="addTransaction()">تسجيل</button>
+          </div>
+        </div>
+        <div id="inv-transactions-list" style="background:var(--bg2);border:1px solid var(--line);"><p style="padding:1rem;color:var(--muted);">جارٍ التحميل...</p></div>
+      </div>
+
+      <!-- Physical Counts -->
+      <div id="inv-counts" style="display:none;">
+        <div style="background:var(--bg2);border:1px solid var(--line);padding:1rem;margin-bottom:1rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
+            <h3>جرد فعلي جديد</h3>
+            <button class="hbtn" onclick="loadCountIngredients()" style="font-size:.75rem;">تحميل الخامات</button>
+          </div>
+          <div id="count-ingredients" style="margin-bottom:.5rem;max-height:300px;overflow-y:auto;"></div>
+          <input id="cnt-note" placeholder="ملاحظات الجرد" class="edit-input" style="width:100%;padding:.5rem;margin-bottom:.5rem;">
+          <button class="hbtn" style="background:var(--orange);color:var(--bg);border-color:var(--orange);" onclick="submitCount()">حفظ الجرد وحساب الفروق</button>
+        </div>
+        <div id="inv-counts-history" style="background:var(--bg2);border:1px solid var(--line);"><p style="padding:1rem;color:var(--muted);">سجل الجرد...</p></div>
+      </div>
+
+      <!-- Alerts -->
+      <div id="inv-alerts" style="display:none;">
+        <div id="inv-alerts-list" style="background:var(--bg2);border:1px solid var(--line);"><p style="padding:1rem;color:var(--muted);">جارٍ التحميل...</p></div>
+      </div>
+    </div>
+
+    <!-- RECIPES -->
+    <div class="page" id="page-recipes">
+      <h1 class="page-title">الوصفات</h1>
+      <p class="page-sub">تحديد مكونات كل منتج لحساب التكلفة والخصم التلقائي من المخزون</p>
+
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;">
+        <button class="hbtn" style="background:var(--gold);color:var(--bg);border-color:var(--gold);" onclick="showRecipeSection('list')">الوصفات</button>
+        <button class="hbtn" style="border-color:var(--orange);color:var(--orange);" onclick="showRecipeSection('editor')">إضافة وصفة</button>
+        <button class="hbtn" style="border-color:var(--accent-emerald);color:var(--accent-emerald);" onclick="recalcCosts()">إعادة حساب التكاليف</button>
+      </div>
+
+      <div id="recipe-list" style="display:block;">
+        <div id="recipes-list" style="background:var(--bg2);border:1px solid var(--line);"><p style="padding:1rem;color:var(--muted);">جارٍ التحميل...</p></div>
+      </div>
+
+      <div id="recipe-editor" style="display:none;">
+        <div style="background:var(--bg2);border:1px solid var(--line);padding:1rem;margin-bottom:1rem;">
+          <h3 style="margin-bottom:.5rem;">معلومات الوصفة</h3>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
+            <input id="rc-name" placeholder="اسم الوصفة" class="edit-input" style="width:180px;">
+            <select id="rc-drink" class="edit-input" style="width:180px;"><option value="">اختر المشروب...</option></select>
+            <input id="rc-yield" type="number" placeholder="الناتج (عدد)" class="edit-input" style="width:80px;" value="1" min="1">
+            <input type="hidden" id="rc-edit-id">
+          </div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--line);padding:1rem;margin-bottom:1rem;">
+          <h3 style="margin-bottom:.5rem;">المكونات</h3>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.5rem;">
+            <select id="rc-ingredient" class="edit-input" style="width:200px;"><option value="">اختر الخامة...</option></select>
+            <input id="rc-qty" type="number" placeholder="الكمية" class="edit-input" style="width:80px;" step="any">
+            <button class="hbtn" style="border-color:var(--accent-emerald);color:var(--accent-emerald);" onclick="addRecipeItem()">إضافة مكون</button>
+          </div>
+          <div id="recipe-items-list"><p style="color:var(--muted);font-size:.85rem;">احفظ الوصفة أولاً ثم أضف المكونات</p></div>
+        </div>
+        <div style="display:flex;gap:.5rem;">
+          <button class="hbtn" style="background:var(--gold);color:var(--bg);border-color:var(--gold);" onclick="saveRecipe()">حفظ الوصفة</button>
+          <button class="hbtn" onclick="cancelRecipeEdit()">إلغاء</button>
+        </div>
+      </div>
     </div>
 
     <!-- REPORTS -->
@@ -513,6 +653,30 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
         <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">المصروفات مقابل الإيرادات</h3>
         <div id="r-expense-revenue"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
       </div>
+
+      <!-- Profitability -->
+      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">ربحية المنتجات</h3>
+        <div id="r-profitability"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
+      </div>
+
+      <!-- Consumption -->
+      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">استهلاك الخامات</h3>
+        <div id="r-consumption"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
+      </div>
+
+      <!-- Waste -->
+      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">الهالك والتالف</h3>
+        <div id="r-waste"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
+      </div>
+
+      <!-- Cost Analysis -->
+      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line);">
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">تحليل التكاليف (الوصفة vs سعر البيع)</h3>
+        <div id="r-cost-analysis"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
+      </div>
     </div>
 
   </div>
@@ -548,6 +712,8 @@ function showPage(name, el) {
   if (name === 'users') loadUsers();
   if (name === 'tables') document.getElementById('tqr-result').style.display = 'none';
   if (name === 'finance') loadFinancePage();
+  if (name === 'inventory') loadInventory();
+  if (name === 'recipes') loadRecipes();
   if (name === 'reports') loadReports();
 }
 
@@ -661,9 +827,44 @@ async function loadFinancePage() {
     } else {
       cashList.innerHTML = '<span style="color:var(--muted)">لا توجد حركات نقدية بعد.</span>';
     }
+    // Expense categories
+    loadExpenseCategories();
   } catch (err) {
     document.getElementById('finance-summary').innerHTML = `<span style="color:var(--red)">فشل تحميل البيانات المالية: ${err.message}</span>`;
   }
+}
+
+async function loadExpenseCategories() {
+  try {
+    const res = await fetch('/api/finance/expense-categories', { headers: getAuthH() });
+    const cats = await res.json();
+    document.getElementById('expense-categories-list').innerHTML = cats.length === 0 ? '<span style="color:var(--muted);">لا توجد تصنيفات.</span>' :
+      '<div style="display:grid; grid-template-columns: 1fr auto auto auto; gap:.5rem; font-size:.8rem;">' +
+      cats.map(c => `<div style="display:contents;">
+        <span>${c.name_ar || c.name}</span>
+        <span style="color:var(--muted);">${c.type}</span>
+        <button class="hbtn" style="font-size:.7rem;color:var(--red);border-color:transparent;" onclick="deleteExpenseCategory('${c._id}')">✕</button>
+      </div>`).join('') + '</div>';
+    // Populate expense dropdown
+    document.getElementById('fx-category').innerHTML = cats.map(c => `<option value="${c.type}">${c.name_ar || c.name}</option>`).join('');
+  } catch (e) { console.error(e); }
+}
+
+async function addExpenseCategory() {
+  const name = document.getElementById('ec-name').value;
+  const name_ar = document.getElementById('ec-name-ar').value;
+  const type = document.getElementById('ec-type').value;
+  if (!name) return showModal('خطأ', 'الاسم مطلوب');
+  await fetch('/api/finance/expense-categories', { method: 'POST', headers: getAuthH(), body: JSON.stringify({ name, name_ar, type }) });
+  document.getElementById('ec-name').value = '';
+  document.getElementById('ec-name-ar').value = '';
+  loadExpenseCategories();
+}
+
+async function deleteExpenseCategory(id) {
+  if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذا التصنيف؟', true)) return;
+  await fetch('/api/finance/expense-categories/' + id, { method: 'DELETE', headers: getAuthH() });
+  loadExpenseCategories();
 }
 
 async function deleteExpense(id) {
@@ -1556,6 +1757,91 @@ async function loadReports() {
     } else {
       expRevDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا توجد بيانات.</p>';
     }
+
+    // ── Profitability Report ──
+    try {
+      const profRes = await fetch('/api/reports/profitability' + params, { headers: getAuthH() });
+      const profData = await profRes.json();
+      const profDiv = document.getElementById('r-profitability');
+      if (profData && profData.length > 0) {
+        profDiv.innerHTML = '<div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>المنتج</span><span>الكمية</span><span>الإيرادات</span><span>التكلفة</span><span>الربح / الهامش</span></div>' +
+          profData.slice(0, 30).map(p => {
+            const marginVal = parseFloat(p.margin);
+            const marginColor = marginVal >= 50 ? 'var(--green)' : marginVal >= 30 ? 'var(--orange)' : 'var(--red)';
+            return `<div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap:.5rem; align-items:center; padding:.5rem 0; border-bottom:1px solid var(--line); font-size:.85rem;">
+              <span style="color:var(--text);">${p.name || p.name_en || '?'}</span>
+              <span style="text-align:right;">${p.qty}</span>
+              <span style="text-align:right; color:var(--gold);">${parseFloat(p.revenue).toFixed(2)} ج.م</span>
+              <span style="text-align:right; color:var(--red);">${parseFloat(p.cost).toFixed(2)} ج.م</span>
+              <span style="text-align:right; color:${marginColor}; font-weight:600;">${parseFloat(p.profit).toFixed(2)} ج.م (${p.margin}%)</span>
+            </div>`;
+          }).join('');
+      } else {
+        profDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا توجد بيانات ربحية (أضف وصفات للمنتجات).</p>';
+      }
+    } catch (e) { console.error('[Profitability]', e); }
+
+    // ── Consumption Report ──
+    try {
+      const consRes = await fetch('/api/reports/consumption' + params, { headers: getAuthH() });
+      const consData = await consRes.json();
+      const consDiv = document.getElementById('r-consumption');
+      if (consData && consData.length > 0) {
+        consDiv.innerHTML = '<div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>الخامة</span><span>مستهلك</span><span>هالك</span><span>التكلفة الإجمالية</span></div>' +
+          consData.map(c => `<div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:.5rem; align-items:center; padding:.5rem 0; border-bottom:1px solid var(--line); font-size:.85rem;">
+            <span>${c.ingredient ? (c.ingredient.name_ar || c.ingredient.name) : '?'}</span>
+            <span style="text-align:right;">${parseFloat(c.totalConsumed || 0).toFixed(1)}</span>
+            <span style="text-align:right; color:var(--red);">${parseFloat(c.totalWasted || 0).toFixed(1)}</span>
+            <span style="text-align:right; color:var(--gold);">${parseFloat(c.totalCost || 0).toFixed(2)} ج.م</span>
+          </div>`).join('');
+      } else {
+        consDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا توجد بيانات استهلاك.</p>';
+      }
+    } catch (e) { console.error('[Consumption]', e); }
+
+    // ── Waste Report ──
+    try {
+      const wasteRes = await fetch('/api/reports/waste' + params, { headers: getAuthH() });
+      const wasteData = await wasteRes.json();
+      const wasteDiv = document.getElementById('r-waste');
+      if (wasteData && wasteData.wasteLogs && wasteData.wasteLogs.length > 0) {
+        wasteDiv.innerHTML = `<div style="margin-bottom:.5rem;">إجمالي الهالك: <span style="color:var(--red); font-weight:700; font-size:1.2rem;">${parseFloat(wasteData.totalWasteCost).toFixed(2)} ج.م</span> (${wasteData.count} حركة)</div>
+          <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>الخامة</span><span>الكمية</span><span>التكلفة</span><span>التاريخ</span></div>` +
+          wasteData.wasteLogs.slice(0, 30).map(w => `<div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:.5rem; align-items:center; padding:.5rem 0; border-bottom:1px solid var(--line); font-size:.85rem;">
+            <span>${w.ingredientId ? (w.ingredientId.name_ar || w.ingredientId.name) : '?'}</span>
+            <span style="text-align:right;">${Math.abs(w.quantity)}</span>
+            <span style="text-align:right; color:var(--red);">${parseFloat(Math.abs(w.totalCost || 0)).toFixed(2)} ج.م</span>
+            <span style="text-align:right; font-size:.75rem; color:var(--muted);">${new Date(w.createdAt).toLocaleDateString('ar-EG')}</span>
+          </div>`).join('');
+      } else {
+        wasteDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا يوجد هالك مسجل.</p>';
+      }
+    } catch (e) { console.error('[Waste]', e); }
+
+    // ── Cost Analysis ──
+    try {
+      const caRes = await fetch('/api/reports/cost-analysis', { headers: getAuthH() });
+      const caData = await caRes.json();
+      const caDiv = document.getElementById('r-cost-analysis');
+      if (caData && caData.length > 0) {
+        caDiv.innerHTML = '<div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>الوصفة</span><span>الناتج</span><span>تكلفة الوحدة</span><span>سعر البيع</span><span>الربح</span><span>الهامش</span></div>' +
+          caData.map(r => {
+            const marginVal = parseFloat(r.margin);
+            const mColor = marginVal >= 50 ? 'var(--green)' : marginVal >= 30 ? 'var(--orange)' : 'var(--red)';
+            return `<div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr; gap:.5rem; align-items:center; padding:.5rem 0; border-bottom:1px solid var(--line); font-size:.85rem;">
+              <span style="color:var(--text);">${r.recipeName}</span>
+              <span style="text-align:right;">${r.yield}</span>
+              <span style="text-align:right; color:var(--gold);">${parseFloat(r.unitCost).toFixed(2)} ج.م</span>
+              <span style="text-align:right; color:var(--accent-emerald);">${r.sellPrice} ج.م</span>
+              <span style="text-align:right; color:${mColor};">${parseFloat(r.profit).toFixed(2)} ج.م</span>
+              <span style="text-align:right; color:${mColor}; font-weight:600;">${r.margin}%</span>
+            </div>`;
+          }).join('');
+      } else {
+        caDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا توجد بيانات تحليل تكاليف (أضف وصفات أولاً).</p>';
+      }
+    } catch (e) { console.error('[Cost Analysis]', e); }
+
   } catch (err) {
     console.error('[Reports] Error:', err);
   }
@@ -1589,6 +1875,345 @@ function downloadPDF() {
       URL.revokeObjectURL(url);
     })
     .catch(() => alert('خطأ في تحميل PDF'));
+}
+
+// ── Inventory Functions ──
+let allIngredients = [];
+
+async function loadInventory() {
+  loadInvStatus();
+  loadIngredients();
+  loadTransactions();
+  loadCounts();
+  loadAlerts();
+}
+
+async function loadInvStatus() {
+  try {
+    const res = await fetch('/api/inventory/status', { headers: getAuthH() });
+    const d = await res.json();
+    document.getElementById('inv-total').textContent = d.totalIngredients;
+    document.getElementById('inv-low').textContent = d.lowStockCount;
+    document.getElementById('inv-out').textContent = d.outOfStock;
+    document.getElementById('inv-value').textContent = parseFloat(d.totalStockValue).toFixed(2) + ' ج.م';
+    document.getElementById('inv-alerts').textContent = d.pendingAlerts;
+  } catch (e) { console.error(e); }
+}
+
+function showInvSection(s) {
+  ['ingredients','transactions','counts','alerts'].forEach(id => document.getElementById('inv-' + id).style.display = id === s ? 'block' : 'none');
+  if (s === 'counts') loadCountIngredients();
+}
+
+async function loadIngredients() {
+  try {
+    const res = await fetch('/api/inventory/ingredients?active=true', { headers: getAuthH() });
+    allIngredients = await res.json();
+    document.getElementById('inv-ingredients-list').innerHTML = allIngredients.length === 0 ? '<p style="padding:1rem;color:var(--muted);">لا توجد خامات. أضف أول خامة الآن.</p>' :
+      '<table><tr><th>الاسم</th><th>الاسم (عربي)</th><th>التصنيف</th><th>الوحدة</th><th>تكلفة الوحدة</th><th>المخزون</th><th>الحد الأدنى</th><th>القيمة</th><th>الحالة</th><th></th></tr>' +
+      allIngredients.map(ig => {
+        const val = (ig.currentStock * ig.unitCost).toFixed(2);
+        const low = ig.minStock > 0 && ig.currentStock <= ig.minStock;
+        return `<tr>
+          <td><span class="editable" onclick="editIngredientField('${ig._id}','name',prompt('الاسم:', '${ig.name}'))">${ig.name}</span></td>
+          <td><span class="editable" onclick="editIngredientField('${ig._id}','name_ar',prompt('الاسم بالعربية:', '${ig.name_ar || ''}'))">${ig.name_ar || '—'}</span></td>
+          <td>${ig.category}</td>
+          <td>${ig.unit}</td>
+          <td style="color:var(--gold);"><span class="editable" onclick="editIngredientField('${ig._id}','unitCost',prompt('تكلفة الوحدة:', '${ig.unitCost}'))">${parseFloat(ig.unitCost).toFixed(2)} ج.م</span></td>
+          <td style="color:${low ? 'var(--red)' : 'var(--text)'}; font-weight:${low ? '700' : '400'};">${ig.currentStock}</td>
+          <td>${ig.minStock || 0}</td>
+          <td style="color:var(--gold);">${val} ج.م</td>
+          <td>${low ? '<span style="color:var(--red);">⚠ منخفض</span>' : '<span style="color:var(--green);">✓ جيد</span>'}</td>
+          <td><button class="hbtn" style="color:var(--red);border-color:transparent;font-size:.75rem;" onclick="deleteIngredient('${ig._id}')">✕</button></td>
+        </tr>`;
+      }).join('') + '</table>';
+    // Populate dropdowns
+    const opts = allIngredients.map(ig => `<option value="${ig._id}">${ig.name_ar || ig.name} (${ig.currentStock} ${ig.unit})</option>`).join('');
+    document.getElementById('tx-ingredient').innerHTML = '<option value="">اختر الخامة...</option>' + opts;
+    document.getElementById('rc-ingredient').innerHTML = '<option value="">اختر الخامة...</option>' + opts;
+  } catch (e) { console.error(e); }
+}
+
+async function editIngredientField(id, field, val) {
+  if (val === null) return;
+  const parsed = field === 'unitCost' ? parseFloat(val) : val;
+  await fetch('/api/inventory/ingredients/' + id, { method: 'PUT', headers: getAuthH(), body: JSON.stringify({ [field]: parsed }) });
+  loadIngredients();
+  loadInvStatus();
+}
+
+async function addIngredient() {
+  const body = {
+    name: document.getElementById('ig-name').value,
+    name_ar: document.getElementById('ig-name-ar').value,
+    category: document.getElementById('ig-cat').value,
+    unit: document.getElementById('ig-unit').value,
+    unitCost: parseFloat(document.getElementById('ig-cost').value) || 0,
+    currentStock: parseFloat(document.getElementById('ig-stock').value) || 0,
+    minStock: parseFloat(document.getElementById('ig-min').value) || 0,
+  };
+  if (!body.name) return showModal('خطأ', 'الاسم مطلوب');
+  await fetch('/api/inventory/ingredients', { method: 'POST', headers: getAuthH(), body: JSON.stringify(body) });
+  ['ig-name','ig-name-ar','ig-cost','ig-stock','ig-min'].forEach(id => document.getElementById(id).value = '');
+  loadIngredients();
+  loadInvStatus();
+}
+
+async function deleteIngredient(id) {
+  if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذه الخامة؟', true)) return;
+  await fetch('/api/inventory/ingredients/' + id, { method: 'DELETE', headers: getAuthH() });
+  loadIngredients();
+  loadInvStatus();
+}
+
+async function loadTransactions() {
+  try {
+    const res = await fetch('/api/inventory/transactions?limit=100', { headers: getAuthH() });
+    const txs = await res.json();
+    document.getElementById('inv-transactions-list').innerHTML = txs.length === 0 ? '<p style="padding:1rem;color:var(--muted);">لا توجد حركات مخزون.</p>' :
+      '<table><tr><th>التاريخ</th><th>النوع</th><th>الخامة</th><th>الكمية</th><th>التكلفة</th><th>ملاحظة</th><th>بواسطة</th></tr>' +
+      txs.map(tx => `<tr>
+        <td style="font-size:.8rem;">${new Date(tx.createdAt).toLocaleDateString('ar-EG')}</td>
+        <td><span style="color:${tx.type === 'purchase' ? 'var(--green)' : tx.type === 'consumption' ? 'var(--orange)' : tx.type === 'waste' ? 'var(--red)' : 'var(--muted)'};">${tx.type === 'purchase' ? 'مشتريات' : tx.type === 'consumption' ? 'استهلاك' : tx.type === 'waste' ? 'هالك' : tx.type === 'adjustment' ? 'تعديل' : 'مرتجع'}</span></td>
+        <td>${tx.ingredientId ? (tx.ingredientId.name_ar || tx.ingredientId.name) : '—'}</td>
+        <td style="font-weight:600;">${tx.quantity}</td>
+        <td style="color:var(--gold);">${parseFloat(tx.totalCost || 0).toFixed(2)} ج.م</td>
+        <td style="font-size:.8rem;color:var(--muted);">${tx.note || ''}</td>
+        <td style="font-size:.8rem;">${tx.performedBy ? tx.performedBy.username : ''}</td>
+      </tr>`).join('') + '</table>';
+  } catch (e) { console.error(e); }
+}
+
+async function addTransaction() {
+  const body = {
+    type: document.getElementById('tx-type').value,
+    ingredientId: document.getElementById('tx-ingredient').value,
+    quantity: parseFloat(document.getElementById('tx-qty').value) || 0,
+    unitCost: parseFloat(document.getElementById('tx-cost').value) || undefined,
+    note: document.getElementById('tx-note').value,
+  };
+  if (!body.ingredientId || body.quantity === 0) return showModal('خطأ', 'اختر الخامة وأدخل كمية صحيحة');
+  await fetch('/api/inventory/transactions', { method: 'POST', headers: getAuthH(), body: JSON.stringify(body) });
+  ['tx-qty','tx-cost','tx-note'].forEach(id => document.getElementById(id).value = '');
+  loadTransactions();
+  loadIngredients();
+  loadInvStatus();
+}
+
+async function loadCountIngredients() {
+  try {
+    const res = await fetch('/api/inventory/ingredients?active=true', { headers: getAuthH() });
+    const ings = await res.json();
+    document.getElementById('count-ingredients').innerHTML = ings.length === 0 ? '<p style="color:var(--muted);">لا توجد خامات.</p>' :
+      '<table><tr><th>الخامة</th><th>المخزون المتوقع</th><th>الكمية الفعلية</th><th>الفرق</th></tr>' +
+      ings.map(ig => `<tr>
+        <td>${ig.name_ar || ig.name} (${ig.unit})</td>
+        <td><span style="font-weight:600;">${ig.currentStock}</span></td>
+        <td><input type="number" class="edit-input" id="cnt-${ig._id}" value="${ig.currentStock}" step="any" style="width:80px;"></td>
+        <td id="cnt-diff-${ig._id}" style="color:var(--muted);">—</td>
+      </tr>`).join('') + '</table>';
+    ings.forEach(ig => {
+      const inp = document.getElementById('cnt-' + ig._id);
+      if (inp) inp.addEventListener('input', () => {
+        const actual = parseFloat(inp.value) || 0;
+        const diff = actual - ig.currentStock;
+        document.getElementById('cnt-diff-' + ig._id).innerHTML = diff > 0 ? `<span style="color:var(--green);">+${diff}</span>` : diff < 0 ? `<span style="color:var(--red);">${diff}</span>` : '<span style="color:var(--muted);">0</span>';
+      });
+    });
+  } catch (e) { console.error(e); }
+}
+
+async function submitCount() {
+  try {
+    const res = await fetch('/api/inventory/ingredients?active=true', { headers: getAuthH() });
+    const ings = await res.json();
+    const items = ings.map(ig => ({
+      ingredientId: ig._id,
+      expectedQty: ig.currentStock,
+      actualQty: parseFloat(document.getElementById('cnt-' + ig._id)?.value) || 0
+    }));
+    const note = document.getElementById('cnt-note').value;
+    const result = await fetch('/api/inventory/counts', { method: 'POST', headers: getAuthH(), body: JSON.stringify({ items, note }) });
+    const data = await result.json();
+    if (data._id) {
+      let msg = `تم حفظ الجرد. إجمالي فرق التكلفة: ${parseFloat(data.totalDiffCost).toFixed(2)} ج.م`;
+      if (Math.abs(data.totalDiffCost) > 0) msg += '<br/>' + data.items.filter(i => Math.abs(i.diff) > 0.001).map(i => `<br/>${i.ingredientId?.name_ar || '?'}: ${i.diff > 0 ? '+' : ''}${parseFloat(i.diff).toFixed(2)} (${parseFloat(i.diffCost).toFixed(2)} ج.م)`).join('');
+      showModal('نجاح', msg);
+    }
+    document.getElementById('cnt-note').value = '';
+    loadCounts();
+    loadIngredients();
+    loadInvStatus();
+  } catch (e) { showModal('خطأ', e.message); }
+}
+
+async function loadCounts() {
+  try {
+    const res = await fetch('/api/inventory/counts', { headers: getAuthH() });
+    const counts = await res.json();
+    document.getElementById('inv-counts-history').innerHTML = counts.length === 0 ? '<p style="padding:1rem;color:var(--muted);">لا يوجد جرد سابق.</p>' :
+      '<h3 style="margin-bottom:.5rem;">سجل الجرد</h3>' + counts.map(c => {
+        const totalDiff = c.items.reduce((s, i) => s + Math.abs(i.diff), 0);
+        return `<div style="border-bottom:1px solid var(--line);padding:.6rem 0;font-size:.85rem;">
+          <span style="color:var(--muted);">${new Date(c.countDate).toLocaleDateString('ar-EG')}</span> — 
+          <span>فرق: ${parseFloat(c.totalDiffCost).toFixed(2)} ج.م</span>
+          <span style="color:var(--muted);">| فروق: ${totalDiff.toFixed(1)}</span>
+          ${c.note ? '<span style="color:var(--muted);">| ' + c.note + '</span>' : ''}
+        </div>`;
+      }).join('');
+  } catch (e) { console.error(e); }
+}
+
+async function loadAlerts() {
+  try {
+    const res = await fetch('/api/inventory/alerts?resolved=false', { headers: getAuthH() });
+    const alerts = await res.json();
+    document.getElementById('inv-alerts-list').innerHTML = alerts.length === 0 ? '<p style="padding:1rem;color:var(--muted);">لا توجد تنبيهات نشطة. ✓</p>' :
+      alerts.map(a => `<div style="border-bottom:1px solid var(--line);padding:.8rem;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <span style="color:${a.severity === 'critical' ? 'var(--red)' : a.severity === 'warning' ? 'var(--orange)' : 'var(--muted)'}; font-weight:600;">${a.message}</span>
+          <div style="font-size:.75rem;color:var(--muted);">${new Date(a.createdAt).toLocaleString('ar-EG')}</div>
+        </div>
+        <button class="hbtn" style="color:var(--green);border-color:var(--green);font-size:.75rem;" onclick="resolveAlert('${a._id}')">حل</button>
+      </div>`).join('');
+  } catch (e) { console.error(e); }
+}
+
+async function resolveAlert(id) {
+  await fetch('/api/inventory/alerts/' + id + '/resolve', { method: 'POST', headers: getAuthH() });
+  loadAlerts();
+  loadInvStatus();
+}
+
+// ── Recipes Functions ──
+let currentRecipeId = null;
+
+async function loadRecipes() {
+  try {
+    const res = await fetch('/api/recipes', { headers: getAuthH() });
+    const recipes = await res.json();
+    document.getElementById('recipes-list').innerHTML = recipes.length === 0 ? '<p style="padding:1rem;color:var(--muted);">لا توجد وصفات. أضف أول وصفة الآن.</p>' :
+      '<table><tr><th>الاسم</th><th>المشروب</th><th>سعر البيع</th><th>تكلفة الوحدة</th><th>الهامش</th><th>المكونات</th><th></th></tr>' +
+      recipes.map(r => {
+        const margin = r.drink && r.drink.price > 0 ? ((r.drink.price - r.unitCost) / r.drink.price * 100) : 0;
+        return `<tr>
+          <td>${r.name}</td>
+          <td>${r.drink ? (r.drink.name_ar || r.drink.name) : '—'}</td>
+          <td style="color:var(--gold);">${r.drink ? r.drink.price + ' ج.م' : '—'}</td>
+          <td style="color:var(--accent-emerald);">${parseFloat(r.unitCost).toFixed(2)} ج.م</td>
+          <td style="color:${margin >= 50 ? 'var(--green)' : margin >= 30 ? 'var(--orange)' : 'var(--red)'};">${margin.toFixed(1)}%</td>
+          <td style="font-size:.8rem;">${r.items.length} مكونات</td>
+          <td>
+            <button class="hbtn" style="font-size:.75rem;" onclick="editRecipe('${r._id}')">تعديل</button>
+            <button class="hbtn" style="color:var(--red);border-color:transparent;font-size:.75rem;" onclick="deleteRecipe('${r._id}')">✕</button>
+          </td>
+        </tr>`;
+      }).join('') + '</table>';
+    // Populate drink dropdown
+    const drinksRes = await fetch('/api/drinks?available=1', { headers: getAuthH() });
+    const drinks = await drinksRes.json();
+    document.getElementById('rc-drink').innerHTML = '<option value="">اختر المشروب...</option>' +
+      drinks.map(d => `<option value="${d._id}">${d.name_ar || d.name} — ${d.price} ج.م</option>`).join('');
+  } catch (e) { console.error(e); }
+}
+
+function showRecipeSection(s) {
+  document.getElementById('recipe-list').style.display = s === 'list' ? 'block' : 'none';
+  document.getElementById('recipe-editor').style.display = s === 'editor' ? 'block' : 'none';
+  if (s === 'editor' && !currentRecipeId) {
+    loadRecipeIngredients(null);
+  }
+}
+
+function cancelRecipeEdit() {
+  currentRecipeId = null;
+  document.getElementById('rc-edit-id').value = '';
+  document.getElementById('rc-name').value = '';
+  document.getElementById('rc-drink').value = '';
+  document.getElementById('rc-yield').value = '1';
+  showRecipeSection('list');
+}
+
+async function saveRecipe() {
+  const name = document.getElementById('rc-name').value;
+  const drinkId = document.getElementById('rc-drink').value || null;
+  const yieldQty = parseInt(document.getElementById('rc-yield').value) || 1;
+  if (!name) return showModal('خطأ', 'اسم الوصفة مطلوب');
+  const editId = document.getElementById('rc-edit-id').value;
+  let recipe;
+  if (editId) {
+    const res = await fetch('/api/recipes/' + editId, { method: 'PUT', headers: getAuthH(), body: JSON.stringify({ name, drinkId, yield: yieldQty }) });
+    recipe = await res.json();
+  } else {
+    const res = await fetch('/api/recipes', { method: 'POST', headers: getAuthH(), body: JSON.stringify({ name, drinkId, yield: yieldQty }) });
+    recipe = await res.json();
+  }
+  currentRecipeId = recipe._id;
+  document.getElementById('rc-edit-id').value = recipe._id;
+  showModal('نجاح', editId ? 'تم تحديث الوصفة' : 'تم إنشاء الوصفة');
+  loadRecipeIngredients(recipe._id);
+  loadRecipes();
+}
+
+async function editRecipe(id) {
+  const res = await fetch('/api/recipes/' + id, { headers: getAuthH() });
+  const r = await res.json();
+  currentRecipeId = r._id;
+  document.getElementById('rc-edit-id').value = r._id;
+  document.getElementById('rc-name').value = r.name;
+  document.getElementById('rc-drink').value = r.drinkId || '';
+  document.getElementById('rc-yield').value = r.yield || 1;
+  showRecipeSection('editor');
+  loadRecipeIngredients(r._id);
+}
+
+async function deleteRecipe(id) {
+  if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذه الوصفة؟', true)) return;
+  await fetch('/api/recipes/' + id, { method: 'DELETE', headers: getAuthH() });
+  loadRecipes();
+}
+
+async function loadRecipeIngredients(recipeId) {
+  if (!recipeId) { document.getElementById('recipe-items-list').innerHTML = '<p style="color:var(--muted);font-size:.85rem;">احفظ الوصفة أولاً ثم أضف المكونات</p>'; return; }
+  try {
+    const res = await fetch('/api/recipes/' + recipeId + '/items', { headers: getAuthH() });
+    const items = await res.json();
+    document.getElementById('recipe-items-list').innerHTML = items.length === 0 ? '<p style="color:var(--muted);">لا توجد مكونات. أضف المكونات أدناه.</p>' :
+      '<table><tr><th>الخامة</th><th>الوحدة</th><th>تكلفة الوحدة</th><th>الكمية</th><th>التكلفة</th><th></th></tr>' +
+      items.map(i => `<tr>
+        <td>${i.ingredientId ? (i.ingredientId.name_ar || i.ingredientId.name) : '—'}</td>
+        <td>${i.ingredientId ? i.ingredientId.unit : ''}</td>
+        <td style="color:var(--gold);">${i.ingredientId ? parseFloat(i.ingredientId.unitCost).toFixed(2) : 0} ج.م</td>
+        <td style="font-weight:600;">${i.quantity}</td>
+        <td style="color:var(--accent-emerald);">${i.ingredientId ? parseFloat(i.quantity * i.ingredientId.unitCost).toFixed(2) : 0} ج.م</td>
+        <td><button class="hbtn" style="color:var(--red);border-color:transparent;font-size:.75rem;" onclick="removeRecipeItem('${i._id}')">✕</button></td>
+      </tr>`).join('') + '</table>';
+  } catch (e) { console.error(e); }
+}
+
+async function addRecipeItem() {
+  if (!currentRecipeId) return showModal('خطأ', 'احفظ الوصفة أولاً');
+  const ingredientId = document.getElementById('rc-ingredient').value;
+  const quantity = parseFloat(document.getElementById('rc-qty').value);
+  if (!ingredientId || !quantity) return showModal('خطأ', 'اختر الخامة وأدخل الكمية');
+  await fetch('/api/recipes/' + currentRecipeId + '/items', { method: 'POST', headers: getAuthH(), body: JSON.stringify({ ingredientId, quantity }) });
+  document.getElementById('rc-qty').value = '';
+  loadRecipeIngredients(currentRecipeId);
+  loadRecipes();
+}
+
+async function removeRecipeItem(itemId) {
+  if (!currentRecipeId) return;
+  await fetch('/api/recipes/' + currentRecipeId + '/items/' + itemId, { method: 'DELETE', headers: getAuthH() });
+  loadRecipeIngredients(currentRecipeId);
+  loadRecipes();
+}
+
+async function recalcCosts() {
+  const res = await fetch('/api/recipes/calculate-costs', { method: 'POST', headers: getAuthH() });
+  const d = await res.json();
+  showModal('نجاح', 'تم تحديث تكاليف ' + d.updated + ' وصفة');
+  loadRecipes();
 }
 
 function exportReportsCSV() {

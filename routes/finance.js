@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Expense = require('../models/Expense');
 const CashMovement = require('../models/CashMovement');
+const ExpenseCategory = require('../models/ExpenseCategory');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 
 function buildDateFilter(start, end, fieldName) {
@@ -100,6 +101,38 @@ router.delete('/cash-movements/:id', authenticateToken, requireRole('admin'), as
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ── Expense Categories ──
+router.get('/expense-categories', authenticateToken, async (req, res) => {
+  try {
+    const cats = await ExpenseCategory.find().sort({ name: 1 });
+    res.json(cats);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/expense-categories', requireRole('admin'), async (req, res) => {
+  try {
+    const { name, name_ar, type } = req.body;
+    if (!name) return res.status(400).json({ error: 'الاسم مطلوب' });
+    const cat = await ExpenseCategory.create({ name, name_ar: name_ar || '', type: type || 'other' });
+    res.status(201).json(cat);
+  } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+router.put('/expense-categories/:id', requireRole('admin'), async (req, res) => {
+  try {
+    const cat = await ExpenseCategory.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!cat) return res.status(404).json({ error: 'غير موجود' });
+    res.json(cat);
+  } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+router.delete('/expense-categories/:id', requireRole('admin'), async (req, res) => {
+  try {
+    await ExpenseCategory.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 module.exports = router;

@@ -18,6 +18,13 @@ require('./models/GameRoom');
 require('./models/SyncEvent');
 require('./models/Expense');
 require('./models/CashMovement');
+require('./models/Ingredient');
+require('./models/Recipe');
+require('./models/RecipeItem');
+require('./models/InventoryTransaction');
+require('./models/InventoryCount');
+require('./models/StockAlert');
+require('./models/ExpenseCategory');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -90,6 +97,8 @@ app.use('/api/bridge', requireDB, require('./routes/bridge'));
 app.use('/api/shifts', requireDB, require('./routes/shifts'));
 app.use('/api/reports', requireDB, require('./routes/reports'));
 app.use('/api/finance', requireDB, require('./routes/finance'));
+app.use('/api/inventory', requireDB, require('./routes/inventory'));
+app.use('/api/recipes', requireDB, require('./routes/recipes'));
 
 app.post('/api/debug-log', requireDB, (req, res) => {
   console.log('[FRONTEND LOG]', req.body);

@@ -589,4 +589,126 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
   }
 });
 
+// ── Product Profitability Report ──
+router.get('/profitability', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const { start, end } = req.query;
+    const match = { status: { $nin: ['cancelled', 'refunded'] } };
+    if (start || end) {
+      match.createdAt = {};
+      if (start) match.createdAt.$gte = new Date(start);
+      if (end) match.createdAt.$lte = new Date(end);
+    }
+    const orders = await Order.find(match).populate('items.drinkId').lean();
+    const Recipe = require('../models/Recipe');
+    const RecipeItem = require('../models/RecipeItem');
+    const Ingredient = require('../models/Ingredient');
+    const recipes = await Recipe.find({ isActive: true }).lean();
+    const recipeItems = await RecipeItem.find({ recipeId: { $in: recipes.map(r => r._id) } }).populate('ingredientId', 'unitCost').lean();
+    const costMap = {};
+    recipeItems.forEach(ri => {
+      if (!costMap[ri.recipeId]) costMap[ri.recipeId] = 0;
+      if (ri.ingredientId) costMap[ri.recipeId] += (ri.quantity || 0) * (ri.ingredientId.unitCost || 0);
+    });
+    const recipeDrinkMap = {};
+    recipes.forEach(r => { recipeDrinkMap[String(r.drinkId)] = { recipeId: r._id, cost: costMap[r._id] || 0, yield: r.yield || 1 }; });
+    const drinkSales = {};
+    orders.forEach(o => {
+      (o.items || []).forEach(item => {
+        if (!item.drinkId) return;
+        const id = String(item.drinkId._id || item.drinkId);
+        if (!drinkSales[id]) drinkSales[id] = { drinkId: id, name: item.drinkId.name_ar || item.drinkId.name, name_en: item.drinkId.name, qty: 0, revenue: 0, cost: 0 };
+        drinkSales[id].qty += item.qty || 1;
+        drinkSales[id].revenue += (item.qty || 1) * (item.price || 0);
+        const rd = recipeDrinkMap[id];
+        if (rd) drinkSales[id].cost += ((item.qty || 1) * rd.cost / rd.yield);
+      });
+    });
+    const result = Object.values(drinkSales).map(d => ({
+      ...d, profit: d.revenue - d.cost, margin: d.revenue > 0 ? ((d.revenue - d.cost) / d.revenue * 100).toFixed(1) : 0
+    })).sort((a, b) => b.profit - a.profit);
+    res.json(result);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── Ingredient Consumption Report ──
+router.get('/consumption', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const { start, end } = req.query;
+    const match = {};
+    if (start || end) {
+      match.createdAt = {};
+      if (start) match.createdAt.$gte = new Date(start);
+      if (end) match.createdAt.$lte = new Date(end);
+    }
+    match.type = { $in: ['consumption', 'waste'] };
+    const transactions = await InventoryTransaction.find(match).populate('ingredientId', 'name name_ar unit').sort({ createdAt: -1 }).limit(500);
+    const grouped = {};
+    transactions.forEach(tx => {
+      if (!tx.ingredientId) return;
+      const id = String(tx.ingredientId._id);
+      if (!grouped[id]) grouped[id] = { ingredient: tx.ingredientId, totalConsumed: 0, totalWasted: 0, totalCost: 0 };
+      if (tx.type === 'waste') grouped[id].totalWasted += Math.abs(tx.quantity);
+      else grouped[id].totalConsumed += Math.abs(tx.quantity);
+      grouped[id].totalCost += Math.abs(tx.totalCost || 0);
+    });
+    res.json(Object.values(grouped).sort((a, b) => b.totalCost - a.totalCost));
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── Waste Report ──
+router.get('/waste', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const { start, end } = req.query;
+    const match = { type: 'waste' };
+    if (start || end) {
+      match.createdAt = {};
+      if (start) match.createdAt.$gte = new Date(start);
+      if (end) match.createdAt.$lte = new Date(end);
+    }
+    const wasteLogs = await InventoryTransaction.find(match).populate('ingredientId', 'name name_ar unit').populate('performedBy', 'username').sort({ createdAt: -1 }).limit(200);
+    const totalWasteCost = wasteLogs.reduce((s, w) => s + Math.abs(w.totalCost || 0), 0);
+    res.json({ wasteLogs, totalWasteCost, count: wasteLogs.length });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── Cost Analysis (recipe cost vs selling price) ──
+router.get('/cost-analysis', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const Recipe = require('../models/Recipe');
+    const RecipeItem = require('../models/RecipeItem');
+    const Drink = require('../models/Drink');
+    const recipes = await Recipe.find({ isActive: true, drinkId: { $ne: null } }).lean();
+    const items = await RecipeItem.find({ recipeId: { $in: recipes.map(r => r._id) } }).populate('ingredientId', 'name name_ar unit unitCost').lean();
+    const itemMap = {};
+    items.forEach(i => {
+      if (!itemMap[i.recipeId]) itemMap[i.recipeId] = [];
+      itemMap[i.recipeId].push(i);
+    });
+    const drinks = await Drink.find({ isAvailable: true }).lean();
+    const drinkPriceMap = {};
+    drinks.forEach(d => { drinkPriceMap[d._id] = d.price; });
+    const result = recipes.map(r => {
+      const recipeItems = itemMap[r._id] || [];
+      let totalCost = 0;
+      recipeItems.forEach(ri => { if (ri.ingredientId) totalCost += ri.quantity * ri.ingredientId.unitCost; });
+      const unitCost = r.yield > 0 ? totalCost / r.yield : totalCost;
+      const sellPrice = drinkPriceMap[r.drinkId] || 0;
+      return {
+        recipeId: r._id,
+        recipeName: r.name,
+        drinkId: r.drinkId,
+        yield: r.yield || 1,
+        totalCost,
+        unitCost,
+        sellPrice,
+        profit: sellPrice - unitCost,
+        margin: sellPrice > 0 ? ((sellPrice - unitCost) / sellPrice * 100).toFixed(1) : 0,
+        items: recipeItems
+      };
+    }).sort((a, b) => a.margin - b.margin);
+    res.json(result);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

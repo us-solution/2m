@@ -516,6 +516,37 @@ router.get('/reports/:type', authenticateToken, requireRole('admin'), async (req
   }
 });
 
+// Backup endpoint
+router.get('/backup', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const collections = ['User', 'Category', 'Drink', 'Order', 'Offer', 'Expense', 'CashMovement', 'Shift', 'SyncEvent', 'Ingredient', 'Recipe', 'RecipeItem', 'InventoryTransaction', 'InventoryCount', 'StockAlert', 'ExpenseCategory'];
+    const backup = {};
+    for (const name of collections) {
+      const model = require('../models/' + name);
+      backup[name] = await model.find({}).lean();
+    }
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="ozel-backup-${new Date().toISOString().slice(0,10)}.json"`);
+    res.json(backup);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/restore', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const { collection, records } = req.body;
+    if (!collection || !records) return res.status(400).json({ error: 'collection and records required' });
+    if (['User', 'Order'].includes(collection)) return res.status(403).json({ error: 'Cannot restore sensitive collection via API' });
+    const model = require('../models/' + collection);
+    await model.deleteMany({});
+    await model.insertMany(records);
+    res.json({ success: true, collection, count: records.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Delete report snapshot
 router.delete('/reports/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
