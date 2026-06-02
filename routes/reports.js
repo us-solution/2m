@@ -85,6 +85,7 @@ router.get('/top-items', authenticateToken, requireRole('admin'), async (req, re
       match.createdAt = { $gte: d };
     }
 
+    match.status = { $nin: ['cancelled', 'refunded'] };
     const orders = await Order.find(match).lean();
     const itemMap = {};
     for (const o of orders) {
