@@ -218,15 +218,14 @@ window.openProfileModal = async function() {
     const tier = (userDetails.subscriptionTier || 'none').toLowerCase();
     cardEl.classList.add(`tier-${tier}`);
 
-    // Apply custom card color if set — use !important to override CSS class gradients
-    if (userDetails.cardColor) {
-      cardEl.style.setProperty('background', userDetails.cardColor, 'important');
-      cardEl.style.setProperty('animation', 'none', 'important');
-      cardEl.style.setProperty('background-size', '100% 100%', 'important');
-    } else {
-      cardEl.style.background = '';
-      cardEl.style.animation = '';
-      cardEl.style.backgroundSize = '';
+    // Map cardColor to CSS class
+    const CARD_CLASSES = { '#1a2e24': 'card-green', '#1a1a40': 'card-blue', '#541a1a': 'card-red', '#7a5a00': 'card-gold' };
+    const cardClass = CARD_CLASSES[userDetails.cardColor] || '';
+
+    // Remove any existing custom card classes and add the matching one
+    Object.values(CARD_CLASSES).forEach(cls => cardEl.classList.remove(cls));
+    if (cardClass) {
+      cardEl.classList.add(cardClass);
     }
 
     // Use custom cardTitle if set, otherwise fall back to tier name

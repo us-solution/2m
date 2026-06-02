@@ -4550,6 +4550,36 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   box-shadow: 0 12px 30px rgba(46, 204, 113, 0.2);
 }
 
+/* Custom card colors (set by admin) */
+.vip-card.card-green {
+  background: #1a2e24;
+  border-color: rgba(26, 46, 36, 0.5);
+  box-shadow: 0 12px 30px rgba(26, 46, 36, 0.25);
+  animation: none;
+  background-size: 100% 100%;
+}
+.vip-card.card-blue {
+  background: #1a1a40;
+  border-color: rgba(26, 26, 64, 0.5);
+  box-shadow: 0 12px 30px rgba(26, 26, 64, 0.25);
+  animation: none;
+  background-size: 100% 100%;
+}
+.vip-card.card-red {
+  background: #541a1a;
+  border-color: rgba(84, 26, 26, 0.5);
+  box-shadow: 0 12px 30px rgba(84, 26, 26, 0.25);
+  animation: none;
+  background-size: 100% 100%;
+}
+.vip-card.card-gold {
+  background: #7a5a00;
+  border-color: rgba(122, 90, 0, 0.5);
+  box-shadow: 0 12px 30px rgba(122, 90, 0, 0.25);
+  animation: none;
+  background-size: 100% 100%;
+}
+
 .vip-card-badge {
   position: absolute;
   top: 1rem;
