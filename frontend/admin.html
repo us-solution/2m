@@ -409,12 +409,18 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
 
       <!-- Controls -->
       <div style="display:flex; gap:.6rem; margin-bottom:1.5rem; flex-wrap:wrap; align-items:center;">
-        <select id="r-period" onchange="loadReports()" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.5rem;font-family:'Tajawal',sans-serif;border-radius:4px;">
+        <select id="r-period" onchange="onPeriodChange()" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.5rem;font-family:'Tajawal',sans-serif;border-radius:4px;">
           <option value="today">اليوم</option>
           <option value="week" selected>هذا الأسبوع</option>
           <option value="month">هذا الشهر</option>
           <option value="all">كل الوقت</option>
+          <option value="custom">مخصص</option>
         </select>
+        <span id="r-custom-dates" style="display:none; gap:.4rem; align-items:center;">
+          <input type="date" id="r-start" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.4rem;font-family:'Tajawal',sans-serif;border-radius:4px;">
+          <span style="color:var(--muted);font-size:.8rem;">إلى</span>
+          <input type="date" id="r-end" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.4rem;font-family:'Tajawal',sans-serif;border-radius:4px;">
+        </span>
         <button class="hbtn" onclick="loadReports()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.5rem 1.2rem; font-weight:700;">تحديث</button>
         <button class="hbtn" onclick="downloadPDF()" style="background:var(--accent-emerald); color:var(--white); border-color:var(--accent-emerald); padding:.5rem 1.2rem;">تحميل PDF</button>
         <button class="hbtn" onclick="exportReportsCSV()" style="border-color:var(--accent-emerald); color:var(--accent-emerald); padding:.5rem 1.2rem;">تصدير CSV</button>
@@ -468,12 +474,30 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
       </div>
 
       <!-- Sales History Chart -->
-      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line);">
+      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
         <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">سجل المبيعات (آخر 7 أيام)</h3>
         <div id="r-sales-chart"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
         <div style="margin-top:1rem; font-size:.8rem; color:var(--muted);">
           <span style="display:inline-block; width:12px; height:12px; background:var(--gold); border-radius:2px; vertical-align:middle; margin-left:4px;"></span> الإيرادات
         </div>
+      </div>
+
+      <!-- Payment Methods -->
+      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">طرق الدفع</h3>
+        <div id="r-payment-methods"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
+      </div>
+
+      <!-- Hourly Sales -->
+      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">المبيعات حسب الساعة</h3>
+        <div id="r-hourly-sales"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
+      </div>
+
+      <!-- Expense vs Revenue -->
+      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line);">
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">المصروفات مقابل الإيرادات</h3>
+        <div id="r-expense-revenue"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
       </div>
     </div>
 
@@ -1205,25 +1229,55 @@ loadReports();
 
 // ── REPORTS ──
 
+function buildReportParams() {
+  const period = document.getElementById('r-period').value;
+  if (period === 'custom') {
+    const start = document.getElementById('r-start').value;
+    const end = document.getElementById('r-end').value;
+    const p = [];
+    if (start) p.push('start=' + encodeURIComponent(start));
+    if (end) p.push('end=' + encodeURIComponent(end));
+    p.push('period=custom');
+    return { period, params: '?' + p.join('&'), itemsParams: '?' + p.join('&') };
+  }
+  const daysMap = { today: 1, week: 7, month: 30, all: 365 };
+  const days = daysMap[period] || 7;
+  return { period, params: `?period=${period}`, itemsParams: `?days=${days}` };
+}
+
+function onPeriodChange() {
+  const sel = document.getElementById('r-period');
+  const customDates = document.getElementById('r-custom-dates');
+  if (sel.value === 'custom') {
+    customDates.style.display = 'inline-flex';
+    loadReports();
+  } else {
+    customDates.style.display = 'none';
+    loadReports();
+  }
+}
+
 async function loadReports() {
   try {
-    const period = document.getElementById('r-period').value;
-    const daysMap = { today: 1, week: 7, month: 30, all: 365 };
-    const days = daysMap[period] || 7;
-    const params = `?period=${period}`;
-    const itemsParams = `?days=${days}`;
+    const { period, params, itemsParams } = buildReportParams();
 
-    const [salesRes, topRes, cashiersRes, shiftsRes] = await Promise.all([
+    const [salesRes, topRes, cashiersRes, shiftsRes, pmRes, hourlyRes, expRevRes] = await Promise.all([
       fetch('/api/reports/sales' + params, { headers: getAuthH() }),
       fetch('/api/reports/top-items' + itemsParams, { headers: getAuthH() }),
       fetch('/api/reports/cashiers' + itemsParams, { headers: getAuthH() }),
-      fetch('/api/shifts', { headers: getAuthH() })
+      fetch('/api/shifts', { headers: getAuthH() }),
+      fetch('/api/reports/payment-methods' + params, { headers: getAuthH() }),
+      fetch('/api/reports/hourly-sales' + params, { headers: getAuthH() }),
+      fetch('/api/reports/expense-vs-revenue' + params, { headers: getAuthH() })
     ]);
 
     const sales = await salesRes.json();
     const topItems = await topRes.json();
     const cashiers = await cashiersRes.json();
     const shifts = await shiftsRes.json();
+    const pmData = await pmRes.json();
+    const hourlyData = await hourlyRes.json();
+    const expRevData = await expRevRes.json();
 
     // Summary cards
     document.getElementById('r-total-orders').textContent = sales.totalOrders || '—';
@@ -1253,16 +1307,17 @@ async function loadReports() {
       topDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لم يتم بيع أي عناصر بعد.</p>';
     }
 
-    // Cashier performance
+    // Cashier performance with cash collected
     const cashDiv = document.getElementById('r-cashiers');
     if (cashiers && cashiers.length > 0) {
-      cashDiv.innerHTML = '<div style="display:grid; grid-template-columns: 1fr auto auto auto; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>الكاشير</span><span>الورديات</span><span>الطلبات</span><span>الإيرادات</span></div>' +
+      cashDiv.innerHTML = '<div style="display:grid; grid-template-columns: 1fr auto auto auto auto auto; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>الكاشير</span><span>الورديات</span><span>الطلبات</span><span>الإيرادات</span><span>نقداً</span></div>' +
         cashiers.map(c => `
-        <div style="display:grid; grid-template-columns: 1fr auto auto auto; gap:.5rem; align-items:center; padding:.5rem 0; border-bottom:1px solid var(--line);">
+        <div style="display:grid; grid-template-columns: 1fr auto auto auto auto auto; gap:.5rem; align-items:center; padding:.5rem 0; border-bottom:1px solid var(--line);">
           <span style="color:var(--text);">${c.cashierName || 'كاشير'}</span>
           <span style="text-align:right; color:var(--muted);">${c.shifts || 0}</span>
           <span style="text-align:right; color:var(--muted);">${c.totalOrders || 0}</span>
           <span style="text-align:right; color:var(--accent-emerald); font-weight:600;">${parseFloat(c.totalRevenue || 0).toFixed(2)} ج.م</span>
+          <span style="text-align:right; color:var(--gold); font-weight:700;">${parseFloat(c.cashCollected || 0).toFixed(2)} ج.م</span>
         </div>
       `).join('');
     } else {
@@ -1272,16 +1327,18 @@ async function loadReports() {
     // Shift history
     const shiftDiv = document.getElementById('r-shifts');
     if (shifts && shifts.length > 0) {
-      shiftDiv.innerHTML = '<div style="display:grid; grid-template-columns: 1fr auto auto auto auto; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>الوردية</span><span>الكاشير</span><span>الإيرادات</span><span>الفارق</span><span>الحالة</span></div>' +
+      shiftDiv.innerHTML = '<div style="display:grid; grid-template-columns: 1fr auto auto auto auto auto auto; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>الوردية</span><span>الكاشير</span><span>الإيرادات</span><span>نقداً</span><span>الفارق</span><span>الحالة</span></div>' +
         shifts.slice(0, 20).map(s => {
           const exp = s.expectedBalance || 0;
           const actual = s.closingBalance || 0;
           const diff = exp ? ((actual - exp) / exp * 100).toFixed(1) : '—';
           const diffColor = Math.abs(parseFloat(diff)) > 2 ? 'var(--red)' : 'var(--accent-emerald)';
-          return `<div style="display:grid; grid-template-columns: 1fr auto auto auto auto; gap:.5rem; align-items:center; padding:.4rem 0; border-bottom:1px solid var(--line);">
+          const cashAmt = (s.paymentBreakdown && s.paymentBreakdown.cash) || 0;
+          return `<div style="display:grid; grid-template-columns: 1fr auto auto auto auto auto auto; gap:.5rem; align-items:center; padding:.4rem 0; border-bottom:1px solid var(--line);">
             <span style="color:var(--text); font-size:.85rem;">${new Date(s.openedAt).toLocaleDateString('ar-EG', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
-            <span style="color:var(--muted); font-size:.8rem;">كاشير</span>
+            <span style="color:var(--muted); font-size:.8rem;">${s.cashierName || 'كاشير'}</span>
             <span style="color:var(--accent-emerald); font-size:.85rem;">${s.totalRevenue ? parseFloat(s.totalRevenue).toFixed(0) : '0'} ج.م</span>
+            <span style="color:var(--gold); font-size:.85rem; font-weight:700;">${cashAmt.toFixed(0)} ج.م</span>
             <span style="color:${diffColor}; font-size:.8rem;">${diff}%</span>
             <span style="color:${s.status === 'open' ? 'var(--gold)' : 'var(--muted)'}; font-size:.8rem;">${s.status === 'open' ? 'مفتوحة' : 'مغلقة'}</span>
           </div>`;
@@ -1308,6 +1365,119 @@ async function loadReports() {
     } else {
       chartDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا يوجد سجل بعد.</p>';
     }
+
+    // Payment Methods
+    const pmDiv = document.getElementById('r-payment-methods');
+    const pmLabels = { cash: 'نقدي', card: 'بطاقة', wallet: 'محفظة', split: 'تقسيم', unspecified: 'غير محدد' };
+    const bd = pmData.breakdown || {};
+    const pmEntries = Object.entries(bd).filter(([k, v]) => v.count > 0);
+    if (pmEntries.length > 0) {
+      const pmTotal = pmEntries.reduce((s, [, v]) => s + v.total, 0);
+      pmDiv.innerHTML = '<div style="display:grid; grid-template-columns: 1fr auto auto auto; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>طريقة الدفع</span><span>العدد</span><span>الإجمالي</span><span>النسبة</span></div>' +
+        pmEntries.map(([k, v]) => `
+        <div style="display:grid; grid-template-columns: 1fr auto auto auto; gap:.5rem; align-items:center; padding:.5rem 0; border-bottom:1px solid var(--line);">
+          <span style="color:var(--text);">${pmLabels[k] || k}</span>
+          <span style="text-align:right; color:var(--muted);">${v.count}</span>
+          <span style="text-align:right; color:var(--accent-emerald); font-weight:600;">${parseFloat(v.total).toFixed(2)} ج.م</span>
+          <span style="text-align:right; color:var(--gold);">${pmTotal ? ((v.total / pmTotal) * 100).toFixed(1) + '%' : '—'}</span>
+        </div>
+      `).join('');
+    } else {
+      pmDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا توجد بيانات طرق دفع بعد.</p>';
+    }
+
+    // Hourly Sales
+    const hourlyDiv = document.getElementById('r-hourly-sales');
+    if (hourlyData && hourlyData.length > 0) {
+      const active = hourlyData.filter(h => h.orders > 0);
+      if (active.length > 0) {
+        const maxH = Math.max(...active.map(h => h.revenue));
+        hourlyDiv.innerHTML = '<div style="display:grid; grid-template-columns: 1fr auto auto; gap:.5rem; font-size:.8rem; color:var(--muted); padding-bottom:.5rem; border-bottom:1px solid var(--line);"><span>الساعة</span><span>الطلبات</span><span>الإيرادات</span></div>' +
+          active.map(h => `
+          <div style="display:grid; grid-template-columns: 1fr auto auto; gap:.5rem; align-items:center; padding:.5rem 0; border-bottom:1px solid var(--line);">
+            <span style="color:var(--text);">${String(h.hour).padStart(2, '0')}:00</span>
+            <span style="text-align:right; color:var(--muted);">${h.orders}</span>
+            <span style="text-align:right; color:var(--accent-emerald); font-weight:600;">${parseFloat(h.revenue).toFixed(2)} ج.م</span>
+          </div>
+        `).join('');
+      } else {
+        hourlyDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا توجد مبيعات اليوم.</p>';
+      }
+    } else {
+      hourlyDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا توجد بيانات مبيعات ساعية بعد.</p>';
+    }
+
+    // Expense vs Revenue
+    const expRevDiv = document.getElementById('r-expense-revenue');
+    if (expRevData) {
+      expRevDiv.innerHTML = `
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:1rem; margin-bottom:1rem;">
+          <div style="background:var(--bg3); padding:.8rem; border-radius:4px; text-align:center;">
+            <div style="font-size:1.5rem; color:var(--accent-emerald); font-weight:700;">${parseFloat(expRevData.revenue || 0).toFixed(2)} ج.م</div>
+            <div style="font-size:.7rem; color:var(--muted);">الإيرادات</div>
+          </div>
+          <div style="background:var(--bg3); padding:.8rem; border-radius:4px; text-align:center;">
+            <div style="font-size:1.5rem; color:var(--red); font-weight:700;">${parseFloat(expRevData.totalCosts || 0).toFixed(2)} ج.م</div>
+            <div style="font-size:.7rem; color:var(--muted);">المصروفات</div>
+          </div>
+          <div style="background:var(--bg3); padding:.8rem; border-radius:4px; text-align:center;">
+            <div style="font-size:1.5rem; color:${expRevData.netProfit >= 0 ? 'var(--green)' : 'var(--red)'}; font-weight:700;">${parseFloat(expRevData.netProfit || 0).toFixed(2)} ج.م</div>
+            <div style="font-size:.7rem; color:var(--muted);">صافي الربح</div>
+          </div>
+          <div style="background:var(--bg3); padding:.8rem; border-radius:4px; text-align:center;">
+            <div style="font-size:1.5rem; color:var(--gold); font-weight:700;">${parseFloat(expRevData.monthlyRunRate || 0).toFixed(2)} ج.م</div>
+            <div style="font-size:.7rem; color:var(--muted);">المعدل الشهري</div>
+          </div>
+          <div style="background:var(--bg3); padding:.8rem; border-radius:4px; text-align:center;">
+            <div style="font-size:1.5rem; color:var(--green); font-weight:700;">${parseFloat(expRevData.cashIn || 0).toFixed(2)} ج.م</div>
+            <div style="font-size:.7rem; color:var(--muted);">إيداع نقدي</div>
+          </div>
+          <div style="background:var(--bg3); padding:.8rem; border-radius:4px; text-align:center;">
+            <div style="font-size:1.5rem; color:var(--red); font-weight:700;">${parseFloat(expRevData.cashOut || 0).toFixed(2)} ج.م</div>
+            <div style="font-size:.7rem; color:var(--muted);">سحب نقدي</div>
+          </div>
+        </div>
+        ${expRevData.daily && expRevData.daily.length > 0 ? `
+          <div style="font-size:.85rem; color:var(--muted); margin-bottom:.5rem;">آخر 30 يوم</div>
+          <div id="r-exp-chart" style="display:flex; align-items:flex-end; gap:.2rem; min-height:120px;"></div>
+        ` : ''}
+      `;
+
+      // Mini bar chart for expense vs revenue (last 30 days)
+      const chartC = document.getElementById('r-exp-chart');
+      if (chartC && expRevData.daily) {
+        const days = expRevData.daily;
+        const maxVal = Math.max(...days.map(d => Math.max(d.revenue, d.costs)), 1);
+        chartC.innerHTML = days.map((d, i) => `
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; position:relative;">
+            <div style="display:flex; gap:1px; width:100%; max-width:20px; height:${Math.max((Math.max(d.revenue, d.costs) / maxVal) * 100, 3)}%;">
+              <div style="flex:1; background:var(--accent-emerald); border-radius:1px 1px 0 0;" title="الإيرادات ${d.revenue.toFixed(0)}"></div>
+              <div style="flex:1; background:var(--red); border-radius:1px 1px 0 0; opacity:0.7;" title="المصروفات ${d.costs.toFixed(0)}"></div>
+            </div>
+            ${i % 5 === 0 ? `<span style="font-size:.55rem; color:var(--muted); margin-top:.2rem;">${d.date.slice(5)}</span>` : ''}
+          </div>
+        `).join('');
+      }
+
+      // Cost breakdown by category
+      const cats = expRevData.costByCategory || {};
+      const catEntries = Object.entries(cats).sort((a, b) => b[1] - a[1]);
+      if (catEntries.length > 0) {
+        expRevDiv.innerHTML += `
+          <div style="margin-top:1rem;">
+            <div style="font-size:.85rem; color:var(--muted); margin-bottom:.5rem;">توزيع المصروفات حسب التصنيف</div>
+            <div style="display:grid; grid-template-columns: 1fr auto; gap:.4rem; font-size:.8rem;">
+              ${catEntries.map(([cat, amt]) => `
+                <span style="color:var(--text);">${cat}</span>
+                <span style="text-align:right; color:var(--gold); font-weight:600;">${parseFloat(amt).toFixed(2)} ج.م</span>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+    } else {
+      expRevDiv.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا توجد بيانات.</p>';
+    }
   } catch (err) {
     console.error('[Reports] Error:', err);
   }
@@ -1315,7 +1485,14 @@ async function loadReports() {
 
 function downloadPDF() {
   const period = document.getElementById('r-period').value || 'month';
-  fetch('/api/reports/pdf?period=' + encodeURIComponent(period), { headers: getAuthH() })
+  let url = '/api/reports/pdf?period=' + encodeURIComponent(period);
+  if (period === 'custom') {
+    const start = document.getElementById('r-start').value;
+    const end = document.getElementById('r-end').value;
+    if (start) url += '&start=' + encodeURIComponent(start);
+    if (end) url += '&end=' + encodeURIComponent(end);
+  }
+  fetch(url, { headers: getAuthH() })
     .then(r => r.blob())
     .then(blob => {
       const url = URL.createObjectURL(blob);

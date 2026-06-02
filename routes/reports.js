@@ -107,18 +107,166 @@ router.get('/top-items', authenticateToken, requireRole('admin'), async (req, re
 
 // Cashier performance
 router.get('/cashiers', authenticateToken, requireRole('admin'), async (req, res) => {
-  const { days } = req.query;
+  const { days, start, end } = req.query;
   try {
-    const since = new Date(); since.setDate(since.getDate() - (parseInt(days) || 30));
-    const shifts = await Shift.find({ closedAt: { $gte: since } }).lean();
+    const since = start ? new Date(start) : new Date(); 
+    if (!start) since.setDate(since.getDate() - (parseInt(days) || 30));
+    const until = end ? new Date(end) : new Date();
+    const dateFilter = { closedAt: { $gte: since, $lte: until } };
+    const orderFilter = { createdAt: { $gte: since, $lte: until } };
+
+    const [shifts, orders] = await Promise.all([
+      Shift.find(dateFilter).lean(),
+      Order.find(orderFilter).lean()
+    ]);
+
     const byCashier = {};
     for (const s of shifts) {
-      if (!byCashier[s.cashierId]) byCashier[s.cashierId] = { cashierId: s.cashierId, cashierName: s.cashierName, shifts: 0, totalRevenue: 0, totalOrders: 0 };
+      if (!byCashier[s.cashierId]) byCashier[s.cashierId] = { cashierId: s.cashierId, cashierName: s.cashierName, shifts: 0, totalRevenue: 0, totalOrders: 0, cashCollected: 0, cardCollected: 0, walletCollected: 0, splitCollected: 0, totalRefunds: 0 };
       byCashier[s.cashierId].shifts += 1;
       byCashier[s.cashierId].totalRevenue += s.totalRevenue || 0;
       byCashier[s.cashierId].totalOrders += s.totalOrders || 0;
+      byCashier[s.cashierId].totalRefunds += s.totalRefunds || 0;
+      byCashier[s.cashierId].cashCollected += (s.paymentBreakdown && s.paymentBreakdown.cash) || 0;
+      byCashier[s.cashierId].cardCollected += (s.paymentBreakdown && s.paymentBreakdown.card) || 0;
+      byCashier[s.cashierId].walletCollected += (s.paymentBreakdown && s.paymentBreakdown.wallet) || 0;
+      byCashier[s.cashierId].splitCollected += (s.paymentBreakdown && s.paymentBreakdown.split) || 0;
     }
+
+    // Also add cash collected from orders with cashierId
+    for (const o of orders) {
+      if (!o.cashierId) continue;
+      const cid = o.cashierId.toString();
+      if (!byCashier[cid]) byCashier[cid] = { cashierId: cid, cashierName: 'كاشير', shifts: 0, totalRevenue: 0, totalOrders: 0, cashCollected: 0, cardCollected: 0, walletCollected: 0, splitCollected: 0, totalRefunds: 0 };
+      if (o.paymentMethod === 'cash') byCashier[cid].cashCollected += o.total_price || 0;
+      else if (o.paymentMethod === 'card') byCashier[cid].cardCollected += o.total_price || 0;
+      else if (o.paymentMethod === 'wallet') byCashier[cid].walletCollected += o.total_price || 0;
+      else if (o.paymentMethod === 'split') byCashier[cid].splitCollected += o.total_price || 0;
+    }
+
     res.json(Object.values(byCashier));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Payment methods breakdown
+router.get('/payment-methods', authenticateToken, requireRole('admin'), async (req, res) => {
+  const { start, end } = req.query;
+  try {
+    const match = {};
+    if (start || end) {
+      match.createdAt = {};
+      if (start) match.createdAt.$gte = new Date(start);
+      if (end) match.createdAt.$lte = new Date(end);
+    } else {
+      const d = new Date(); d.setDate(1); d.setHours(0,0,0,0);
+      match.createdAt = { $gte: d };
+    }
+    match.paymentMethod = { $ne: null, $exists: true };
+
+    const orders = await Order.find(match).lean();
+    const breakdown = { cash: { count: 0, total: 0 }, card: { count: 0, total: 0 }, wallet: { count: 0, total: 0 }, split: { count: 0, total: 0 }, unspecified: { count: 0, total: 0 } };
+    for (const o of orders) {
+      const pm = o.paymentMethod || 'unspecified';
+      if (!breakdown[pm]) breakdown[pm] = { count: 0, total: 0 };
+      breakdown[pm].count += 1;
+      breakdown[pm].total += o.total_price || 0;
+    }
+    res.json({ period: { start: match.createdAt?.$gte, end: match.createdAt?.$lte }, breakdown });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Hourly sales breakdown
+router.get('/hourly-sales', authenticateToken, requireRole('admin'), async (req, res) => {
+  const { start, end } = req.query;
+  try {
+    const match = {};
+    if (start || end) {
+      match.createdAt = {};
+      if (start) match.createdAt.$gte = new Date(start);
+      if (end) match.createdAt.$lte = new Date(end);
+    } else {
+      const d = new Date(); d.setHours(0,0,0,0);
+      match.createdAt = { $gte: d };
+    }
+
+    const orders = await Order.find(match).lean();
+    const hourly = {};
+    for (let h = 0; h < 24; h++) hourly[h] = { hour: h, orders: 0, revenue: 0 };
+    for (const o of orders) {
+      if (!o.createdAt) continue;
+      const h = new Date(o.createdAt).getHours();
+      hourly[h].orders += 1;
+      if (!['cancelled', 'refunded'].includes(o.status)) hourly[h].revenue += o.total_price || 0;
+    }
+    res.json(Object.values(hourly));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Expense vs Revenue comparison
+router.get('/expense-vs-revenue', authenticateToken, requireRole('admin'), async (req, res) => {
+  const { start, end } = req.query;
+  try {
+    const now = new Date();
+    const s = start ? new Date(start) : new Date(now.getFullYear(), now.getMonth(), 1);
+    const e = end ? new Date(end) : now;
+
+    const [orders, expenses, cashMovements] = await Promise.all([
+      Order.find({ createdAt: { $gte: s, $lte: e } }).lean(),
+      Expense.find({ expenseDate: { $gte: s, $lte: e } }).lean(),
+      CashMovement.find({ movementDate: { $gte: s, $lte: e } }).lean()
+    ]);
+
+    const paid = orders.filter(o => !['cancelled', 'refunded'].includes(o.status));
+    const revenue = paid.reduce((sum, o) => sum + (o.total_price || 0), 0);
+    const refunds = orders.filter(o => o.status === 'refunded').reduce((sum, o) => sum + (o.total_price || 0), 0);
+    const totalCosts = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const cashIn = cashMovements.filter(m => m.movementType === 'in').reduce((s, m) => s + (m.amount || 0), 0);
+    const cashOut = cashMovements.filter(m => m.movementType === 'out').reduce((s, m) => s + (m.amount || 0), 0);
+    const netProfit = revenue - totalCosts;
+    const daysElapsed = Math.max(1, Math.ceil((e - s) / 86400000));
+    const monthlyRunRate = (revenue / daysElapsed) * 30;
+
+    // Cost breakdown by category
+    const costByCategory = expenses.reduce((acc, item) => {
+      const key = item.category || 'other';
+      acc[key] = (acc[key] || 0) + (item.amount || 0);
+      return acc;
+    }, {});
+
+    const days = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(e); d.setDate(d.getDate() - i); d.setHours(0,0,0,0);
+      const next = new Date(d); next.setDate(next.getDate() + 1);
+      const dayOrders = orders.filter(o => { const c = new Date(o.createdAt); return c >= d && c < next; });
+      const dayPaid = dayOrders.filter(o => !['cancelled', 'refunded'].includes(o.status));
+      const dayExpenses = expenses.filter(ex => { const c = new Date(ex.expenseDate); return c >= d && c < next; });
+      days.push({
+        date: d.toISOString().slice(0, 10),
+        revenue: dayPaid.reduce((sum, o) => sum + (o.total_price || 0), 0),
+        costs: dayExpenses.reduce((sum, ex) => sum + (ex.amount || 0), 0),
+        orders: dayOrders.length
+      });
+    }
+
+    res.json({
+      period: { start: s, end: e },
+      revenue,
+      refunds,
+      totalCosts,
+      costByCategory,
+      cashIn,
+      cashOut,
+      netCashMovement: cashIn - cashOut,
+      netProfit,
+      monthlyRunRate,
+      daily: days
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -218,6 +366,7 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
       else { d.setHours(0,0,0,0); }
       match.createdAt = { $gte: d };
     }
+    const periodLabel = period || 'custom';
 
     const orders = await Order.find(match).sort({ createdAt: -1 }).populate('userId', 'name phone').lean();
     const sinceDate = match.createdAt && match.createdAt.$gte ? match.createdAt.$gte : new Date(0);
@@ -238,32 +387,82 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
     const daysElapsed = Math.max(1, Math.ceil((Date.now() - new Date(startRef).getTime()) / 86400000));
     const monthlyRunRate = (revenue / daysElapsed) * 30;
 
+    // Payment method breakdown
+    const pmBreakdown = { cash: 0, card: 0, wallet: 0, split: 0 };
+    for (const o of paid) {
+      const pm = o.paymentMethod;
+      if (pm && pmBreakdown[pm] !== undefined) pmBreakdown[pm] += o.total_price || 0;
+    }
+
+    // Hourly sales
+    const hourly = {};
+    for (let h = 0; h < 24; h++) hourly[h] = { h, orders: 0, revenue: 0 };
+    for (const o of orders) {
+      if (!o.createdAt) continue;
+      const h = new Date(o.createdAt).getHours();
+      hourly[h].orders += 1;
+      if (!['cancelled', 'refunded'].includes(o.status)) hourly[h].revenue += o.total_price || 0;
+    }
+
+    // Cost breakdown by category
+    const costCategories = {};
+    for (const e of expenses) {
+      const cat = e.category || 'other';
+      costCategories[cat] = (costCategories[cat] || 0) + (e.amount || 0);
+    }
+
     const doc = new PDFDocument({ margin: 40, size: 'A4' });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="report-${new Date().toISOString().slice(0,10)}.pdf"`);
     doc.pipe(res);
 
-    // Header
     const font = 'Helvetica';
+    let pageNum = 0;
+
+    // ── PAGE 1: Header + Summary + Payment Methods ──
+    pageNum++;
     doc.fontSize(22).font(`${font}-Bold`).text('OZEL Cafe', 40, 40);
-    doc.fontSize(10).font(font).fillColor('#666').text(`Report — ${new Date().toISOString().slice(0,10)}`, 40, 68);
+    doc.fontSize(10).font(font).fillColor('#666').text(`Report — ${new Date().toISOString().slice(0,10)} (${periodLabel})`, 40, 68);
 
     // Summary
     doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Summary', 40, 100);
     doc.fontSize(11).font(font).fillColor('#333');
-    const summaryY = 120;
-    doc.text(`Total Orders: ${orders.length}`, 40, summaryY);
-    doc.text(`Revenue: EGP ${revenue.toFixed(2)}`, 40, summaryY + 18);
-    doc.text(`Refunds: EGP ${refundsTotal.toFixed(2)}`, 40, summaryY + 36);
-    doc.text(`Avg Order: EGP ${orders.length ? (revenue / orders.length).toFixed(2) : '0.00'}`, 250, summaryY);
-    doc.text(`Cancelled: ${orders.filter(o => o.status === 'cancelled').length}`, 250, summaryY + 18);
-    doc.text(`Paid Orders: ${paid.length}`, 250, summaryY + 36);
-    doc.text(`Costs: EGP ${totalCosts.toFixed(2)}`, 40, summaryY + 54);
-    doc.text(`Net Operating: EGP ${netOperating.toFixed(2)}`, 250, summaryY + 54);
-    doc.text(`Monthly Run-rate: EGP ${monthlyRunRate.toFixed(2)}`, 40, summaryY + 72);
-    doc.text(`Cashbox Movement: EGP ${(cashIn - cashOut).toFixed(2)}`, 250, summaryY + 72);
+    const sY = 120;
+    doc.text(`Total Orders: ${orders.length}`, 40, sY);
+    doc.text(`Revenue: EGP ${revenue.toFixed(2)}`, 40, sY + 18);
+    doc.text(`Refunds: EGP ${refundsTotal.toFixed(2)}`, 40, sY + 36);
+    doc.text(`Avg Order: EGP ${orders.length ? (revenue / orders.length).toFixed(2) : '0.00'}`, 250, sY);
+    doc.text(`Cancelled: ${orders.filter(o => o.status === 'cancelled').length}`, 250, sY + 18);
+    doc.text(`Paid Orders: ${paid.length}`, 250, sY + 36);
+    doc.text(`Costs: EGP ${totalCosts.toFixed(2)}`, 40, sY + 54);
+    doc.text(`Net Operating: EGP ${netOperating.toFixed(2)}`, 250, sY + 54);
+    doc.text(`Monthly Run-rate: EGP ${monthlyRunRate.toFixed(2)}`, 40, sY + 72);
+    doc.text(`Cashbox: In EGP ${cashIn.toFixed(2)} / Out EGP ${cashOut.toFixed(2)}`, 250, sY + 72);
 
-    // Items table
+    // Payment Methods
+    let yPos = sY + 110;
+    doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Payment Methods', 40, yPos);
+    yPos += 22;
+    doc.fontSize(9).font(`${font}-Bold`).fillColor('#555');
+    doc.text('Method', 40, yPos); doc.text('Amount', 420, yPos, { width: 100, align: 'right' });
+    yPos += 4;
+    doc.moveTo(40, yPos).lineTo(520, yPos).strokeColor('#ddd').stroke();
+    yPos += 8;
+    doc.fontSize(9).font(font).fillColor('#333');
+    const pmLabels = { cash: 'Cash', card: 'Card', wallet: 'Wallet', split: 'Split' };
+    for (const [key, label] of Object.entries(pmLabels)) {
+      const amt = pmBreakdown[key] || 0;
+      doc.text(label, 40, yPos);
+      doc.text(`EGP ${amt.toFixed(2)}`, 420, yPos, { width: 100, align: 'right' });
+      yPos += 16;
+    }
+
+    // ── PAGE 2: Top Items + Cashier Performance ──
+    doc.addPage();
+    yPos = 40;
+    pageNum++;
+
+    // Top Items
     const itemMap = {};
     for (const o of orders) {
       let items = [];
@@ -277,55 +476,112 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
     }
     const topItems = Object.values(itemMap).sort((a, b) => b.revenue - a.revenue).slice(0, 15);
 
-    let yPos = summaryY + 110;
-    if (yPos + topItems.length * 20 + 60 > 700) { doc.addPage(); yPos = 40; }
-
     doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Top Items', 40, yPos);
-    yPos += 24;
+    yPos += 22;
     doc.fontSize(9).font(`${font}-Bold`).fillColor('#555');
-    doc.text('Item', 40, yPos); doc.text('Qty', 350, yPos); doc.text('Revenue', 420, yPos, { width: 130, align: 'right' });
+    doc.text('Item', 40, yPos); doc.text('Qty', 350, yPos); doc.text('Revenue', 420, yPos, { width: 100, align: 'right' });
     yPos += 4;
     doc.moveTo(40, yPos).lineTo(520, yPos).strokeColor('#ddd').stroke();
     yPos += 8;
     doc.fontSize(9).font(font).fillColor('#333');
     for (const item of topItems) {
-      if (yPos > 740) { doc.addPage(); yPos = 40; }
       doc.text(item.name, 40, yPos, { width: 300 });
       doc.text(String(item.qty), 350, yPos);
       doc.text(`EGP ${item.revenue.toFixed(2)}`, 420, yPos, { width: 100, align: 'right' });
-      yPos += 18;
+      yPos += 16;
     }
 
-    // Shifts section
+    // Cashier Performance
     yPos += 20;
-    if (yPos + shifts.length * 24 + 40 > 740) { doc.addPage(); yPos = 40; }
-    doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Shifts', 40, yPos);
-    yPos += 24;
+    if (yPos > 700) { doc.addPage(); yPos = 40; pageNum++; }
+    doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Cashier Performance', 40, yPos);
+    yPos += 22;
+    doc.fontSize(9).font(`${font}-Bold`).fillColor('#555');
+    doc.text('Cashier', 40, yPos); doc.text('Shifts', 140, yPos); doc.text('Orders', 200, yPos);
+    doc.text('Revenue', 280, yPos); doc.text('Cash', 370, yPos);
+    yPos += 4;
+    doc.moveTo(40, yPos).lineTo(520, yPos).strokeColor('#ddd').stroke();
+    yPos += 8;
+    doc.fontSize(9).font(font).fillColor('#333');
     for (const s of shifts) {
-      if (yPos > 740) { doc.addPage(); yPos = 40; }
-      const openDate = s.openedAt ? new Date(s.openedAt).toLocaleDateString() : '—';
-      const closeDate = s.closedAt ? new Date(s.closedAt).toLocaleDateString() : 'Open';
-      doc.fontSize(9).font(font).fillColor('#333');
-      doc.text(`${s.cashierName || 'Unknown'} | ${openDate} → ${closeDate}`, 40, yPos);
-      doc.text(`Orders: ${s.totalOrders || 0} | Revenue: EGP ${(s.totalRevenue || 0).toFixed(2)}`, 180, yPos, { width: 300 });
-      yPos += 20;
-    }
-
-    // Recent orders
-    yPos += 20;
-    if (yPos + 20 > 740) { doc.addPage(); yPos = 40; }
-    doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Recent Orders', 40, yPos);
-    yPos += 20;
-    const recent = orders.slice(0, 30);
-    for (const o of recent) {
-      if (yPos > 740) { doc.addPage(); yPos = 40; }
-      const name = o.userId ? o.userId.name || '' : '';
-      const table = o.table_number || '';
-      const date = o.createdAt ? new Date(o.createdAt).toLocaleString() : '';
-      doc.fontSize(8).font(font).fillColor('#333');
-      doc.text(`#${o._id.toString().slice(-6)} | ${table} | ${name} | ${o.status} | EGP ${(o.total_price || 0).toFixed(2)} | ${date}`, 40, yPos, { width: 480 });
+      if (yPos > 740) { doc.addPage(); yPos = 40; pageNum++; }
+      doc.text(s.cashierName || 'Unknown', 40, yPos, { width: 95 });
+      doc.text(String(s.totalOrders || 0), 140, yPos);
+      doc.text(String(s.totalOrders || 0), 200, yPos);
+      doc.text(`EGP ${(s.totalRevenue || 0).toFixed(0)}`, 280, yPos, { width: 85, align: 'right' });
+      const cashAmt = (s.paymentBreakdown && s.paymentBreakdown.cash) || 0;
+      doc.text(`EGP ${cashAmt.toFixed(0)}`, 370, yPos, { width: 85, align: 'right' });
       yPos += 14;
     }
+
+    // ── PAGE 3: Shifts + Hourly Sales + Cost Breakdown ──
+    doc.addPage();
+    yPos = 40;
+    pageNum++;
+
+    // Shifts
+    doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Shifts', 40, yPos);
+    yPos += 22;
+    doc.fontSize(9).font(`${font}-Bold`).fillColor('#555');
+    doc.text('Cashier', 40, yPos); doc.text('Period', 130, yPos); doc.text('Orders', 280, yPos); doc.text('Revenue', 340, yPos); doc.text('Cash', 430, yPos);
+    yPos += 4;
+    doc.moveTo(40, yPos).lineTo(520, yPos).strokeColor('#ddd').stroke();
+    yPos += 8;
+    doc.fontSize(9).font(font).fillColor('#333');
+    for (const s of shifts.slice(0, 25)) {
+      if (yPos > 740) { doc.addPage(); yPos = 40; pageNum++; }
+      const openDate = s.openedAt ? new Date(s.openedAt).toLocaleDateString() : '—';
+      const closeDate = s.closedAt ? new Date(s.closedAt).toLocaleDateString() : 'Open';
+      doc.text(s.cashierName || 'Unknown', 40, yPos, { width: 85 });
+      doc.text(`${openDate} → ${closeDate}`, 130, yPos, { width: 140 });
+      doc.text(String(s.totalOrders || 0), 280, yPos);
+      doc.text(`EGP ${(s.totalRevenue || 0).toFixed(0)}`, 340, yPos, { width: 75, align: 'right' });
+      const cashAmt = (s.paymentBreakdown && s.paymentBreakdown.cash) || 0;
+      doc.text(`EGP ${cashAmt.toFixed(0)}`, 430, yPos, { width: 75, align: 'right' });
+      yPos += 14;
+    }
+
+    // Hourly Sales
+    yPos += 20;
+    if (yPos > 700) { doc.addPage(); yPos = 40; pageNum++; }
+    doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Hourly Sales', 40, yPos);
+    yPos += 22;
+    doc.fontSize(9).font(`${font}-Bold`).fillColor('#555');
+    doc.text('Hour', 40, yPos); doc.text('Orders', 100, yPos); doc.text('Revenue', 420, yPos, { width: 100, align: 'right' });
+    yPos += 4;
+    doc.moveTo(40, yPos).lineTo(520, yPos).strokeColor('#ddd').stroke();
+    yPos += 8;
+    doc.fontSize(9).font(font).fillColor('#333');
+    // Show only hours with activity
+    const activeHours = Object.values(hourly).filter(h => h.orders > 0);
+    for (const h of activeHours) {
+      if (yPos > 740) { doc.addPage(); yPos = 40; pageNum++; }
+      const label = `${String(h.h).padStart(2, '0')}:00`;
+      doc.text(label, 40, yPos);
+      doc.text(String(h.orders), 100, yPos);
+      doc.text(`EGP ${h.revenue.toFixed(2)}`, 420, yPos, { width: 100, align: 'right' });
+      yPos += 14;
+    }
+
+    // Cost Breakdown
+    yPos += 20;
+    if (yPos > 700) { doc.addPage(); yPos = 40; pageNum++; }
+    doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Cost Breakdown', 40, yPos);
+    yPos += 22;
+    doc.fontSize(9).font(`${font}-Bold`).fillColor('#555');
+    doc.text('Category', 40, yPos); doc.text('Amount', 420, yPos, { width: 100, align: 'right' });
+    yPos += 4;
+    doc.moveTo(40, yPos).lineTo(520, yPos).strokeColor('#ddd').stroke();
+    yPos += 8;
+    doc.fontSize(9).font(font).fillColor('#333');
+    const catEntries = Object.entries(costCategories).sort((a, b) => b[1] - a[1]);
+    for (const [cat, amt] of catEntries) {
+      if (yPos > 740) { doc.addPage(); yPos = 40; pageNum++; }
+      doc.text(cat, 40, yPos, { width: 300 });
+      doc.text(`EGP ${amt.toFixed(2)}`, 420, yPos, { width: 100, align: 'right' });
+      yPos += 14;
+    }
+    doc.text(`Total: EGP ${totalCosts.toFixed(2)}`, 40, yPos + 6, { width: 480, align: 'right' });
 
     doc.end();
   } catch (err) {
