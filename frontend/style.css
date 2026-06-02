@@ -887,7 +887,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
 }
 
 /* ===== بطاقة المشروب (Drink Card) ===== */
-/* ── DRINK CARD ── */
+.drink-card {
   background: var(--bg2);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -1038,7 +1038,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
 }
 
 /* ===== النافذة المنبثقة (Modal) ===== */
-/* ── MODAL ── */
+.modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 1000;
@@ -1179,7 +1179,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
 }
 
 /* ===== نظام تخصيص المشروب (Puzzle Builder) ===== */
-/* ── PUZZLE BUILDER ── */
+.puzzle-label {
   display: block;
   color: var(--muted);
   font-size: .85rem;
@@ -1237,7 +1237,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
 }
 
 /* ===== سلة المشتريات والزر العائم ===== */
-/* ── CART Drawer & FAB ── */
+.cart-fab {
   position: fixed;
   bottom: 2rem;
   left: 2rem;
@@ -1524,7 +1524,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
 }
 
 /* ===== عرض القائمة (Menu List View) ===== */
-/* ── MENU LIST VIEW ── */
+.menu-grid {
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem 3rem;
   max-width: 1000px;
@@ -1734,7 +1734,7 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
 }
 
 /* ===== تنسيقات متجاوبة (Responsive) ===== */
-/* ── RESPONSIVE ── */
+@media(max-width:768px){
   #nav { padding: .9rem 1.5rem; }
   #nav.scrolled { padding: .8rem 1.5rem; }
   .nav-links { display: none; }
