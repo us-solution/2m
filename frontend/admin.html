@@ -1953,10 +1953,15 @@ async function addIngredient() {
     minStock: parseFloat(document.getElementById('ig-min').value) || 0,
   };
   if (!body.name) return showModal('خطأ', 'الاسم مطلوب');
-  await fetch('/api/inventory/ingredients', { method: 'POST', headers: getAuthH(), body: JSON.stringify(body) });
-  ['ig-name','ig-name-ar','ig-cost','ig-stock','ig-min'].forEach(id => document.getElementById(id).value = '');
-  loadIngredients();
-  loadInvStatus();
+  if (!body.unit) return showModal('خطأ', 'الوحدة مطلوبة');
+  try {
+    const res = await fetch('/api/inventory/ingredients', { method: 'POST', headers: getAuthH(), body: JSON.stringify(body) });
+    const data = await res.json();
+    if (!res.ok) return showModal('خطأ في الحفظ', data.error || 'فشل غير معروف');
+    ['ig-name','ig-name-ar','ig-cost','ig-stock','ig-min'].forEach(id => document.getElementById(id).value = '');
+    loadIngredients();
+    loadInvStatus();
+  } catch (e) { showModal('خطأ في الاتصال', e.message); }
 }
 
 async function deleteIngredient(id) {
@@ -1993,11 +1998,15 @@ async function addTransaction() {
     note: document.getElementById('tx-note').value,
   };
   if (!body.ingredientId || body.quantity === 0) return showModal('خطأ', 'اختر الخامة وأدخل كمية صحيحة');
-  await fetch('/api/inventory/transactions', { method: 'POST', headers: getAuthH(), body: JSON.stringify(body) });
-  ['tx-qty','tx-cost','tx-note'].forEach(id => document.getElementById(id).value = '');
-  loadTransactions();
-  loadIngredients();
-  loadInvStatus();
+  try {
+    const res = await fetch('/api/inventory/transactions', { method: 'POST', headers: getAuthH(), body: JSON.stringify(body) });
+    const data = await res.json();
+    if (!res.ok) return showModal('خطأ في الحفظ', data.error || 'فشل');
+    ['tx-qty','tx-cost','tx-note'].forEach(id => document.getElementById(id).value = '');
+    loadTransactions();
+    loadIngredients();
+    loadInvStatus();
+  } catch (e) { showModal('خطأ في الاتصال', e.message); }
 }
 
 async function loadCountIngredients() {
@@ -2035,11 +2044,10 @@ async function submitCount() {
     const note = document.getElementById('cnt-note').value;
     const result = await fetch('/api/inventory/counts', { method: 'POST', headers: getAuthH(), body: JSON.stringify({ items, note }) });
     const data = await result.json();
-    if (data._id) {
-      let msg = `تم حفظ الجرد. إجمالي فرق التكلفة: ${parseFloat(data.totalDiffCost).toFixed(2)} ج.م`;
-      if (Math.abs(data.totalDiffCost) > 0) msg += '<br/>' + data.items.filter(i => Math.abs(i.diff) > 0.001).map(i => `<br/>${i.ingredientId?.name_ar || '?'}: ${i.diff > 0 ? '+' : ''}${parseFloat(i.diff).toFixed(2)} (${parseFloat(i.diffCost).toFixed(2)} ج.م)`).join('');
-      showModal('نجاح', msg);
-    }
+    if (!result.ok) return showModal('خطأ في الجرد', data.error || 'فشل');
+    let msg = `تم حفظ الجرد. إجمالي فرق التكلفة: ${parseFloat(data.totalDiffCost).toFixed(2)} ج.م`;
+    if (Math.abs(data.totalDiffCost) > 0) msg += '<br/>' + data.items.filter(i => Math.abs(i.diff) > 0.001).map(i => `<br/>${i.ingredientId?.name_ar || '?'}: ${i.diff > 0 ? '+' : ''}${parseFloat(i.diff).toFixed(2)} (${parseFloat(i.diffCost).toFixed(2)} ج.م)`).join('');
+    showModal('نجاح', msg);
     document.getElementById('cnt-note').value = '';
     loadCounts();
     loadIngredients();
@@ -2140,19 +2148,23 @@ async function saveRecipe() {
   const yieldQty = parseInt(document.getElementById('rc-yield').value) || 1;
   if (!name) return showModal('خطأ', 'اسم الوصفة مطلوب');
   const editId = document.getElementById('rc-edit-id').value;
-  let recipe;
-  if (editId) {
-    const res = await fetch('/api/recipes/' + editId, { method: 'PUT', headers: getAuthH(), body: JSON.stringify({ name, drinkId, yield: yieldQty }) });
-    recipe = await res.json();
-  } else {
-    const res = await fetch('/api/recipes', { method: 'POST', headers: getAuthH(), body: JSON.stringify({ name, drinkId, yield: yieldQty }) });
-    recipe = await res.json();
-  }
-  currentRecipeId = recipe._id;
-  document.getElementById('rc-edit-id').value = recipe._id;
-  showModal('نجاح', editId ? 'تم تحديث الوصفة' : 'تم إنشاء الوصفة');
-  loadRecipeIngredients(recipe._id);
-  loadRecipes();
+  try {
+    let recipe;
+    if (editId) {
+      const res = await fetch('/api/recipes/' + editId, { method: 'PUT', headers: getAuthH(), body: JSON.stringify({ name, drinkId, yield: yieldQty }) });
+      recipe = await res.json();
+      if (!res.ok) return showModal('خطأ', recipe.error || 'فشل تحديث الوصفة');
+    } else {
+      const res = await fetch('/api/recipes', { method: 'POST', headers: getAuthH(), body: JSON.stringify({ name, drinkId, yield: yieldQty }) });
+      recipe = await res.json();
+      if (!res.ok) return showModal('خطأ', recipe.error || 'فشل إنشاء الوصفة');
+    }
+    currentRecipeId = recipe._id;
+    document.getElementById('rc-edit-id').value = recipe._id;
+    showModal('نجاح', editId ? 'تم تحديث الوصفة' : 'تم إنشاء الوصفة');
+    loadRecipeIngredients(recipe._id);
+    loadRecipes();
+  } catch (e) { showModal('خطأ في الاتصال', e.message); }
 }
 
 async function editRecipe(id) {
@@ -2196,10 +2208,14 @@ async function addRecipeItem() {
   const ingredientId = document.getElementById('rc-ingredient').value;
   const quantity = parseFloat(document.getElementById('rc-qty').value);
   if (!ingredientId || !quantity) return showModal('خطأ', 'اختر الخامة وأدخل الكمية');
-  await fetch('/api/recipes/' + currentRecipeId + '/items', { method: 'POST', headers: getAuthH(), body: JSON.stringify({ ingredientId, quantity }) });
-  document.getElementById('rc-qty').value = '';
-  loadRecipeIngredients(currentRecipeId);
-  loadRecipes();
+  try {
+    const res = await fetch('/api/recipes/' + currentRecipeId + '/items', { method: 'POST', headers: getAuthH(), body: JSON.stringify({ ingredientId, quantity }) });
+    const data = await res.json();
+    if (!res.ok) return showModal('خطأ في إضافة المكون', data.error || 'فشل');
+    document.getElementById('rc-qty').value = '';
+    loadRecipeIngredients(currentRecipeId);
+    loadRecipes();
+  } catch (e) { showModal('خطأ في الاتصال', e.message); }
 }
 
 async function removeRecipeItem(itemId) {
