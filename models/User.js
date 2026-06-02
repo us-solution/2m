@@ -35,6 +35,18 @@ const userSchema = new mongoose.Schema({
   subscriptionTier: {
     type: String,
     default: 'none' // none, bronze, silver, gold, student
+  },
+  cardTitle: {
+    type: String,
+    default: ''
+  },
+  discountPercent: {
+    type: Number,
+    default: 0
+  },
+  cardColor: {
+    type: String,
+    default: '#541a1a'
   }
 }, {
   timestamps: true,
