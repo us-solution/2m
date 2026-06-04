@@ -77,6 +77,11 @@ const drinkSchema = new mongoose.Schema({
   availableExtras: {
     type: [String],
     default: []
+  },
+  // معرف المشروب في نظام الكاشير المحلي (.NET PostgreSQL Guid)
+  menuItemIdInCashier: {
+    type: String,
+    default: ''
   }
 }, {
   timestamps: false,

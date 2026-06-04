@@ -13,11 +13,16 @@ const orderSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  // العناصر المطلوبة (مصفوفة JSON)
-  items: {
-    type: String,
-    required: true
-  },
+  // العناصر المطلوبة (مصفوفة من الأصناف)
+  items: [{
+    name: { type: String, required: true },
+    menuItemIdInCashier: { type: String, default: '' },
+    quantity: { type: Number, default: 1 },
+    price: { type: Number, default: 0 },
+    sugar: { type: String, default: 'Normal' },
+    extras: { type: [String], default: [] },
+    notes: { type: String, default: '' }
+  }],
   // السعر الإجمالي
   total_price: {
     type: Number,

@@ -1,60 +1,12 @@
-// ===== طابور إعادة المحاولة - إرسال الأوردرات المعلقة إلى API الكاشير المحلي =====
-const fs = require('fs');
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
+const QueueOrder = require('./models/QueueOrder');
 const axios = require('axios');
 
-const QUEUE_FILE = path.join(__dirname, 'failed-orders.json');
 const CASHIER_API_URL = () => process.env.CASHIER_API_URL;
 const CASHIER_API_KEY = () => process.env.CASHIER_API_KEY;
 
-let queue = [];
 let intervalId = null;
 let isProcessing = false;
 
-// تحميل الطابور من الملف
-function loadQueue() {
-  try {
-    if (fs.existsSync(QUEUE_FILE)) {
-      const raw = fs.readFileSync(QUEUE_FILE, 'utf8');
-      queue = JSON.parse(raw);
-    }
-  } catch (e) {
-    queue = [];
-  }
-}
-
-// حفظ الطابور إلى الملف
-function saveQueue() {
-  try {
-    fs.writeFileSync(QUEUE_FILE, JSON.stringify(queue, null, 2), 'utf8');
-  } catch (e) {
-    console.error('[RetryQueue] فشل حفظ الطابور:', e.message);
-  }
-}
-
-// إضافة طلب فاشل إلى الطابور
-function enqueue(orderData) {
-  const entry = {
-    id: uuidv4(),
-    orderData,
-    attempts: 0,
-    lastAttempt: null,
-    createdAt: new Date().toISOString()
-  };
-  queue.push(entry);
-  saveQueue();
-  console.log(`[RetryQueue] تمت إضافة الطلب ${orderData.idempotencyKey || orderData.idempotency_key || 'unknown'} إلى طابور إعادة المحاولة`);
-  return entry;
-}
-
-// حذف طلب من الطابور بعد النجاح
-function dequeue(id) {
-  queue = queue.filter(e => e.id !== id);
-  saveQueue();
-}
-
-// معالجة طلب واحد
 async function processEntry(entry) {
   const url = CASHIER_API_URL();
   const key = CASHIER_API_KEY();
@@ -67,53 +19,59 @@ async function processEntry(entry) {
       validateStatus: () => true
     });
     if (resp.status >= 200 && resp.status < 300) {
-      console.log(`[RetryQueue] تم إرسال الطلب ${entry.orderData.idempotencyKey || entry.orderData.idempotency_key || 'unknown'} بنجاح`);
-      dequeue(entry.id);
+      console.log(`[RetryQueue] تم إرسال الطلب ${entry.orderData.idempotencyKey || 'unknown'} بنجاح`);
+      await QueueOrder.findByIdAndDelete(entry._id);
       return true;
     }
     if (resp.status === 409) {
-      console.log(`[RetryQueue] الطلب ${entry.orderData.idempotencyKey || entry.orderData.idempotency_key || 'unknown'} موجود مسبقاً (تم التخطي)`);
-      dequeue(entry.id);
+      console.log(`[RetryQueue] الطلب ${entry.orderData.idempotencyKey || 'unknown'} موجود مسبقاً (تم التخطي)`);
+      await QueueOrder.findByIdAndDelete(entry._id);
       return true;
     }
-    console.log(`[RetryQueue] فشل إرسال ${entry.orderData.idempotencyKey || entry.orderData.idempotency_key || 'unknown'}: HTTP ${resp.status}`);
+    console.log(`[RetryQueue] فشل إرسال ${entry.orderData.idempotencyKey || 'unknown'}: HTTP ${resp.status}`);
     return false;
   } catch (e) {
-    console.log(`[RetryQueue] فشل إرسال ${entry.orderData.idempotencyKey || entry.orderData.idempotency_key || 'unknown'}: ${e.message}`);
+    console.log(`[RetryQueue] فشل إرسال ${entry.orderData.idempotencyKey || 'unknown'}: ${e.message}`);
     return false;
   }
 }
 
-// جولة معالجة - تجربة كل الطلبات المعلقة
 async function processQueue() {
-  if (isProcessing || queue.length === 0) return;
+  if (isProcessing) return;
   isProcessing = true;
   try {
-    const snapshot = [...queue];
-    for (const entry of snapshot) {
-      entry.attempts++;
-      entry.lastAttempt = new Date().toISOString();
-      await processEntry(entry);
+    const entries = await QueueOrder.find({ status: 'pending' }).sort({ createdAt: 1 }).limit(50);
+    if (entries.length === 0) return;
+
+    for (const entry of entries) {
+      entry.attempts += 1;
+      entry.lastAttempt = new Date();
+
+      if (entry.attempts > entry.maxRetries) {
+        entry.status = 'dead_letter';
+        entry.failReason = 'exceeded_max_retries';
+        await entry.save();
+        console.log(`[RetryQueue] الطلب ${entry.orderData.idempotencyKey || 'unknown'} تجاوز الحد الأقصى → dead_letter`);
+        continue;
+      }
+
+      const success = await processEntry(entry);
+      if (!success) {
+        await entry.save();
+      }
     }
   } finally {
     isProcessing = false;
   }
 }
 
-// بدء الطابور - يعمل كل 60 ثانية
 function start(intervalMs = 60000) {
-  loadQueue();
-  if (queue.length > 0) {
-    console.log(`[RetryQueue] تم تحميل ${queue.length} طلب(طلبات) معلقة من الملف`);
-  }
   if (intervalId) clearInterval(intervalId);
   intervalId = setInterval(processQueue, intervalMs);
-  console.log(`[RetryQueue] بدأ طابور إعادة المحاولة (كل ${intervalMs / 1000} ثانية)`);
-  // تجربة فورية إذا كان فيه طلبات
-  if (queue.length > 0) processQueue();
+  console.log(`[RetryQueue] بدأ طابور إعادة المحاولة (MongoDB — كل ${intervalMs / 1000} ثانية)`);
+  processQueue();
 }
 
-// إيقاف الطابور
 function stop() {
   if (intervalId) {
     clearInterval(intervalId);
@@ -121,26 +79,11 @@ function stop() {
   }
 }
 
-// الحصول على حالة الطابور
-function getStatus() {
-  return {
-    pending: queue.length,
-    items: queue.map(e => ({
-      id: e.id,
-      idempotencyKey: e.orderData.idempotencyKey || e.orderData.idempotency_key || 'unknown',
-      attempts: e.attempts,
-      lastAttempt: e.lastAttempt,
-      createdAt: e.createdAt
-    }))
-  };
-}
-
-// إرسال طلب فوراً وإضافته للطابور إذا فشل
 async function sendOrEnqueue(orderData) {
   const url = CASHIER_API_URL();
   const key = CASHIER_API_KEY();
   if (!url || !key) {
-    enqueue(orderData);
+    await QueueOrder.create({ orderData, attempts: 0, status: 'pending' });
     return { status: 'queued', reason: 'cashier_api_not_configured' };
   }
   try {
@@ -155,12 +98,30 @@ async function sendOrEnqueue(orderData) {
     if (resp.status === 409) {
       return { status: 'sent', httpStatus: resp.status, duplicate: true };
     }
-    enqueue(orderData);
+    await QueueOrder.create({ orderData, attempts: 0, status: 'pending' });
     return { status: 'queued', reason: `http_${resp.status}` };
   } catch (e) {
-    enqueue(orderData);
+    await QueueOrder.create({ orderData, attempts: 0, status: 'pending' });
     return { status: 'queued', reason: e.message };
   }
 }
 
-module.exports = { start, stop, sendOrEnqueue, enqueue, getStatus, processQueue, loadQueue };
+async function getStatus() {
+  const pending = await QueueOrder.countDocuments({ status: 'pending' });
+  const dead = await QueueOrder.countDocuments({ status: 'dead_letter' });
+  const items = await QueueOrder.find({ status: 'pending' }).sort({ createdAt: -1 }).limit(50).lean();
+  return {
+    pending,
+    dead,
+    items: items.map(e => ({
+      id: e._id,
+      idempotencyKey: e.orderData?.idempotencyKey || e.orderData?.idempotency_key || 'unknown',
+      attempts: e.attempts,
+      maxRetries: e.maxRetries,
+      lastAttempt: e.lastAttempt,
+      createdAt: e.createdAt
+    }))
+  };
+}
+
+module.exports = { start, stop, sendOrEnqueue, getStatus, processQueue };

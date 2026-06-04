@@ -34,6 +34,7 @@ require('./models/StockAlert');
 const retryQueue = require('./retry-queue');
 require('./models/ExpenseCategory');
 require('./models/CustomizationOption');
+require('./models/QueueOrder');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -123,6 +124,7 @@ app.use('/api/finance', requireDB, require('./routes/finance'));
 app.use('/api/inventory', requireDB, require('./routes/inventory'));
 app.use('/api/recipes', requireDB, require('./routes/recipes'));
 app.use('/api/customization', requireDB, require('./routes/customization'));
+app.use('/api/cron', requireDB, require('./routes/cron'));
 
 app.post('/api/debug-log', requireDB, (req, res) => {
   console.log('[FRONTEND LOG]', req.body);

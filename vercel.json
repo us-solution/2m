@@ -38,6 +38,12 @@
       ]
     }
   ],
+  "crons": [
+    {
+      "path": "/api/cron/retry",
+      "schedule": "* * * * *"
+    }
+  ],
   "routes": [
     {
       "src": "/api/(.*)",

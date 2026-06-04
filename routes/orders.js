@@ -144,7 +144,7 @@ async function deliverToCashierAPI(order, user) {
 
   if (!BASE_URL || !API_KEY || !BRANCH_ID || !EMPLOYEE_ID) return NOT_CONFIGURED;
 
-  const parsedItems = safeParseItems(order.items);
+  const Drink = require('../models/Drink');
 
   // ──────────────────────────────────────────────
   // الخطوة الأولى: جلب الوردية النشطة (GET /shifts/active)
@@ -163,18 +163,47 @@ async function deliverToCashierAPI(order, user) {
   }
 
   // ──────────────────────────────────────────────
+  // إذا لم يكن shift نشط، نتخطى الإرسال تماماً (حماية للحسابات)
+  // ──────────────────────────────────────────────
+  if (!shiftId) {
+    console.log('[CashierAPI] لا توجد وردية نشطة — تأجيل الأوردر دون جدولة');
+    return { skipped: true, reason: 'no_active_shift' };
+  }
+
+  // ──────────────────────────────────────────────
   // بناء جسم الطلب الكامل
   // ──────────────────────────────────────────────
+  const itemsForPos = [];
+  for (const item of (order.items || [])) {
+    let menuItemId = item.menuItemIdInCashier || '';
+
+    // إذا مفيش menuItemIdInCashier، نحاول نجيبها من قاعدة البيانات
+    if (!menuItemId && item.name) {
+      const drink = await Drink.findOne({ name: item.name }).lean();
+      if (drink && drink.menuItemIdInCashier) {
+        menuItemId = drink.menuItemIdInCashier;
+      }
+    }
+
+    // تجميع sugar + extras + notes داخل ModifiersJson
+    const modifiers = [];
+    if (item.sugar && item.sugar !== 'Normal') modifiers.push(`sugar:${item.sugar}`);
+    if (item.extras && item.extras.length > 0) modifiers.push(`extras:${item.extras.join(',')}`);
+
+    itemsForPos.push({
+      menuItemId: menuItemId || '00000000-0000-0000-0000-000000000000',
+      quantity: item.quantity || 1,
+      notes: item.notes || '',
+      modifiersJson: modifiers.length > 0 ? JSON.stringify(modifiers) : null
+    });
+  }
+
   const orderData = {
     branchId: BRANCH_ID,
     shiftId: shiftId,
     employeeId: EMPLOYEE_ID,
-    idempotencyKey: `order-${order._id}-${Date.now()}`,
-    items: parsedItems.map(item => ({
-      menuItemId: item.menuItemIdInCashier,
-      quantity: item.quantity || 1,
-      notes: item.notes || ''
-    }))
+    idempotencyKey: uuidv4(),
+    items: itemsForPos
   };
 
   // ──────────────────────────────────────────────
@@ -212,13 +241,20 @@ router.post('/', async (req, res) => {
     const priceNum = parseFloat(total_price) || 0;
     const points_earned = Math.floor(priceNum);
 
-    const parsedItems = safeParseItems(items);
-    const items_str = JSON.stringify(parsedItems);
+    const parsedItems = safeParseItems(items).map(item => ({
+      name: item.name || '',
+      menuItemIdInCashier: item.menuItemIdInCashier || '',
+      quantity: item.quantity || 1,
+      price: item.price || 0,
+      sugar: item.sugar || 'Normal',
+      extras: Array.isArray(item.extras) ? item.extras : [],
+      notes: item.notes || ''
+    }));
 
     const order = await Order.create({
       userId: user ? user._id : null,
       table_number: String(table_number),
-      items: items_str,
+      items: parsedItems,
       total_price: priceNum,
       points_earned: points_earned,
       notes: notes || '',
@@ -470,13 +506,15 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
           const InventoryTransaction = require('../models/InventoryTransaction');
           const StockAlert = require('../models/StockAlert');
           for (const item of order.items) {
-            if (!item.drinkId) continue;
-            const recipe = await Recipe.findOne({ drinkId: item.drinkId, isActive: true });
+            if (!item.name) continue;
+            const drink = await Drink.findOne({ name: item.name }).lean();
+            if (!drink) continue;
+            const recipe = await Recipe.findOne({ drinkId: drink._id, isActive: true });
             if (!recipe) continue;
             const recipeItems = await RecipeItem.find({ recipeId: recipe._id }).populate('ingredientId');
             for (const ri of recipeItems) {
               if (!ri.ingredientId) continue;
-              const qtyToDeduct = (ri.quantity || 0) * (item.qty || 1) / (recipe.yield || 1);
+              const qtyToDeduct = (ri.quantity || 0) * (item.quantity || 1) / (recipe.yield || 1);
               const ingredient = ri.ingredientId;
               ingredient.currentStock -= qtyToDeduct;
               await ingredient.save();
