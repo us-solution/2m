@@ -6,8 +6,8 @@
   // الكشف عن حالة الخادم الخلفي — إذا كان في نفس نطاق الواجهة الأمامية
   // إذا كان يعمل على Vercel، فإن عناوين URL النسبية تعمل بشكل طبيعي (لا حاجة للتجاوز)
   // إذا كان يعمل من بروتوكول file:// أو من host/port مختلف، يتم التوجيه إلى رابط الإنتاج
-  var isLive = window.location.hostname === 'ozel-cafe.vercel.app' || window.location.hostname === 'localhost' && window.location.port === '5000';
-  var BACKEND_URL = isLive ? '' : 'https://ozel-cafe.vercel.app';
+  var isLive = window.location.hostname === 'ozel-weld.vercel.app' || window.location.hostname === 'localhost' && window.location.port === '5000';
+  var BACKEND_URL = isLive ? '' : 'https://ozel-weld.vercel.app';
 
   if (BACKEND_URL) {
     console.log('[API Redirect] Client on ' + window.location.origin + '. Redirecting API to: ' + BACKEND_URL);

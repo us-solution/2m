@@ -1,0 +1,72 @@
+2026-06-04 16:16:39.713 EET [24328] LOG:  listening on IPv6 address "::1", port 5432
+2026-06-04 16:16:39.714 EET [24328] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2026-06-04 16:16:39.792 EET [23580] LOG:  database system was interrupted while in recovery at 2026-06-04 16:16:17 EET
+2026-06-04 16:16:39.792 EET [23580] HINT:  This probably means that some data is corrupted and you will have to use the last backup for recovery.
+2026-06-04 16:16:45.737 EET [23580] LOG:  could not open file "./pg.log": sharing violation
+2026-06-04 16:16:45.737 EET [23580] DETAIL:  Continuing to retry for 30 seconds.
+2026-06-04 16:16:45.737 EET [23580] HINT:  You might have antivirus, backup, or similar software interfering with the database system.
+2026-06-04 16:17:12.451 EET [23580] LOG:  database system was not properly shut down; automatic recovery in progress
+2026-06-04 16:17:12.457 EET [23580] LOG:  redo starts at 0/1641780
+2026-06-04 16:17:12.458 EET [23580] LOG:  invalid record length at 0/16417B8: wanted 24, got 0
+2026-06-04 16:17:12.458 EET [23580] LOG:  redo done at 0/1641780
+2026-06-04 16:17:12.530 EET [24328] LOG:  database system is ready to accept connections
+2026-06-04 16:19:35.220 EET [21184] ERROR:  could not open extension control file "C:/Program Files/MATLAB/R2023a/sys/postgresql/win64/PostgreSQL/share/extension/uuid-ossp.control": No such file or directory
+2026-06-04 16:19:35.220 EET [21184] STATEMENT:  CREATE EXTENSION IF NOT EXISTS "uuid-ossp"
+2026-06-04 16:19:35.230 EET [21184] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-06-04 16:22:03.790 EET [11496] ERROR:  could not open extension control file "C:/Program Files/MATLAB/R2023a/sys/postgresql/win64/PostgreSQL/share/extension/uuid-ossp.control": No such file or directory
+2026-06-04 16:22:03.790 EET [11496] STATEMENT:  CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+2026-06-04 16:26:07.823 EET [7604] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-06-04 16:26:07.824 EET [9368] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-06-04 16:29:50.929 EET [23408] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-06-04 16:29:50.929 EET [25588] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-06-04 16:33:34.614 EET [25164] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-06-04 16:33:34.615 EET [16276] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-06-04 16:33:34.615 EET [15600] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-06-04 16:54:43.187 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:54:44.190 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:54:45.195 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:54:46.209 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:54:47.217 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:54:48.226 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:54:49.234 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:54:50.243 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:54:51.249 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:54:52.250 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:54:53.258 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:54:54.275 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:54:55.283 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:54:56.291 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:54:57.299 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:54:58.307 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:54:59.309 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:55:00.324 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:55:01.332 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:55:02.341 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:55:03.348 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:55:04.349 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:55:05.356 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:55:06.371 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:55:07.387 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:55:08.396 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:55:09.405 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:55:10.406 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:55:11.422 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:55:12.422 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:55:13.438 EET [3604] ERROR:  could not open file "global/1262": No such file or directory
+2026-06-04 16:55:13.571 EET [24328] LOG:  could not open file "postmaster.pid": No such file or directory
+2026-06-04 16:55:13.572 EET [24328] LOG:  performing immediate shutdown because data directory lock file is invalid
+2026-06-04 16:55:13.572 EET [24328] LOG:  received immediate shutdown request
+2026-06-04 16:55:13.573 EET [24328] LOG:  could not open file "postmaster.pid": No such file or directory
+2026-06-04 16:55:13.577 EET [24120] LOG:  could not open temporary statistics file "pg_stat/global.tmp": No such file or directory
+2026-06-04 16:55:13.581 EET [3604] WARNING:  terminating connection because of crash of another server process
+2026-06-04 16:55:13.581 EET [3604] DETAIL:  The postmaster has commanded this server process to roll back the current transaction and exit, because another server process exited abnormally and possibly corrupted shared memory.
+2026-06-04 16:55:13.581 EET [3604] HINT:  In a moment you should be able to reconnect to the database and repeat your command.
+2026-06-04 16:55:13.592 EET [24328] LOG:  database system is shut down

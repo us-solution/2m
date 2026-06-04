@@ -369,7 +369,7 @@ function notifyNewOrder(count, firstOrder) {
   if ('Notification' in window && Notification.permission === 'granted') {
     new Notification('New Order — OZEL', {
       body: 'Table ' + firstOrder.table_number + ' | ' + firstOrder.customer_name || 'Guest',
-      icon: 'https://ozel-cafe.vercel.app/imgs/Ozel-Logo--01.png'
+      icon: 'https://ozel-weld.vercel.app/imgs/Ozel-Logo--01.png'
     });
   }
 }
