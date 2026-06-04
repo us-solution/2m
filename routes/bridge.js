@@ -187,7 +187,7 @@ router.get('/cashier-report', authenticateToken, requireRole('admin'), async (re
     return res.json({ success: false, error: 'cashier_api_not_configured', offline: true });
   }
   try {
-    const resp = await fetch(`${CASHIER_API_URL}/api/reports`, {
+    const resp = await fetch(`${CASHIER_API_URL}/reports/dashboard`, {
       method: 'GET',
       headers: { 'X-API-KEY': CASHIER_API_KEY },
       signal: AbortSignal.timeout(8000)

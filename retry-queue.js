@@ -60,7 +60,7 @@ async function processEntry(entry) {
   if (!url || !key) return false;
 
   try {
-    const resp = await fetch(`${url}/api/orders`, {
+    const resp = await fetch(`${url}/orders`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

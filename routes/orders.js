@@ -140,15 +140,24 @@ async function deliverToCashierAPI(order, user) {
   if (!BASE_URL || !API_KEY) return { skipped: true, reason: 'cashier_api_not_configured' };
 
   const parsedItems = safeParseItems(order.items);
+  
+  // الحصول على الـ Shifts النشط من السيستم (إن وجد)
+  // حالياً shiftId = null — يتم تعبئته من .NET API لاحقاً
+  const shiftId = process.env.CURRENT_SHIFT_ID || null;
+  
   const orderData = {
-    idempotency_key: String(order._id),
+    idempotency_key: String(order._id) + '-' + Date.now(),
+    branchId: process.env.BRANCH_ID || '00000000-0000-0000-0000-000000000000',
+    shiftId: shiftId,
+    employeeId: process.env.DEFAULT_EMPLOYEE_ID || '00000000-0000-0000-0000-000000000000',
+    tableSessionId: null,
     customer_name: user ? user.name : (order.customerPhone ? `+${order.customerPhone}` : 'Guest'),
     customer_phone: user ? (user.phone && user.phone.startsWith('email_') ? '' : user.phone) : (order.customerPhone || ''),
     total_price: Number(order.total_price) || 0,
     items: parsedItems.map(item => ({
-      item_name: item.name || '',
+      menuItemId: item.posMenuItemId || process.env.DEFAULT_MENU_ITEM_ID || null,
       quantity: item.quantity || 1,
-      price: Number(item.price) || 0
+      notes: [item.sugar && item.sugar !== 'Normal' ? `Sugar: ${item.sugar}` : '', item.extra && item.extra !== 'None' ? `Extra: ${item.extra}` : '', item.notes || ''].filter(Boolean).join(', ')
     }))
   };
 
