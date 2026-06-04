@@ -2686,7 +2686,7 @@ async function loadCashierReports() {
     
     // تحديث ملخص البطاقات
     const d = result.data || {};
-    const sales = d.totalSales != null ? d.totalSales : (d.total_sales != null ? d.total_sales : null);
+    const sales = d.totalSales != null ? d.totalSales : (d.total_sales != null ? d.total_sales : (d.todaysSales != null ? d.todaysSales : null));
     const orders = d.orderCount != null ? d.orderCount : (d.order_count != null ? d.order_count : null);
     const avg = d.averageOrder != null ? d.averageOrder : (d.average_order != null ? d.average_order : null);
     const profit = d.profit != null ? d.profit : (d.netProfit != null ? d.netProfit : (d.net_profit != null ? d.net_profit : null));
@@ -2696,12 +2696,12 @@ async function loadCashierReports() {
     document.getElementById('cr-profit').textContent = profit != null ? Number(profit).toLocaleString() : '—';
     
     // أفضل العناصر مبيعاً
-    const topItems = d.topItems || d.top_items || d.topSellingItems || d.top_selling_items || [];
+    const topItems = d.topItems || d.top_items || d.topSellingItems || d.top_selling_items || d.bestSellingProducts || d.bestSellingProducts || [];
     if (topItems.length) {
       topItemsEl.innerHTML = topItems.map((item, i) => `
         <div style="display:flex; justify-content:space-between; align-items:center; padding:.6rem 0; border-bottom:1px solid var(--line);">
-          <span>${i + 1}. ${item.item_name || item.name || item.menuItemName || item.menu_item_name || '—'}</span>
-          <span style="color:var(--gold); font-weight:700;">${item.quantity || item.count || item.totalQuantity || item.total_quantity || 0}</span>
+          <span>${i + 1}. ${item.item_name || item.name || item.menuItemName || item.menu_item_name || item.productName || '—'}</span>
+          <span style="color:var(--gold); font-weight:700;">${item.quantity || item.count || item.totalQuantity || item.total_quantity || item.quantitySold || 0}</span>
         </div>
       `).join('');
     } else {
@@ -2730,7 +2730,7 @@ async function loadCashierReports() {
     }
     
     // المبيعات (Chart.js)
-    const salesHistory = d.salesHistory || d.sales_history || d.dailySales || d.daily_sales || [];
+    const salesHistory = d.salesHistory || d.sales_history || d.dailySales || d.daily_sales || d.salesChartData || d.profitChartData || [];
     if (salesHistory.length && typeof Chart !== 'undefined') {
       renderCRChart(salesHistory);
     }
@@ -2752,7 +2752,7 @@ function renderCRChart(salesHistory) {
   if (crChartInstance) crChartInstance.destroy();
   const ctx = document.getElementById('cr-sales-chart').getContext('2d');
   const labels = salesHistory.map(s => s.date || s.day || s.dateLabel || '—');
-  const values = salesHistory.map(s => s.total || s.amount || s.totalSales || s.total_sales || s.totalAmount || s.total_amount || 0);
+  const values = salesHistory.map(s => s.total || s.amount || s.totalSales || s.total_sales || s.totalAmount || s.total_amount || s.value || 0);
   crChartInstance = new Chart(ctx, {
     type: 'bar',
     data: {
