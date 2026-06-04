@@ -31,6 +31,7 @@ require('./models/RecipeItem');
 require('./models/InventoryTransaction');
 require('./models/InventoryCount');
 require('./models/StockAlert');
+const retryQueue = require('./retry-queue');
 require('./models/ExpenseCategory');
 require('./models/CustomizationOption');
 
@@ -278,6 +279,9 @@ if (process.env.NODE_ENV !== 'production') {
     console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
   });
 }
+
+// بدء طابور إعادة المحاولة لإرسال الأوردرات إلى API الكاشير المحلي
+retryQueue.start(60000);
 
 // ============================
 // تصدير التطبيق لاستخدام Vercel Serverless

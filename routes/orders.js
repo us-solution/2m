@@ -11,6 +11,7 @@ const jwt = require('jsonwebtoken');
 const Pusher = require('pusher');
 const crypto = require('crypto');
 const SyncEvent = require('../models/SyncEvent');
+const retryQueue = require('../retry-queue');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'ozel_cafe_secret_2026';
 const BRIDGE_SIGNATURE_SECRET = process.env.BRIDGE_SIGNATURE_SECRET || process.env.BRIDGE_API_KEY || 'bridge-signature-secret';
@@ -132,6 +133,28 @@ async function deliverToBridge(event) {
   }
 }
 
+// إرسال الطلب إلى API الكاشير المحلي (.NET) عبر الـ Static IP
+async function deliverToCashierAPI(order, user) {
+  const BASE_URL = process.env.CASHIER_API_URL;
+  const API_KEY = process.env.CASHIER_API_KEY;
+  if (!BASE_URL || !API_KEY) return { skipped: true, reason: 'cashier_api_not_configured' };
+
+  const parsedItems = safeParseItems(order.items);
+  const orderData = {
+    idempotency_key: String(order._id),
+    customer_name: user ? user.name : (order.customerPhone ? `+${order.customerPhone}` : 'Guest'),
+    customer_phone: user ? (user.phone && user.phone.startsWith('email_') ? '' : user.phone) : (order.customerPhone || ''),
+    total_price: Number(order.total_price) || 0,
+    items: parsedItems.map(item => ({
+      item_name: item.name || '',
+      quantity: item.quantity || 1,
+      price: Number(item.price) || 0
+    }))
+  };
+
+  return await retryQueue.sendOrEnqueue(orderData);
+}
+
 // الحصول على المستخدم إذا كان رمز المصادقة موجوداً (اختياري)
 const getOptionalUser = async (req) => {
   const authHeader = req.headers['authorization'];
@@ -226,6 +249,13 @@ router.post('/', async (req, res) => {
         { $set: { 'syncMeta.syncStatus': 'failed', 'syncMeta.lastError': syncEvent.failureReason } }
       );
     }
+
+    // إرسال الطلب إلى API الكاشير المحلي (.NET) بشكل غير متزامن
+    deliverToCashierAPI(order, user).then(result => {
+      if (!result.skipped && result.status === 'queued') {
+        console.log(`[CashierAPI] تمت جدولة الطلب ${order._id} لإعادة المحاولة: ${result.reason}`);
+      }
+    }).catch(() => {});
 
     res.json({
       success: true,

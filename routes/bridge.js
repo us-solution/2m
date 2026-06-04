@@ -5,6 +5,7 @@ const ReportSnapshot = require('../models/ReportSnapshot');
 const SyncEvent = require('../models/SyncEvent');
 const Order = require('../models/Order');
 const crypto = require('crypto');
+const retryQueue = require('../retry-queue');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 
 // التحقق من مفتاح API للجسر
@@ -170,6 +171,35 @@ router.get('/status', authAdminOrBridge, async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// جلب حالة طابور إعادة المحاولة (الأوردرات المعلقة)
+router.get('/retry-queue', authenticateToken, requireRole('admin'), async (req, res) => {
+  res.json({ success: true, ...retryQueue.getStatus() });
+});
+
+// جلب تقارير الكاشير المحلي من .NET API
+router.get('/cashier-report', authenticateToken, requireRole('admin'), async (req, res) => {
+  const CASHIER_API_URL = process.env.CASHIER_API_URL;
+  const CASHIER_API_KEY = process.env.CASHIER_API_KEY;
+  if (!CASHIER_API_URL || !CASHIER_API_KEY) {
+    return res.json({ success: false, error: 'cashier_api_not_configured', offline: true });
+  }
+  try {
+    const resp = await fetch(`${CASHIER_API_URL}/api/reports`, {
+      method: 'GET',
+      headers: { 'X-API-KEY': CASHIER_API_KEY },
+      signal: AbortSignal.timeout(8000)
+    });
+    if (!resp.ok) {
+      const txt = await resp.text();
+      return res.json({ success: false, error: `http_${resp.status}`, details: txt.slice(0, 200), offline: true });
+    }
+    const data = await resp.json();
+    res.json({ success: true, data, offline: false });
+  } catch (e) {
+    res.json({ success: false, error: e.message, offline: true });
   }
 });
 

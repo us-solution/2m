@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>لوحة التحكم — OZEL CAFE</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
 :root {
   --burgundy:      #541a1a;
@@ -237,6 +238,7 @@ td, th { white-space: nowrap; }
     <div class="nav-item" onclick="showPage('inventory',this)">📦 المخزون</div>
     <div class="nav-item" onclick="showPage('recipes',this)">📝 الوصفات</div>
     <div class="nav-item" onclick="showPage('reports',this)">📊 التقارير</div>
+    <div class="nav-item" onclick="showPage('cashier-reports',this)">🖥️ تقارير الكاشير</div>
     <div class="nav-item" onclick="showPage('customization',this)">⚙ خيارات التخصيص</div>
   </nav>
   <div style="overflow-y:auto;max-height:calc(100vh - 60px)">
@@ -691,6 +693,50 @@ td, th { white-space: nowrap; }
       </div>
     </div>
 
+    <!-- ===== تقارير الكاشير المحلي (.NET API) ===== -->
+    <div class="page" id="page-cashier-reports">
+      <h1 class="page-title">🖥️ تقارير الكاشير المحلي</h1>
+      <p class="page-sub">تقارير المبيعات من نظام نقاط البيع المحلي (عبر Static IP)</p>
+
+      <div id="cashier-reports-status" style="margin-bottom:1rem;">
+        <div id="cr-offline" style="display:none; background:#fff3e0; border:1px solid #ffb74d; color:#e65100; padding:1rem; border-radius:6px; font-size:.9rem; text-align:center;">
+          ⚠️ جاري تحديث البيانات... السيرفر المحلي للكافيه غير متصل حالياً
+        </div>
+      </div>
+
+      <!-- Summary Cards -->
+      <div id="cr-summary" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:1rem; margin-bottom:1.5rem;">
+        <div class="stat-card"><div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--gold);" id="cr-total-sales">—</div><div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">إجمالي المبيعات (ج.م)</div></div>
+        <div class="stat-card"><div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--accent-emerald);" id="cr-order-count">—</div><div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">عدد الطلبات</div></div>
+        <div class="stat-card"><div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--text);" id="cr-avg-order">—</div><div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">متوسط الطلب</div></div>
+        <div class="stat-card"><div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:#27AE60;" id="cr-profit">—</div><div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">صافي الربح (ج.م)</div></div>
+      </div>
+
+      <!-- Top Items -->
+      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">أفضل العناصر مبيعاً (نقاط البيع المحلي)</h3>
+        <div id="cr-top-items"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
+      </div>
+
+      <!-- Sales Chart -->
+      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">المبيعات (آخر 7 أيام)</h3>
+        <div style="height:250px;"><canvas id="cr-sales-chart"></canvas></div>
+      </div>
+
+      <!-- Payment Methods -->
+      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">طرق الدفع</h3>
+        <div id="cr-payments"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
+      </div>
+
+      <!-- Retry Queue Status -->
+      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line);">
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">حالة طابور إعادة المحاولة</h3>
+        <div id="cr-retry-queue"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
+      </div>
+    </div>
+
     <!-- ===== خيارات التخصيص (السكر والإضافات) ===== -->
     <div class="page" id="page-customization">
       <h1 class="page-title">⚙ خيارات التخصيص</h1>
@@ -753,6 +799,7 @@ function showPage(name, el) {
   if (name === 'inventory') loadInventory();
   if (name === 'recipes') loadRecipes();
   if (name === 'reports') loadReports();
+  if (name === 'cashier-reports') loadCashierReports();
   if (name === 'customization') loadCustomization();
 }
 
@@ -2605,6 +2652,152 @@ async function saveCustomization() {
     showToast('خطأ في الاتصال بالخادم', 'error');
   }
 }
+
+// ===== دوال تقارير الكاشير المحلي (.NET API) =====
+let crChartInstance = null;
+
+// تحميل تقارير الكاشير المحلي
+async function loadCashierReports() {
+  const statusEl = document.getElementById('cr-offline');
+  const summaryEl = document.getElementById('cr-summary');
+  const topItemsEl = document.getElementById('cr-top-items');
+  const paymentsEl = document.getElementById('cr-payments');
+  const retryEl = document.getElementById('cr-retry-queue');
+  
+  statusEl.style.display = 'none';
+  summaryEl.style.opacity = '0.4';
+  
+  try {
+    const res = await fetch('/api/bridge/cashier-report', {
+      headers: getAuthH()
+    });
+    const result = await res.json();
+    
+    if (!result.success || result.offline) {
+      statusEl.style.display = 'block';
+      summaryEl.style.opacity = '1';
+      // إظهار بيانات الطابور حتى لو السيرفر أوفلاين
+      loadRetryQueueStatus();
+      return;
+    }
+    
+    statusEl.style.display = 'none';
+    summaryEl.style.opacity = '1';
+    
+    // تحديث ملخص البطاقات
+    const d = result.data || {};
+    document.getElementById('cr-total-sales').textContent = d.totalSales != null ? d.totalSales.toLocaleString() : '—';
+    document.getElementById('cr-order-count').textContent = d.orderCount != null ? d.orderCount : '—';
+    document.getElementById('cr-avg-order').textContent = d.averageOrder != null ? d.averageOrder.toFixed(2) : '—';
+    document.getElementById('cr-profit').textContent = d.profit != null ? d.profit.toLocaleString() : '—';
+    
+    // أفضل العناصر مبيعاً
+    if (d.topItems && d.topItems.length) {
+      topItemsEl.innerHTML = d.topItems.map((item, i) => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:.6rem 0; border-bottom:1px solid var(--line);">
+          <span>${i + 1}. ${item.item_name || item.name || '—'}</span>
+          <span style="color:var(--gold); font-weight:700;">${item.quantity || item.count || 0}</span>
+        </div>
+      `).join('');
+    } else {
+      topItemsEl.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا توجد بيانات</p>';
+    }
+    
+    // طرق الدفع
+    if (d.paymentMethods && d.paymentMethods.length) {
+      const totalPayments = d.paymentMethods.reduce((s, p) => s + (p.amount || p.total || 0), 0);
+      paymentsEl.innerHTML = d.paymentMethods.map(p => {
+        const amt = p.amount || p.total || 0;
+        const pct = totalPayments > 0 ? ((amt / totalPayments) * 100).toFixed(1) : 0;
+        const methodName = p.method || p.name || p.paymentMethod || '—';
+        return `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:.5rem 0;">
+            <span>${methodName}</span>
+            <span style="color:var(--muted); font-size:.85rem;">
+              <strong style="color:var(--text);">${amt.toLocaleString()} ج.م</strong> (${pct}%)
+            </span>
+          </div>
+        `;
+      }).join('');
+    } else {
+      paymentsEl.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا توجد بيانات</p>';
+    }
+    
+    // المبيعات (Chart.js)
+    if (d.salesHistory && d.salesHistory.length && typeof Chart !== 'undefined') {
+      renderCRChart(d.salesHistory);
+    }
+    
+    // حالة طابور إعادة المحاولة
+    loadRetryQueueStatus();
+    
+  } catch (e) {
+    statusEl.style.display = 'block';
+    summaryEl.style.opacity = '1';
+    topItemsEl.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا يمكن الاتصال بالسيرفر المحلي</p>';
+    paymentsEl.innerHTML = '';
+    loadRetryQueueStatus();
+  }
+}
+
+// رسم مخطط المبيعات
+function renderCRChart(salesHistory) {
+  if (crChartInstance) crChartInstance.destroy();
+  const ctx = document.getElementById('cr-sales-chart').getContext('2d');
+  const labels = salesHistory.map(s => s.date || s.day || '—');
+  const values = salesHistory.map(s => s.total || s.amount || 0);
+  crChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'المبيعات (ج.م)',
+        data: values,
+        backgroundColor: '#5c766d',
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+// تحميل حالة طابور إعادة المحاولة
+async function loadRetryQueueStatus() {
+  const el = document.getElementById('cr-retry-queue');
+  try {
+    const res = await fetch('/api/bridge/retry-queue', { headers: getAuthH() });
+    const data = await res.json();
+    if (data.success) {
+      if (data.pending > 0) {
+        let html = `<div style="color:var(--orange); font-weight:700; margin-bottom:.5rem;">⚠️ ${data.pending} طلب(طلبات) في انتظار إعادة المحاولة</div>`;
+        html += data.items.map(i => `
+          <div style="font-size:.8rem; color:var(--muted); padding:.3rem 0; border-bottom:1px solid var(--line); display:flex; justify-content:space-between;">
+            <span>${i.idempotencyKey}</span>
+            <span>محاولات: ${i.attempts} | ${i.lastAttempt ? new Date(i.lastAttempt).toLocaleString('ar-EG') : ''}</span>
+          </div>
+        `).join('');
+        el.innerHTML = html;
+      } else {
+        el.innerHTML = '<p style="color:var(--green); font-size:.9rem;">✅ جميع الطلبات تم إرسالها بنجاح</p>';
+      }
+    } else {
+      el.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا يمكن تحميل حالة الطابور</p>';
+    }
+  } catch (e) {
+    el.innerHTML = '<p style="color:var(--muted); font-size:.9rem;">لا يمكن تحميل حالة الطابور</p>';
+  }
+}
+
+// تحديث دوري لتقارير الكاشير (كل 30 ثانية)
+setInterval(() => {
+  if (document.getElementById('page-cashier-reports').classList.contains('active')) {
+    loadCashierReports();
+  }
+}, 30000);
 </script>
 
 <div id="custom-modal" class="c-modal">

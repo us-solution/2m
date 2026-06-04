@@ -19,3 +19,6 @@ pos-bridge/.env
 
 # POS System (separate .NET project)
 POS_system-main/
+
+# Retry Queue
+failed-orders.json
