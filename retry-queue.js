@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+const axios = require('axios');
 
 const QUEUE_FILE = path.join(__dirname, 'failed-orders.json');
 const CASHIER_API_URL = () => process.env.CASHIER_API_URL;
@@ -60,16 +61,12 @@ async function processEntry(entry) {
   if (!url || !key) return false;
 
   try {
-    const resp = await fetch(`${url}/orders`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': key
-      },
-      body: JSON.stringify(entry.orderData),
-      signal: AbortSignal.timeout(10000)
+    const resp = await axios.post(`${url}/orders`, entry.orderData, {
+      headers: { 'Content-Type': 'application/json', 'X-API-KEY': key },
+      timeout: 10000,
+      validateStatus: () => true
     });
-    if (resp.ok) {
+    if (resp.status >= 200 && resp.status < 300) {
       console.log(`[RetryQueue] تم إرسال الطلب ${entry.orderData.idempotencyKey || entry.orderData.idempotency_key || 'unknown'} بنجاح`);
       dequeue(entry.id);
       return true;
@@ -147,17 +144,16 @@ async function sendOrEnqueue(orderData) {
     return { status: 'queued', reason: 'cashier_api_not_configured' };
   }
   try {
-    const resp = await fetch(`${url}/api/orders`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': key
-      },
-      body: JSON.stringify(orderData),
-      signal: AbortSignal.timeout(10000)
+    const resp = await axios.post(`${url}/orders`, orderData, {
+      headers: { 'Content-Type': 'application/json', 'X-API-KEY': key },
+      timeout: 10000,
+      validateStatus: () => true
     });
-    if (resp.ok || resp.status === 409) {
+    if (resp.status >= 200 && resp.status < 300) {
       return { status: 'sent', httpStatus: resp.status };
+    }
+    if (resp.status === 409) {
+      return { status: 'sent', httpStatus: resp.status, duplicate: true };
     }
     enqueue(orderData);
     return { status: 'queued', reason: `http_${resp.status}` };

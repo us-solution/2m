@@ -12,6 +12,7 @@ const Pusher = require('pusher');
 const crypto = require('crypto');
 const SyncEvent = require('../models/SyncEvent');
 const retryQueue = require('../retry-queue');
+const axios = require('axios');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'ozel_cafe_secret_2026';
 const BRIDGE_SIGNATURE_SECRET = process.env.BRIDGE_SIGNATURE_SECRET || process.env.BRIDGE_API_KEY || 'bridge-signature-secret';
@@ -133,44 +134,52 @@ async function deliverToBridge(event) {
   }
 }
 
-// إرسال الطلب إلى API الكاشير المحلي (.NET) عبر الـ Static IP
+// إرسال الطلب إلى API الكاشير المحلي (.NET) — خطوتان بالتتابع
 async function deliverToCashierAPI(order, user) {
   const BASE_URL = process.env.CASHIER_API_URL;
   const API_KEY = process.env.CASHIER_API_KEY;
-  if (!BASE_URL || !API_KEY) return { skipped: true, reason: 'cashier_api_not_configured' };
+  const BRANCH_ID = process.env.BRANCH_ID;
+  const EMPLOYEE_ID = process.env.DEFAULT_EMPLOYEE_ID;
+  const NOT_CONFIGURED = { skipped: true, reason: 'cashier_api_not_configured' };
+
+  if (!BASE_URL || !API_KEY || !BRANCH_ID || !EMPLOYEE_ID) return NOT_CONFIGURED;
 
   const parsedItems = safeParseItems(order.items);
-  
-  // جلب الـ Shift النشط من API الكاشير
+
+  // ──────────────────────────────────────────────
+  // الخطوة الأولى: جلب الوردية النشطة (GET /shifts/active)
+  // ──────────────────────────────────────────────
   let shiftId = null;
   try {
-    const shiftRes = await fetch(`${BASE_URL}/shifts/active`, {
+    const shiftRes = await axios.get(`${BASE_URL}/shifts/active`, {
       headers: { 'X-API-KEY': API_KEY },
-      signal: AbortSignal.timeout(5000)
+      timeout: 5000
     });
-    if (shiftRes.ok) {
-      const shiftData = await shiftRes.json();
-      if (shiftData.success && shiftData.shiftId) {
-        shiftId = shiftData.shiftId;
-      }
+    if (shiftRes.data && shiftRes.data.success && shiftRes.data.shiftId) {
+      shiftId = shiftRes.data.shiftId;
     }
   } catch (e) {
     console.log('[CashierAPI] فشل جلب الـ shift النشط:', e.message);
   }
-  
+
+  // ──────────────────────────────────────────────
+  // بناء جسم الطلب الكامل
+  // ──────────────────────────────────────────────
   const orderData = {
-    idempotencyKey: String(order._id) + '-' + Date.now(),
-    branchId: process.env.BRANCH_ID || '00000000-0000-0000-0000-000000000000',
+    branchId: BRANCH_ID,
     shiftId: shiftId,
-    employeeId: process.env.DEFAULT_EMPLOYEE_ID || '00000000-0000-0000-0000-000000000000',
-    tableSessionId: null,
+    employeeId: EMPLOYEE_ID,
+    idempotencyKey: `order-${order._id}-${Date.now()}`,
     items: parsedItems.map(item => ({
-      menuItemId: item.posMenuItemId || process.env.DEFAULT_MENU_ITEM_ID || null,
+      menuItemId: item.menuItemIdInCashier,
       quantity: item.quantity || 1,
-      notes: [item.sugar && item.sugar !== 'Normal' ? `Sugar: ${item.sugar}` : '', item.extra && item.extra !== 'None' ? `Extra: ${item.extra}` : '', item.notes || ''].filter(Boolean).join(', ')
+      notes: item.notes || ''
     }))
   };
 
+  // ──────────────────────────────────────────────
+  // الخطوة الثانية: إرسال الأوردر (POST /orders)
+  // ──────────────────────────────────────────────
   return await retryQueue.sendOrEnqueue(orderData);
 }
 
