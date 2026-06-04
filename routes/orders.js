@@ -141,19 +141,29 @@ async function deliverToCashierAPI(order, user) {
 
   const parsedItems = safeParseItems(order.items);
   
-  // الحصول على الـ Shifts النشط من السيستم (إن وجد)
-  // حالياً shiftId = null — يتم تعبئته من .NET API لاحقاً
-  const shiftId = process.env.CURRENT_SHIFT_ID || null;
+  // جلب الـ Shift النشط من API الكاشير
+  let shiftId = null;
+  try {
+    const shiftRes = await fetch(`${BASE_URL}/shifts/active`, {
+      headers: { 'X-API-KEY': API_KEY },
+      signal: AbortSignal.timeout(5000)
+    });
+    if (shiftRes.ok) {
+      const shiftData = await shiftRes.json();
+      if (shiftData.success && shiftData.shiftId) {
+        shiftId = shiftData.shiftId;
+      }
+    }
+  } catch (e) {
+    console.log('[CashierAPI] فشل جلب الـ shift النشط:', e.message);
+  }
   
   const orderData = {
-    idempotency_key: String(order._id) + '-' + Date.now(),
+    idempotencyKey: String(order._id) + '-' + Date.now(),
     branchId: process.env.BRANCH_ID || '00000000-0000-0000-0000-000000000000',
     shiftId: shiftId,
     employeeId: process.env.DEFAULT_EMPLOYEE_ID || '00000000-0000-0000-0000-000000000000',
     tableSessionId: null,
-    customer_name: user ? user.name : (order.customerPhone ? `+${order.customerPhone}` : 'Guest'),
-    customer_phone: user ? (user.phone && user.phone.startsWith('email_') ? '' : user.phone) : (order.customerPhone || ''),
-    total_price: Number(order.total_price) || 0,
     items: parsedItems.map(item => ({
       menuItemId: item.posMenuItemId || process.env.DEFAULT_MENU_ITEM_ID || null,
       quantity: item.quantity || 1,

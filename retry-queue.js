@@ -43,7 +43,7 @@ function enqueue(orderData) {
   };
   queue.push(entry);
   saveQueue();
-  console.log(`[RetryQueue] تمت إضافة الطلب ${orderData.idempotency_key} إلى طابور إعادة المحاولة`);
+  console.log(`[RetryQueue] تمت إضافة الطلب ${orderData.idempotencyKey || orderData.idempotency_key || 'unknown'} إلى طابور إعادة المحاولة`);
   return entry;
 }
 
@@ -70,19 +70,19 @@ async function processEntry(entry) {
       signal: AbortSignal.timeout(10000)
     });
     if (resp.ok) {
-      console.log(`[RetryQueue] تم إرسال الطلب ${entry.orderData.idempotency_key} بنجاح`);
+      console.log(`[RetryQueue] تم إرسال الطلب ${entry.orderData.idempotencyKey || entry.orderData.idempotency_key || 'unknown'} بنجاح`);
       dequeue(entry.id);
       return true;
     }
     if (resp.status === 409) {
-      console.log(`[RetryQueue] الطلب ${entry.orderData.idempotency_key} موجود مسبقاً (تم التخطي)`);
+      console.log(`[RetryQueue] الطلب ${entry.orderData.idempotencyKey || entry.orderData.idempotency_key || 'unknown'} موجود مسبقاً (تم التخطي)`);
       dequeue(entry.id);
       return true;
     }
-    console.log(`[RetryQueue] فشل إرسال ${entry.orderData.idempotency_key}: HTTP ${resp.status}`);
+    console.log(`[RetryQueue] فشل إرسال ${entry.orderData.idempotencyKey || entry.orderData.idempotency_key || 'unknown'}: HTTP ${resp.status}`);
     return false;
   } catch (e) {
-    console.log(`[RetryQueue] فشل إرسال ${entry.orderData.idempotency_key}: ${e.message}`);
+    console.log(`[RetryQueue] فشل إرسال ${entry.orderData.idempotencyKey || entry.orderData.idempotency_key || 'unknown'}: ${e.message}`);
     return false;
   }
 }
@@ -130,7 +130,7 @@ function getStatus() {
     pending: queue.length,
     items: queue.map(e => ({
       id: e.id,
-      idempotencyKey: e.orderData.idempotency_key,
+      idempotencyKey: e.orderData.idempotencyKey || e.orderData.idempotency_key || 'unknown',
       attempts: e.attempts,
       lastAttempt: e.lastAttempt,
       createdAt: e.createdAt
