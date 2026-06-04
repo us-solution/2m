@@ -2165,18 +2165,15 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
    SENSORY SPLIT-DECK LAYOUT
    ═══════════════════════════════════════════ */
 .menu-layout-split {
-  display: grid;
-  grid-template-columns: 1.35fr 1fr;
-  gap: 3rem;
-  max-width: 1400px;
+  max-width: 1000px;
   margin: 2.5rem auto 0;
-  align-items: start;
 }
 .menu-left-main {
   width: 100%;
 }
 .menu-right-deck {
   width: 100%;
+  display: none;
 }
 .alchemy-deck-sticky {
   position: sticky;
@@ -2357,10 +2354,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
 
 @media (max-width: 1024px) {
   .menu-layout-split {
-    grid-template-columns: 1fr;
-  }
-  .menu-right-deck {
-    display: none;
+    max-width: 1000px;
   }
 }
 
@@ -3941,14 +3935,6 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
     white-space: nowrap;
   }
 
-  /* Menu layout — single column on mobile */
-  .menu-layout-split {
-    display: block !important;
-    grid-template-columns: unset !important;
-  }
-  .menu-right-deck {
-    display: none !important;
-  }
   .menu-left-main {
     width: 100% !important;
   }

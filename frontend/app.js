@@ -482,10 +482,13 @@ function getExtrasChipsHTML(prefix, drinkExtras) {
        { key: 'Ice Cream', nameEn: 'Ice Cream', nameAr: 'آيس كريم', price: 20 },
        { key: 'Marshmallow', nameEn: 'Marshmallow', nameAr: 'مارشميلو', price: 10 },
        { key: 'Nuts', nameEn: 'Nuts Mix', nameAr: 'مكسرات', price: 15 }];
-  // تصفية حسب الإضافات المتاحة للمشروب إذا كانت محددة
-  if (drinkExtras && drinkExtras.length) {
+  // تصفية حسب الإضافات المتاحة للمشروب
+  if (drinkExtras && Array.isArray(drinkExtras) && drinkExtras.length) {
     const allowed = new Set(drinkExtras);
     extrasList = extrasList.filter(e => allowed.has(e.key));
+  } else {
+    extrasList = [];
+    extrasList.push({ key: 'None', nameEn: 'No Extras', nameAr: 'بدون إضافات', price: 0 });
   }
   const isAr = currentLang === 'ar';
   return extrasList.map((e, i) => {
@@ -514,83 +517,6 @@ window.openDrink = async function(id) {
   _modalSessionId = (_modalSessionId + 1) % 1e9;
   const isAr = currentLang === 'ar';
   const displayName = isAr ? (drink.name_ar || drink.name) : drink.name;
-
-  // منطق اللوحة المنقسمة (Split-Deck) لأجهزة الكمبيوتر
-  const deck = document.getElementById('alchemyDeck');
-  const isDesktop = window.innerWidth > 1024;
-  if (deck && isDesktop) {
-    const deckContent = document.getElementById('deckContent');
-    // إنشاء ملف حسي ديناميكي للمشروب
-    const intensity = drink.temperature === 'hot' ? 4 : 2;
-    const sweetness = drink.name.toLowerCase().includes('latte') ? 3 : (drink.name.toLowerCase().includes('espresso') ? 1 : 4);
-    const creaminess = drink.name.toLowerCase().includes('shake') || drink.name.toLowerCase().includes('latte') ? 4 : 1;
-
-    deckContent.innerHTML = `
-      <div class="deck-content-wrap">
-        <img class="deck-drink-img" src="${drink.image_emoji}" alt="${displayName}" onerror="this.src='imgs/espresso.png';">
-        <div class="deck-meta">
-          <h4 class="deck-name">${displayName}</h4>
-          <span class="deck-price">${drink.price} EGP</span>
-        </div>
-        <p class="deck-desc">${isAr ? (drink.description_ar || drink.description || 'مشروب أوزيل الفاخر المحضر بعناية فائقة وتوازن مذهل للنكهات.') : (drink.description || 'OZEL premium drink prepared with meticulous care and incredible flavor balance.')}</p>
-        
-        <div class="deck-sensory-box">
-          <div class="deck-sensory-row">
-            <span>${isAr ? 'التركيز' : 'Intensity'}</span>
-            <div class="deck-dots">
-              ${Array.from({length: 5}).map((_, i) => `<span class="deck-dot ${i < intensity ? 'active' : ''}"></span>`).join('')}
-            </div>
-          </div>
-          <div class="deck-sensory-row">
-            <span>${isAr ? 'الحلاوة' : 'Sweetness'}</span>
-            <div class="deck-dots">
-              ${Array.from({length: 5}).map((_, i) => `<span class="deck-dot ${i < sweetness ? 'active gold' : ''}"></span>`).join('')}
-            </div>
-          </div>
-          <div class="deck-sensory-row">
-            <span>${isAr ? 'القوام' : 'Creaminess'}</span>
-            <div class="deck-dots">
-              ${Array.from({length: 5}).map((_, i) => `<span class="deck-dot ${i < creaminess ? 'active' : ''}"></span>`).join('')}
-            </div>
-          </div>
-        </div>
-
-        <div class="deck-customizer">
-          <div class="deck-custom-group">
-            <span class="deck-custom-label">${isAr ? 'درجة السكر' : 'Sugar Level'}</span>
-            <div class="deck-chips" id="deck-chips-sugar">
-              ${getSugarChipsHTML('deck')}
-            </div>
-          </div>
-          <div class="deck-custom-group">
-            <span class="deck-custom-label">${isAr ? 'الإضافات' : 'Extras'}</span>
-            <div class="deck-chips" id="deck-chips-extra">
-              ${getExtrasChipsHTML('deck', drink.availableExtras)}
-            </div>
-          </div>
-        </div>
-
-        <textarea id="deckNotes" placeholder="${isAr ? 'أضف ملاحظاتك هنا...' : 'Add your notes here...'}" style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none; height: 50px; resize:none;"></textarea>
-
-        <div style="display:flex;align-items:center;gap:.6rem;margin-top:.8rem;">
-          <span style="font-size:.8rem;color:var(--muted)">${isAr ? 'العدد' : 'Qty'}:</span>
-          <button type="button" class="qty-btn deck-qty" onclick="const inp=document.getElementById('deckQty');let v=parseInt(inp.value)||1;if(v>1){v--;inp.value=v}" style="width:32px;height:32px;border:1px solid var(--line);background:var(--bg2);color:var(--text);font-size:1.1rem;cursor:pointer;border-radius:4px;">−</button>
-          <input type="number" id="deckQty" value="1" min="1" oninput="if(this.value<1||this.value=='')this.value=1" style="width:44px;text-align:center;background:var(--bg2);border:1px solid var(--line);color:var(--text);padding:.2rem;border-radius:4px;font-size:.9rem;font-family:'Tajawal',sans-serif">
-          <button type="button" class="qty-btn deck-qty" onclick="const inp=document.getElementById('deckQty');let v=parseInt(inp.value)||1;v++;inp.value=v" style="width:32px;height:32px;border:1px solid var(--line);background:var(--bg2);color:var(--text);font-size:1.1rem;cursor:pointer;border-radius:4px;">+</button>
-        </div>
-
-        <button class="btn-gold" onclick="addDeckToCart('${drink.id}')" style="width: 100%; justify-content: center; padding: 0.8rem; background: var(--accent-emerald); color: var(--white); margin-top:.8rem;">
-          ${isAr ? 'إضافة للطلب ✦' : 'Add to Order ✦'}
-        </button>
-      </div>
-    `;
-    
-    const deckRect = deck.getBoundingClientRect();
-    if (deckRect.top < 0 || deckRect.bottom > window.innerHeight) {
-      deck.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-    return;
-  }
 
   // الوضع البديل: النافذة المنبثقة (للجوال/التابلت)
   const modal   = document.getElementById('drinkModal');
