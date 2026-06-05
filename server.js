@@ -280,15 +280,15 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-// الاتصال بقاعدة البيانات قبل بدء الخادم
+// الاتصال بقاعدة البيانات ثم بدء طابور إعادة المحاولة
 connectDB().then(() => {
   console.log('MongoDB connection established for startup.');
+  retryQueue.start(60000);
 }).catch(err => {
   console.error('MongoDB startup connection failed:', err.message);
+  // نبدأ retryQueue على أي حال — لو اتصلت DB بعدين هتشتغل
+  retryQueue.start(60000);
 });
-
-// بدء طابور إعادة المحاولة لإرسال الأوردرات إلى API الكاشير المحلي
-retryQueue.start(60000);
 
 // ============================
 // تصدير التطبيق لاستخدام Vercel Serverless

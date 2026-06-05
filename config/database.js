@@ -30,7 +30,7 @@ async function connectDB() {
   if (!cached.promise) {
     // إعدادات الاتصال: حجم التجمع، المهلات الزمنية للسيرفر البارد والاستعلامات
     const opts = {
-      bufferCommands: false,
+      bufferCommands: true,
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 30000,
       socketTimeoutMS: 60000,
