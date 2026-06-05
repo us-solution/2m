@@ -28,12 +28,16 @@
     <div class="loader-particles">
       <span></span><span></span><span></span>
       <span></span><span></span><span></span>
+      <span></span><span></span>
     </div>
     <div class="loader-content">
       <div class="loader-logo-wrap">
         <img src="imgs/Ozel-Logo--02.png" alt="OZEL Logo" class="loader-logo-cinematic" />
         <div class="loader-ring"></div>
       </div>
+      <div class="loader-ozel-text">ÖZEL</div>
+      <div class="loader-ozel-line"></div>
+      <div class="loader-ozel-subtitle">Premium Cafe Experience</div>
     </div>
   </div>
 
@@ -406,19 +410,7 @@
         </div>
       </div>
 
-      <div class="menu-right-deck" id="alchemyDeck">
-        <div class="alchemy-deck-sticky">
-          <div class="deck-header">
-            <span class="deck-eyebrow" data-en="✦ Ozel Customization ✦" data-ar="✦ تخصيص المشروب ✦">✦ Ozel Customization ✦</span>
-            <h3 class="deck-title" data-en="Coffee Customization & Extras" data-ar="تخصيص وإضافات القهوة">Coffee Customization & Extras</h3>
-          </div>
-          <div id="deckContent" class="deck-content-wrap">
-            <div class="deck-placeholder">
-              <p style="font-family: 'Tajawal', sans-serif; font-size: 0.95rem; line-height: 1.6;" data-en="Select any drink from the menu to customize and order instantly without leaving the page!" data-ar="اختر أي مشروب من القائمة لتخصيصه وطلبه فوراً دون مغادرة الصفحة!">Select any drink from the menu to customize and order instantly without leaving the page!</p>
-            </div>
-          </div>
-        </div>
-      </div>
+
     </div>
   </section>
 
@@ -549,7 +541,7 @@
     </div>
   </div>
 
-  <script>setTimeout(function(){var l=document.getElementById('loader');if(l){l.classList.add('hidden');setTimeout(function(){l.style.display='none';},1200);}},3000);</script>
+  <script>!function(){var l=document.getElementById('loader'),r=!1,t=Date.now();if(!l)return;var o=function(){r||(r=!0,setTimeout(function(){l.classList.add('hidden'),setTimeout(function(){l.style.display='none'},800)},Math.max(0,2500-(Date.now()-t))))};window.addEventListener('load',o),setTimeout(o,3500)}();</script>
   <script src="app.js?v=1"></script>
   <script src="uno.js?v=1"></script>
 </body>
