@@ -382,10 +382,10 @@ ApiKeyMiddleware — Pipeline:
 CORS:
 ┌─────────────────────────────────────────────────────┐
 │ appsettings.json → CorsOrigins                       │
-│ الإنتاج: ["https://ozel-weld.vercel.app"]            │
+│ الإنتاج: ["https://ozel-cafe-sadat.vercel.app"]            │
 │ التطوير: ["http://localhost:3000",                   │
 │           "http://localhost:5173",                    │
-│           "https://ozel-weld.vercel.app"]             │
+│           "https://ozel-cafe-sadat.vercel.app"]             │
 │                                                      │
 │ السياسة: WebsiteOnly — WithOrigins + AllowAnyHeader  │
 │          + AllowAnyMethod                             │
@@ -495,7 +495,7 @@ DB Password:
 | **IdempotencyKey** | `uuidv4()` (GUID صحيح) | `CreateOrderRequest.IdempotencyKey` (string?) | ✅ GUID.TryParse ينجح |
 | **Shift ID** | من GET /shifts/active | `CreateOrderRequest.ShiftId` (Guid) | ✅ خطوتان |
 | **X-API-KEY** | `.env` → header | `ApiKeyMiddleware` | ✅ مفتاح قوي + متغير بيئة |
-| **CORS** | `*` (أي origin) | `https://ozel-weld.vercel.app` | ✅ |
+| **CORS** | `*` (أي origin) | `https://ozel-cafe-sadat.vercel.app` | ✅ |
 | **DB Password** | - | `POS_DB_PASSWORD` env var | ✅ |
 
 ### 3.2 🔴 الثغرات التي تم إصلاحها
