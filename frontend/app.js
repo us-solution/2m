@@ -464,11 +464,24 @@ function getSugarChipsHTML(prefix) {
        { key: 'Medium', nameEn: 'Medium Sugar', nameAr: 'سكر وسط' },
        { key: 'Less', nameEn: 'Less Sugar', nameAr: 'سكر خفيف' },
        { key: 'No Sugar', nameEn: 'No Sugar', nameAr: 'بدون سكر' }];
+  
+  const pctMap = {
+    'Normal': '100%',
+    'Medium': '70%',
+    'Less': '30%',
+    'No Sugar': '0%'
+  };
+  
   const isAr = currentLang === 'ar';
   return levels.map((s, i) => {
     const label = isAr ? s.nameAr : s.nameEn;
+    const pct = pctMap[s.key] || '';
+    const badgeHtml = pct ? `<span class="chip-badge">${pct}</span>` : '';
     const clickHandler = prefix === 'deck' ? 'selectDeckChip' : 'selectChip';
-    return `<button class="${prefix}-chip ${i===0?'active':''}" onclick="${clickHandler}('sugar','${s.key}',this)">${label}</button>`;
+    return `<button class="chip ${prefix}-chip ${i===0?'active':''}" onclick="${clickHandler}('sugar','${s.key}',this)">
+      <span>${label}</span>
+      ${badgeHtml}
+    </button>`;
   }).join('');
 }
 
@@ -494,18 +507,25 @@ function getExtrasChipsHTML(prefix, drinkExtras) {
   return extrasList.map((e, i) => {
     const label = isAr ? e.nameAr : e.nameEn;
     const price = e.price || 0;
-    const displayText = price > 0 ? `${label} +${price}` : label;
+    const priceText = price > 0 ? `<span class="chip-price">+${price} EGP</span>` : '';
     const clickHandler = prefix === 'deck' ? 'selectDeckChip' : 'selectChip';
-    return `<button class="${prefix}-chip ${i===0?'active':''}" onclick="${clickHandler}('extra','${e.key}',this)">${displayText}</button>`;
+    return `<button class="chip ${prefix}-chip ${i===0?'active':''}" onclick="${clickHandler}('extra','${e.key}',this)">
+      <span class="chip-label">${label}</span>
+      ${priceText}
+    </button>`;
   }).join('');
 }
 
 // دوال مساعدة للاختيار
 window.selectDeckChip = function(type, value, btn) {
-  btn.closest('.deck-chips').querySelectorAll('.deck-chip').forEach(b => b.classList.remove('active'));
+  btn.closest('.deck-chips').querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   window.currentPuzzle[type] = value;
-  btn.animate([{transform:'scale(.92)'},{transform:'scale(1)'}], {duration:200, easing:'cubic-bezier(.175,.885,.32,1.275)'});
+  btn.animate([
+    { transform: 'scale(0.95)' },
+    { transform: 'scale(1.02)' },
+    { transform: 'scale(1)' }
+  ], { duration: 250, easing: 'ease-out' });
 };
 
 // ===== نافذة تخصيص المشروب (Drink Modal) =====
@@ -579,10 +599,17 @@ window.openDrink = async function(id) {
 
 // ===== اختيار خيار السكر أو الإضافات في النافذة =====
 window.selectChip = function(type, value, btn) {
-  btn.closest('.puzzle-chips').querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+  const container = btn.closest('.puzzle-chips');
+  if (container) {
+    container.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+  }
   btn.classList.add('active');
   window.currentPuzzle[type] = value;
-  btn.animate([{transform:'scale(.92)'},{transform:'scale(1)'}], {duration:200, easing:'cubic-bezier(.175,.885,.32,1.275)'});
+  btn.animate([
+    { transform: 'scale(0.95)' },
+    { transform: 'scale(1.02)' },
+    { transform: 'scale(1)' }
+  ], { duration: 250, easing: 'ease-out' });
 };
 
 // ===== إغلاق النافذة المنبثقة =====

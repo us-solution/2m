@@ -37,11 +37,18 @@
     <div class="loader-content">
       <div class="loader-logo-wrap">
         <img src="imgs/Ozel-Logo--02.png" alt="OZEL Logo" class="loader-logo-cinematic" />
-        <div class="loader-ring"></div>
       </div>
-      <div class="loader-ozel-text">ÖZEL</div>
+      <div class="loader-ozel-text">
+        <span>Ö</span><span>Z</span><span>E</span><span>L</span>
+      </div>
       <div class="loader-ozel-line"></div>
       <div class="loader-ozel-subtitle">Premium Cafe Experience</div>
+      <div class="loader-progress-container">
+        <div class="loader-progress-track">
+          <div class="loader-progress-bar"></div>
+        </div>
+        <div class="loader-percent">0%</div>
+      </div>
     </div>
   </div>
 
@@ -545,7 +552,60 @@
     </div>
   </div>
 
-  <script>!function(){var l=document.getElementById('loader'),r=!1,t=Date.now();if(!l)return;var o=function(){r||(r=!0,setTimeout(function(){l.classList.add('hidden'),setTimeout(function(){l.style.display='none'},800)},Math.max(0,2500-(Date.now()-t))))};window.addEventListener('load',o),setTimeout(o,3500)}();</script>
+  <script>
+    (function() {
+      var loader = document.getElementById('loader');
+      var progressBar = loader ? loader.querySelector('.loader-progress-bar') : null;
+      var percentText = loader ? loader.querySelector('.loader-percent') : null;
+      if (!loader) return;
+      
+      var startTime = Date.now();
+      var duration = 2500; // 2.5 seconds minimum loader time
+      var intervalTime = 25; // Update every 25ms
+      var progress = 0;
+      var isLoaded = false;
+      
+      var timer = setInterval(function() {
+        var elapsed = Date.now() - startTime;
+        var percent = Math.min(100, Math.floor((elapsed / duration) * 100));
+        
+        if (isLoaded) {
+          progress += 5;
+          if (progress >= 100) {
+            progress = 100;
+            clearInterval(timer);
+            hideLoader();
+          }
+        } else {
+          if (percent >= 90) {
+            progress = Math.min(92, progress + 0.2);
+          } else {
+            progress = percent;
+          }
+        }
+        
+        if (progressBar) progressBar.style.width = progress + '%';
+        if (percentText) percentText.textContent = Math.floor(progress) + '%';
+      }, intervalTime);
+      
+      function hideLoader() {
+        setTimeout(function() {
+          loader.classList.add('hidden');
+          setTimeout(function() {
+            loader.style.display = 'none';
+          }, 1000);
+        }, 300);
+      }
+      
+      window.addEventListener('load', function() {
+        isLoaded = true;
+      });
+      
+      setTimeout(function() {
+        isLoaded = true;
+      }, 5000);
+    })();
+  </script>
   <script src="app.js?v=1"></script>
   <script src="uno.js?v=1"></script>
 </body>
