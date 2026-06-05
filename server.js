@@ -276,11 +276,16 @@ async function seedDatabase() {
 // ============================
 // 9. بدء الخادم (للتطوير المحلي فقط، وليس على Vercel)
 // ============================
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-  });
-}
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
+// الاتصال بقاعدة البيانات قبل بدء الخادم
+connectDB().then(() => {
+  console.log('MongoDB connection established for startup.');
+}).catch(err => {
+  console.error('MongoDB startup connection failed:', err.message);
+});
 
 // بدء طابور إعادة المحاولة لإرسال الأوردرات إلى API الكاشير المحلي
 retryQueue.start(60000);

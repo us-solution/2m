@@ -31,10 +31,11 @@ async function connectDB() {
     // إعدادات الاتصال: حجم التجمع، المهلات الزمنية للسيرفر البارد والاستعلامات
     const opts = {
       bufferCommands: false,
-      maxPoolSize: 10,              // التعامل مع الاستدعاءات المتزامنة في Serverless
-      serverSelectionTimeoutMS: 10000, // وقت إضافي للتشغيل البارد (cold start)
-      socketTimeoutMS: 45000,       // منع مهلات الاتصال في الاستعلامات البطيئة
-      connectTimeoutMS: 10000,      // مهلة إنشاء الاتصال
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 60000,
+      connectTimeoutMS: 30000,
+      heartbeatFrequencyMS: 5000,
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
