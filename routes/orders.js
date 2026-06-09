@@ -18,14 +18,21 @@ const JWT_SECRET = process.env.JWT_SECRET || 'ozel_cafe_secret_2026';
 const BRIDGE_SIGNATURE_SECRET = process.env.BRIDGE_SIGNATURE_SECRET || process.env.BRIDGE_API_KEY || 'bridge-signature-secret';
 const BRIDGE_TIMEOUT_MS = parseInt(process.env.BRIDGE_TIMEOUT_MS || '5000', 10);
 
-// تهيئة Pusher للإشعارات الفورية للكاشير
-const pusher = new Pusher({
-  appId: process.env.PUSHER_APP_ID,
-  key: process.env.PUSHER_KEY,
-  secret: process.env.PUSHER_SECRET,
-  cluster: process.env.PUSHER_CLUSTER || 'eu',
-  useTLS: true
-});
+// تهيئة Pusher للإشعارات الفورية للكاشير إذا كانت الإعدادات متوفرة
+let pusher = null;
+if (process.env.PUSHER_APP_ID && process.env.PUSHER_KEY && process.env.PUSHER_SECRET) {
+  try {
+    pusher = new Pusher({
+      appId: process.env.PUSHER_APP_ID,
+      key: process.env.PUSHER_KEY,
+      secret: process.env.PUSHER_SECRET,
+      cluster: process.env.PUSHER_CLUSTER || 'eu',
+      useTLS: true
+    });
+  } catch (e) {
+    console.error('[Pusher Init Error]', e.message);
+  }
+}
 
 // تحليل آمن لعناصر الطلب
 function safeParseItems(items) {
@@ -286,9 +293,15 @@ router.post('/', async (req, res) => {
       await QRCode.toDataURL(confirmUrl);
     } catch (_) {}
 
-    // إعلام الكاشير بالطلب الجديد عبر Pusher
+    // إعلام الكاشير بالطلب الجديد عبر Pusher (إذا كان مهيأ)
     const cashierPayload = buildOrderPayload(order, user);
-    await pusher.trigger('cashier-orders', 'new-order', cashierPayload).catch(() => {});
+    if (pusher) {
+      try {
+        await pusher.trigger('cashier-orders', 'new-order', cashierPayload);
+      } catch (pusherErr) {
+        console.error('[Pusher Trigger Error]', pusherErr.message);
+      }
+    }
 
     // مزامنة الطلب مع نظام نقاط البيع (إن وجد)
     const syncEvent = await createSyncEvent(order, 'order.created', cashierPayload);
