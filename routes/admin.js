@@ -498,7 +498,7 @@ router.get('/qr-table/:number', authenticateToken, requireRole('admin'), async (
     const tableNum = parseInt(req.params.number);
     if (!tableNum || tableNum < 1) return res.status(400).json({ error: 'Invalid table number' });
     const QRCode = require('qrcode');
-    const baseUrl = process.env.BASE_URL || (req.protocol + '://' + req.get('host'));
+    const baseUrl = process.env.BASE_URL || 'https://www.ozel.cafe';
     const qrUrl = baseUrl + '/cart.html?table=' + tableNum;
     const dataUrl = await QRCode.toDataURL(qrUrl, { width: 400, margin: 2, color: { dark: '#241E1A', light: '#FDFBF7' } });
     res.json({ success: true, qrCodeUrl: dataUrl, table: tableNum, url: qrUrl });

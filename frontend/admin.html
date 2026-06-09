@@ -598,18 +598,43 @@ function downloadTableQR() {
 }
 
 // ????? ??? QR ???????
+// طباعة رمز QR الخاص بالطاولة بتصميم فاخر
 function printTableQR() {
   if (!_lastTableQR) return;
   const win = window.open('', '_blank');
-  win.document.write('<html><head><title>طاولة ' + _lastTableQR.table + ' QR</title>' +
-    '<style>body{text-align:center;padding:40px;font-family:sans-serif}' +
-    'img{width:350px;height:350px;margin:20px auto;display:block}' +
-    'h1{font-size:24px;margin-bottom:5px}' +
-    '.sub{color:#666;font-size:14px}</style></head><body>' +
-    '<h1>طاولة ' + _lastTableQR.table + '</h1>' +
-    '<div class="sub">OZEL CAFE &mdash; امسح للطلب</div>' +
-    '<img src="' + _lastTableQR.qrCodeUrl + '" />' +
-    '<div class="sub">' + _lastTableQR.url + '</div>' +
+  win.document.write('<!DOCTYPE html>' +
+    '<html><head><title>طاولة ' + _lastTableQR.table + ' - QR Code</title>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Tajawal:wght@500;700&family=Outfit:wght@600;700&display=swap" rel="stylesheet">' +
+    '<style>' +
+    '  body { background: #FDFBF7; color: #241E1A; font-family: "Tajawal", "Outfit", sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
+    '  .card-frame { border: 3px solid #541a1a; padding: 2.5rem 2rem; width: 420px; background: #FFFFFF; text-align: center; border-radius: 16px; box-shadow: 0 10px 40px rgba(84, 26, 26, 0.08); position: relative; box-sizing: border-box; }' +
+    '  .card-frame::before { content: ""; position: absolute; top: 6px; left: 6px; right: 6px; bottom: 6px; border: 1px dashed rgba(84, 26, 26, 0.3); border-radius: 12px; pointer-events: none; }' +
+    '  .logo { height: 65px; width: auto; margin-bottom: 0.8rem; object-fit: contain; }' +
+    '  .brand-name { font-family: "Cormorant Garamond", serif; font-size: 2rem; font-weight: 700; letter-spacing: 0.15em; color: #541a1a; margin: 0 0 0.4rem 0; text-transform: uppercase; }' +
+    '  .divider { width: 50px; height: 2px; background: #541a1a; margin: 0.8rem auto; }' +
+    '  .table-title { font-family: "Cormorant Garamond", "Tajawal", serif; font-size: 1.5rem; font-weight: 700; color: #241E1A; margin-bottom: 0.1rem; }' +
+    '  .table-number { font-size: 3.2rem; font-weight: 700; color: #541a1a; font-family: "Outfit", sans-serif; margin: 0 0 1rem 0; line-height: 1; }' +
+    '  .qr-container { margin: 1rem auto; padding: 10px; background: #FFFFFF; border: 1px solid rgba(84, 26, 26, 0.15); display: inline-block; border-radius: 8px; }' +
+    '  .qr-image { width: 230px; height: 230px; display: block; }' +
+    '  .instruction-ar { font-size: 1.05rem; font-weight: 700; color: #541a1a; margin-bottom: 0.2rem; }' +
+    '  .instruction-en { font-size: 0.78rem; letter-spacing: 0.08em; color: #241E1A; text-transform: uppercase; margin-bottom: 1.2rem; font-weight: 600; }' +
+    '  .site-url { font-size: 0.8rem; color: rgba(36, 30, 26, 0.6); font-family: "Outfit", sans-serif; letter-spacing: 0.05em; word-break: break-all; }' +
+    '  @media print { body { background: none; } .card-frame { box-shadow: none; border: 3px solid #541a1a; margin: auto; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); } }' +
+    '</style></head><body>' +
+    '  <div class="card-frame">' +
+    '    <img class="logo" src="imgs/Ozel-Logo--02.png" onerror="this.src=\'imgs/Ozel-Logo--01.png\'; this.onerror=null;" />' +
+    '    <h2 class="brand-name">OZEL CAFE</h2>' +
+    '    <div class="divider"></div>' +
+    '    <div class="table-title">طاولة / Table</div>' +
+    '    <h1 class="table-number">' + _lastTableQR.table + '</h1>' +
+    '    <div class="qr-container">' +
+    '      <img class="qr-image" src="' + _lastTableQR.qrCodeUrl + '" />' +
+    '    </div>' +
+    '    <div class="instruction-ar">عالم من المذاق الفاخر بانتظارك</div>' +
+    '    <div class="instruction-ar" style="font-size: 0.9rem; font-weight: 500; color: #241E1A; margin-bottom: 0.2rem;">امسح الرمز لطلب مشروبك مباشرة</div>' +
+    '    <div class="instruction-en">Scan QR Code to order directly</div>' +
+    '    <div class="site-url">' + _lastTableQR.url.replace("https://", "").replace("http://", "") + '</div>' +
+    '  </div>' +
     '</body></html>');
   win.document.close();
   win.focus();
