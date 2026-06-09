@@ -3,11 +3,13 @@
 // ويقوم بتوجيه طلبات API إلى الخادم الصحيح تلقائياً
 
 (function() {
-  // الكشف عن حالة الخادم الخلفي — إذا كان في نفس نطاق الواجهة الأمامية
-  // إذا كان يعمل على Vercel، فإن عناوين URL النسبية تعمل بشكل طبيعي (لا حاجة للتجاوز)
-  // إذا كان يعمل من بروتوكول file:// أو من host/port مختلف، يتم التوجيه إلى رابط الإنتاج
-  var isLive = window.location.hostname === 'ozel-cafe-sadat.vercel.app' || window.location.hostname === 'localhost' && window.location.port === '5000';
-  var BACKEND_URL = isLive ? '' : 'https://ozel-cafe-sadat.vercel.app';
+  // الكشف عن حالة الخادم الخلفي
+  // إذا كنا نعمل على نطاق مباشر (مثل ozel.cafe أو cafe.sadat) أو محلياً على المنفذ 5000، نستخدم مسارات نسبية تلقائياً
+  var isLocalDevServer = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '5000';
+  var isFileProtocol = window.location.protocol === 'file:';
+  
+  // إذا كان تشغيل محلي غير خادم التطبيق (منفذ آخر) أو ملف مباشر، نوجه الطلبات إلى رابط الإنتاج الرئيسي
+  var BACKEND_URL = (isLocalDevServer || isFileProtocol) ? 'https://www.ozel.cafe' : '';
 
   if (BACKEND_URL) {
     console.log('[API Redirect] Client on ' + window.location.origin + '. Redirecting API to: ' + BACKEND_URL);
