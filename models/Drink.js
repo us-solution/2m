@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 const drinkSchema = new mongoose.Schema({
   // معرف التصنيف الذي ينتمي إليه المشروب
-  categoryId: {
+  category_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
     required: true

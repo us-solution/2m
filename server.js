@@ -230,7 +230,7 @@ async function seedDatabase() {
 
   for (const d of drinksData) {
     await Drink.create({
-      categoryId: catMap[d[0]],
+      category_id: catMap[d[0]],
       name: d[1],
       name_ar: d[2],
       price: d[3],

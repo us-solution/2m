@@ -22,3 +22,5 @@ POS_system-main/
 
 # Retry Queue
 failed-orders.json
+
+.vercel

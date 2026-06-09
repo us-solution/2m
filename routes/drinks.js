@@ -12,22 +12,22 @@ router.get('/', async (req, res) => {
   const query = { is_available: 1 };
   
   if (category) {
-    query.categoryId = category;
+    query.category_id = category;
   }
   if (featured === '1') {
     query.is_featured = 1;
   }
 
   try {
-    const drinks = await Drink.find(query).populate('categoryId');
+    const drinks = await Drink.find(query).populate('category_id');
     
     // تحويل البيانات إلى JSON مخصص
     const serialized = drinks.map(d => ({
       id: d._id,
-      category_id: d.categoryId ? d.categoryId._id : null,
-      category_name: d.categoryId ? d.categoryId.name : '',
-      category_name_ar: d.categoryId ? d.categoryId.name_ar : '',
-      category_icon: d.categoryId ? d.categoryId.icon : '',
+      category_id: d.category_id ? d.category_id._id : null,
+      category_name: d.category_id ? d.category_id.name : '',
+      category_name_ar: d.category_id ? d.category_id.name_ar : '',
+      category_icon: d.category_id ? d.category_id.icon : '',
       name: d.name,
       name_ar: d.name_ar,
       tagline: d.tagline,
@@ -55,17 +55,17 @@ router.get('/', async (req, res) => {
 // جلب تفاصيل مشروب محدد بالمعرف
 router.get('/:id', async (req, res) => {
   try {
-    const d = await Drink.findById(req.params.id).populate('categoryId');
+    const d = await Drink.findById(req.params.id).populate('category_id');
     if (!d) {
       return res.status(404).json({ error: 'Drink not found' });
     }
     
     res.json({
       id: d._id,
-      category_id: d.categoryId ? d.categoryId._id : null,
-      category_name: d.categoryId ? d.categoryId.name : '',
-      category_name_ar: d.categoryId ? d.categoryId.name_ar : '',
-      category_icon: d.categoryId ? d.categoryId.icon : '',
+      category_id: d.category_id ? d.category_id._id : null,
+      category_name: d.category_id ? d.category_id.name : '',
+      category_name_ar: d.category_id ? d.category_id.name_ar : '',
+      category_icon: d.category_id ? d.category_id.icon : '',
       name: d.name,
       name_ar: d.name_ar,
       tagline: d.tagline,

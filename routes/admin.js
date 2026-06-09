@@ -238,21 +238,21 @@ router.delete('/users/:id', authenticateToken, requireRole('admin'), async (req,
 // جلب جميع المشروبات مع الفئة (مرتبة حسب ترتيب الفئة)
 router.get('/drinks', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
-    const drinks = await Drink.find().populate('categoryId');
+    const drinks = await Drink.find().populate('category_id');
     
     // ترتيب حسب sort_order للفئة ثم حسب id
     const sortedDrinks = drinks.sort((a, b) => {
-      const orderA = a.categoryId ? a.categoryId.sort_order : 999;
-      const orderB = b.categoryId ? b.categoryId.sort_order : 999;
+      const orderA = a.category_id ? a.category_id.sort_order : 999;
+      const orderB = b.category_id ? b.category_id.sort_order : 999;
       if (orderA !== orderB) return orderA - orderB;
       return String(a._id).localeCompare(String(b._id));
     });
 
     const serialized = sortedDrinks.map(d => ({
       id: d._id,
-      category_id: d.categoryId ? d.categoryId._id : null,
-      category_name: d.categoryId ? d.categoryId.name : '',
-      category_name_ar: d.categoryId ? d.categoryId.name_ar : '',
+      category_id: d.category_id ? d.category_id._id : null,
+      category_name: d.category_id ? d.category_id.name : '',
+      category_name_ar: d.category_id ? d.category_id.name_ar : '',
       name: d.name,
       name_ar: d.name_ar,
       tagline: d.tagline,
@@ -267,7 +267,7 @@ router.get('/drinks', authenticateToken, requireRole('admin'), async (req, res) 
       is_featured: d.is_featured,
       is_available: d.is_available,
       availableExtras: d.availableExtras || [],
-      cat_name: d.categoryId ? d.categoryId.name_ar : ''
+      cat_name: d.category_id ? d.category_id.name_ar : ''
     }));
     
     res.json(serialized);
@@ -292,7 +292,7 @@ router.post('/drinks', authenticateToken, requireRole('admin'), async (req, res)
     }
 
     const d = await Drink.create({
-      categoryId: category_id,
+      category_id: category_id,
       name,
       name_ar,
       tagline: tagline || 'An unforgettable experience',
@@ -327,7 +327,7 @@ router.patch('/drinks/:id', authenticateToken, requireRole('admin'), async (req,
     if (data.category_id !== undefined && data.category_id !== '') {
       const category = await Category.findById(data.category_id);
       if (!category) return res.status(400).json({ error: 'Invalid category_id' });
-      d.categoryId = data.category_id;
+      d.category_id = data.category_id;
     }
     
     if (data.name !== undefined) d.name = data.name;
@@ -480,7 +480,7 @@ router.delete('/categories/:id', authenticateToken, requireRole('admin'), async 
     if (!c) return res.status(404).json({ error: 'Category not found' });
 
     // التحقق من عدم وجود مشروبات تستخدم هذه الفئة
-    const drinksUsing = await Drink.countDocuments({ categoryId: req.params.id });
+    const drinksUsing = await Drink.countDocuments({ category_id: req.params.id });
     if (drinksUsing > 0) {
       return res.status(400).json({ error: `Cannot delete: ${drinksUsing} drink(s) use this category. Reassign them first.` });
     }
