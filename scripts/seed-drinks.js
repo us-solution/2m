@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://m16565680_db_user:MCFFg12%405@cluster0.zwr8bzd.mongodb.net/ozel_cafe?retryWrites=true&w=majority&appName=Cluster0';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://usforsolution_db_user:Bs9x5qwJKInreLGG@ozel.8bos2na.mongodb.net/ozel_cafe?retryWrites=true&w=majority&appName=ozel';
 
 const drinksByCategory = {
   'Turkish & French': [
