@@ -2,6 +2,20 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://usforsolution_db_user:Bs9x5qwJKInreLGG@ozel.8bos2na.mongodb.net/ozel_cafe?retryWrites=true&w=majority&appName=ozel';
 
+const categoryDefs = [
+  { name: 'Turkish & French' },
+  { name: 'Espresso Rituals' },
+  { name: 'Refresh Juice' },
+  { name: 'Smooth Escapes' },
+  { name: 'Frappe Rituals' },
+  { name: 'Mojito & Sun Rise' },
+  { name: 'Hot & More' },
+  { name: 'Milk Shaken Rituals' },
+  { name: 'Pure Classics Ice Coffee' },
+  { name: 'Ice Cream' },
+  { name: 'Desserts' }
+];
+
 const drinksByCategory = {
   'Turkish & French': [
     { name: 'Classic Turkish Coffee', nameAr: 'قهوة تركية كلاسيك', price: 35, description: 'Rich, unfiltered coffee brewed in a cezve with a signature foam.' },
@@ -53,9 +67,16 @@ async function seed() {
   await mongoose.connect(MONGODB_URI);
   const db = mongoose.connection.db;
 
-  const categories = await db.collection('categories').find().toArray();
+  for (const cat of categoryDefs) {
+    await db.collection('categories').updateOne(
+      { name: cat.name },
+      { $setOnInsert: { ...cat, createdAt: new Date() } },
+      { upsert: true }
+    );
+  }
+  console.log('Categories: ' + categoryDefs.length);
 
-  for (const cat of categories) {
+  for (const cat of categoryDefs) {
     const catName = cat.name;
     const drinks = drinksByCategory[catName];
     if (!drinks) continue;
