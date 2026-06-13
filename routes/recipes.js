@@ -11,7 +11,7 @@ const { authenticateToken, requireRole } = require('../middlewares/auth');
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const recipes = await Recipe.find({ isActive: true }).sort({ name: 1 }).lean();
-    const drinks = await Drink.find({ isAvailable: true }).select('name name_ar price').lean();
+    const drinks = await Drink.find({ is_available: 1 }).select('name name_ar price').lean();
     const drinkMap = {};
     drinks.forEach(d => { drinkMap[d._id] = d; });
     const items = await RecipeItem.find({ recipeId: { $in: recipes.map(r => r._id) } }).populate('ingredientId', 'name name_ar unit unitCost').lean();

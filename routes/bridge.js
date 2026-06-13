@@ -176,7 +176,7 @@ router.get('/status', authAdminOrBridge, async (req, res) => {
 
 // جلب حالة طابور إعادة المحاولة (الأوردرات المعلقة)
 router.get('/retry-queue', authenticateToken, requireRole('admin'), async (req, res) => {
-  res.json({ success: true, ...retryQueue.getStatus() });
+  res.json({ success: true, ...await retryQueue.getStatus() });
 });
 
 // جلب تقارير الكاشير المحلي من .NET API

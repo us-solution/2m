@@ -446,7 +446,11 @@ function renderOrders() {
   if (!filtered.length) { grid.innerHTML = '<div class="empty-msg">No orders found</div>'; return; }
   grid.innerHTML = filtered.map(o => {
     let items = [];
-    try { items = JSON.parse(o.items); } catch(e) {}
+    if (Array.isArray(o.items)) {
+      items = o.items;
+    } else {
+      try { items = JSON.parse(o.items || '[]'); } catch(e) {}
+    }
     const elapsed = (Date.now() - new Date(o.created_at).getTime()) / 60000;
     const isNew = elapsed < 1 && o.status === 'pending';
     const age = getAge(elapsed);
@@ -489,7 +493,11 @@ function openOrderModal(id) {
   const o = allOrders.find(x => x.id === id);
   if (!o) return;
   let items = [];
-  try { items = JSON.parse(o.items); } catch(e) {}
+  if (Array.isArray(o.items)) {
+    items = o.items;
+  } else {
+    try { items = JSON.parse(o.items || '[]'); } catch(e) {}
+  }
   const elapsed = (Date.now() - new Date(o.created_at).getTime()) / 60000;
   const age = getAge(elapsed);
   const qrStatus = o.isQrConfirmed ? 'QR Confirmed \u2705' : 'QR Pending \u23F3';
@@ -565,7 +573,11 @@ function printOrder(id) {
   const o = allOrders.find(x => x.id === id);
   if (!o) return;
   let items = [];
-  try { items = JSON.parse(o.items); } catch(e) {}
+  if (Array.isArray(o.items)) {
+    items = o.items;
+  } else {
+    try { items = JSON.parse(o.items || '[]'); } catch(e) {}
+  }
   const win = window.open('', '_blank');
   win.document.write('<html><head><title>Order #' + id.slice(-6) + '</title>' +
     '<style>body{font-family:"Courier New",monospace;font-size:13px;padding:20px;color:#000}' +

@@ -674,7 +674,7 @@ router.get('/waste', authenticateToken, requireRole('admin'), async (req, res) =
       if (start) match.createdAt.$gte = new Date(start);
       if (end) match.createdAt.$lte = new Date(end);
     }
-    const wasteLogs = await InventoryTransaction.find(match).populate('ingredientId', 'name name_ar unit').populate('performedBy', 'username').sort({ createdAt: -1 }).limit(200);
+    const wasteLogs = await InventoryTransaction.find(match).populate('ingredientId', 'name name_ar unit').populate('performedBy', 'name').sort({ createdAt: -1 }).limit(200);
     const totalWasteCost = wasteLogs.reduce((s, w) => s + Math.abs(w.totalCost || 0), 0);
     res.json({ wasteLogs, totalWasteCost, count: wasteLogs.length });
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -693,7 +693,7 @@ router.get('/cost-analysis', authenticateToken, requireRole('admin'), async (req
       if (!itemMap[i.recipeId]) itemMap[i.recipeId] = [];
       itemMap[i.recipeId].push(i);
     });
-    const drinks = await Drink.find({ isAvailable: true }).lean();
+    const drinks = await Drink.find({ is_available: 1 }).lean();
     const drinkPriceMap = {};
     drinks.forEach(d => { drinkPriceMap[d._id] = d.price; });
     const result = recipes.map(r => {

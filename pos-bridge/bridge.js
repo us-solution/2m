@@ -368,7 +368,7 @@ async function pollVercel() {
       try {
         const parsedItems = parseItems(order.items);
         const result = await syncOrderToPOS({
-          order_id: order.id,
+          order_id: order.order_id || order.id,
           table_number: order.table_number,
           items: parsedItems,
           total_price: order.total_price,
@@ -385,10 +385,10 @@ async function pollVercel() {
             headers: { 'Content-Type': 'application/json', 'x-bridge-key': VERCEL_KEY },
             body: JSON.stringify({ ids: [order.order_id || order.id], eventIds: order.envelopeEventId ? [order.envelopeEventId] : [] })
           });
-          if (!markRes.ok) console.warn('[Poll] Failed to mark order synced:', order.id);
+          if (!markRes.ok) console.warn('[Poll] Failed to mark order synced:', order.order_id || order.id);
         }
       } catch (err) {
-        console.error(`[Poll] Error syncing order ${order.id}:`, err.message);
+        console.error(`[Poll] Error syncing order ${order.order_id || order.id}:`, err.message);
       }
     }
   } catch (err) {

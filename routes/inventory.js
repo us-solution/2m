@@ -67,7 +67,7 @@ router.get('/transactions', authenticateToken, async (req, res) => {
       if (req.query.start) filter.createdAt.$gte = new Date(req.query.start);
       if (req.query.end) filter.createdAt.$lte = new Date(req.query.end);
     }
-    const items = await InventoryTransaction.find(filter).populate('ingredientId', 'name name_ar unit').populate('performedBy', 'username').sort({ createdAt: -1 }).limit(200);
+    const items = await InventoryTransaction.find(filter).populate('ingredientId', 'name name_ar unit').populate('performedBy', 'name').sort({ createdAt: -1 }).limit(200);
     res.json(items);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -124,7 +124,7 @@ router.post('/transactions', requireRole('admin'), async (req, res) => {
 // جلب سجلات الجرد
 router.get('/counts', authenticateToken, async (req, res) => {
   try {
-    const items = await InventoryCount.find().populate('items.ingredientId', 'name name_ar unit').populate('performedBy', 'username').sort({ createdAt: -1 }).limit(50);
+    const items = await InventoryCount.find().populate('items.ingredientId', 'name name_ar unit').populate('performedBy', 'name').sort({ createdAt: -1 }).limit(50);
     res.json(items);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -179,7 +179,7 @@ router.get('/alerts', authenticateToken, async (req, res) => {
   try {
     const filter = {};
     if (req.query.resolved === 'false') filter.resolved = false;
-    const items = await StockAlert.find(filter).populate('ingredientId', 'name name_ar unit currentStock minStock').populate('resolvedBy', 'username').sort({ createdAt: -1 }).limit(100);
+    const items = await StockAlert.find(filter).populate('ingredientId', 'name name_ar unit currentStock minStock').populate('resolvedBy', 'name').sort({ createdAt: -1 }).limit(100);
     res.json(items);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
