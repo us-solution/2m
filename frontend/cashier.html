@@ -580,14 +580,18 @@ function printOrder(id) {
   }
   const win = window.open('', '_blank');
   win.document.write('<html><head><title>Order #' + id.slice(-6) + '</title>' +
+    '<base href="' + window.location.origin + '/">' +
     '<style>body{font-family:"Courier New",monospace;font-size:13px;padding:20px;color:#000}' +
-    'h1{font-size:18px;text-align:center;margin-bottom:5px}' +
+    'h1{font-size:18px;text-align:center;margin-bottom:5px;margin-top:5px}' +
     '.line{border-top:1px dashed #000;margin:10px 0}' +
     '.item{margin:5px 0}' +
     '.row{display:flex;justify-content:space-between}' +
     '.total{font-weight:700;font-size:16px;margin-top:10px;border-top:2px solid #000;padding-top:8px}' +
     '.center{text-align:center}' +
+    '.logo-container{text-align:center;margin-bottom:5px}' +
+    '.logo-img{height:50px;width:auto;object-fit:contain}' +
     '</style></head><body>' +
+    '<div class="logo-container"><img class="logo-img" src="imgs/Ozel-Logo--02.png" onerror="this.src=\'imgs/Ozel-Logo--01.png\'; this.onerror=null;" /></div>' +
     '<h1>OZEL CAFE</h1>' +
     '<div class="center">Table ' + o.table_number + (o.customer_name ? ' | ' + o.customer_name : '') + '</div>' +
     '<div class="center">' + new Date(o.created_at).toLocaleString('en-US') + '</div>' +
@@ -602,7 +606,22 @@ function printOrder(id) {
     '</body></html>');
   win.document.close();
   win.focus();
-  win.print();
+
+  const img = win.document.querySelector('.logo-img');
+  if (img) {
+    if (img.complete) {
+      win.print();
+    } else {
+      img.onload = function() {
+        win.print();
+      };
+      img.onerror = function() {
+        win.print();
+      };
+    }
+  } else {
+    win.print();
+  }
 }
 
 // ????? ??????? ??? ??????

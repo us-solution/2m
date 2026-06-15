@@ -604,6 +604,7 @@ function printTableQR() {
   const win = window.open('', '_blank');
   win.document.write('<!DOCTYPE html>' +
     '<html><head><title>طاولة ' + _lastTableQR.table + ' - QR Code</title>' +
+    '<base href="' + window.location.origin + '/">' +
     '<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Tajawal:wght@500;700&family=Outfit:wght@600;700&display=swap" rel="stylesheet">' +
     '<style>' +
     '  body { background: #FDFBF7; color: #241E1A; font-family: "Tajawal", "Outfit", sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
@@ -638,7 +639,33 @@ function printTableQR() {
     '</body></html>');
   win.document.close();
   win.focus();
-  setTimeout(function() { win.print(); }, 500);
+
+  // Wait for both the logo and QR images to load before printing
+  const images = win.document.querySelectorAll('img');
+  let loadedCount = 0;
+  const totalImages = images.length;
+
+  if (totalImages === 0) {
+    win.print();
+  } else {
+    images.forEach(img => {
+      if (img.complete) {
+        onImageLoaded();
+      } else {
+        img.addEventListener('load', onImageLoaded);
+        img.addEventListener('error', onImageLoaded);
+      }
+    });
+  }
+
+  function onImageLoaded() {
+    loadedCount++;
+    if (loadedCount === totalImages) {
+      setTimeout(function() {
+        win.print();
+      }, 300);
+    }
+  }
 }
 
 // ????? ???????? ???? ??????
