@@ -107,6 +107,9 @@ async function createSyncEvent(order, eventType, payload) {
 
 // إيصال الحدث إلى الجسر المحلي
 async function deliverToBridge(event) {
+  // تم إيقاف الجسر بناءً على طلب العميل
+  return { skipped: true, reason: 'bridge_disabled' };
+
   const BRIDGE_URL = process.env.BRIDGE_WEBHOOK_URL;
   const BRIDGE_KEY = process.env.BRIDGE_API_KEY;
   if (!BRIDGE_URL || !BRIDGE_KEY) return { skipped: true, reason: 'bridge_not_configured' };
