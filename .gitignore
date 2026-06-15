@@ -24,3 +24,5 @@ POS_system-main/
 failed-orders.json
 
 .vercel
+pgdata10/
+

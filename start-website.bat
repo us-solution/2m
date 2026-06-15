@@ -1,5 +1,5 @@
 @echo off
 title OZEL Cafe — Website
-cd /d "C:\Users\AL-FAGR\Desktop\OZEL Cafe"
+cd /d "%~dp0"
 node server.js
 pause
