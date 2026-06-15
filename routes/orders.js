@@ -305,27 +305,36 @@ router.post('/', async (req, res) => {
 
     // مزامنة الطلب مع نظام نقاط البيع (إن وجد)
     const syncEvent = await createSyncEvent(order, 'order.created', cashierPayload);
-    const bridgeResult = await deliverToBridge(syncEvent);
-    if (bridgeResult.ok || bridgeResult.skipped) {
-      syncEvent.status = bridgeResult.ok ? 'acked' : 'pending';
-      syncEvent.acknowledgedAt = bridgeResult.ok ? new Date() : null;
-      syncEvent.failureReason = bridgeResult.skipped ? bridgeResult.reason : null;
-      await syncEvent.save();
-      if (bridgeResult.ok) {
-        await Order.updateOne(
-          { _id: order._id },
-          { $set: { 'syncMeta.syncStatus': 'acked', 'syncMeta.lastSyncedAt': new Date(), 'syncMeta.lastError': null } }
-        );
+    
+    // إرسال الأوردر للجسر بشكل غير متزامن (في الخلفية) لمنع تأخير استجابة العميل أو التسبب في مهلة اتصال
+    deliverToBridge(syncEvent).then(async (bridgeResult) => {
+      try {
+        if (bridgeResult.ok || bridgeResult.skipped) {
+          syncEvent.status = bridgeResult.ok ? 'acked' : 'pending';
+          syncEvent.acknowledgedAt = bridgeResult.ok ? new Date() : null;
+          syncEvent.failureReason = bridgeResult.skipped ? bridgeResult.reason : null;
+          await syncEvent.save();
+          if (bridgeResult.ok) {
+            await Order.updateOne(
+              { _id: order._id },
+              { $set: { 'syncMeta.syncStatus': 'acked', 'syncMeta.lastSyncedAt': new Date(), 'syncMeta.lastError': null } }
+            );
+          }
+        } else {
+          syncEvent.status = 'failed';
+          syncEvent.failureReason = `${bridgeResult.reason || 'failed'}: ${bridgeResult.details || ''}`;
+          await syncEvent.save();
+          await Order.updateOne(
+            { _id: order._id },
+            { $set: { 'syncMeta.syncStatus': 'failed', 'syncMeta.lastError': syncEvent.failureReason } }
+          );
+        }
+      } catch (saveErr) {
+        console.error('[Bridge Sync Background Save Error]', saveErr.message);
       }
-    } else {
-      syncEvent.status = 'failed';
-      syncEvent.failureReason = `${bridgeResult.reason || 'failed'}: ${bridgeResult.details || ''}`;
-      await syncEvent.save();
-      await Order.updateOne(
-        { _id: order._id },
-        { $set: { 'syncMeta.syncStatus': 'failed', 'syncMeta.lastError': syncEvent.failureReason } }
-      );
-    }
+    }).catch((bridgeErr) => {
+      console.error('[Bridge Background Delivery Error]', bridgeErr.message);
+    });
 
     // إرسال الطلب إلى API الكاشير المحلي (.NET) بشكل غير متزامن
     deliverToCashierAPI(order, user).then(result => {
