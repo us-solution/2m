@@ -5275,6 +5275,55 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
     gap: 0.5rem !important;
     max-height: 300px !important;
   }
+
+  /* Centering vlog details on mobile & styling upload button */
+  .vlog-contest-banner {
+    flex-direction: column !important;
+    text-align: center !important;
+    padding: 1.5rem 1.25rem !important;
+    gap: 1rem !important;
+  }
+  .vlog-contest-banner::before {
+    width: 100% !important;
+    height: 4px !important;
+    top: 0 !important;
+    left: 0 !important;
+  }
+  .vlog-upload-panel {
+    text-align: center !important;
+    padding: 1.5rem !important;
+  }
+  .vup-title {
+    text-align: center !important;
+    justify-content: center !important;
+    font-size: 1.3rem !important;
+  }
+  .drag-drop-zone {
+    border: 1px solid var(--line) !important;
+    background: var(--bg3) !important;
+    padding: 1rem 0.8rem !important;
+    border-radius: 8px !important;
+    flex-direction: row !important;
+    gap: 0.6rem !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-bottom: 1.2rem !important;
+  }
+  .dd-icon {
+    font-size: 1.4rem !important;
+    margin-bottom: 0 !important;
+    display: inline-flex !important;
+  }
+  .dd-icon svg {
+    width: 22px !important;
+    height: 22px !important;
+  }
+  .dd-text {
+    font-size: 0.85rem !important;
+  }
+  .dd-text + div {
+    display: none !important; /* Hide file size limit description on mobile to keep it clean */
+  }
 }
 
 

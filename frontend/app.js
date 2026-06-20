@@ -2086,10 +2086,13 @@ window.loadVlog = async function() {
 
   // أ. عرض لوحة الرفع حسب حالة المستخدم (بدون أي إيموجيز)
   if (CUSER) {
+    const isMobile = window.innerWidth <= 600;
     const postBtnText = isAr ? 'نشر الصورة في الألبوم ✦' : 'Post to Album ✦';
     const uploadTitle = isAr ? 'شارك صورتك وتنافس على الأوردر الهدية' : 'Share Your Photo & Compete';
     const captionPlaceholder = isAr ? 'اكتب وصفاً جميلاً لصورتك...' : 'Write a beautiful caption...';
-    const selectText = isAr ? 'اسحب الصورة هنا أو <strong>اضغط للاختيار</strong>' : 'Drag & drop image here or <strong>browse</strong>';
+    const selectText = isAr 
+      ? (isMobile ? 'اضغط لاختيار صورة من جهازك' : 'اسحب الصورة هنا أو <strong>اضغط للاختيار</strong>') 
+      : (isMobile ? 'Tap to choose a photo' : 'Drag & drop image here or <strong>browse</strong>');
     const limitText = isAr ? 'صيغ الصور المدعومة: JPG, PNG. أقصى حد: صورة واحدة يومياً.' : 'Supported formats: JPG, PNG. Limit: 1 photo per day.';
     
     uploadPanel.innerHTML = `
