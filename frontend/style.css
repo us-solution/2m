@@ -5326,5 +5326,49 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   }
 }
 
+/* Lightbox Modal Display */
+#vlogLightbox {
+  display: none;
+}
+#vlogLightbox.open {
+  display: flex;
+  animation: fadeIn 0.2s ease;
+}
+
+/* Delete Button hover effect in profile card */
+.profile-photo-card .ppc-btn.delete-btn:hover {
+  background: rgba(217, 83, 79, 0.8) !important;
+}
+
+/* Compact Typography and Layout Tweaks for Mobile */
+@media (max-width: 600px) {
+  .vc-caption {
+    font-size: 0.76rem !important;
+    line-height: 1.35 !important;
+  }
+  .vlog-gallery-title h3 {
+    font-size: 1.4rem !important;
+  }
+  .vcb-content h3 {
+    font-size: 1.15rem !important;
+  }
+  .vcb-content p {
+    font-size: 0.8rem !important;
+    line-height: 1.45 !important;
+  }
+  .vup-title {
+    font-size: 1.15rem !important;
+  }
+  .leader-name {
+    font-size: 0.8rem !important;
+  }
+  .leader-caption {
+    font-size: 0.72rem !important;
+  }
+  .leader-likes span {
+    font-size: 0.8rem !important;
+  }
+}
+
 
 

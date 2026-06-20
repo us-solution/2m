@@ -258,20 +258,28 @@ window.loadProfileMedia = async function() {
       if (photos.length === 0) {
         myPhotosGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 2rem 0; font-size: 0.85rem;">${isAr ? 'لم تقم برفع أي صور بعد.' : 'You haven\'t uploaded any photos yet.'}</div>`;
       } else {
-        myPhotosGrid.innerHTML = photos.map(p => `
-          <div class="profile-photo-card">
-            <img src="${p.image}" alt="Uploaded photo"/>
-            <div class="ppc-overlay">
-              <span class="ppc-likes">
-                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                ${p.likesCount || 0}
-              </span>
-              <button class="ppc-btn" onclick="event.stopPropagation(); downloadVlogPhoto('${p._id || p.id}', '${p.image}')" title="${isAr ? 'تحميل' : 'Download'}">
-                <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>
-              </button>
+        myPhotosGrid.innerHTML = photos.map(p => {
+          const capText = p.caption ? p.caption.replace(/'/g, "\\'") : '';
+          return `
+            <div class="profile-photo-card" onclick="openVlogLightbox('${p.image}', '${capText}')" style="cursor: pointer;">
+              <img src="${p.image}" alt="Uploaded photo"/>
+              <div class="ppc-overlay">
+                <span class="ppc-likes">
+                  <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                  ${p.likesCount || 0}
+                </span>
+                <div style="display: flex; gap: 0.3rem; margin-top: 0.3rem;">
+                  <button class="ppc-btn" onclick="event.stopPropagation(); downloadVlogPhoto('${p._id || p.id}', '${p.image}')" title="${isAr ? 'تحميل' : 'Download'}">
+                    <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>
+                  </button>
+                  <button class="ppc-btn delete-btn" onclick="event.stopPropagation(); deleteProfilePhoto('${p._id || p.id}')" title="${isAr ? 'حذف' : 'Delete'}">
+                    <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/></svg>
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       }
     }
   } catch (err) {
@@ -285,20 +293,23 @@ window.loadProfileMedia = async function() {
       if (liked.length === 0) {
         myLikedGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 2rem 0; font-size: 0.85rem;">${isAr ? 'لم تقم بالإعجاب بأي صور بعد.' : 'You haven\'t liked any photos yet.'}</div>`;
       } else {
-        myLikedGrid.innerHTML = liked.map(p => `
-          <div class="profile-photo-card">
-            <img src="${p.image}" alt="Liked photo"/>
-            <div class="ppc-overlay">
-              <span class="ppc-likes">
-                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                ${p.likesCount || 0}
-              </span>
-              <button class="ppc-btn" onclick="event.stopPropagation(); downloadVlogPhoto('${p._id || p.id}', '${p.image}')" title="${isAr ? 'تحميل' : 'Download'}">
-                <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>
-              </button>
+        myLikedGrid.innerHTML = liked.map(p => {
+          const capText = p.caption ? p.caption.replace(/'/g, "\\'") : '';
+          return `
+            <div class="profile-photo-card" onclick="openVlogLightbox('${p.image}', '${capText}')" style="cursor: pointer;">
+              <img src="${p.image}" alt="Liked photo"/>
+              <div class="ppc-overlay">
+                <span class="ppc-likes">
+                  <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                  ${p.likesCount || 0}
+                </span>
+                <button class="ppc-btn" onclick="event.stopPropagation(); downloadVlogPhoto('${p._id || p.id}', '${p.image}')" title="${isAr ? 'تحميل' : 'Download'}">
+                  <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>
+                </button>
+              </div>
             </div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       }
     }
   } catch (err) {
@@ -2058,7 +2069,7 @@ window.addDeckToCart = function(drinkId) {
    ======================================================== */
 window.selectedVlogBase64 = null;
 
-// تحميل وتنزيل الصور
+// تحميل وتنزيل وحذف وعرض الصور
 window.downloadVlogPhoto = function(postId, base64Data) {
   if (!base64Data) {
     console.error('No image data found for download.');
@@ -2070,6 +2081,49 @@ window.downloadVlogPhoto = function(postId, base64Data) {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+};
+
+window.openVlogLightbox = function(imageUrl, caption) {
+  const lightbox = document.getElementById('vlogLightbox');
+  const img = document.getElementById('lightboxImg');
+  const cap = document.getElementById('lightboxCaption');
+  if (!lightbox || !img) return;
+  img.src = imageUrl;
+  if (cap) cap.textContent = caption || '';
+  lightbox.classList.add('open');
+};
+
+window.closeVlogLightbox = function(e) {
+  if (e && e.target !== e.currentTarget && !e.target.classList.contains('modal-x')) return;
+  const lightbox = document.getElementById('vlogLightbox');
+  if (lightbox) lightbox.classList.remove('open');
+};
+
+window.deleteProfilePhoto = async function(postId) {
+  const isAr = currentLang === 'ar';
+  const confirmMsg = isAr 
+    ? 'هل أنت متأكد من رغبتك في حذف هذه الصورة نهائياً؟' 
+    : 'Are you sure you want to permanently delete this photo?';
+  
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    const res = await fetch(`/api/vlog/${postId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    if (res.ok) {
+      alert(isAr ? 'تم حذف الصورة بنجاح.' : 'Photo deleted successfully.');
+      window.loadProfileMedia();
+      window.loadVlog();
+    } else {
+      const data = await res.json();
+      alert(data.error || (isAr ? 'فشل حذف الصورة.' : 'Failed to delete photo.'));
+    }
+  } catch (err) {
+    console.error(err);
+    alert(isAr ? 'حدث خطأ في الاتصال بالخادم.' : 'Server connection error.');
+  }
 };
 
 // 1. تحميل الصور والمتصدرين والفائزين
@@ -2237,7 +2291,7 @@ function renderVlogGallery(posts, isAr) {
     `;
     return `
       <div class="vlog-card">
-        <div class="vc-image-wrapper">
+        <div class="vc-image-wrapper" onclick="openVlogLightbox('${p.image}', '${p.caption ? p.caption.replace(/'/g, "\\'") : ''}')" style="cursor: pointer;">
           <img src="${p.image}" alt="User post"/>
           <div class="vc-overlay"></div>
           <div class="vc-author-tag">

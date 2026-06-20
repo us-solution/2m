@@ -217,12 +217,20 @@ router.get('/admin-all', authenticateToken, requireRole('admin'), async (req, re
   }
 });
 
-// 6. حذف صورة غير لائقة أو سبام (للأدمن فقط)
-router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) => {
+// 6. حذف صورة (للأدمن أو صاحب الصورة)
+router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const post = await VlogPost.findById(req.params.id);
     if (!post) {
       return res.status(404).json({ error: 'Photo not found' });
+    }
+
+    // السماح بالحذف إذا كان المستخدم أدمن أو كان هو صاحب المنشور نفسه
+    const isOwner = String(post.userId) === String(req.user._id);
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ error: 'Forbidden: You can only delete your own photos' });
     }
 
     await post.deleteOne();
