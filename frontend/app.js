@@ -215,11 +215,105 @@ window.toggleMobileMenu = function() {
 // ===== تسجيل الخروج =====
 window.logoutUser = function() { localStorage.clear(); location.reload(); };
 
+// ===== تبديل تبويبات الملف الشخصي =====
+window.switchProfileTab = function(tabName) {
+  document.querySelectorAll('.profile-tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  document.querySelectorAll('.profile-tab-panel').forEach(panel => {
+    panel.classList.remove('active');
+    panel.style.display = 'none';
+  });
+
+  // تفعيل الزر المختار
+  const activeBtn = document.querySelector(`.profile-tab-btn[onclick*="${tabName}"]`);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  // تفعيل اللوحة المختارة
+  const activePanel = document.getElementById(`profile-tab-${tabName}`);
+  if (activePanel) {
+    activePanel.classList.add('active');
+    activePanel.style.display = 'block';
+  }
+
+  // إذا تم اختيار الصور المرفوعة أو المعجب بها، نقوم بجلبها
+  if (tabName === 'uploads' || tabName === 'liked') {
+    window.loadProfileMedia();
+  }
+};
+
+window.loadProfileMedia = async function() {
+  const isAr = currentLang === 'ar';
+  const myPhotosGrid = document.getElementById('myPhotosGrid');
+  const myLikedGrid = document.getElementById('myLikedGrid');
+  if (!myPhotosGrid || !myLikedGrid) return;
+
+  myPhotosGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 2rem 0;">${isAr ? 'جاري تحميل صورك...' : 'Loading uploads...'}</div>`;
+  myLikedGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 2rem 0;">${isAr ? 'جاري تحميل المعجب بها...' : 'Loading favorites...'}</div>`;
+
+  try {
+    const photosRes = await fetch('/api/vlog/my-photos', { headers: getAuthHeaders() });
+    if (photosRes.ok) {
+      const photos = await photosRes.json();
+      if (photos.length === 0) {
+        myPhotosGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 2rem 0; font-size: 0.85rem;">${isAr ? 'لم تقم برفع أي صور بعد.' : 'You haven\'t uploaded any photos yet.'}</div>`;
+      } else {
+        myPhotosGrid.innerHTML = photos.map(p => `
+          <div class="profile-photo-card">
+            <img src="${p.image}" alt="Uploaded photo"/>
+            <div class="ppc-overlay">
+              <span class="ppc-likes">
+                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                ${p.likesCount || 0}
+              </span>
+              <button class="ppc-btn" onclick="event.stopPropagation(); downloadVlogPhoto('${p._id || p.id}', '${p.image}')" title="${isAr ? 'تحميل' : 'Download'}">
+                <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+  } catch (err) {
+    myPhotosGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--red); padding: 2rem 0; font-size: 0.85rem;">${isAr ? 'خطأ في التحميل' : 'Error loading photos.'}</div>`;
+  }
+
+  try {
+    const likedRes = await fetch('/api/vlog/my-liked', { headers: getAuthHeaders() });
+    if (likedRes.ok) {
+      const liked = await likedRes.json();
+      if (liked.length === 0) {
+        myLikedGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 2rem 0; font-size: 0.85rem;">${isAr ? 'لم تقم بالإعجاب بأي صور بعد.' : 'You haven\'t liked any photos yet.'}</div>`;
+      } else {
+        myLikedGrid.innerHTML = liked.map(p => `
+          <div class="profile-photo-card">
+            <img src="${p.image}" alt="Liked photo"/>
+            <div class="ppc-overlay">
+              <span class="ppc-likes">
+                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                ${p.likesCount || 0}
+              </span>
+              <button class="ppc-btn" onclick="event.stopPropagation(); downloadVlogPhoto('${p._id || p.id}', '${p.image}')" title="${isAr ? 'تحميل' : 'Download'}">
+                <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+  } catch (err) {
+    myLikedGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--red); padding: 2rem 0; font-size: 0.85rem;">${isAr ? 'خطأ في التحميل' : 'Error loading favorites.'}</div>`;
+  }
+};
+
 // ===== فتح نافذة الملف الشخصي =====
 window.openProfileModal = async function() {
   const modal = document.getElementById('profileModal');
   if (!modal) return;
   modal.classList.add('open');
+  
+  // إعادة تعيين التبويب النشط إلى العضوية عند الفتح
+  window.switchProfileTab('card');
   
   const isAr = currentLang === 'ar';
   
@@ -1960,9 +2054,23 @@ window.addDeckToCart = function(drinkId) {
 };
 
 /* ========================================================
-   OZEL CAFE — Vlog & Album Photo Contest Logic
+   OZEL CAFE — Vlog & Album Photo Contest Logic (Clean & Modern Layout)
    ======================================================== */
 window.selectedVlogBase64 = null;
+
+// تحميل وتنزيل الصور
+window.downloadVlogPhoto = function(postId, base64Data) {
+  if (!base64Data) {
+    console.error('No image data found for download.');
+    return;
+  }
+  const link = document.createElement('a');
+  link.href = base64Data;
+  link.download = `ozel-cafe-vlog-${postId}.jpg`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 // 1. تحميل الصور والمتصدرين والفائزين
 window.loadVlog = async function() {
@@ -1976,10 +2084,10 @@ window.loadVlog = async function() {
 
   if (!galleryGrid) return;
 
-  // أ. عرض لوحة الرفع حسب حالة المستخدم
+  // أ. عرض لوحة الرفع حسب حالة المستخدم (بدون أي إيموجيز)
   if (CUSER) {
     const postBtnText = isAr ? 'نشر الصورة في الألبوم ✦' : 'Post to Album ✦';
-    const uploadTitle = isAr ? '📸 شارك صورتك وتنافس على الأوردر الهدية' : '📸 Share Your Photo & Compete';
+    const uploadTitle = isAr ? 'شارك صورتك وتنافس على الأوردر الهدية' : 'Share Your Photo & Compete';
     const captionPlaceholder = isAr ? 'اكتب وصفاً جميلاً لصورتك...' : 'Write a beautiful caption...';
     const selectText = isAr ? 'اسحب الصورة هنا أو <strong>اضغط للاختيار</strong>' : 'Drag & drop image here or <strong>browse</strong>';
     const limitText = isAr ? 'صيغ الصور المدعومة: JPG, PNG. أقصى حد: صورة واحدة يومياً.' : 'Supported formats: JPG, PNG. Limit: 1 photo per day.';
@@ -1987,7 +2095,9 @@ window.loadVlog = async function() {
     uploadPanel.innerHTML = `
       <h3 class="vup-title">${uploadTitle}</h3>
       <div class="drag-drop-zone" id="vlogDragZone" onclick="document.getElementById('vlogFileInput').click()">
-        <div class="dd-icon">📤</div>
+        <div class="dd-icon" style="color: var(--gold); margin-bottom: 0.5rem;">
+          <svg style="width: 32px; height: 32px;" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" fill="currentColor"/></svg>
+        </div>
         <div class="dd-text" id="vlogDragText">${selectText}</div>
         <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.4rem;">${limitText}</div>
         <input type="file" id="vlogFileInput" accept="image/*" style="display: none;" onchange="handleVlogFileSelect(this)"/>
@@ -2009,7 +2119,9 @@ window.loadVlog = async function() {
     const loginBtnText = isAr ? 'تسجيل الدخول / إنشاء حساب ✦' : 'Login / Register ✦';
     uploadPanel.innerHTML = `
       <div class="login-redirect-card">
-        <div class="lrc-icon">🔒</div>
+        <div class="lrc-icon" style="color: var(--gold); margin-bottom: 0.5rem;">
+          <svg style="width: 32px; height: 32px;" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" fill="currentColor"/></svg>
+        </div>
         <p class="lrc-text">${loginPrompt}</p>
         <a href="login.html" class="btn-gold" style="display: inline-flex; text-decoration: none;">${loginBtnText}</a>
       </div>
@@ -2036,15 +2148,14 @@ window.loadVlog = async function() {
     if (res.ok) {
       const data = await res.json();
       
-      // عرض لوحة الصدارة
+      // عرض لوحة الصدارة (بدون أي إيموجيز)
       if (data.leaders && data.leaders.length > 0) {
         leaderboard.style.display = 'block';
         leaderboardList.innerHTML = data.leaders.map((l, index) => {
           const rankClass = index === 0 ? 'rank-1' : (index === 1 ? 'rank-2' : (index === 2 ? 'rank-3' : ''));
-          const rankIcon = index === 0 ? '👑' : '';
           return `
             <div class="leader-row">
-              <div class="leader-rank ${rankClass}">${rankIcon || (index + 1)}</div>
+              <div class="leader-rank ${rankClass}">${index + 1}</div>
               <div class="leader-img-wrapper">
                 <img src="${l.image}" alt="${l.userName}"/>
               </div>
@@ -2054,7 +2165,9 @@ window.loadVlog = async function() {
               </div>
               <div class="leader-likes">
                 <span>${l.likesCount}</span>
-                <span style="font-size: 0.9rem;">❤️</span>
+                <span style="color: var(--burgundy); display: inline-flex; align-items: center; margin-left: 0.3rem;">
+                  <svg style="width: 14px; height: 14px; fill: var(--burgundy);" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </span>
               </div>
             </div>
           `;
@@ -2071,7 +2184,7 @@ window.loadVlog = async function() {
           return `
             <div class="vlog-card winner-card">
               <div class="vc-image-wrapper">
-                <span class="winner-ribbon">${isAr ? 'فائز 🏆' : 'WINNER 🏆'}</span>
+                <span class="winner-ribbon">${isAr ? 'الفائز' : 'WINNER'}</span>
                 <img src="${w.image}" alt="Winner"/>
                 <div class="vc-overlay"></div>
                 <div class="vc-author-tag">
@@ -2080,10 +2193,13 @@ window.loadVlog = async function() {
                 </div>
               </div>
               <div class="vc-body" style="gap:0.5rem;">
-                <div class="winner-prize-tag">🎁 ${w.winnerPrize}</div>
+                <div class="winner-prize-tag">${w.winnerPrize}</div>
                 <p class="vc-caption">${w.caption || ''}</p>
                 <div style="font-size:0.75rem; color:var(--muted); text-align:center;">
-                  ❤️ ${w.likesCount} ${isAr ? 'إعجاب' : 'likes'}
+                  <span style="color: var(--burgundy); display: inline-flex; align-items: center; gap: 0.2rem; justify-content: center; width: 100%;">
+                    <svg style="width: 13px; height: 13px; fill: var(--burgundy);" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    ${w.likesCount} ${isAr ? 'إعجاب' : 'likes'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -2104,7 +2220,7 @@ function renderVlogGallery(posts, isAr) {
   if (!grid) return;
 
   if (posts.length === 0) {
-    grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 3rem 0;">${isAr ? 'كن أول من يشارك صورته في الألبوم! 📸' : 'Be the first to share a photo! 📸'}</p>`;
+    grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 3rem 0;">${isAr ? 'كن أول من يشارك صورته في الألبوم!' : 'Be the first to share a photo!'}</p>`;
     return;
   }
 
@@ -2132,6 +2248,11 @@ function renderVlogGallery(posts, isAr) {
             <button class="vc-like-btn ${likedClass}" onclick="toggleVlogLike('${p.id}', this)">
               ${heartSvg}
               <span class="like-count">${p.likesCount}</span>
+            </button>
+            <button class="vc-download-btn" onclick="downloadVlogPhoto('${p.id}', '${p.image}')" title="${isAr ? 'تحميل الصورة' : 'Download Photo'}">
+              <svg viewBox="0 0 24 24">
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/>
+              </svg>
             </button>
           </div>
         </div>

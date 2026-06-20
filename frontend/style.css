@@ -5063,5 +5063,219 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   margin-top: 0.2rem;
 }
 
+/* ========================================================
+   OZEL CAFE — Profile Tabs & Mobile Album Responsive Updates
+   ======================================================== */
+
+/* Profile Modal Tabs styling */
+.profile-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.2rem;
+}
+.profile-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-family: 'Tajawal', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+}
+.profile-tab-btn:hover {
+  color: var(--burgundy);
+}
+.profile-tab-btn.active {
+  color: var(--burgundy);
+  font-weight: 700;
+}
+.profile-tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 10%;
+  width: 80%;
+  height: 2px;
+  background: var(--burgundy);
+  border-radius: 2px;
+}
+.profile-tab-panel {
+  display: none;
+}
+.profile-tab-panel.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Profile Photos Grid style */
+.profile-photos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem;
+  margin-top: 1rem;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.profile-photos-grid::-webkit-scrollbar {
+  width: 4px;
+}
+.profile-photos-grid::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 4px;
+}
+.profile-photo-card {
+  position: relative;
+  width: 100%;
+  padding-top: 100%;
+  background: var(--bg3);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  transition: transform 0.2s ease;
+}
+.profile-photo-card:hover {
+  transform: scale(1.03);
+}
+.profile-photo-card img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.profile-photo-card .ppc-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  opacity: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+  z-index: 2;
+  cursor: pointer;
+  gap: 0.4rem;
+}
+.profile-photo-card:hover .ppc-overlay {
+  opacity: 1;
+}
+.profile-photo-card .ppc-likes {
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+.profile-photo-card .ppc-likes svg {
+  width: 14px;
+  height: 14px;
+  fill: #fff;
+}
+.profile-photo-card .ppc-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.profile-photo-card .ppc-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+.profile-photo-card .ppc-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Card Download Button */
+.vc-download-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vc-download-btn:hover {
+  background: rgba(84, 26, 26, 0.04);
+  color: var(--burgundy);
+}
+.vc-download-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Mobile Album & Gallery Responsiveness */
+@media (max-width: 600px) {
+  .vlog-gallery-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.8rem !important;
+  }
+  .vlog-card {
+    border-radius: 8px !important;
+  }
+  .vc-body {
+    padding: 0.8rem !important;
+    gap: 0.6rem !important;
+  }
+  .vc-caption {
+    font-size: 0.8rem !important;
+    line-height: 1.4 !important;
+  }
+  .vc-footer {
+    padding-top: 0.6rem !important;
+  }
+  .vc-like-btn, .vc-download-btn {
+    padding: 2px 4px !important;
+    font-size: 0.8rem !important;
+  }
+  .vc-like-btn svg, .vc-download-btn svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+  #profileModal .modal-panel {
+    width: 95% !important;
+    max-width: 100% !important;
+    border-radius: 12px !important;
+    margin: 10px !important;
+  }
+  .profile-photos-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.5rem !important;
+    max-height: 300px !important;
+  }
+}
+
 
 

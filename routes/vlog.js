@@ -82,6 +82,30 @@ router.get('/contest', async (req, res) => {
   }
 });
 
+// جلب الصور الخاصة بالعميل الحالي
+router.get('/my-photos', authenticateToken, async (req, res) => {
+  try {
+    const posts = await VlogPost.find({ userId: req.user._id })
+      .sort({ createdAt: -1 })
+      .limit(30);
+    res.json(posts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// جلب الصور التي نالت إعجاب العميل الحالي
+router.get('/my-liked', authenticateToken, async (req, res) => {
+  try {
+    const posts = await VlogPost.find({ likes: req.user._id })
+      .sort({ createdAt: -1 })
+      .limit(30);
+    res.json(posts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 3. رفع صورة جديدة (يسمح بصورة واحدة فقط كل 24 ساعة لمنع التكرار المفرط)
 router.post('/', authenticateToken, async (req, res) => {
   const { image, caption } = req.body;
