@@ -155,6 +155,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartUI();
     fetchMenu();
     loadCustomizationOptions();
+    if (document.getElementById('vlogGalleryGrid')) {
+      loadVlog();
+    }
   } catch(e) { console.error('[Init]', e); }
   setTimeout(() => {
     const loader = document.getElementById('loader');
@@ -1954,4 +1957,354 @@ window.addDeckToCart = function(drinkId) {
   
   const displayName = isAr ? (drink.name_ar || drink.name) : drink.name;
   alert(isAr ? `تم إضافة ${displayName} إلى السلة بنجاح ✦` : `Added ${displayName} to cart successfully ✦`);
+};
+
+/* ========================================================
+   OZEL CAFE — Vlog & Album Photo Contest Logic
+   ======================================================== */
+window.selectedVlogBase64 = null;
+
+// 1. تحميل الصور والمتصدرين والفائزين
+window.loadVlog = async function() {
+  const isAr = currentLang === 'ar';
+  const galleryGrid = document.getElementById('vlogGalleryGrid');
+  const uploadPanel = document.getElementById('vlogUploadPanel');
+  const leaderboard = document.getElementById('vlogLeaderboard');
+  const leaderboardList = document.getElementById('vlogLeaderboardList');
+  const winnersSection = document.getElementById('vlogWinnersSection');
+  const winnersGrid = document.getElementById('vlogWinnersGrid');
+
+  if (!galleryGrid) return;
+
+  // أ. عرض لوحة الرفع حسب حالة المستخدم
+  if (CUSER) {
+    const postBtnText = isAr ? 'نشر الصورة في الألبوم ✦' : 'Post to Album ✦';
+    const uploadTitle = isAr ? '📸 شارك صورتك وتنافس على الأوردر الهدية' : '📸 Share Your Photo & Compete';
+    const captionPlaceholder = isAr ? 'اكتب وصفاً جميلاً لصورتك...' : 'Write a beautiful caption...';
+    const selectText = isAr ? 'اسحب الصورة هنا أو <strong>اضغط للاختيار</strong>' : 'Drag & drop image here or <strong>browse</strong>';
+    const limitText = isAr ? 'صيغ الصور المدعومة: JPG, PNG. أقصى حد: صورة واحدة يومياً.' : 'Supported formats: JPG, PNG. Limit: 1 photo per day.';
+    
+    uploadPanel.innerHTML = `
+      <h3 class="vup-title">${uploadTitle}</h3>
+      <div class="drag-drop-zone" id="vlogDragZone" onclick="document.getElementById('vlogFileInput').click()">
+        <div class="dd-icon">📤</div>
+        <div class="dd-text" id="vlogDragText">${selectText}</div>
+        <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.4rem;">${limitText}</div>
+        <input type="file" id="vlogFileInput" accept="image/*" style="display: none;" onchange="handleVlogFileSelect(this)"/>
+      </div>
+      <div class="image-preview-wrapper" id="vlogPreviewWrapper">
+        <img id="vlogPreviewImg" src="" alt="Preview"/>
+        <button class="remove-preview-btn" onclick="clearVlogPreview()">✕</button>
+      </div>
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <textarea id="vlogCaption" placeholder="${captionPlaceholder}" style="width:100%; min-height:60px; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.8rem; border-radius:4px; font-family:'Tajawal',sans-serif; outline:none; font-size:0.9rem; resize:vertical;"></textarea>
+      </div>
+      <button class="btn-gold" id="vlogSubmitBtn" onclick="handleVlogUpload()" style="width: 100%; justify-content: center;">
+        <span>${postBtnText}</span>
+      </button>
+    `;
+    setupVlogDragAndDrop();
+  } else {
+    const loginPrompt = isAr ? 'سجل دخولك لتتمكن من مشاركة صورك والتنافس على الأوردر الهدية! ✦' : 'Log in to share your photos and compete for a free order! ✦';
+    const loginBtnText = isAr ? 'تسجيل الدخول / إنشاء حساب ✦' : 'Login / Register ✦';
+    uploadPanel.innerHTML = `
+      <div class="login-redirect-card">
+        <div class="lrc-icon">🔒</div>
+        <p class="lrc-text">${loginPrompt}</p>
+        <a href="login.html" class="btn-gold" style="display: inline-flex; text-decoration: none;">${loginBtnText}</a>
+      </div>
+    `;
+  }
+
+  // ب. جلب الصور النشطة من الخادم
+  try {
+    const res = await fetch('/api/vlog', { headers: getAuthHeaders() });
+    if (res.ok) {
+      const posts = await res.json();
+      renderVlogGallery(posts, isAr);
+    } else {
+      galleryGrid.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:var(--red);">${isAr ? 'فشل تحميل الألبوم.' : 'Failed to load gallery.'}</p>`;
+    }
+  } catch (err) {
+    console.error(err);
+    galleryGrid.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:var(--red);">${isAr ? 'خطأ في الاتصال بالخادم.' : 'Connection error.'}</p>`;
+  }
+
+  // ج. جلب لوحة الصدارة والفائزين السابقين
+  try {
+    const res = await fetch('/api/vlog/contest');
+    if (res.ok) {
+      const data = await res.json();
+      
+      // عرض لوحة الصدارة
+      if (data.leaders && data.leaders.length > 0) {
+        leaderboard.style.display = 'block';
+        leaderboardList.innerHTML = data.leaders.map((l, index) => {
+          const rankClass = index === 0 ? 'rank-1' : (index === 1 ? 'rank-2' : (index === 2 ? 'rank-3' : ''));
+          const rankIcon = index === 0 ? '👑' : '';
+          return `
+            <div class="leader-row">
+              <div class="leader-rank ${rankClass}">${rankIcon || (index + 1)}</div>
+              <div class="leader-img-wrapper">
+                <img src="${l.image}" alt="${l.userName}"/>
+              </div>
+              <div class="leader-info">
+                <span class="leader-name">${l.userName}</span>
+                <span class="leader-caption">${l.caption || '...'}</span>
+              </div>
+              <div class="leader-likes">
+                <span>${l.likesCount}</span>
+                <span style="font-size: 0.9rem;">❤️</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        leaderboard.style.display = 'none';
+      }
+
+      // عرض الفائزين السابقين
+      if (data.winners && data.winners.length > 0) {
+        winnersSection.style.display = 'block';
+        winnersGrid.innerHTML = data.winners.map(w => {
+          const dateStr = new Date(w.wonAt).toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric' });
+          return `
+            <div class="vlog-card winner-card">
+              <div class="vc-image-wrapper">
+                <span class="winner-ribbon">${isAr ? 'فائز 🏆' : 'WINNER 🏆'}</span>
+                <img src="${w.image}" alt="Winner"/>
+                <div class="vc-overlay"></div>
+                <div class="vc-author-tag">
+                  <span class="vc-author-name">${w.userName}</span>
+                  <span class="vc-date">${dateStr}</span>
+                </div>
+              </div>
+              <div class="vc-body" style="gap:0.5rem;">
+                <div class="winner-prize-tag">🎁 ${w.winnerPrize}</div>
+                <p class="vc-caption">${w.caption || ''}</p>
+                <div style="font-size:0.75rem; color:var(--muted); text-align:center;">
+                  ❤️ ${w.likesCount} ${isAr ? 'إعجاب' : 'likes'}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        winnersSection.style.display = 'none';
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+// عرض صور ألبوم الفيد
+function renderVlogGallery(posts, isAr) {
+  const grid = document.getElementById('vlogGalleryGrid');
+  if (!grid) return;
+
+  if (posts.length === 0) {
+    grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 3rem 0;">${isAr ? 'كن أول من يشارك صورته في الألبوم! 📸' : 'Be the first to share a photo! 📸'}</p>`;
+    return;
+  }
+
+  grid.innerHTML = posts.map(p => {
+    const formattedDate = new Date(p.createdAt).toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const likedClass = p.hasLiked ? 'liked' : '';
+    const heartSvg = `
+      <svg viewBox="0 0 24 24">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      </svg>
+    `;
+    return `
+      <div class="vlog-card">
+        <div class="vc-image-wrapper">
+          <img src="${p.image}" alt="User post"/>
+          <div class="vc-overlay"></div>
+          <div class="vc-author-tag">
+            <span class="vc-author-name">${p.userName}</span>
+            <span class="vc-date">${formattedDate}</span>
+          </div>
+        </div>
+        <div class="vc-body">
+          <p class="vc-caption">${p.caption || ''}</p>
+          <div class="vc-footer">
+            <button class="vc-like-btn ${likedClass}" onclick="toggleVlogLike('${p.id}', this)">
+              ${heartSvg}
+              <span class="like-count">${p.likesCount}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ضغط وتجهيز الملف عند الاختيار
+window.handleVlogFileSelect = function(input) {
+  const file = input.files[0];
+  if (!file) return;
+  processVlogImage(file);
+};
+
+function processVlogImage(file) {
+  const isAr = currentLang === 'ar';
+  if (!file.type.startsWith('image/')) {
+    alert(isAr ? 'يرجى اختيار ملف صورة صالح!' : 'Please select a valid image file!');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      // ضغط الصورة بواسطة Canvas
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      const MAX_SIZE = 800; // أقصى طول أو عرض للصور
+
+      if (width > height) {
+        if (width > MAX_SIZE) {
+          height = Math.round((height * MAX_SIZE) / width);
+          width = MAX_SIZE;
+        }
+      } else {
+        if (height > MAX_SIZE) {
+          width = Math.round((width * MAX_SIZE) / height);
+          height = MAX_SIZE;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // تحويل الصورة إلى JPEG مضغوطة بنسبة 70% لجعل الحجم خفيفاً جداً
+      window.selectedVlogBase64 = canvas.toDataURL('image/jpeg', 0.7);
+      
+      // إظهار المعاينة
+      document.getElementById('vlogPreviewImg').src = window.selectedVlogBase64;
+      document.getElementById('vlogPreviewWrapper').style.display = 'block';
+      document.getElementById('vlogDragZone').style.display = 'none';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+window.clearVlogPreview = function() {
+  window.selectedVlogBase64 = null;
+  const fileInput = document.getElementById('vlogFileInput');
+  if (fileInput) fileInput.value = '';
+  document.getElementById('vlogPreviewImg').src = '';
+  document.getElementById('vlogPreviewWrapper').style.display = 'none';
+  document.getElementById('vlogDragZone').style.display = 'flex';
+};
+
+// إعداد سحب وإفلات الملفات
+function setupVlogDragAndDrop() {
+  const zone = document.getElementById('vlogDragZone');
+  if (!zone) return;
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    zone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      zone.classList.add('dragover');
+    }, false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    zone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+    }, false);
+  });
+
+  zone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const file = dt.files[0];
+    if (file) processVlogImage(file);
+  }, false);
+}
+
+// تسجيل الإعجاب
+window.toggleVlogLike = async function(postId, btn) {
+  const isAr = currentLang === 'ar';
+  if (!CUSER) {
+    alert(isAr ? 'يرجى تسجيل الدخول لتتمكن من التفاعل والإعجاب بالصور! ❤️' : 'Please log in to like photos and participate! ❤️');
+    return;
+  }
+
+  // تجنب النقر المتكرر
+  debounceClick(`like_${postId}`, async () => {
+    try {
+      const res = await fetch(`/api/vlog/${postId}/like`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      if (res.ok) {
+        const data = await res.json();
+        
+        // تحديث واجهة الإعجاب
+        const countSpan = btn.querySelector('.like-count');
+        if (countSpan) countSpan.textContent = data.likesCount;
+
+        if (data.hasLiked) {
+          btn.classList.add('liked');
+        } else {
+          btn.classList.remove('liked');
+        }
+
+        // تحديث لوحة الصدارة دون إعادة جلب كل البيانات بالكامل
+        loadVlog();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }, 250);
+};
+
+// رفع الصورة
+window.handleVlogUpload = async function() {
+  const isAr = currentLang === 'ar';
+  if (!window.selectedVlogBase64) {
+    alert(isAr ? 'يرجى اختيار صورة أولاً لمشاركتها!' : 'Please select a photo first!');
+    return;
+  }
+
+  const btn = document.getElementById('vlogSubmitBtn');
+  const caption = document.getElementById('vlogCaption').value.trim();
+  const originalText = btn.innerHTML;
+
+  btn.disabled = true;
+  btn.innerHTML = `<span>${isAr ? 'جاري النشر والرفع...' : 'Posting...'}</span>`;
+
+  try {
+    const res = await fetch('/api/vlog', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        image: window.selectedVlogBase64,
+        caption
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      alert(isAr ? 'تم نشر صورتك بنجاح! شكراً لمشاركتك المتميزة ✦' : 'Your photo has been posted successfully! Thank you for sharing ✦');
+      clearVlogPreview();
+      document.getElementById('vlogCaption').value = '';
+      loadVlog();
+    } else {
+      alert(data.error || (isAr ? 'فشل نشر الصورة، يرجى المحاولة لاحقاً.' : 'Failed to post photo.'));
+    }
+  } catch (err) {
+    console.error(err);
+    alert(isAr ? 'حدث خطأ أثناء الاتصال بالخادم.' : 'Server connection error.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  }
 };

@@ -240,6 +240,15 @@
         <textarea id="orderNotes" data-placeholder-en="Write any special requests here..." data-placeholder-ar="اكتب أي طلبات خاصة هنا..." placeholder="Write any special requests here..."></textarea>
       </div>
 
+      <!-- ===== كوبون الأوردر الهدية ===== -->
+      <div class="free-order-coupon-box" id="freeOrderBox" style="display: none;">
+        <input type="checkbox" id="useFreeOrderCheck" class="foc-checkbox" onchange="handleFreeOrderCheckToggle(this)"/>
+        <div style="flex:1;">
+          <label for="useFreeOrderCheck" class="foc-label" id="focLabelText">🎁 استخدم كوبون الأوردر الهدية المتاح!</label>
+          <span class="foc-sub" id="focSubText">سيصبح إجمالي هذا الأوردر 0 ج.م ويُخصم كوبون واحد من حسابك.</span>
+        </div>
+      </div>
+
       <!-- ===== إجمالي السعر ===== -->
       <div class="summary-row total">
         <span data-en="Total" data-ar="الإجمالي">Total</span>
@@ -399,6 +408,50 @@
     }
   };
 
+  let currentFreeOrdersCount = 0;
+  let cartActualSum = 0;
+
+  // ===== التحقق من كوبونات العميل المتاحة =====
+  async function checkUserCoupons() {
+    if (!user) return;
+    try {
+      const res = await fetch('/api/me', { headers: getAuthH() });
+      if (res.ok) {
+        const profile = await res.json();
+        localStorage.setItem('ozel_user', JSON.stringify(profile));
+        currentFreeOrdersCount = profile.freeOrdersCount || 0;
+        
+        const box = document.getElementById('freeOrderBox');
+        if (box) {
+          if (currentFreeOrdersCount > 0) {
+            box.style.display = 'flex';
+            const isAr = currentLang === 'ar';
+            document.getElementById('focLabelText').textContent = isAr 
+              ? `🎁 استخدم كوبون الأوردر الهدية المتاح! (المتوفر: ${currentFreeOrdersCount})` 
+              : `🎁 Use your free order coupon! (Available: ${currentFreeOrdersCount})`;
+            document.getElementById('focSubText').textContent = isAr 
+              ? 'سيصبح إجمالي هذا الأوردر 0 ج.م ويُخصم كوبون واحد من حسابك.' 
+              : 'This order total will become 0 EGP and 1 coupon will be deducted.';
+          } else {
+            box.style.display = 'none';
+            document.getElementById('useFreeOrderCheck').checked = false;
+          }
+        }
+      }
+    } catch(e) { console.warn('Failed to fetch user coupons', e); }
+  }
+
+  // ===== تفعيل/إلغاء كوبون الأوردر الهدية =====
+  window.handleFreeOrderCheckToggle = function(checkbox) {
+    const totalEl = document.getElementById('cartTotal');
+    const currencyLabel = currentLang === 'ar' ? 'ج.م' : 'EGP';
+    if (checkbox.checked) {
+      totalEl.textContent = `0 ${currencyLabel}`;
+    } else {
+      totalEl.textContent = `${cartActualSum} ${currencyLabel}`;
+    }
+  };
+
   // ===== تحميل وعرض محتويات السلة =====
   function loadCart() {
     const list = document.getElementById('cartItemsList');
@@ -448,7 +501,14 @@
       list.appendChild(el);
     });
 
-    totalEl.textContent = `${sum} ${currencyLabel}`;
+    cartActualSum = sum;
+    const isCouponChecked = document.getElementById('useFreeOrderCheck').checked;
+    
+    if (isCouponChecked) {
+      totalEl.textContent = `0 ${currencyLabel}`;
+    } else {
+      totalEl.textContent = `${sum} ${currencyLabel}`;
+    }
     
     if (tableParam) {
       document.getElementById('tableNum').value = tableParam;
@@ -506,13 +566,15 @@
     }
 
     const total_price = cart.reduce((s, i) => s + i.price * (i.quantity || 1), 0);
+    const useFreeOrder = document.getElementById('useFreeOrderCheck').checked;
 
     const orderData = {
       table_number: isTakeaway ? 'Takeaway' : String(parseInt(tableNum)),
       items: cart,
       total_price,
       notes,
-      customer_phone: isTakeaway ? document.getElementById('takeawayPhone').value.trim() : undefined
+      customer_phone: isTakeaway ? document.getElementById('takeawayPhone').value.trim() : undefined,
+      useFreeOrder
     };
 
     try {
@@ -564,7 +626,9 @@
   }
 
   // ===== التحميل الأولي للصفحة =====
-  applyLanguage(currentLang);
+  checkUserCoupons().then(() => {
+    applyLanguage(currentLang);
+  });
 </script>
 
 </body>

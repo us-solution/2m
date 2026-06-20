@@ -7,7 +7,7 @@
 html { scroll-behavior: smooth; }
 
 /* Account for fixed nav */
-#about, #lounge, #menu, #contact { scroll-margin-top: 80px; }
+#about, #lounge, #vlog, #menu, #contact { scroll-margin-top: 80px; }
 
 :root {
   --burgundy:      #541a1a; /* Brand Deep Cocoa Brown */
@@ -4544,5 +4544,524 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   text-shadow: 0 1px 3px rgba(0,0,0,.3);
   color: #fff;
 }
+
+/* ============================================
+   OZEL CAFE — Vlog & Photo Contest Section Styles
+   ============================================ */
+#vlog {
+  padding: 6rem 4rem;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.vlog-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Contest Banner */
+.vlog-contest-banner {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(84, 26, 26, 0.04) 0%, rgba(92, 118, 109, 0.04) 100%);
+  border: 1px solid rgba(84, 26, 26, 0.15);
+  border-radius: var(--rad-lg);
+  padding: 1.5rem 2rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 4px 20px rgba(84, 26, 26, 0.02);
+  position: relative;
+  overflow: hidden;
+}
+.vlog-contest-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--burgundy), var(--accent-emerald));
+}
+.vcb-icon {
+  font-size: 2.5rem;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+}
+.vcb-content h3 {
+  font-family: 'Playfair Display', 'Tajawal', serif;
+  font-size: 1.4rem;
+  color: var(--burgundy);
+  margin-bottom: 0.4rem;
+}
+.vcb-content p {
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* Layout Split */
+.vlog-grid-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 3rem;
+  margin-bottom: 4rem;
+}
+@media (max-width: 900px) {
+  .vlog-grid-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Upload Panel */
+.vlog-upload-panel {
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: var(--rad-lg);
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(36, 30, 26, 0.02);
+  transition: transform 0.3s ease;
+}
+.vlog-upload-panel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(36, 30, 26, 0.04);
+}
+.vup-title {
+  font-family: 'Cormorant Garamond', 'Tajawal', serif;
+  font-size: 1.5rem;
+  color: var(--burgundy);
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.5rem;
+}
+
+/* Drag Drop Zone */
+.drag-drop-zone {
+  border: 2px dashed rgba(92, 118, 109, 0.3);
+  background: var(--bg3);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.drag-drop-zone:hover, .drag-drop-zone.dragover {
+  border-color: var(--burgundy);
+  background: rgba(84, 26, 26, 0.02);
+}
+.dd-icon {
+  font-size: 2.2rem;
+  color: var(--accent-emerald-light);
+  margin-bottom: 0.8rem;
+}
+.dd-text {
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+.dd-text strong {
+  color: var(--burgundy);
+}
+
+/* Image Preview */
+.image-preview-wrapper {
+  position: relative;
+  width: 100%;
+  max-height: 250px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  display: none;
+}
+.image-preview-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 1px solid var(--line);
+}
+.remove-preview-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  background: rgba(0,0,0,0.6);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.remove-preview-btn:hover {
+  background: var(--red);
+}
+
+/* Leaderboard */
+.vlog-leaderboard-panel {
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: var(--rad-lg);
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(36, 30, 26, 0.02);
+  height: fit-content;
+}
+.vlp-title {
+  font-family: 'Cormorant Garamond', 'Tajawal', serif;
+  font-size: 1.5rem;
+  color: var(--burgundy);
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.5rem;
+}
+.vlp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.leader-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg3);
+  padding: 0.75rem 1rem;
+  border-radius: var(--rad);
+  border: 1px solid var(--line);
+  position: relative;
+  transition: transform 0.2s;
+}
+.leader-row:hover {
+  transform: scale(1.02);
+}
+.leader-rank {
+  width: 30px;
+  height: 30px;
+  background: var(--burgundy);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+.leader-rank.rank-1 { background: #F1C40F; color: #241E1A; box-shadow: 0 0 10px rgba(241,196,15,0.4); }
+.leader-rank.rank-2 { background: #BDC3C7; color: #241E1A; }
+.leader-rank.rank-3 { background: #E67E22; color: #fff; }
+
+.leader-img-wrapper {
+  width: 45px;
+  height: 45px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.leader-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.leader-info {
+  flex: 1;
+}
+.leader-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text);
+  display: block;
+}
+.leader-caption {
+  font-size: 0.75rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+  display: block;
+}
+.leader-likes {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: var(--burgundy);
+}
+
+/* Gallery Headers */
+.vlog-gallery-title {
+  text-align: center;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  position: relative;
+}
+.vlog-gallery-title h3 {
+  font-family: 'Playfair Display', 'Tajawal', serif;
+  font-size: 1.8rem;
+  color: var(--burgundy);
+  background: var(--bg);
+  display: inline-block;
+  padding: 0 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+.vlog-gallery-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--line);
+  z-index: 1;
+}
+
+/* Gallery Grid */
+.vlog-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-bottom: 5rem;
+}
+
+/* Vlog Post Card */
+.vlog-card {
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: var(--rad-lg);
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(36, 30, 26, 0.01);
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  display: flex;
+  flex-direction: column;
+}
+.vlog-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(84, 26, 26, 0.08);
+  border-color: rgba(84, 26, 26, 0.25);
+}
+.vc-image-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 100%; /* 1:1 Aspect Ratio */
+  background: var(--bg3);
+  overflow: hidden;
+}
+.vc-image-wrapper img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.vlog-card:hover .vc-image-wrapper img {
+  transform: scale(1.05);
+}
+.vc-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);
+  opacity: 0.8;
+  pointer-events: none;
+}
+.vc-author-tag {
+  position: absolute;
+  bottom: 12px;
+  left: 15px;
+  right: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+  z-index: 2;
+  pointer-events: none;
+}
+.vc-author-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.vc-date {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.8);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+.vc-body {
+  padding: 1.2rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.vc-caption {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.5;
+  font-family: 'Tajawal', sans-serif;
+  word-break: break-word;
+}
+.vc-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--line);
+  padding-top: 0.8rem;
+  margin-top: auto;
+}
+.vc-like-btn {
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.vc-like-btn:hover {
+  background: rgba(84, 26, 26, 0.04);
+  color: var(--burgundy);
+}
+.vc-like-btn.liked {
+  color: var(--burgundy);
+}
+.vc-like-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.vc-like-btn.liked svg {
+  fill: var(--burgundy);
+  stroke: var(--burgundy);
+  animation: heartPop 0.4s ease-out;
+}
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+/* Past Winners Section */
+.vlog-winners-section {
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: var(--rad-lg);
+  padding: 2.5rem;
+  margin-top: 4rem;
+  box-shadow: 0 10px 30px rgba(36, 30, 26, 0.02);
+}
+.vws-title {
+  font-family: 'Cormorant Garamond', 'Tajawal', serif;
+  font-size: 1.6rem;
+  color: var(--burgundy);
+  text-align: center;
+  margin-bottom: 2rem;
+  position: relative;
+}
+.vws-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 2rem;
+}
+.winner-card {
+  border: 1px solid rgba(241, 196, 15, 0.3);
+  box-shadow: 0 5px 15px rgba(241, 196, 15, 0.03);
+}
+.winner-card:hover {
+  border-color: #F1C40F;
+  box-shadow: 0 15px 30px rgba(241, 196, 15, 0.08);
+}
+.winner-ribbon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #F1C40F;
+  color: #241E1A;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  z-index: 3;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+.winner-prize-tag {
+  background: rgba(241, 196, 15, 0.1);
+  color: #a37f0c;
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 6px 12px;
+  border-radius: 4px;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+/* Redirection notice */
+.login-redirect-card {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+.lrc-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+.lrc-text {
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+/* Coupon option check in cart page */
+.free-order-coupon-box {
+  background: linear-gradient(135deg, rgba(241, 196, 15, 0.08) 0%, rgba(84, 26, 26, 0.03) 100%);
+  border: 1px dashed #F1C40F;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  box-shadow: 0 2px 10px rgba(241, 196, 15, 0.05);
+  animation: fadeIn 0.3s ease;
+}
+.foc-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--burgundy);
+}
+.foc-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+.foc-sub {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: normal;
+  margin-top: 0.2rem;
+}
+
 
 

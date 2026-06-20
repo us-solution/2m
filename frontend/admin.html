@@ -223,6 +223,7 @@ td, th { white-space: nowrap; }
       <option value="users">👥 المستخدمين</option>
       <option value="tables">📱 رموز QR للطاولات</option>
       <option value="customization">⚙ خيارات التخصيص</option>
+      <option value="vlog">📸 ألبوم الصور (Vlog)</option>
     </select>
     <div class="nav-item active" onclick="showPage('dashboard',this)">📊 لوحة التحكم</div>
     <div class="nav-item" onclick="showPage('menu',this)">🍽 إدارة القائمة</div>
@@ -231,6 +232,7 @@ td, th { white-space: nowrap; }
     <div class="nav-item" onclick="showPage('users',this)">👥 المستخدمين</div>
     <div class="nav-item" onclick="showPage('tables',this)">📱 رموز QR للطاولات</div>
     <div class="nav-item" onclick="showPage('customization',this)">⚙ خيارات التخصيص</div>
+    <div class="nav-item" onclick="showPage('vlog',this)">📸 ألبوم الصور (Vlog)</div>
   </nav>
   <div style="overflow-y:auto;max-height:calc(100vh - 60px)">
 
@@ -529,6 +531,34 @@ td, th { white-space: nowrap; }
       <button class="hbtn" onclick="saveCustomization()" style="margin-top:1.5rem; background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.6rem 2rem; font-weight:700;">💾 حفظ التغييرات</button>
     </div>
 
+    <!-- ===== ألبوم الصور والفلوج (Vlog) ===== -->
+    <div class="page" id="page-vlog">
+      <h1 class="page-title">📸 ألبوم الصور والفلوج (Vlog)</h1>
+      <p class="page-sub">إدارة الصور التي يرفعها العملاء وتحديد الفائزين بـ الأوردر الهدية</p>
+      
+      <div class="search-bar" style="position:relative;">
+        <input id="vlog-admin-search" type="text" placeholder="🔍 ابحث بالاسم أو الوصف..." oninput="filterAdminVlogTable()" style="flex:1; padding-right:2.5rem;"/>
+        <span onclick="document.getElementById('vlog-admin-search').value='';filterAdminVlogTable()" style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--muted); font-size:1.1rem;">×</span>
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>الصورة</th>
+            <th>الناشر</th>
+            <th>الوصف</th>
+            <th>الإعجابات</th>
+            <th>الحالة</th>
+            <th>تحديد كفائز</th>
+            <th>إجراء</th>
+          </tr>
+        </thead>
+        <tbody id="vlogAdminTable">
+          <tr><td colspan="7" style="text-align:center; color:var(--muted);">جاري التحميل...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
   </div>
 </div>
 
@@ -561,6 +591,7 @@ function showPage(name, el) {
   if (name === 'users') loadUsers();
   if (name === 'tables') document.getElementById('tqr-result').style.display = 'none';
   if (name === 'customization') loadCustomization();
+  if (name === 'vlog') loadAdminVlog();
 }
 
 // ????? ??????? ?????????
@@ -1432,6 +1463,127 @@ async function saveCustomization() {
   }
 }
 
+let vlogAdminData = [];
+let selectedVlogPostIdForWinner = null;
+
+async function loadAdminVlog() {
+  try {
+    const res = await fetch('/api/vlog/admin-all', { headers: getAuthH() });
+    if (!res.ok) throw new Error('Failed to load vlog posts');
+    vlogAdminData = await res.json();
+    renderAdminVlogTable(vlogAdminData);
+  } catch(err) {
+    document.getElementById('vlogAdminTable').innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--red);">فشل تحميل المنشورات: ${err.message}</td></tr>`;
+  }
+}
+
+function renderAdminVlogTable(data) {
+  const tbody = document.getElementById('vlogAdminTable');
+  if (!tbody) return;
+
+  if (data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--muted);">لا توجد صور مرفوعة بعد</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(p => {
+    const statusText = p.isWinner ? '🏆 فائز بالمسابقة' : 'نشط';
+    const statusClass = p.isWinner ? 'badge badge-featured' : 'badge badge-cashier';
+    const winnerBtnHtml = p.isWinner 
+      ? `<span style="color:var(--green); font-size:0.8rem; font-weight:bold;">تم الفوز</span>`
+      : `<button class="hbtn" onclick="openVlogWinnerModal('${p._id}')" style="font-size:0.75rem; color:var(--green); border-color:rgba(39,174,96,0.5)">اختر كفائز 🏆</button>`;
+
+    return `
+      <tr id="vlog-row-${p._id}">
+        <td>
+          <a href="${p.image}" target="_blank">
+            <img src="${p.image}" class="img-thumb" style="width:50px; height:50px; object-fit:cover; border-radius:4px;"/>
+          </a>
+        </td>
+        <td><strong>${p.userName}</strong></td>
+        <td style="max-width: 250px; white-space: normal; word-break: break-word;">${p.caption || '<span style="color:var(--muted)">بدون وصف</span>'}</td>
+        <td class="points-badge">${p.likesCount} ❤️</td>
+        <td><span class="${statusClass}">${statusText}</span></td>
+        <td>${winnerBtnHtml}</td>
+        <td>
+          <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,0.4)" onclick="deleteVlogPost('${p._id}')">حذف 🗑️</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filterAdminVlogTable() {
+  const q = document.getElementById('vlog-admin-search').value.toLowerCase();
+  const filtered = vlogAdminData.filter(p => 
+    p.userName.toLowerCase().includes(q) || 
+    (p.caption || '').toLowerCase().includes(q)
+  );
+  renderAdminVlogTable(filtered);
+}
+
+window.openVlogWinnerModal = function(id) {
+  selectedVlogPostIdForWinner = id;
+  const modal = document.getElementById('vlogWinnerModal');
+  if (modal) modal.style.display = 'flex';
+};
+
+window.closeVlogWinnerModal = function() {
+  selectedVlogPostIdForWinner = null;
+  const modal = document.getElementById('vlogWinnerModal');
+  if (modal) modal.style.display = 'none';
+};
+
+window.submitVlogWinner = async function() {
+  if (!selectedVlogPostIdForWinner) return;
+  const prize = document.getElementById('vlogWinnerPrizeInput').value.trim();
+  const btn = document.querySelector('#vlogWinnerModal .c-modal-actions button');
+  const origText = btn.textContent;
+  
+  btn.disabled = true;
+  btn.textContent = 'جاري التأكيد...';
+
+  try {
+    const res = await fetch(`/api/vlog/${selectedVlogPostIdForWinner}/winner`, {
+      method: 'PATCH',
+      headers: getAuthH(),
+      body: JSON.stringify({ prize })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast('تم تحديد الفائز بالمسابقة بنجاح! 🏆 وتم منح العميل أوردر هدية في حسابه.', 'success');
+      closeVlogWinnerModal();
+      loadAdminVlog();
+    } else {
+      showToast(data.error || 'فشل تحديد الفائز', 'error');
+    }
+  } catch(e) {
+    showToast('خطأ في الاتصال بالخادم', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+};
+
+window.deleteVlogPost = async function(id) {
+  if (!confirm('هل أنت متأكد من حذف هذه الصورة نهائياً من الألبوم؟')) return;
+  try {
+    const res = await fetch(`/api/vlog/${id}`, {
+      method: 'DELETE',
+      headers: getAuthH()
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast('تم حذف الصورة بنجاح 🗑️', 'success');
+      loadAdminVlog();
+    } else {
+      showToast(data.error || 'فشل حذف الصورة', 'error');
+    }
+  } catch(e) {
+    showToast('خطأ في الاتصال بالخادم', 'error');
+  }
+};
+
 </script>
 
 <div id="custom-modal" class="c-modal">
@@ -1442,6 +1594,19 @@ async function saveCustomization() {
     <div class="c-modal-actions">
       <button id="cm-cancel" class="hbtn">إلغاء</button>
       <button id="cm-ok" class="hbtn" style="color:var(--gold); border-color:var(--gold);">موافق</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة تحديد الجائزة للفائز بالمسابقة -->
+<div class="c-modal" id="vlogWinnerModal">
+  <div class="c-modal-content">
+    <h2>🏆 تحديد الجائزة للعميل الفائز</h2>
+    <p>أدخل اسم الهدية أو المشروب المجاني المقدم للعميل (سيتم منح العميل كوبون أوردر هدية في حسابه تلقائياً):</p>
+    <input type="text" id="vlogWinnerPrizeInput" placeholder="مثال: مشروب مجاني من اختيارك 🎁" class="edit-input" style="width:100%; padding:0.6rem; margin-bottom:1.5rem; text-align:center;" value="أوردر مجاني هدية 🎁"/>
+    <div class="c-modal-actions">
+      <button class="hbtn" onclick="submitVlogWinner()" style="background:var(--green); color:#fff; border-color:var(--green);">تأكيد الفوز ✦</button>
+      <button class="hbtn" onclick="closeVlogWinnerModal()">إلغاء</button>
     </div>
   </div>
 </div>

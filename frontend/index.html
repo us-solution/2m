@@ -61,6 +61,7 @@
       <a href="#about" data-en="Story" data-ar="حكايتنا">Story</a>
       <a href="#lounge" data-en="Table Games" data-ar="ركن التسلية">Table Games</a>
       <a href="#menu" data-en="Menu" data-ar="المنيو">Menu</a>
+      <a href="#vlog" data-en="Cafe Album" data-ar="ألبوم الصور">Cafe Album</a>
       <a href="#contact" data-en="Contact" data-ar="تواصل معنا">Contact</a>
     </div>
     <div class="nav-right-sec" style="display:flex;gap:1.5rem;align-items:center">
@@ -94,6 +95,7 @@
         <a href="#about" onclick="toggleMobileMenu()" data-en="Story" data-ar="حكايتنا">Story</a>
         <a href="#lounge" onclick="toggleMobileMenu()" data-en="Table Games" data-ar="ركن التسلية">Table Games</a>
         <a href="#menu" onclick="toggleMobileMenu()" data-en="Menu" data-ar="المنيو">Menu</a>
+        <a href="#vlog" onclick="toggleMobileMenu()" data-en="Cafe Album" data-ar="ألبوم الصور">Cafe Album</a>
         <a href="#contact" onclick="toggleMobileMenu()" data-en="Contact" data-ar="تواصل معنا">Contact</a>
       </div>
       <div class="drawer-divider"></div>
@@ -396,6 +398,60 @@
     </div>
   </section>
 
+  <!-- ===== قسم ألبوم وفلوج أوزيل (Ozel Album & Vlog) ===== -->
+  <section id="vlog">
+    <div class="section-head-center">
+      <p class="section-eyebrow" data-en="/ Ozel Album /" data-ar="/ ألبوم أوزيل /">/ Ozel Album /</p>
+      <h2 class="section-heading" data-en="Ozel Album ✦ <em>Contest</em>" data-ar="ألبوم أوزيل ✦ <em>المسابقة</em>">Ozel Album ✦ <em>Contest</em></h2>
+      <p class="section-sub" data-en="Share your best moments in our cafe and compete for a free order!" data-ar="شاركنا أجمل لقطاتك في الكافيه وتنافس للحصول على أوردر هدية مجاني!">Share your best moments in our cafe and compete for a free order!</p>
+    </div>
+
+    <div class="vlog-container">
+      <!-- بنر إعلان المسابقة -->
+      <div class="vlog-contest-banner">
+        <div class="vcb-icon">🎁</div>
+        <div class="vcb-content">
+          <h3 data-en="📸 Photo of the Week Contest!" data-ar="📸 مسابقة صورة الأسبوع!">📸 Photo of the Week Contest!</h3>
+          <p data-en="Upload your photos of Ozel Cafe. The best picture and the picture with the most likes will win a FREE order coupon! Winners are announced every week." data-ar="صور المكان أو مشروبك المفضل وشاركنا الصورة. أفضل صورة واكتر صورة تاخد لايكات هتاخد أوردر هدية مجاني! يتم الإعلان عن الفائزين أسبوعياً.">Upload your photos of Ozel Cafe. The best picture and the picture with the most likes will win a FREE order coupon! Winners are announced every week.</p>
+        </div>
+      </div>
+
+      <div class="vlog-grid-layout">
+        <!-- ركن رفع الصور والتحكم -->
+        <div class="vlog-upload-panel" id="vlogUploadPanel">
+          <!-- سيتم تحميل لوحة الرفع ديناميكياً بناءً على حالة تسجيل الدخول -->
+        </div>
+
+        <!-- ركن لوحة الصدارة المتصدرين -->
+        <div class="vlog-leaderboard-panel" id="vlogLeaderboard" style="display: none;">
+          <h3 class="vlp-title" data-en="🏆 Current Leaders" data-ar="🏆 المتصدرون حالياً">🏆 Current Leaders</h3>
+          <div class="vlp-list" id="vlogLeaderboardList">
+            <!-- سيتم تحميل قائمة المتصدرين هنا -->
+          </div>
+        </div>
+      </div>
+
+      <!-- المعرض الرئيسي للصور -->
+      <div class="vlog-gallery-title">
+        <h3 data-en="📸 Gallery Feed" data-ar="📸 ألبوم الصور">📸 Gallery Feed</h3>
+        <div class="vlog-gallery-line"></div>
+      </div>
+
+      <div class="vlog-gallery-grid" id="vlogGalleryGrid">
+        <div class="menu-loading">
+          <div class="menu-loading-ring"></div>
+        </div>
+      </div>
+
+      <!-- أرشيف الفائزين السابقين -->
+      <div class="vlog-winners-section" id="vlogWinnersSection" style="display: none;">
+        <h3 class="vws-title" data-en="🌟 Past Winners Showcase" data-ar="🌟 معرض الفائزين السابقين">🌟 Past Winners Showcase</h3>
+        <div class="vws-grid" id="vlogWinnersGrid">
+          <!-- الفائزين السابقين -->
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- ===== قسم القائمة (Menu) ===== -->
   <section id="menu">

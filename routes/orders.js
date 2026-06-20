@@ -237,7 +237,7 @@ const getOptionalUser = async (req) => {
 
 // إنشاء طلب جديد (مع مصادقة اختيارية)
 router.post('/', async (req, res) => {
-  const { table_number, items, total_price, notes, customer_phone } = req.body;
+  const { table_number, items, total_price, notes, customer_phone, useFreeOrder } = req.body;
 
   if (table_number === undefined || !items || total_price === undefined) {
     return res.status(400).json({ error: 'Missing fields: table_number, items, and total_price are required' });
@@ -248,18 +248,29 @@ router.post('/', async (req, res) => {
 
   try {
     const user = await getOptionalUser(req);
-    const priceNum = parseFloat(total_price) || 0;
-    const points_earned = Math.floor(priceNum);
+    let priceNum = parseFloat(total_price) || 0;
+    let points_earned = Math.floor(priceNum);
+    let isFreeOrderApplied = false;
+
+    if (useFreeOrder && user && user.freeOrdersCount > 0) {
+      isFreeOrderApplied = true;
+      priceNum = 0;
+      points_earned = 0;
+    }
 
     const parsedItems = safeParseItems(items).map(item => ({
       name: item.name || '',
       menuItemIdInCashier: item.menuItemIdInCashier || '',
       quantity: item.quantity || 1,
-      price: item.price || 0,
+      price: isFreeOrderApplied ? 0 : (item.price || 0),
       sugar: item.sugar || 'Normal',
       extras: Array.isArray(item.extras) ? item.extras : [],
       notes: item.notes || ''
     }));
+
+    const finalNotes = isFreeOrderApplied 
+      ? `[أوردر هدية مسابقة الفلوج] ${notes || ''}`
+      : (notes || '');
 
     const order = await Order.create({
       userId: user ? user._id : null,
@@ -267,25 +278,31 @@ router.post('/', async (req, res) => {
       items: parsedItems,
       total_price: priceNum,
       points_earned: points_earned,
-      notes: notes || '',
+      notes: finalNotes,
       status: 'pending',
       qrCodeToken,
       isQrConfirmed: false,
       customerPhone: customer_phone || null
     });
 
-    // إضافة النقاط للعميل إذا كان مسجلاً
+    // إضافة النقاط للعميل إذا كان مسجلاً أو خصم الكوبون الهدية
     if (user) {
-      user.points += points_earned;
-      user.total_spent = parseFloat(user.total_spent) + priceNum;
+      if (isFreeOrderApplied) {
+        user.freeOrdersCount = Math.max(0, user.freeOrdersCount - 1);
+      } else {
+        user.points += points_earned;
+        user.total_spent = parseFloat(user.total_spent) + priceNum;
+      }
       await user.save();
 
-      await PointsLog.create({
-        userId: user._id,
-        points: points_earned,
-        reason: `Order #${order._id}`,
-        orderId: order._id
-      });
+      if (points_earned > 0) {
+        await PointsLog.create({
+          userId: user._id,
+          points: points_earned,
+          reason: `Order #${order._id}`,
+          orderId: order._id
+        });
+      }
     }
 
     // إنشاء رمز QR للطلب (للتأكيد)

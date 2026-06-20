@@ -19,7 +19,9 @@ const userSchema = new mongoose.Schema({
   // مستوى الاشتراك
   subscriptionTier: { type: String, default: 'none' },
   // حالة العميل (قياسي، ذهبي، طالب، عائلة أوزيل)
-  customerStatus: { type: String, enum: ['standard', 'gold', 'student', 'ozel_family'], default: 'standard' }
+  customerStatus: { type: String, enum: ['standard', 'gold', 'student', 'ozel_family'], default: 'standard' },
+  // عدد الأوردرات الهدية المتاحة للعميل
+  freeOrdersCount: { type: Number, default: 0 }
 }, { timestamps: true, collection: 'users' });
 
 module.exports = mongoose.models.User || mongoose.model('User', userSchema);

@@ -35,6 +35,7 @@ const retryQueue = require('./retry-queue');
 require('./models/ExpenseCategory');
 require('./models/CustomizationOption');
 require('./models/QueueOrder');
+require('./models/VlogPost');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -115,6 +116,7 @@ app.use('/api/orders', requireDB, require('./routes/orders'));
 app.use('/api/offers', requireDB, require('./routes/offers'));
 app.use('/api/me', requireDB, require('./routes/me'));
 app.use('/api/admin', requireDB, require('./routes/admin'));
+app.use('/api/vlog', requireDB, require('./routes/vlog'));
 
 app.use('/api/game', requireDB, require('./routes/game'));
 app.use('/api/bridge', requireDB, require('./routes/bridge'));
