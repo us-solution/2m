@@ -4,7 +4,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <script src="api-override.js?v=1"></script>
+  <script src="api-override.js?v=3"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- عنوان الموقع ووصف محرك البحث -->
   <title>OZEL CAFE — Hidden Gem</title>
@@ -14,7 +14,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@300;400;600;700&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=1" />
+  <link rel="stylesheet" href="style.css?v=3" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
   <script src="https://js.pusher.com/8.0.1/pusher.min.js"></script>
   <script>
@@ -415,7 +415,7 @@
         </div>
       </div>
 
-      <div class="vlog-grid-layout">
+      <div class="vlog-grid-layout leaderboard-hidden">
         <!-- ركن رفع الصور والتحكم -->
         <div class="vlog-upload-panel" id="vlogUploadPanel">
           <!-- سيتم تحميل لوحة الرفع ديناميكياً بناءً على حالة تسجيل الدخول -->
@@ -464,9 +464,7 @@
 
     <div class="menu-layout-split">
       <div class="menu-left-main">
-        <div class="cat-bar" id="catTabs">
-          <button class="cat-btn active" data-cat="all">All</button>
-        </div>
+        <div class="cat-bar" id="catTabs"></div>
 
         <div class="menu-grid" id="menuGrid">
           <div class="menu-loading">
@@ -537,95 +535,7 @@
     <p class="footer-copy" data-en="© 2025 OZEL CAFE — All rights reserved" data-ar="© 2025 أوزيل كافيه — جميع الحقوق محفوظة">© 2025 OZEL CAFE — All rights reserved</p>
   </footer>
 
-  <!-- ===== نافذة الملف الشخصي (Profile Modal) ===== -->
-  <div class="modal-overlay" id="profileModal">
-    <div class="modal-panel" style="max-width: 480px; border-radius: var(--rad-lg);">
-      <div class="modal-x" onclick="closeProfileModal()">✕</div>
-      <div class="modal-body" style="padding: 1.5rem 1.5rem 2rem 1.5rem;">
-        <div class="modal-name" style="text-align: center; margin-bottom: 1rem; font-family: 'Playfair Display', serif; font-size: 1.8rem;">Your Profile</div>
-
-        <!-- TABS BAR -->
-        <div class="profile-tabs">
-          <button class="profile-tab-btn active" onclick="switchProfileTab('card')" data-en="Membership" data-ar="العضوية">Membership</button>
-          <button class="profile-tab-btn" onclick="switchProfileTab('uploads')" data-en="My Photos" data-ar="صوري">My Photos</button>
-          <button class="profile-tab-btn" onclick="switchProfileTab('liked')" data-en="Favorites" data-ar="المفضلة">Favorites</button>
-        </div>
-
-        <!-- TAB CONTENT: MEMBERSHIP -->
-        <div id="profile-tab-card" class="profile-tab-panel active">
-          <!-- PREMIUM VIP LOYALTY CARD -->
-          <div class="vip-card tier-none" id="profileVipCard" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.15" style="cursor: pointer;">
-            <div style="position: absolute; inset: 0; opacity: 0.08; background-image: url('data:image/svg+xml,%3Csvg viewBox=%270 0 200 200%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.9%27 numOctaves=%274%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23n)%27/%3E%3C/svg%3E'); pointer-events: none;"></div>
-            <div style="position: absolute; top: -50px; right: -50px; width: 140px; height: 140px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%); opacity: 0.3; filter: blur(20px); pointer-events: none;"></div>
-            
-            <div style="position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: space-between;">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
-                <div>
-                  <span style="font-family: 'Tajawal', sans-serif; font-size: 0.65rem; letter-spacing: 0.25rem; text-transform: uppercase; color: rgba(255,255,255,0.7); display: block; margin-bottom: 0.2rem;">OZEL CAFE MEMBER</span>
-                  <span style="font-family: 'Playfair Display', 'Tajawal', serif; font-size: 1rem; font-style: italic; color: #fff; letter-spacing: 0.05em;" id="profileVipClubTitle">VIP Club ✦</span>
-                </div>
-                <div class="vip-card-badge" id="profileTierBadge">STANDARD</div>
-              </div>
-              
-              <div style="margin-bottom: 1.5rem;">
-                <span style="font-family: 'Outfit', sans-serif; font-size: 0.7rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.6); display: block; margin-bottom: 0.3rem; font-weight: 500;">YOUR CURRENT POINTS / BALANCE</span>
-                <div style="display: flex; align-items: baseline; gap: 0.4rem;">
-                  <span id="profilePoints" style="font-family: 'Montserrat', sans-serif; font-size: 2.8rem; font-weight: 700; color: #fff; line-height: 1;">0</span>
-                  <span style="font-family: 'Tajawal', sans-serif; font-size: 0.8rem; letter-spacing: 0.05em; font-weight: 700; color: rgba(255,255,255,0.8);">pts</span>
-                </div>
-                <div style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.85); font-weight: 600; margin-top: 0.4rem; font-family: 'Tajawal', sans-serif;" id="profileDiscountRate">
-                  Discount: 0%
-                </div>
-              </div>
-
-              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.8rem; font-size: 0.7rem; color: rgba(255,255,255,0.6); font-family: 'Tajawal', sans-serif;">
-                <span id="profileMemberName" style="text-transform: uppercase; font-weight: 700; color: var(--white); font-size: 0.75rem; font-family: 'Tajawal', sans-serif;">MEMBER</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- MOST ORDERED DRINKS -->
-          <div style="background: var(--bg2); padding: 1.25rem 1.5rem; border-radius: var(--rad-lg); border: 1px solid var(--line); box-shadow: 0 4px 15px rgba(0,0,0,0.01); margin-bottom: 1.25rem;">
-            <h4 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;">
-              Most Ordered
-            </h4>
-            <div id="topDrinksList" style="display: flex; flex-direction: column; gap: 0.6rem;">
-              <p style="color: var(--muted); font-size: 0.8rem; text-align: center; font-family: 'Tajawal', sans-serif;">No previous orders yet</p>
-            </div>
-          </div>
-
-          <!-- CHANGE PASSWORD -->
-          <div style="background: var(--bg2); padding: 1.25rem 1.5rem; border-radius: var(--rad-lg); border: 1px solid var(--line); box-shadow: 0 4px 15px rgba(0,0,0,0.01); margin-bottom: 1.25rem;">
-            <h4 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;">
-              Change Password
-            </h4>
-            <div style="display: flex; flex-direction: column; gap: 0.6rem;">
-              <input id="old-pass" type="password" placeholder="Current Password"
-                style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
-              <input id="new-pass" type="password" placeholder="New Password"
-                style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
-              <button class="btn-gold" style="width:100%; justify-content:center; padding:0.6rem;" onclick="changePassword()">Save Changes ✦</button>
-              <p id="cp-msg" style="font-size:0.8rem; text-align:center; margin-top:0.4rem; font-family: 'Tajawal', sans-serif;"></p>
-            </div>
-          </div>
-
-          <div style="margin-top: 1.25rem;">
-            <button class="logout-btn" onclick="logoutUser()">Logout</button>
-          </div>
-        </div>
-
-        <!-- TAB CONTENT: MY UPLOADS -->
-        <div id="profile-tab-uploads" class="profile-tab-panel" style="display: none;">
-          <div id="myPhotosGrid" class="profile-photos-grid"></div>
-        </div>
-
-        <!-- TAB CONTENT: FAVORITE LIKED PHOTOS -->
-        <div id="profile-tab-liked" class="profile-tab-panel" style="display: none;">
-          <div id="myLikedGrid" class="profile-photos-grid"></div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Profile page is now a separate page: profile.html -->
 
   <!-- ===== نافذة عرض الصورة بالحجم الكامل (Image Lightbox Modal) ===== -->
   <div id="vlogLightbox" class="modal-overlay" onclick="closeVlogLightbox(event)" style="z-index: 1200; background: rgba(0,0,0,0.9);">
@@ -690,8 +600,8 @@
       }, 5000);
     })();
   </script>
-  <script src="app.js?v=1"></script>
-  <script src="uno.js?v=1"></script>
+  <script src="app.js?v=3"></script>
+  <script src="uno.js?v=3"></script>
 </body>
 
 </html>

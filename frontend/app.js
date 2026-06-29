@@ -120,7 +120,7 @@ window.applyLanguage = function(lang) {
   const isAr = lang === 'ar';
   document.documentElement.lang = lang;
   document.documentElement.dir = isAr ? 'rtl' : 'ltr';
-  document.body.style.direction = isAr ? 'rtl' : 'ltr';
+  document.body.dir = isAr ? 'rtl' : 'ltr';
   
   document.querySelectorAll('[data-en]').forEach(el => {
     el.innerHTML = isAr ? el.getAttribute('data-ar') : el.getAttribute('data-en');
@@ -158,6 +158,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('vlogGalleryGrid')) {
       loadVlog();
     }
+    if (window.location.pathname.includes('profile.html')) {
+      if (!localStorage.getItem('ozel_token')) {
+        window.location.href = 'index.html';
+        return;
+      }
+      window.openProfileModal();
+    }
   } catch(e) { console.error('[Init]', e); }
   setTimeout(() => {
     const loader = document.getElementById('loader');
@@ -178,13 +185,19 @@ function renderNavUser() {
   if (CUSER) {
     const initial = CUSER.name.charAt(0).toUpperCase();
     const ptsLabel = isAr ? 'نقاط' : 'pts';
+    const profileText = isAr ? 'حسابي ✦' : 'My Profile ✦';
     html = `
-      <div class="nav-user-logged" onclick="openProfileModal()">
-        <div class="user-avatar">${initial}</div>
-        <div class="user-info-brief">
-          <span class="user-name">${CUSER.name}</span>
-          <span class="user-pts" style="font-size:0.65rem; color:var(--gold); font-weight:700;">${CUSER.points || 0} ${ptsLabel}</span>
+      <div style="display: flex; align-items: center; gap: 0.8rem;">
+        <div class="nav-user-logged" onclick="openProfileModal()" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+          <div class="user-avatar">${initial}</div>
+          <div class="user-info-brief">
+            <span class="user-name">${CUSER.name}</span>
+            <span class="user-pts" style="font-size:0.65rem; color:var(--gold); font-weight:700;">${CUSER.points || 0} ${ptsLabel}</span>
+          </div>
         </div>
+        <a href="profile.html" class="nav-user-btn" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; height: 36px; padding: 0 0.8rem; font-size: 0.75rem;">
+          <span>${profileText}</span>
+        </a>
       </div>
     `;
   } else {
@@ -216,7 +229,12 @@ window.toggleMobileMenu = function() {
 window.logoutUser = function() { localStorage.clear(); location.reload(); };
 
 // ===== تبديل تبويبات الملف الشخصي =====
-window.switchProfileTab = function(tabName) {
+window.switchProfileTab = function(btnEl, tabName) {
+  if (typeof btnEl === 'string') {
+    tabName = btnEl;
+    btnEl = document.querySelector(`.profile-tab-btn[onclick*="${tabName}"]`);
+  }
+
   document.querySelectorAll('.profile-tab-btn').forEach(btn => {
     btn.classList.remove('active');
   });
@@ -226,8 +244,7 @@ window.switchProfileTab = function(tabName) {
   });
 
   // تفعيل الزر المختار
-  const activeBtn = document.querySelector(`.profile-tab-btn[onclick*="${tabName}"]`);
-  if (activeBtn) activeBtn.classList.add('active');
+  if (btnEl) btnEl.classList.add('active');
 
   // تفعيل اللوحة المختارة
   const activePanel = document.getElementById(`profile-tab-${tabName}`);
@@ -319,6 +336,10 @@ window.loadProfileMedia = async function() {
 
 // ===== فتح نافذة الملف الشخصي =====
 window.openProfileModal = async function() {
+  if (!window.location.pathname.includes('profile.html')) {
+    window.location.href = 'profile.html';
+    return;
+  }
   const modal = document.getElementById('profileModal');
   if (!modal) return;
   modal.classList.add('open');
@@ -425,7 +446,14 @@ window.openProfileModal = async function() {
 }
 
 // ===== إغلاق نافذة الملف الشخصي =====
-window.closeProfileModal = function() { document.getElementById('profileModal').classList.remove('open'); };
+window.closeProfileModal = function() {
+  if (window.location.pathname.includes('profile.html')) {
+    window.location.href = 'index.html';
+  } else {
+    const modal = document.getElementById('profileModal');
+    if (modal) modal.classList.remove('open');
+  }
+};
 
 // ===== تأثير شريط التنقل عند التمرير =====
 window.addEventListener('scroll', () => {
@@ -469,32 +497,35 @@ function buildCatTabs() {
   const bar = document.getElementById('catTabs');
   if (!bar) return;
   const isAr = currentLang === 'ar';
-  const allLabel = isAr ? 'الكل' : 'All';
-  bar.innerHTML = `<button class="cat-btn active" data-cat="all">${allLabel}</button>`;
   
   renderOffersCards();
 
-  if (!allCategories || !allCategories.length) return;
+  if (!allCategories || !allCategories.length) {
+    bar.innerHTML = '';
+    return;
+  }
 
-  allCategories.forEach(cat => {
-    const btn = document.createElement('button');
-    btn.className = 'cat-btn';
-    btn.dataset.cat = cat.id;
-    btn.textContent = isAr ? (cat.name_ar || cat.name) : cat.name;
-    btn.addEventListener('click', () => {
-      currentCat = String(cat.id);
+  // If currentCat is 'all' or is not valid, default to the first category id
+  const validCatIds = allCategories.map(c => String(c.id || c._id));
+  if (currentCat === 'all' || !validCatIds.includes(currentCat)) {
+    currentCat = validCatIds[0];
+  }
+
+  bar.innerHTML = allCategories.map(cat => {
+    const isActive = currentCat === String(cat.id || cat._id);
+    const catName = isAr ? (cat.name_ar || cat.name) : cat.name;
+    return `<button class="cat-btn ${isActive ? 'active' : ''}" data-cat="${cat.id || cat._id}">${catName}</button>`;
+  }).join('');
+
+  // Add event listeners to category buttons
+  bar.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const catId = this.getAttribute('data-cat');
+      currentCat = String(catId);
       bar.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      this.classList.add('active');
       renderMenu(allDrinks.filter(d => String(d.category_id) === currentCat));
     });
-    bar.appendChild(btn);
-  });
-
-  bar.querySelector('[data-cat="all"]').addEventListener('click', function() {
-    currentCat = 'all';
-    bar.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-    this.classList.add('active');
-    renderMenu(allDrinks);
   });
 }
 
@@ -2208,6 +2239,8 @@ window.loadVlog = async function() {
       // عرض لوحة الصدارة (بدون أي إيموجيز)
       if (data.leaders && data.leaders.length > 0) {
         leaderboard.style.display = 'block';
+        const gridLayout = document.querySelector('.vlog-grid-layout');
+        if (gridLayout) gridLayout.classList.remove('leaderboard-hidden');
         leaderboardList.innerHTML = data.leaders.map((l, index) => {
           const rankClass = index === 0 ? 'rank-1' : (index === 1 ? 'rank-2' : (index === 2 ? 'rank-3' : ''));
           return `
@@ -2231,6 +2264,8 @@ window.loadVlog = async function() {
         }).join('');
       } else {
         leaderboard.style.display = 'none';
+        const gridLayout = document.querySelector('.vlog-grid-layout');
+        if (gridLayout) gridLayout.classList.add('leaderboard-hidden');
       }
 
       // عرض الفائزين السابقين

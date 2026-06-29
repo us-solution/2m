@@ -203,4 +203,219 @@ router.get('/cashier-report', authenticateToken, requireRole('admin'), async (re
   }
 });
 
+// ── نقاط الاتصال الجديدة لربط تطبيق الكاشير المكتبي بالسايت ──
+
+// 1. جلب العملاء السحابيين من MongoDB
+router.get('/customers', verifyBridgeKey, async (req, res) => {
+  try {
+    const customers = await User.find({ role: 'customer' }).sort({ createdAt: -1 });
+    const serialized = customers.map(u => ({
+      id: u._id,
+      name: u.name,
+      phone: u.phone && u.phone.startsWith('email_') ? '' : (u.phone || ''),
+      email: u.email,
+      role: u.role,
+      points: u.points,
+      total_spent: parseFloat(u.total_spent || 0),
+      date_joined: u.createdAt ? u.createdAt.toISOString() : new Date().toISOString(),
+      customerStatus: u.customerStatus || 'standard'
+    }));
+    res.json(serialized);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 2. تعديل بيانات عميل سحابي أو إعادة تعيين كلمة مرور
+router.patch('/customers/:id', verifyBridgeKey, async (req, res) => {
+  const { name, phone, email, points, customerStatus, password } = req.body;
+  try {
+    const u = await User.findById(req.params.id);
+    if (!u) return res.status(404).json({ error: 'User not found' });
+
+    if (name !== undefined) u.name = name;
+    if (phone !== undefined) u.phone = phone;
+    if (email !== undefined) u.email = email;
+    if (points !== undefined) u.points = parseInt(points);
+    if (customerStatus !== undefined) u.customerStatus = customerStatus;
+    if (password) {
+      u.password = await bcrypt.hash(password, 10);
+    }
+
+    await u.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// 3. جلب المشروبات السحابية من MongoDB
+router.get('/drinks', verifyBridgeKey, async (req, res) => {
+  try {
+    const drinks = await Drink.find().populate('category_id');
+    const serialized = drinks.map(d => ({
+      id: d._id,
+      category_id: d.category_id ? d.category_id._id : null,
+      category_name: d.category_id ? d.category_id.name : '',
+      name: d.name,
+      name_ar: d.name_ar,
+      price: parseFloat(d.price || 0),
+      is_available: d.is_available,
+      menuItemIdInCashier: d.menuItemIdInCashier
+    }));
+    res.json(serialized);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 4. تعديل أسعار المشروبات السحابية أو إتاحتها
+router.patch('/drinks/:id', verifyBridgeKey, async (req, res) => {
+  const { price, is_available } = req.body;
+  try {
+    const d = await Drink.findById(req.params.id);
+    if (!d) return res.status(404).json({ error: 'Drink not found' });
+
+    if (price !== undefined) d.price = parseFloat(price);
+    if (is_available !== undefined) d.is_available = Number(is_available);
+
+    await d.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// 5. جلب الطلبات أونلاين المعلقة التي تنتظر تأكيد الكاشير
+router.get('/orders/online-pending', verifyBridgeKey, async (req, res) => {
+  try {
+    const orders = await Order.find({ 
+      status: 'pending'
+    }).populate('userId');
+    
+    const serialized = orders.map(o => {
+      let customerStatus = 'standard';
+      let discountPercent = 0;
+      if (o.userId) {
+        customerStatus = o.userId.customerStatus || 'standard';
+        if (customerStatus === 'gold') discountPercent = 10;
+        else if (customerStatus === 'student') discountPercent = 15;
+        else if (customerStatus === 'ozel_family') discountPercent = 20;
+      }
+      return {
+        id: o._id,
+        table_number: o.table_number,
+        items: o.items,
+        total_price: o.total_price,
+        notes: o.notes,
+        customerPhone: o.customerPhone,
+        customerName: o.userId ? o.userId.name : (o.customerPhone ? 'عميل أونلاين' : 'زائر'),
+        customerStatus,
+        discountPercent,
+        createdAt: o.createdAt
+      };
+    });
+    res.json(serialized);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 6. جلب أكثر 3 أصناف يطلبها العميل بالترتيب مع التكرار
+router.get('/customers/:phone/top-items', verifyBridgeKey, async (req, res) => {
+  const { phone } = req.params;
+  try {
+    const user = await User.findOne({ phone });
+    const matchQuery = {
+      $or: [
+        { customerPhone: phone },
+        ...(user ? [{ userId: user._id }] : [])
+      ],
+      status: { $ne: 'cancelled' }
+    };
+    const topItems = await Order.aggregate([
+      { $match: matchQuery },
+      { $unwind: '$items' },
+      { $group: { _id: '$items.name', count: { $sum: '$items.quantity' } } },
+      { $sort: { count: -1 } },
+      { $limit: 3 }
+    ]);
+    res.json(topItems.map(item => ({ name: item._id, count: item.count })));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 7. استقبال الفاتورة المحلية للمزامنة وتحديث نقاط العميل سحابياً
+router.post('/sync-invoice', verifyBridgeKey, async (req, res) => {
+  const { invoice_number, customer_phone, customer_name, total, items, created_at, payment_method, status } = req.body;
+  try {
+    // التحقق من تكرار حفظ هذه الفاتورة
+    const existingOrder = await Order.findOne({ 'syncMeta.lastEventId': invoice_number });
+    if (existingOrder) {
+      return res.status(409).json({ error: 'Invoice already synced' });
+    }
+
+    let user = null;
+    let pointsEarned = 0;
+
+    if (customer_phone) {
+      user = await User.findOne({ phone: customer_phone });
+      if (user) {
+        // احتساب نقاط الولاء (كل 10 جنيهات تعادل 1 نقطة)
+        pointsEarned = Math.floor(total / 10);
+        user.points = (user.points || 0) + pointsEarned;
+        user.total_spent = (user.total_spent || 0) + total;
+        await user.save();
+
+        // تسجيل لوج النقاط
+        const PointsLog = require('../models/PointsLog');
+        await PointsLog.create({
+          userId: user._id,
+          points: pointsEarned,
+          type: 'earn',
+          notes: `نقاط مكتسبة من فاتورة الكاشير المزامنة #${invoice_number}`
+        });
+      }
+    }
+
+    // حفظ الفاتورة كـ Order في MongoDB
+    await Order.create({
+      userId: user ? user._id : null,
+      table_number: 'سفري/محلي',
+      items: items.map(i => ({
+        name: i.product_name,
+        quantity: i.quantity,
+        price: i.price,
+        sugar: 'Normal',
+        extras: []
+      })),
+      total_price: total,
+      points_earned: pointsEarned,
+      status: status || 'paid',
+      notes: `تمت المزامنة من الكاشير محلياً. طريقة الدفع: ${payment_method || 'cash'}`,
+      customerPhone: customer_phone || null,
+      posSynced: true,
+      paymentMethod: paymentMethodMap(payment_method),
+      syncMeta: {
+        lastEventId: invoice_number,
+        lastEventType: 'invoice.sync',
+        lastSyncedAt: new Date(),
+        syncStatus: 'acked'
+      }
+    });
+
+    res.json({ success: true, points_earned: pointsEarned });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// دالة مساعدة لربط طرق الدفع
+function paymentMethodMap(method) {
+  if (method === 'card') return 'card';
+  if (method === 'wallet') return 'wallet';
+  return 'cash';
+}
+
 module.exports = router;

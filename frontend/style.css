@@ -1592,6 +1592,17 @@ body[dir="rtl"] .puzzle-label {
 
 /* ===== التذييل (Footer) ===== */
 /* ── FOOTER ── */
+footer {
+  padding: 4rem 2rem;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
 .footer-logo {
   font-family: 'Playfair Display', serif;
   font-size: 2rem;
@@ -1838,7 +1849,7 @@ body[dir="rtl"] .puzzle-label {
   .circle-2 { width: 120px; height: 120px; bottom: 10px; right: 10px; }
   .about-card-float { left: 5%; bottom: -2rem; padding: 0.8rem 1.2rem; }
   .acf-val { font-size: 1.5rem; }
-  #about, #menu, #contact { padding: 5rem 1.5rem; }
+  #about, #vlog, #menu, #contact { padding: 5rem 1.5rem; }
   .hero-stats { display: none; }
 }
 @media(max-width:480px){
@@ -4113,7 +4124,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   }
 
   /* Footer */
-  #footer {
+  footer {
     padding: 2rem 1rem;
   }
   .footer-logo-img {
@@ -4825,9 +4836,10 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
 /* Gallery Grid */
 .vlog-gallery-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
   gap: 2rem;
   margin-bottom: 5rem;
+  justify-content: center;
 }
 
 /* Vlog Post Card */
@@ -5075,6 +5087,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   border-bottom: 1px solid var(--line);
   margin-bottom: 1.5rem;
   padding-bottom: 0.2rem;
+  width: 100%;
 }
 .profile-tab-btn {
   background: transparent;
@@ -5087,6 +5100,9 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   cursor: pointer;
   position: relative;
   transition: all 0.3s ease;
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
 }
 .profile-tab-btn:hover {
   color: var(--burgundy);
@@ -5239,8 +5255,9 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
 /* Mobile Album & Gallery Responsiveness */
 @media (max-width: 600px) {
   .vlog-gallery-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
     gap: 0.8rem !important;
+    justify-content: center !important;
   }
   .vlog-card {
     border-radius: 8px !important;
@@ -5269,6 +5286,13 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
     max-width: 100% !important;
     border-radius: 12px !important;
     margin: 10px !important;
+  }
+  .profile-tabs {
+    gap: 0.25rem !important;
+  }
+  .profile-tab-btn {
+    padding: 0.5rem 0.25rem !important;
+    font-size: 0.8rem !important;
   }
   .profile-photos-grid {
     grid-template-columns: repeat(3, 1fr) !important;
@@ -5368,6 +5392,53 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   .leader-likes span {
     font-size: 0.8rem !important;
   }
+}
+
+/* ===== Independent Profile Page Styles ===== */
+.profile-page-mode #profileModal {
+  position: static !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex-direction: column !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  z-index: auto !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  padding-top: 120px !important;
+  padding-bottom: 4rem !important;
+  min-height: 70vh;
+  width: 100% !important;
+}
+.profile-page-mode #profileModal .modal-panel {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 550px !important;
+  margin: 0 auto !important;
+  box-shadow: 0 10px 40px rgba(36, 30, 26, 0.04) !important;
+  border-radius: var(--rad-lg) !important;
+  border: 1px solid var(--line) !important;
+  background: var(--bg2) !important;
+  transform: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+.profile-page-mode #profileModal .modal-x {
+  display: none !important;
+}
+
+/* Center Upload Panel when Leaderboard is Hidden */
+.vlog-grid-layout.leaderboard-hidden {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex-direction: column !important;
+  width: 100% !important;
+}
+.vlog-grid-layout.leaderboard-hidden .vlog-upload-panel {
+  width: 100% !important;
+  max-width: 650px !important;
 }
 
 
