@@ -4414,7 +4414,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   #langToggleSwitch {
     display: none !important;
   }
-  #nav-user-area .user-info-brief {
+  #nav-user-area {
     display: none !important;
   }
   .nav-right-sec {
