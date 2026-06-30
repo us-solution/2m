@@ -8,8 +8,8 @@
   var isLocalDevServer = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '5000';
   var isFileProtocol = window.location.protocol === 'file:';
   
-  // إذا كان تشغيل محلي غير خادم التطبيق (منفذ آخر) أو ملف مباشر، نوجه الطلبات إلى رابط الإنتاج الرئيسي
-  var BACKEND_URL = (isLocalDevServer || isFileProtocol) ? 'https://www.ozel.cafe' : '';
+  // إذا كان تشغيل محلي غير خادم التطبيق (منفذ آخر) أو ملف مباشر، نوجه الطلبات إلى الخادم المحلي
+  var BACKEND_URL = (isLocalDevServer || isFileProtocol) ? 'http://127.0.0.1:5000' : '';
 
   if (BACKEND_URL) {
     console.log('[API Redirect] Client on ' + window.location.origin + '. Redirecting API to: ' + BACKEND_URL);

@@ -25,6 +25,10 @@ const queueOrderSchema = new mongoose.Schema({
   failReason: {
     type: String,
     default: null
+  },
+  nextAttemptAt: {
+    type: Date,
+    default: Date.now
   }
 }, {
   timestamps: true,

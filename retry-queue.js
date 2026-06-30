@@ -40,7 +40,11 @@ async function processQueue() {
   if (isProcessing) return;
   isProcessing = true;
   try {
-    const entries = await QueueOrder.find({ status: 'pending' }).sort({ createdAt: 1 }).limit(50);
+    const entries = await QueueOrder.find({ 
+      status: 'pending',
+      nextAttemptAt: { $lte: new Date() }
+    }).sort({ createdAt: 1 }).limit(50);
+    
     if (entries.length === 0) return;
 
     for (const entry of entries) {
@@ -57,7 +61,11 @@ async function processQueue() {
 
       const success = await processEntry(entry);
       if (!success) {
+        // حساب تباعد زمني تنازلي تضاعفي (Exponential Backoff): 30 ثانية، دقيقة، دقيقتان، 4 دقائق...
+        const delaySeconds = Math.min(3600, Math.pow(2, entry.attempts) * 15);
+        entry.nextAttemptAt = new Date(Date.now() + delaySeconds * 1000);
         await entry.save();
+        console.log(`[RetryQueue] فشل إرسال الطلب ${entry.orderData.idempotencyKey || 'unknown'}. جدولة المحاولة التالية خلال ${delaySeconds} ثانية.`);
       }
     }
   } finally {
@@ -83,7 +91,7 @@ async function sendOrEnqueue(orderData) {
   const url = CASHIER_API_URL();
   const key = CASHIER_API_KEY();
   if (!url || !key) {
-    await QueueOrder.create({ orderData, attempts: 0, status: 'pending' });
+    await QueueOrder.create({ orderData, attempts: 0, nextAttemptAt: new Date(Date.now() + 30 * 1000), status: 'pending' });
     return { status: 'queued', reason: 'cashier_api_not_configured' };
   }
   try {
@@ -98,10 +106,10 @@ async function sendOrEnqueue(orderData) {
     if (resp.status === 409) {
       return { status: 'sent', httpStatus: resp.status, duplicate: true };
     }
-    await QueueOrder.create({ orderData, attempts: 0, status: 'pending' });
+    await QueueOrder.create({ orderData, attempts: 1, nextAttemptAt: new Date(Date.now() + 30 * 1000), status: 'pending' });
     return { status: 'queued', reason: `http_${resp.status}` };
   } catch (e) {
-    await QueueOrder.create({ orderData, attempts: 0, status: 'pending' });
+    await QueueOrder.create({ orderData, attempts: 1, nextAttemptAt: new Date(Date.now() + 30 * 1000), status: 'pending' });
     return { status: 'queued', reason: e.message };
   }
 }

@@ -144,83 +144,7 @@ async function deliverToBridge(event) {
   }
 }
 
-// إرسال الطلب إلى API الكاشير المحلي (.NET) — خطوتان بالتتابع
-async function deliverToCashierAPI(order, user) {
-  const BASE_URL = process.env.CASHIER_API_URL;
-  const API_KEY = process.env.CASHIER_API_KEY;
-  const BRANCH_ID = process.env.BRANCH_ID;
-  const EMPLOYEE_ID = process.env.DEFAULT_EMPLOYEE_ID;
-  const NOT_CONFIGURED = { skipped: true, reason: 'cashier_api_not_configured' };
-
-  if (!BASE_URL || !API_KEY || !BRANCH_ID || !EMPLOYEE_ID) return NOT_CONFIGURED;
-
-  const Drink = require('../models/Drink');
-
-  // ──────────────────────────────────────────────
-  // الخطوة الأولى: جلب الوردية النشطة (GET /shifts/active)
-  // ──────────────────────────────────────────────
-  let shiftId = null;
-  try {
-    const shiftRes = await axios.get(`${BASE_URL}/shifts/active`, {
-      headers: { 'X-API-KEY': API_KEY },
-      timeout: 5000
-    });
-    if (shiftRes.data && shiftRes.data.success && shiftRes.data.shiftId) {
-      shiftId = shiftRes.data.shiftId;
-    }
-  } catch (e) {
-    console.log('[CashierAPI] فشل جلب الـ shift النشط:', e.message);
-  }
-
-  // ──────────────────────────────────────────────
-  // إذا لم يكن shift نشط، نتخطى الإرسال تماماً (حماية للحسابات)
-  // ──────────────────────────────────────────────
-  if (!shiftId) {
-    console.log('[CashierAPI] لا توجد وردية نشطة — تأجيل الأوردر دون جدولة');
-    return { skipped: true, reason: 'no_active_shift' };
-  }
-
-  // ──────────────────────────────────────────────
-  // بناء جسم الطلب الكامل
-  // ──────────────────────────────────────────────
-  const itemsForPos = [];
-  for (const item of (order.items || [])) {
-    let menuItemId = item.menuItemIdInCashier || '';
-
-    // إذا مفيش menuItemIdInCashier، نحاول نجيبها من قاعدة البيانات
-    if (!menuItemId && item.name) {
-      const drink = await Drink.findOne({ name: item.name }).lean();
-      if (drink && drink.menuItemIdInCashier) {
-        menuItemId = drink.menuItemIdInCashier;
-      }
-    }
-
-    // تجميع sugar + extras + notes داخل ModifiersJson
-    const modifiers = [];
-    if (item.sugar && item.sugar !== 'Normal') modifiers.push(`sugar:${item.sugar}`);
-    if (item.extras && item.extras.length > 0) modifiers.push(`extras:${item.extras.join(',')}`);
-
-    itemsForPos.push({
-      menuItemId: menuItemId || '00000000-0000-0000-0000-000000000000',
-      quantity: item.quantity || 1,
-      notes: item.notes || '',
-      modifiersJson: modifiers.length > 0 ? JSON.stringify(modifiers) : null
-    });
-  }
-
-  const orderData = {
-    branchId: BRANCH_ID,
-    shiftId: shiftId,
-    employeeId: EMPLOYEE_ID,
-    idempotencyKey: uuidv4(),
-    items: itemsForPos
-  };
-
-  // ──────────────────────────────────────────────
-  // الخطوة الثانية: إرسال الأوردر (POST /orders)
-  // ──────────────────────────────────────────────
-  return await retryQueue.sendOrEnqueue(orderData);
-}
+// deliverToCashierAPI has been removed as the SQLite Express server local POS queries Vercel directly.
 
 // الحصول على المستخدم إذا كان رمز المصادقة موجوداً (اختياري)
 const getOptionalUser = async (req) => {
@@ -267,6 +191,33 @@ router.post('/', async (req, res) => {
       extras: Array.isArray(item.extras) ? item.extras : [],
       notes: item.notes || ''
     }));
+
+    // ──────────────────────────────────────────────
+    // التحقق من مخزون الكاشير المحلي لحظياً (SQLite)
+    // ──────────────────────────────────────────────
+    const CASHIER_API_URL = process.env.CASHIER_API_URL;
+    const CASHIER_API_KEY = process.env.CASHIER_API_KEY;
+    if (CASHIER_API_URL && CASHIER_API_KEY && parsedItems.length > 0) {
+      try {
+        const stockRes = await axios.post(`${CASHIER_API_URL}/api/products/check-stock`, {
+          items: parsedItems.map(i => ({ name: i.name, quantity: i.quantity }))
+        }, {
+          headers: { 'x-bridge-key': CASHIER_API_KEY },
+          timeout: 4000 // مهلة قصيرة لمنع تعطيل العميل إذا كان الكاشير أوفلاين
+        });
+
+        if (stockRes.data && stockRes.data.available === false) {
+          const outOfStockNames = stockRes.data.insufficient.map(i => i.name).join('، ');
+          return res.status(400).json({
+            error: `المنتجات التالية نفدت أو لا تتوفر بالكمية المطلوبة: ${outOfStockNames}`,
+            insufficient: stockRes.data.insufficient
+          });
+        }
+      } catch (err) {
+        console.warn('[StockCheck] فشل الاتصال بالكاشير للتحقق من المخزون (سيتم تمرير الطلب):', err.message);
+        // في حالة الفشل نمرر الطلب تلقائياً لعدم خسارة العميل
+      }
+    }
 
     const finalNotes = isFreeOrderApplied 
       ? `[أوردر هدية مسابقة الفلوج] ${notes || ''}`
@@ -356,12 +307,7 @@ router.post('/', async (req, res) => {
       console.error('[Bridge Background Delivery Error]', bridgeErr.message);
     });
 
-    // إرسال الطلب إلى API الكاشير المحلي (.NET) بشكل غير متزامن
-    deliverToCashierAPI(order, user).then(result => {
-      if (!result.skipped && result.status === 'queued') {
-        console.log(`[CashierAPI] تمت جدولة الطلب ${order._id} لإعادة المحاولة: ${result.reason}`);
-      }
-    }).catch(() => {});
+    // deliverToCashierAPI is disabled as it is handled by the local POS pulling pending orders.
 
     res.json({
       success: true,

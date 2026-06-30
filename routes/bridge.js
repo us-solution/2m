@@ -7,6 +7,7 @@ const Order = require('../models/Order');
 const crypto = require('crypto');
 const retryQueue = require('../retry-queue');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
+const { v4: uuidv4 } = require('uuid');
 
 // التحقق من مفتاح API للجسر
 function verifyBridgeKey(req, res, next) {
@@ -179,7 +180,7 @@ router.get('/retry-queue', authenticateToken, requireRole('admin'), async (req, 
   res.json({ success: true, ...await retryQueue.getStatus() });
 });
 
-// جلب تقارير الكاشير المحلي من .NET API
+// جلب تقارير الكاشير المحلي من خادم Node/SQLite
 router.get('/cashier-report', authenticateToken, requireRole('admin'), async (req, res) => {
   const CASHIER_API_URL = process.env.CASHIER_API_URL;
   const CASHIER_API_KEY = process.env.CASHIER_API_KEY;
@@ -187,9 +188,9 @@ router.get('/cashier-report', authenticateToken, requireRole('admin'), async (re
     return res.json({ success: false, error: 'cashier_api_not_configured', offline: true });
   }
   try {
-    const resp = await fetch(`${CASHIER_API_URL}/reports/dashboard`, {
+    const resp = await fetch(`${CASHIER_API_URL}/api/reports/summary`, {
       method: 'GET',
-      headers: { 'X-API-KEY': CASHIER_API_KEY },
+      headers: { 'x-bridge-key': CASHIER_API_KEY },
       signal: AbortSignal.timeout(8000)
     });
     if (!resp.ok) {
@@ -197,7 +198,20 @@ router.get('/cashier-report', authenticateToken, requireRole('admin'), async (re
       return res.json({ success: false, error: `http_${resp.status}`, details: txt.slice(0, 200), offline: true });
     }
     const data = await resp.json();
-    res.json({ success: true, data, offline: false });
+    const totals = data.totals || {};
+    const today = data.today || {};
+    const mapped = {
+      todaysSales: today.revenue || 0,
+      monthlySales: totals.revenue || 0,
+      activeShifts: 1,
+      openOrders: 0,
+      lowStockCount: data.lowStock || 0,
+      totalExpenses: 0,
+      netProfit: (totals.revenue || 0) - (totals.discounts || 0),
+      salesChartData: [],
+      bestSellingProducts: []
+    };
+    res.json({ success: true, data: mapped, offline: false });
   } catch (e) {
     res.json({ success: false, error: e.message, offline: true });
   }
@@ -349,10 +363,12 @@ router.get('/customers/:phone/top-items', verifyBridgeKey, async (req, res) => {
 // 7. استقبال الفاتورة المحلية للمزامنة وتحديث نقاط العميل سحابياً
 router.post('/sync-invoice', verifyBridgeKey, async (req, res) => {
   const { invoice_number, customer_phone, customer_name, total, items, created_at, payment_method, status } = req.body;
+  console.log('[Bridge] Sync invoice request received:', invoice_number);
   try {
     // التحقق من تكرار حفظ هذه الفاتورة
     const existingOrder = await Order.findOne({ 'syncMeta.lastEventId': invoice_number });
     if (existingOrder) {
+      console.log('[Bridge] Invoice already synced:', invoice_number);
       return res.status(409).json({ error: 'Invoice already synced' });
     }
 
@@ -396,6 +412,7 @@ router.post('/sync-invoice', verifyBridgeKey, async (req, res) => {
       notes: `تمت المزامنة من الكاشير محلياً. طريقة الدفع: ${payment_method || 'cash'}`,
       customerPhone: customer_phone || null,
       posSynced: true,
+      qrCodeToken: `pos-sync-${invoice_number}-${uuidv4()}`,
       paymentMethod: paymentMethodMap(payment_method),
       syncMeta: {
         lastEventId: invoice_number,
@@ -417,5 +434,37 @@ function paymentMethodMap(method) {
   if (method === 'wallet') return 'wallet';
   return 'cash';
 }
+
+// 8. تحديث حالة طلب سحابي من الكاشير المحلي (قبول أو إلغاء الأوردر)
+router.patch('/orders/:id/status', verifyBridgeKey, async (req, res) => {
+  const { status } = req.body || {};
+  if (!status) {
+    return res.status(400).json({ error: 'Status is required' });
+  }
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    order.status = status;
+    if (status === 'confirmed') {
+      order.isQrConfirmed = true;
+    }
+    order.orderVersion = (order.orderVersion || 1) + 1;
+    await order.save();
+    
+    // إقرار حدث المزامنة المرتبط بالطلب في المونجو دي بي
+    const SyncEvent = require('../models/SyncEvent');
+    await SyncEvent.updateMany(
+      { orderId: order._id },
+      { $set: { status: 'acked', acknowledgedAt: new Date(), failureReason: null } }
+    );
+    
+    res.json({ success: true, orderId: String(order._id), status: order.status });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router;
