@@ -1,6 +1,6 @@
 {
   "name": "ozel-cafe",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "OZEL Cafe Premium Website Node.js Backend",
   "main": "server.js",
   "scripts": {

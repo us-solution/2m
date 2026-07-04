@@ -26,3 +26,5 @@ failed-orders.json
 .vercel
 pgdata10/
 
+.vercel
+.env*
