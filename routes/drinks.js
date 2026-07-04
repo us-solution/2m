@@ -21,40 +21,11 @@ router.get('/', async (req, res) => {
   }
 
   try {
-    // جلب المنتجات والمخزون لحظياً من الكاشير المحلي
-    let posProducts = [];
-    if (CASHIER_API_URL && CASHIER_API_KEY) {
-      try {
-        const posRes = await axios.get(`${CASHIER_API_URL}/api/products?active=1`, {
-          headers: { 'x-bridge-key': CASHIER_API_KEY },
-          timeout: 2000 // مهلة ثانيتين للمحافظة على سرعة الموقع
-        });
-        if (Array.isArray(posRes.data)) {
-          posProducts = posRes.data;
-        }
-      } catch (err) {
-        console.warn('[DrinksStock] فشل جلب المخزون الحي من الكاشير المحلي:', err.message);
-      }
-    }
-
+    // Decouple website drinks endpoint `routes/drinks.js` from local POS inventory
     const drinks = await Drink.find(query).populate('category_id');
     
-    // تحويل البيانات إلى JSON مخصص ودمج حالة المخزون
+    // تحويل البيانات إلى JSON مخصص
     const serialized = drinks.map(d => {
-      let isAvailable = d.is_available;
-
-      if (posProducts.length > 0) {
-        // البحث عن المنتج المقابل بالكاشير المحلي بالمعرف أو الاسم
-        const matched = posProducts.find(p => 
-          String(p.id) === d.menuItemIdInCashier || 
-          p.name === d.name || 
-          p.name === d.name_ar
-        );
-        if (matched && matched.quantity <= 0) {
-          isAvailable = 0; // غير متاح لانتهاء المخزون بالكاشير
-        }
-      }
-
       return {
         id: d._id,
         category_id: d.category_id ? d.category_id._id : null,
@@ -73,7 +44,7 @@ router.get('/', async (req, res) => {
         temperature: d.temperature,
         image_emoji: d.image_emoji,
         is_featured: d.is_featured,
-        is_available: isAvailable,
+        is_available: d.is_available,
         availableExtras: d.availableExtras || []
       };
     });

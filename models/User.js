@@ -21,7 +21,11 @@ const userSchema = new mongoose.Schema({
   // حالة العميل (قياسي، ذهبي، طالب، عائلة أوزيل)
   customerStatus: { type: String, enum: ['standard', 'gold', 'student', 'ozel_family'], default: 'standard' },
   // عدد الأوردرات الهدية المتاحة للعميل
-  freeOrdersCount: { type: Number, default: 0 }
+  freeOrdersCount: { type: Number, default: 0 },
+  // العنوان
+  address: { type: String, default: '' },
+  // ملاحظات
+  notes: { type: String, default: '' }
 }, { timestamps: true, collection: 'users' });
 
 module.exports = mongoose.models.User || mongoose.model('User', userSchema);

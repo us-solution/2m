@@ -4,6 +4,10 @@ const router = express.Router();
 const ReportSnapshot = require('../models/ReportSnapshot');
 const SyncEvent = require('../models/SyncEvent');
 const Order = require('../models/Order');
+const User = require('../models/User');
+const Drink = require('../models/Drink');
+const Category = require('../models/Category');
+const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const retryQueue = require('../retry-queue');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
@@ -231,6 +235,8 @@ router.get('/customers', verifyBridgeKey, async (req, res) => {
       role: u.role,
       points: u.points,
       total_spent: parseFloat(u.total_spent || 0),
+      address: u.address || '',
+      notes: u.notes || '',
       date_joined: u.createdAt ? u.createdAt.toISOString() : new Date().toISOString(),
       customerStatus: u.customerStatus || 'standard'
     }));
@@ -242,7 +248,7 @@ router.get('/customers', verifyBridgeKey, async (req, res) => {
 
 // 2. تعديل بيانات عميل سحابي أو إعادة تعيين كلمة مرور
 router.patch('/customers/:id', verifyBridgeKey, async (req, res) => {
-  const { name, phone, email, points, customerStatus, password } = req.body;
+  const { name, phone, email, points, customerStatus, password, address, notes } = req.body;
   try {
     const u = await User.findById(req.params.id);
     if (!u) return res.status(404).json({ error: 'User not found' });
@@ -252,11 +258,145 @@ router.patch('/customers/:id', verifyBridgeKey, async (req, res) => {
     if (email !== undefined) u.email = email;
     if (points !== undefined) u.points = parseInt(points);
     if (customerStatus !== undefined) u.customerStatus = customerStatus;
+    if (address !== undefined) u.address = address;
+    if (notes !== undefined) u.notes = notes;
     if (password) {
       u.password = await bcrypt.hash(password, 10);
     }
 
     await u.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// 2.2. جلب تفاصيل عميل سحابي واحد
+router.get('/customers/:id', verifyBridgeKey, async (req, res) => {
+  try {
+    const u = await User.findById(req.params.id);
+    if (!u) return res.status(404).json({ error: 'User not found' });
+    res.json({
+      id: u._id,
+      name: u.name,
+      phone: u.phone && u.phone.startsWith('email_') ? '' : (u.phone || ''),
+      email: u.email,
+      role: u.role,
+      points: u.points,
+      total_spent: parseFloat(u.total_spent || 0),
+      address: u.address || '',
+      notes: u.notes || '',
+      date_joined: u.createdAt ? u.createdAt.toISOString() : new Date().toISOString(),
+      customerStatus: u.customerStatus || 'standard'
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 2.3. إنشاء عميل سحابي جديد من الكاشير
+router.post('/customers', verifyBridgeKey, async (req, res) => {
+  const { name, phone, email, points, customerStatus, password, address, notes } = req.body;
+  if (!name) {
+    return res.status(400).json({ error: 'Name is required' });
+  }
+  try {
+    if (phone) {
+      const existingPhone = await User.findOne({ phone });
+      if (existingPhone) {
+        return res.json({ success: true, id: existingPhone._id, user: existingPhone, alreadyExists: true });
+      }
+    }
+    if (email) {
+      const existingEmail = await User.findOne({ email });
+      if (existingEmail) {
+        return res.json({ success: true, id: existingEmail._id, user: existingEmail, alreadyExists: true });
+      }
+    }
+
+    const pass = password || phone || '123456';
+    const hashedPassword = await bcrypt.hash(pass, 10);
+    const u = await User.create({
+      name,
+      phone: phone || `email_${Date.now()}`,
+      email: email || null,
+      password: hashedPassword,
+      role: 'customer',
+      points: parseInt(points || 0),
+      subscriptionTier: 'none',
+      customerStatus: customerStatus || 'standard',
+      address: address || '',
+      notes: notes || ''
+    });
+
+    res.json({ success: true, id: u._id, user: u });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// 2.4. حذف عميل سحابي
+router.delete('/customers/:id', verifyBridgeKey, async (req, res) => {
+  try {
+    const u = await User.findById(req.params.id);
+    if (!u) return res.status(404).json({ error: 'User not found' });
+    await u.deleteOne();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// 2.5. جلب الأقسام السحابية من MongoDB
+router.get('/categories', verifyBridgeKey, async (req, res) => {
+  try {
+    const categories = await Category.find().sort({ sort_order: 1 });
+    res.json(categories);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 2.6. إنشاء قسم جديد من الكاشير
+router.post('/categories', verifyBridgeKey, async (req, res) => {
+  const { name, name_ar, color, sort_order } = req.body;
+  if (!name) return res.status(400).json({ error: 'Name is required' });
+  try {
+    const c = await Category.create({
+      name,
+      name_ar: name_ar || name,
+      color: color || '#3b82f6',
+      sort_order: parseInt(sort_order || 0)
+    });
+    res.json({ success: true, id: c._id });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// 2.7. تعديل قسم من الكاشير
+router.patch('/categories/:id', verifyBridgeKey, async (req, res) => {
+  const { name, name_ar, color, sort_order } = req.body;
+  try {
+    const c = await Category.findById(req.params.id);
+    if (!c) return res.status(404).json({ error: 'Category not found' });
+    if (name !== undefined) c.name = name;
+    if (name_ar !== undefined) c.name_ar = name_ar;
+    if (color !== undefined) c.color = color;
+    if (sort_order !== undefined) c.sort_order = parseInt(sort_order);
+    await c.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// 2.8. حذف قسم من الكاشير
+router.delete('/categories/:id', verifyBridgeKey, async (req, res) => {
+  try {
+    const c = await Category.findById(req.params.id);
+    if (!c) return res.status(404).json({ error: 'Category not found' });
+    await c.deleteOne();
     res.json({ success: true });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -283,17 +423,53 @@ router.get('/drinks', verifyBridgeKey, async (req, res) => {
   }
 });
 
-// 4. تعديل أسعار المشروبات السحابية أو إتاحتها
+// 4. تعديل مشروب من الكاشير
 router.patch('/drinks/:id', verifyBridgeKey, async (req, res) => {
-  const { price, is_available } = req.body;
+  const { price, is_available, name, name_ar, category_id } = req.body;
   try {
     const d = await Drink.findById(req.params.id);
     if (!d) return res.status(404).json({ error: 'Drink not found' });
 
     if (price !== undefined) d.price = parseFloat(price);
     if (is_available !== undefined) d.is_available = Number(is_available);
+    if (name !== undefined) d.name = name;
+    if (name_ar !== undefined) d.name_ar = name_ar;
+    if (category_id !== undefined) d.category_id = category_id || null;
 
     await d.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// 4.1. إنشاء مشروب جديد من الكاشير
+router.post('/drinks', verifyBridgeKey, async (req, res) => {
+  const { category_id, name, name_ar, price, is_available } = req.body;
+  if (!name || !price) return res.status(400).json({ error: 'Name and price are required' });
+  try {
+    const d = await Drink.create({
+      category_id: category_id || null,
+      name,
+      name_ar: name_ar || name,
+      price: parseFloat(price),
+      is_available: is_available !== undefined ? Number(is_available) : 1,
+      image_emoji: 'imgs/espresso.png',
+      tagline: 'An unforgettable experience',
+      description: 'A premium drink crafted with the finest ingredients'
+    });
+    res.json({ success: true, id: d._id });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// 4.2. حذف مشروب من الكاشير
+router.delete('/drinks/:id', verifyBridgeKey, async (req, res) => {
+  try {
+    const d = await Drink.findById(req.params.id);
+    if (!d) return res.status(404).json({ error: 'Drink not found' });
+    await d.deleteOne();
     res.json({ success: true });
   } catch (err) {
     res.status(400).json({ error: err.message });

@@ -364,149 +364,6 @@ td, th { white-space: nowrap; }
       </div>
     </div>
 
-
-
-
-
-
-
-
-
-      <!-- Summary Cards -->
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:1rem; margin-bottom:2rem;">
-        <div class="stat-card" style="background:var(--bg2); padding:1.2rem; border:1px solid var(--line); border-radius:6px; text-align:center;">
-          <div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--gold);"><span id="r-total-orders">—</span></div>
-          <div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">الطلبات</div>
-        </div>
-        <div class="stat-card" style="background:var(--bg2); padding:1.2rem; border:1px solid var(--line); border-radius:6px; text-align:center;">
-          <div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--accent-emerald);"><span id="r-total-revenue">—</span></div>
-          <div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">الإيرادات (ج.م)</div>
-        </div>
-        <div class="stat-card" style="background:var(--bg2); padding:1.2rem; border:1px solid var(--line); border-radius:6px; text-align:center;">
-          <div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--text);"><span id="r-avg-order">—</span></div>
-          <div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">متوسط الطلب</div>
-        </div>
-        <div class="stat-card" style="background:var(--bg2); padding:1.2rem; border:1px solid var(--line); border-radius:6px; text-align:center;">
-          <div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:#C0392B;"><span id="r-cancelled">—</span></div>
-          <div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">ملغى</div>
-        </div>
-      </div>
-
-      <!-- Status breakdown -->
-      <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem;">
-        <span style="font-size:.8rem;color:var(--muted);">الحالة:</span>
-        <span id="r-st-pending" style="font-size:.8rem;color:var(--orange);">قيد الانتظار: —</span>
-        <span id="r-st-ready" style="font-size:.8rem;color:var(--green);">جاهز: —</span>
-        <span id="r-st-served" style="font-size:.8rem;color:var(--muted);">مُقدم: —</span>
-        <span id="r-st-refunded" style="font-size:.8rem;color:#C0392B;">مسترد: —</span>
-      </div>
-
-      <!-- Top Items -->
-      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">أفضل العناصر مبيعاً</h3>
-        <div id="r-top-items"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
-      </div>
-
-      <!-- Cashier Performance -->
-      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">أداء الكاشير</h3>
-        <div id="r-cashiers"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
-      </div>
-
-      <!-- Shift History -->
-      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">سجل الورديات</h3>
-        <div id="r-shifts"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
-      </div>
-
-      <!-- Sales History Chart -->
-      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">سجل المبيعات (آخر 7 أيام)</h3>
-        <div id="r-sales-chart"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
-        <div style="margin-top:1rem; font-size:.8rem; color:var(--muted);">
-          <span style="display:inline-block; width:12px; height:12px; background:var(--gold); border-radius:2px; vertical-align:middle; margin-left:4px;"></span> الإيرادات
-        </div>
-      </div>
-
-      <!-- Payment Methods -->
-      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">طرق الدفع</h3>
-        <div id="r-payment-methods"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
-      </div>
-
-      <!-- Hourly Sales -->
-      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">المبيعات حسب الساعة</h3>
-        <div id="r-hourly-sales"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
-      </div>
-
-      <!-- Expense vs Revenue -->
-      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line);">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">المصروفات مقابل الإيرادات</h3>
-        <div id="r-expense-revenue"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
-      </div>
-
-      <!-- Profitability -->
-      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">ربحية المنتجات</h3>
-        <div id="r-profitability"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
-      </div>
-
-      <!-- Consumption -->
-      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">استهلاك الخامات</h3>
-        <div id="r-consumption"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
-      </div>
-
-      <!-- Waste -->
-      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">الهالك والتالف</h3>
-        <div id="r-waste"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
-      </div>
-
-      <!-- Cost Analysis -->
-      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line);">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">تحليل التكاليف (الوصفة vs سعر البيع)</h3>
-        <div id="r-cost-analysis"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
-      </div>
-    </div>
-
-
-      </div>
-
-      <!-- Summary Cards -->
-      <div id="cr-summary" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:1rem; margin-bottom:1.5rem;">
-        <div class="stat-card"><div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--gold);" id="cr-total-sales">—</div><div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">إجمالي المبيعات (ج.م)</div></div>
-        <div class="stat-card"><div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--accent-emerald);" id="cr-order-count">—</div><div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">عدد الطلبات</div></div>
-        <div class="stat-card"><div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--text);" id="cr-avg-order">—</div><div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">متوسط الطلب</div></div>
-        <div class="stat-card"><div style="font-size:2rem; font-family:'Cormorant Garamond',serif; color:#27AE60;" id="cr-profit">—</div><div style="font-size:.75rem; color:var(--muted); margin-top:.3rem;">صافي الربح (ج.م)</div></div>
-      </div>
-
-      <!-- Top Items -->
-      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">أفضل العناصر مبيعاً (نقاط البيع المحلي)</h3>
-        <div id="cr-top-items"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
-      </div>
-
-      <!-- Sales Chart -->
-      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">المبيعات (آخر 7 أيام)</h3>
-        <div style="height:250px;"><canvas id="cr-sales-chart"></canvas></div>
-      </div>
-
-      <!-- Payment Methods -->
-      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-bottom:1.5rem;">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">طرق الدفع</h3>
-        <div id="cr-payments"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
-      </div>
-
-      <!-- Retry Queue Status -->
-      <div class="card" style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line);">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">حالة طابور إعادة المحاولة</h3>
-        <div id="cr-retry-queue"><p style="color:var(--muted); font-size:.9rem;">جارٍ التحميل...</p></div>
-      </div>
-    </div>
-
     <!-- ===== خيارات التخصيص (السكر والإضافات) ===== -->
     <div class="page" id="page-customization">
       <h1 class="page-title">⚙ خيارات التخصيص</h1>
@@ -773,7 +630,7 @@ function renderMenuTable(data) {
         </div>
       </td>
       <td>
-        <span class="editable" onclick="editField('${d.id}','name','${d.name.replace(/'/g,"\\'")}',this)">${d.name}</span><br/>
+        <span class="editable" onclick="editField('${d.id}','name','${(d.name||'').replace(/'/g,"\\'")}',this)">${d.name || ''}</span><br/>
         <small style="color:var(--muted); cursor:pointer;" class="editable" onclick="editField('${d.id}','name_ar','${(d.name_ar||'').replace(/'/g,"\\'")}',this)">${d.name_ar || 'أضف اسماً بالعربية'}</small>
       </td>
       <td style="color:var(--muted);font-size:.8rem">${d.cat_name}</td>
@@ -1076,8 +933,8 @@ async function loadUsers() {
   usersData = await res.json();
   document.getElementById('usersTable').innerHTML = usersData.map(u => `
     <tr>
-      <td><span class="editable" onclick="editUserField('${u.id}','name','${u.name.replace(/'/g,"\\'")}',this)">${u.name}</span></td>
-      <td style="font-size:.8rem;color:var(--muted)"><span class="editable" onclick="editUserField('${u.id}','phone','${u.phone}',this)">${u.phone}</span></td>
+      <td><span class="editable" onclick="editUserField('${u.id}','name','${(u.name||'').replace(/'/g,"\\'")}',this)">${u.name || ''}</span></td>
+      <td style="font-size:.8rem;color:var(--muted)"><span class="editable" onclick="editUserField('${u.id}','phone','${u.phone || ''}',this)">${u.phone || ''}</span></td>
       <td>
         <select onchange="changeRole('${u.id}',this.value)" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.3rem;font-family:'Outfit',sans-serif;font-size:.8rem;">
           <option value="customer" ${u.role==='customer'?'selected':''}>عميل</option>
@@ -1085,8 +942,8 @@ async function loadUsers() {
           <option value="admin" ${u.role==='admin'?'selected':''}>مدير</option>
         </select>
       </td>
-      <td class="points-badge"><span class="editable" onclick="editUserPoints('${u.id}',${u.points},this)">${u.points}</span></td>
-      <td style="color:var(--gold);font-size:.9rem">${Math.round(u.total_spent)} ج.م</td>
+      <td class="points-badge"><span class="editable" onclick="editUserPoints('${u.id}',${u.points || 0},this)">${u.points || 0}</span></td>
+      <td style="color:var(--gold);font-size:.9rem">${Math.round(u.total_spent || 0)} ج.م</td>
       <td>
         <select onchange="changeCustomerStatus('${u.id}',this.value)" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.3rem;font-family:'Outfit',sans-serif;font-size:.8rem;">
           <option value="standard" ${u.customerStatus==='standard'?'selected':''}>Standard</option>
@@ -1347,17 +1204,6 @@ async function saveDrinkExtras(drinkId) {
   } catch(e) {
     showToast('خطأ في الاتصال', 'error');
   }
-}
-
-// تحميل خيارات التخصيص من الخادم
-async function loadCustomization() {
-  try {
-    const res = await fetch('/api/customization', { headers: getAuthH() });
-    const data = await res.json();
-    customizationData = data;
-    renderSugarLevels(data.sugarLevels || []);
-    renderExtras(data.extras || []);
-  } catch(e) { console.error(e); }
 }
 
 // عرض مستويات السكر
