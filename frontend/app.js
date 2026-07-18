@@ -142,11 +142,20 @@ window.applyLanguage = function(lang) {
   document.body.dir = isAr ? 'rtl' : 'ltr';
   
   document.querySelectorAll('[data-en]').forEach(el => {
+    // لا تغير محتوى كلمة ÖZEL — يجب أن تبقى دائماً بالخط اللاتيني
+    if (el.classList && el.classList.contains('headline-line')) return;
     el.innerHTML = isAr ? el.getAttribute('data-ar') : el.getAttribute('data-en');
   });
   
   document.querySelectorAll('[data-placeholder-en]').forEach(el => {
     el.placeholder = isAr ? el.getAttribute('data-placeholder-ar') : el.getAttribute('data-placeholder-en');
+  });
+
+  // تطبيق font-family صريح على كلمة ÖZEL لتمنع الـ browser من استخدام خط عربي
+  document.querySelectorAll('.headline-line').forEach(el => {
+    el.style.fontFamily = "'Cormorant Garamond', serif";
+    el.style.direction = 'ltr';
+    el.style.unicodeBidi = 'isolate';
   });
 
   buildCatTabs();

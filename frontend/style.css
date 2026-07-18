@@ -518,6 +518,9 @@ body[dir="ltr"] .lang-switch-wrapper .en-text {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: 700;
+  font-family: 'Cormorant Garamond', serif !important;
+  direction: ltr !important;
+  unicode-bidi: isolate;
 }
 .hero-ar-name {
   font-family: 'Tajawal', sans-serif;
