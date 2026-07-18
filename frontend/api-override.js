@@ -4,13 +4,21 @@
 
 (function() {
   // الكشف عن حالة الخادم الخلفي
-  // إذا كنا نعمل على نطاق مباشر (مثل ozel.cafe أو cafe.sadat) أو محلياً على المنفذ 5000، نستخدم مسارات نسبية تلقائياً
-  var isLocalDevServer = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '5000';
+  var hostname = window.location.hostname;
+  var isLocalIP = (hostname === 'localhost' || hostname === '127.0.0.1' || 
+                   hostname.startsWith('192.168.') || hostname.startsWith('10.') || 
+                   hostname.startsWith('172.') || hostname.endsWith('.local')) && 
+                  window.location.port !== '5000';
   var isFileProtocol = window.location.protocol === 'file:';
   
   // إذا كان تشغيل محلي غير خادم التطبيق (منفذ آخر) أو ملف مباشر، نوجه الطلبات إلى الخادم المحلي
-  var BACKEND_URL = (isLocalDevServer || isFileProtocol) ? 'http://127.0.0.1:5000' : '';
-
+  var BACKEND_URL = '';
+  if (isLocalIP) {
+    BACKEND_URL = 'http://' + hostname + ':5000';
+  } else if (isFileProtocol) {
+    BACKEND_URL = 'http://127.0.0.1:5000';
+  }
+  
   if (BACKEND_URL) {
     console.log('[API Redirect] Client on ' + window.location.origin + '. Redirecting API to: ' + BACKEND_URL);
     var originalFetch = window.fetch;
@@ -22,3 +30,4 @@
     };
   }
 })();
+

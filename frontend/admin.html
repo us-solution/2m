@@ -194,6 +194,82 @@ input:checked + .toggle-slider::before{transform:translateX(18px);background:var
 .toast.error{border-right:3px solid var(--red);}
 @keyframes slideIn{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
 td, th { white-space: nowrap; }
+
+/* Responsive Admin Forms */
+.admin-form {
+  background: var(--bg2);
+  padding: 1.2rem;
+  border: 1px solid var(--line);
+  margin-bottom: 1.5rem;
+  border-radius: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+}
+.admin-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.admin-form .form-group label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: bold;
+  text-align: right;
+}
+.admin-form .edit-input {
+  width: 100% !important;
+  min-width: 120px;
+  padding: 0.5rem !important;
+  height: 38px;
+  background: var(--bg3);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 4px;
+  outline: none;
+}
+.admin-form .edit-input:focus {
+  border-color: var(--gold);
+}
+.admin-form select.edit-input {
+  cursor: pointer;
+}
+.admin-form button.hbtn {
+  height: 38px;
+  margin-top: auto;
+  align-self: flex-end;
+  background: var(--gold);
+  color: var(--white);
+  border-color: var(--gold);
+  padding: 0 1.2rem;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.admin-form button.hbtn:hover {
+  background: var(--gold2);
+}
+
+@media (max-width: 768px) {
+  .admin-form {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem;
+  }
+  .admin-form .form-group {
+    width: 100%;
+  }
+  .admin-form .edit-input {
+    width: 100% !important;
+    min-width: unset;
+  }
+  .admin-form button.hbtn {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+}
 </style>
   <script>
     window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
@@ -249,18 +325,30 @@ td, th { white-space: nowrap; }
       <h1 class="page-title">إدارة القائمة</h1>
       <p class="page-sub">انقر على السعر أو الاسم للتعديل مباشرة</p>
       
-      <div style="background:var(--bg2); padding: 1rem; border: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-        <input type="text" id="nd-name" placeholder="الاسم (EN)" class="edit-input" style="width:120px; padding:.4rem">
-        <input type="text" id="nd-name-ar" placeholder="الاسم (AR)" class="edit-input" style="width:120px; padding:.4rem">
-        <input type="number" id="nd-price" placeholder="السعر" class="edit-input" style="width:80px; padding:.4rem" step="0.01">
-        <select id="nd-cat" class="edit-input" style="width:140px; padding:.4rem">
-          <option value="">اختر التصنيف...</option>
-        </select>
-        <div style="display:flex; flex-direction:column; gap:0.2rem;">
-          <label style="font-size:0.7rem; color:var(--muted);">صورة المشروب</label>
-          <input type="file" id="nd-img" class="edit-input" style="width:150px; padding:.2rem" accept="image/*">
+      <div class="admin-form">
+        <div class="form-group" style="flex: 1; min-width: 120px;">
+          <label for="nd-name">الاسم بالإنجليزية (EN)</label>
+          <input type="text" id="nd-name" placeholder="الاسم (EN)" class="edit-input">
         </div>
-        <button class="hbtn" onclick="addDrink()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.4rem 1rem; font-weight:700;">+ إضافة عنصر</button>
+        <div class="form-group" style="flex: 1; min-width: 120px;">
+          <label for="nd-name-ar">الاسم بالعربية (AR)</label>
+          <input type="text" id="nd-name-ar" placeholder="الاسم (AR)" class="edit-input">
+        </div>
+        <div class="form-group" style="flex: 0.6; min-width: 80px;">
+          <label for="nd-price">السعر (ج.م)</label>
+          <input type="number" id="nd-price" placeholder="السعر" class="edit-input" step="0.01">
+        </div>
+        <div class="form-group" style="flex: 1.2; min-width: 150px;">
+          <label for="nd-cat">التصنيف (Category)</label>
+          <select id="nd-cat" class="edit-input">
+            <option value="">اختر التصنيف...</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex: 1.2; min-width: 150px;">
+          <label for="nd-img">صورة المشروب</label>
+          <input type="file" id="nd-img" class="edit-input" style="padding:.2rem" accept="image/*">
+        </div>
+        <button class="hbtn" onclick="addDrink()">+ إضافة عنصر</button>
       </div>
 
       <div class="search-bar" style="position:relative;">
@@ -280,17 +368,32 @@ td, th { white-space: nowrap; }
       <h1 class="page-title">المستخدمين</h1>
       <p class="page-sub">إدارة حسابات العملاء والموظفين</p>
       
-      <div style="background:var(--bg2); padding: 1rem; border: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-        <input type="text" id="nu-name" placeholder="الاسم" class="edit-input" style="width:120px; padding:.4rem">
-        <input type="tel" id="nu-phone" placeholder="الهاتف" class="edit-input" style="width:120px; padding:.4rem">
-        <input type="email" id="nu-email" placeholder="البريد الإلكتروني (اختياري)" class="edit-input" style="width:150px; padding:.4rem">
-        <input type="password" id="nu-pass" placeholder="كلمة المرور" class="edit-input" style="width:120px; padding:.4rem">
-        <select id="nu-role" class="edit-input" style="width:auto; padding:.4rem">
-          <option value="customer">عميل</option>
-          <option value="cashier">كاشير</option>
-          <option value="admin">مدير</option>
-        </select>
-        <button class="hbtn" onclick="addUser()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.4rem 1rem; font-weight:700;">حفظ</button>
+      <div class="admin-form">
+        <div class="form-group" style="flex: 1; min-width: 120px;">
+          <label for="nu-name">الاسم</label>
+          <input type="text" id="nu-name" placeholder="الاسم" class="edit-input">
+        </div>
+        <div class="form-group" style="flex: 1; min-width: 120px;">
+          <label for="nu-phone">الهاتف</label>
+          <input type="tel" id="nu-phone" placeholder="الهاتف" class="edit-input">
+        </div>
+        <div class="form-group" style="flex: 1.2; min-width: 150px;">
+          <label for="nu-email">البريد الإلكتروني (اختياري)</label>
+          <input type="email" id="nu-email" placeholder="البريد الإلكتروني" class="edit-input">
+        </div>
+        <div class="form-group" style="flex: 1; min-width: 120px;">
+          <label for="nu-pass">كلمة المرور</label>
+          <input type="password" id="nu-pass" placeholder="كلمة المرور" class="edit-input">
+        </div>
+        <div class="form-group" style="flex: 0.8; min-width: 100px;">
+          <label for="nu-role">الصلاحية</label>
+          <select id="nu-role" class="edit-input">
+            <option value="customer">عميل</option>
+            <option value="cashier">كاشير</option>
+            <option value="admin">مدير</option>
+          </select>
+        </div>
+        <button class="hbtn" onclick="addUser()">حفظ</button>
       </div>
 
       <table><thead><tr>
@@ -304,11 +407,20 @@ td, th { white-space: nowrap; }
       <h1 class="page-title">التصنيفات</h1>
       <p class="page-sub">إدارة تصنيفات المشروبات (إضافة / ترتيب / حذف)</p>
 
-      <div style="background:var(--bg2); padding: 1rem; border: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-        <input type="text" id="nc-name" placeholder="الاسم (EN)" class="edit-input" style="width:130px; padding:.4rem">
-        <input type="text" id="nc-name-ar" placeholder="الاسم (AR)" class="edit-input" style="width:130px; padding:.4rem">
-        <input type="number" id="nc-order" placeholder="ترتيب الفرز" class="edit-input" style="width:80px; padding:.4rem" value="0">
-        <button class="hbtn" onclick="addCategory()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.4rem 1rem; font-weight:700;">+ إضافة تصنيف</button>
+      <div class="admin-form">
+        <div class="form-group" style="flex: 1; min-width: 130px;">
+          <label for="nc-name">الاسم بالإنجليزية (EN)</label>
+          <input type="text" id="nc-name" placeholder="الاسم (EN)" class="edit-input">
+        </div>
+        <div class="form-group" style="flex: 1; min-width: 130px;">
+          <label for="nc-name-ar">الاسم بالعربية (AR)</label>
+          <input type="text" id="nc-name-ar" placeholder="الاسم (AR)" class="edit-input">
+        </div>
+        <div class="form-group" style="flex: 0.6; min-width: 80px;">
+          <label for="nc-order">ترتيب الفرز</label>
+          <input type="number" id="nc-order" placeholder="ترتيب الفرز" class="edit-input" value="0">
+        </div>
+        <button class="hbtn" onclick="addCategory()">+ إضافة تصنيف</button>
       </div>
 
       <table><thead><tr>
@@ -323,16 +435,22 @@ td, th { white-space: nowrap; }
       <p class="page-sub">أضف عروضاً وخصومات على المشروبات</p>
 
       <!-- Add Offer Form -->
-      <div style="background:var(--bg2); padding: 1rem; border: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-        <select id="no-drink" class="edit-input" style="width:150px; padding:.4rem">
-          <option value="">اختر مشروب...</option>
-        </select>
-        <input type="number" id="no-discount" placeholder="نسبة الخصم %" class="edit-input" style="width:80px; padding:.4rem">
-        <div style="display:flex; flex-direction:column; gap:0.2rem;">
-          <label style="font-size:0.7rem; color:var(--muted);">تاريخ انتهاء العرض</label>
-          <input type="datetime-local" id="no-expiry" class="edit-input" style="width:180px; padding:.2rem">
+      <div class="admin-form">
+        <div class="form-group" style="flex: 1.2; min-width: 150px;">
+          <label for="no-drink">المشروب</label>
+          <select id="no-drink" class="edit-input">
+            <option value="">اختر مشروب...</option>
+          </select>
         </div>
-        <button class="hbtn" onclick="addOffer()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.4rem 1rem; font-weight:700;">+ إضافة عرض</button>
+        <div class="form-group" style="flex: 0.6; min-width: 80px;">
+          <label for="no-discount">نسبة الخصم %</label>
+          <input type="number" id="no-discount" placeholder="الخصم %" class="edit-input">
+        </div>
+        <div class="form-group" style="flex: 1.2; min-width: 180px;">
+          <label for="no-expiry">تاريخ انتهاء العرض</label>
+          <input type="datetime-local" id="no-expiry" class="edit-input" style="padding:.2rem">
+        </div>
+        <button class="hbtn" onclick="addOffer()">+ إضافة عرض</button>
       </div>
 
       <table><thead><tr>

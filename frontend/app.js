@@ -19,6 +19,25 @@ const urlParams  = new URLSearchParams(window.location.search);
 const tableParam = urlParams.get('table');
 window.currentPuzzle = { sugar: 'Normal', extra: 'None' };
 
+// ===== تهيئة Pusher للتحديثات الفورية للمنيو =====
+(function() {
+  if (typeof Pusher !== 'undefined') {
+    try {
+      const pusher = new Pusher('d7010f3c5b8b98295a04', { cluster: 'eu', forceTLS: true });
+      const channel = pusher.subscribe('menu-updates');
+      channel.bind('menu-changed', () => {
+        console.log('[Pusher] Menu update received. Reloading menu...');
+        if (typeof fetchMenu === 'function') {
+          fetchMenu();
+        }
+      });
+    } catch (e) {
+      console.warn('[Pusher] Menu updates subscription failed:', e);
+    }
+  }
+})();
+
+
 // ===== حالة غرفة التسلية والألعاب الجماعية =====
 let loungePlayers = [];
 

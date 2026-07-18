@@ -9,6 +9,36 @@ const Drink = require('../models/Drink');
 const Offer = require('../models/Offer');
 const ReportSnapshot = require('../models/ReportSnapshot');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
+const Pusher = require('pusher');
+
+// تهيئة Pusher للإشعارات الفورية
+let pusher = null;
+if (process.env.PUSHER_APP_ID && process.env.PUSHER_KEY && process.env.PUSHER_SECRET) {
+  try {
+    pusher = new Pusher({
+      appId: process.env.PUSHER_APP_ID,
+      key: process.env.PUSHER_KEY,
+      secret: process.env.PUSHER_SECRET,
+      cluster: process.env.PUSHER_CLUSTER || 'eu',
+      useTLS: true
+    });
+  } catch (e) {
+    console.error('[Pusher Init Error in Admin]', e.message);
+  }
+}
+
+// إعلام الواجهة الأمامية بتغيير المنيو
+async function triggerMenuUpdate() {
+  if (pusher) {
+    try {
+      await pusher.trigger('menu-updates', 'menu-changed', { timestamp: Date.now() });
+      console.log('[Pusher] Menu update triggered.');
+    } catch (err) {
+      console.error('[Pusher Trigger Error in Admin]', err.message);
+    }
+  }
+}
+
 
 // جلب إحصائيات عامة للوحة التحكم (إجمالي الطلبات، إيرادات اليوم والشهر، أداء الكاشير)
 router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) => {
@@ -309,6 +339,7 @@ router.post('/drinks', authenticateToken, requireRole('admin'), async (req, res)
       availableExtras: availableExtras || []
     });
     
+    triggerMenuUpdate();
     res.json({ success: true, id: d._id });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -346,6 +377,7 @@ router.patch('/drinks/:id', authenticateToken, requireRole('admin'), async (req,
     if (data.availableExtras !== undefined) d.availableExtras = data.availableExtras;
 
     await d.save();
+    triggerMenuUpdate();
     res.json({ success: true });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -360,6 +392,7 @@ router.delete('/drinks/:id', authenticateToken, requireRole('admin'), async (req
       return res.status(404).json({ error: 'Drink not found' });
     }
     await d.deleteOne();
+    triggerMenuUpdate();
     res.json({ success: true });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -449,6 +482,7 @@ router.post('/categories', authenticateToken, requireRole('admin'), async (req, 
       name_ar: name_ar || name,
       sort_order: parseInt(sort_order || 0)
     });
+    triggerMenuUpdate();
     res.json({ success: true, id: c._id });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -467,6 +501,7 @@ router.patch('/categories/:id', authenticateToken, requireRole('admin'), async (
     if (sort_order !== undefined) c.sort_order = parseInt(sort_order);
 
     await c.save();
+    triggerMenuUpdate();
     res.json({ success: true });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -486,6 +521,7 @@ router.delete('/categories/:id', authenticateToken, requireRole('admin'), async 
     }
 
     await c.deleteOne();
+    triggerMenuUpdate();
     res.json({ success: true });
   } catch (err) {
     res.status(400).json({ error: err.message });
