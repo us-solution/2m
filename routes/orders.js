@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const QRCode = require('qrcode');
 const Order = require('../models/Order');
 const User = require('../models/User');
+const Drink = require('../models/Drink'); // ← مُضاف: ضروري لخصم المخزون
 const PointsLog = require('../models/PointsLog');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 const jwt = require('jsonwebtoken');
@@ -328,16 +329,25 @@ router.post('/', async (req, res) => {
 });
 
 // جلب قائمة الطلبات (للكاشير والأدمن، مع فلتر بالحالة)
+// مُحسَّن: يعرض فقط آخر 48 ساعة + حد أقصى 200 طلب لتفادي البطء
 router.get('/', authenticateToken, requireRole('cashier'), async (req, res) => {
-  const { status } = req.query;
+  const { status, all } = req.query;
   const query = {};
+
   if (status) {
     query.status = status;
+  }
+
+  // افتراضياً: آخر 48 ساعة فقط (ما لم يُطلب all=true من الأدمن)
+  if (all !== 'true' || req.user.role !== 'admin') {
+    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    query.createdAt = { $gte: cutoff };
   }
 
   try {
     const orders = await Order.find(query)
       .sort({ createdAt: -1 })
+      .limit(200) // حد أقصى لمنع تحميل آلاف الطلبات
       .populate('userId', 'name phone email');
 
     const serialized = orders.map(o => ({
@@ -352,6 +362,7 @@ router.get('/', authenticateToken, requireRole('cashier'), async (req, res) => {
       status: o.status || 'pending',
       notes: o.notes || '',
       cashier_id: o.cashierId,
+      order_version: o.orderVersion || 1, // ← مُضاف: للتحقق من تعارض التعديل
       created_at: o.createdAt ? o.createdAt.toISOString() : new Date().toISOString(),
       updated_at: o.updatedAt ? o.updatedAt.toISOString() : new Date().toISOString(),
       isQrConfirmed: o.isQrConfirmed || false
@@ -495,6 +506,7 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
           const StockAlert = require('../models/StockAlert');
           for (const item of order.items) {
             if (!item.name) continue;
+            // Drink مستورد في الأعلى بشكل صحيح
             const drink = await Drink.findOne({ name: item.name }).lean();
             if (!drink) continue;
             const recipe = await Recipe.findOne({ drinkId: drink._id, isActive: true });
@@ -512,7 +524,7 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
                 quantity: -qtyToDeduct,
                 unitCost: ingredient.unitCost,
                 totalCost: qtyToDeduct * ingredient.unitCost,
-                note: `خصم تلقائي - طلب #${order.tableNumber || order._id}`,
+                note: `خصم تلقائي - طلب #${order.table_number || order._id}`,
                 performedBy: req.user._id,
                 relatedOrderId: order._id
               });

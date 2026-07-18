@@ -42,6 +42,19 @@ router.post('/close/:id', authenticateToken, requireRole('cashier'), async (req,
     ]);
     const cashIn = (cashPayments[0] && cashPayments[0].total) || 0;
 
+    // ← مُصلَّح: حساب المدفوعات بالبطاقة والمحفظة بشكل منفصل (لا تُضاف للخزينة النقدية)
+    const cardPayments = await Order.aggregate([
+      { $match: { shiftId: shift._id, paymentMethod: 'card', status: { $nin: ['cancelled', 'refunded'] } } },
+      { $group: { _id: null, total: { $sum: '$total_price' } } }
+    ]);
+    const cardIn = (cardPayments[0] && cardPayments[0].total) || 0;
+
+    const walletPayments = await Order.aggregate([
+      { $match: { shiftId: shift._id, paymentMethod: 'wallet', status: { $nin: ['cancelled', 'refunded'] } } },
+      { $group: { _id: null, total: { $sum: '$total_price' } } }
+    ]);
+    const walletIn = (walletPayments[0] && walletPayments[0].total) || 0;
+
     const refunds = await Order.aggregate([
       { $match: { shiftId: shift._id, status: 'refunded' } },
       { $group: { _id: null, total: { $sum: '$total_price' } } }
@@ -61,6 +74,8 @@ router.post('/close/:id', authenticateToken, requireRole('cashier'), async (req,
     const extraCashIn = cashMovements.find(m => m._id === 'in')?.total || 0;
     const extraCashOut = cashMovements.find(m => m._id === 'out')?.total || 0;
 
+    // الرصيد المتوقع في الخزينة = افتتاحي + نقدي + حركات إضافية - مردودات نقدية
+    // ملاحظة: card و wallet لا تُضاف للخزينة الفعلية لكن تُظهر في الإحصائيات
     const expected = shift.openingBalance + cashIn + extraCashIn - extraCashOut - refundTotal;
     const actual = parseFloat(closingBalance) || 0;
     const variance = actual - expected;
