@@ -26,8 +26,14 @@ const userSchema = new mongoose.Schema({
   isPartner: { type: Boolean, default: false },
   // اللوجو الخاص بالشريك (Base64 أو رابط)
   partnerLogo: { type: String, default: '' },
-  // نبذة مختصرة عن الشريك
+  // نبذة كاملة عن الشريك
   partnerBio: { type: String, default: '' },
+  // الصورة الأساسية للشريك للعرض بالصفحة الرئيسية
+  partnerMainImage: { type: String, default: '' },
+  // البريف الخاص بالشريك للعرض بالصفحة الرئيسية (حتى 140 حرف)
+  partnerBrief: { type: String, maxlength: 140, default: '' },
+  // معرض صور الشريك
+  partnerGallery: [{ type: String }],
   // مصفوفة الصور المفضلة
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'VlogPost' }],
   // العنوان

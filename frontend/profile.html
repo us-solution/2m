@@ -154,18 +154,50 @@
 
           <!-- PARTNER PROFILE EDIT -->
           <div id="partnerEditSection" style="display: none; background: var(--bg2); padding: 1.25rem 1.5rem; border-radius: var(--rad-lg); border: 1px solid var(--line); box-shadow: 0 4px 15px rgba(0,0,0,0.01); margin-bottom: 1.25rem;">
-            <h4 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;" data-en="Partner Details" data-ar="بيانات الشريك">
-              Partner Details
+            <h4 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;" data-en="Partner Details & Showcase" data-ar="بيانات وإعدادات ملف الشريك ✦">
+              بيانات وإعدادات ملف الشريك ✦
             </h4>
-            <div style="display: flex; flex-direction: column; gap: 0.6rem;">
-              <label style="font-size: 0.75rem; color: var(--muted); font-family: 'Tajawal', sans-serif;" data-en="Partner Logo (Image File)" data-ar="شعار الشريك (ملف صورة)"></label>
-              <input id="partner-logo-file" type="file" accept="image/*" style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
+            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+              <!-- الشعار -->
+              <div>
+                <label style="font-size: 0.75rem; color: var(--gold); font-family: 'Tajawal', sans-serif; display:block; margin-bottom:0.3rem;" data-en="Partner Logo" data-ar="شعار / لوجو الشريك:">شعار / لوجو الشريك:</label>
+                <input id="partner-logo-file" type="file" accept="image/*" style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.5rem .8rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
+              </div>
+
+              <!-- الصورة الرئيسية للصفحة الرئيسية -->
+              <div>
+                <label style="font-size: 0.75rem; color: var(--gold); font-family: 'Tajawal', sans-serif; display:block; margin-bottom:0.3rem;" data-en="Main Showcase Image (Home Page)" data-ar="الصورة الأساسية (للعرض في الصفحة الرئيسية):">الصورة الأساسية (للعرض في الصفحة الرئيسية):</label>
+                <input id="partner-main-image-file" type="file" accept="image/*" style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.5rem .8rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
+              </div>
+
+              <!-- البريف المختصر 140 حرف -->
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem;">
+                  <label style="font-size: 0.75rem; color: var(--gold); font-family: 'Tajawal', sans-serif;" data-en="Home Page Brief (Max 140 chars)" data-ar="بريف الصفحة الرئيسية (تحت الصورة - أقصى حد 140 حرف):">بريف الصفحة الرئيسية (تحت الصورة - أقصى حد 140 حرف):</label>
+                  <span id="partner-brief-count" style="font-size:0.75rem; color:var(--muted); font-family:'Outfit',sans-serif;">0 / 140</span>
+                </div>
+                <textarea id="partner-brief-input" maxlength="140" oninput="if(document.getElementById('partner-brief-count')) document.getElementById('partner-brief-count').textContent = this.value.length + ' / 140';"
+                  data-placeholder-en="Write a short summary under your photo on the home page (max 140 chars)..." 
+                  data-placeholder-ar="اكتب نبذة سريعة تظهر تحت صورتك في الصفحة الرئيسية (أقصى حد 140 حرف)..." 
+                  placeholder="اكتب نبذة سريعة تظهر تحت صورتك في الصفحة الرئيسية (أقصى حد 140 حرف)..."
+                  style="width:100%; min-height:60px; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none; resize:vertical;"></textarea>
+              </div>
+
+              <!-- النبذة الشاملة -->
+              <div>
+                <label style="font-size: 0.75rem; color: var(--gold); font-family: 'Tajawal', sans-serif; display:block; margin-bottom:0.3rem;" data-en="Full Partner Bio" data-ar="النبذة التعريفية الكاملة عن الشريك:">النبذة التعريفية الكاملة عن الشريك:</label>
+                <textarea id="partner-bio-input" data-placeholder-en="Full description of your business..." data-placeholder-ar="النبذة التفصيلية الكاملة عن نشاطك وسيرتك..." placeholder="النبذة التفصيلية الكاملة عن نشاطك وسيرتك..."
+                  style="width:100%; min-height:80px; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none; resize:vertical;"></textarea>
+              </div>
+
+              <!-- معرض الصور للإضافة والمعاينة -->
+              <div>
+                <label style="font-size: 0.75rem; color: var(--gold); font-family: 'Tajawal', sans-serif; display:block; margin-bottom:0.3rem;" data-en="Add Photos to Gallery" data-ar="إضافة صور لمعرض أعمالك / منتجاتك:">إضافة صور لمعرض أعمالك / منتجاتك:</label>
+                <input id="partner-gallery-file" type="file" accept="image/*" multiple style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.5rem .8rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
+                <div id="partnerGalleryPreview" style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.6rem;"></div>
+              </div>
               
-              <label style="font-size: 0.75rem; color: var(--muted); font-family: 'Tajawal', sans-serif;" data-en="Partner Bio / Brief" data-ar="نبذة تعريفية عن الشريك"></label>
-              <textarea id="partner-bio-input" data-placeholder-en="Brief description of your business..." data-placeholder-ar="نبذة تعريفية عن عملك..." placeholder="Brief description of your business..."
-                style="width:100%; min-height:80px; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none; resize:vertical;"></textarea>
-              
-              <button class="btn-gold" style="width:100%; justify-content:center; padding:0.6rem;" onclick="savePartnerProfile()" data-en="Save Partner Info ✦" data-ar="حفظ بيانات الشريك ✦">Save Partner Info ✦</button>
+              <button class="btn-gold" style="width:100%; justify-content:center; padding:0.6rem; margin-top:0.5rem;" onclick="savePartnerProfile()" data-en="Save Partner Info ✦" data-ar="حفظ بيانات الشريك ✦">حفظ بيانات الشريك ✦</button>
               <p id="partner-save-msg" style="font-size:0.8rem; text-align:center; margin-top:0.4rem; font-family: 'Tajawal', sans-serif;"></p>
             </div>
           </div>

@@ -134,11 +134,13 @@ async function loadPartners() {
         return;
       }
       container.innerHTML = partners.map(p => `
-        <div class="partner-logo-card" onclick="location.href='profile.html?id=${p._id}'" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.8rem; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">
-          <div style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; background: var(--bg3); box-shadow: 0 8px 20px rgba(0,0,0,0.05);">
-            <img src="${p.partnerLogo || 'imgs/Ozel-Logo--01.png'}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover;" />
+        <div class="partner-card" onclick="location.href='profile.html?id=${p._id}'" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; background: var(--bg3); border: 1px solid var(--line); border-radius: var(--rad-lg); padding: 1.2rem; width: 270px; transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 12px 30px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+          <div style="position: relative; width: 100%; height: 190px; border-radius: var(--rad); overflow: hidden; background: var(--bg2); margin-bottom: 0.9rem;">
+            <img src="${p.partnerMainImage || p.partnerLogo || 'imgs/Ozel-Logo--01.png'}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover;" />
+            ${p.partnerLogo ? `<div style="position: absolute; bottom: 8px; right: 8px; width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--gold); overflow: hidden; background: var(--bg); box-shadow: 0 4px 12px rgba(0,0,0,0.3);"><img src="${p.partnerLogo}" style="width:100%; height:100%; object-fit:cover;" /></div>` : ''}
           </div>
-          <span style="font-family: 'Tajawal', sans-serif; font-size: 0.9rem; font-weight: 700; color: var(--text);">${p.name}</span>
+          <h3 style="font-family: 'Tajawal', sans-serif; font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 0.4rem; text-align: center;">${p.name}</h3>
+          ${p.partnerBrief ? `<p style="font-family: 'Tajawal', sans-serif; font-size: 0.82rem; color: var(--muted); text-align: center; line-height: 1.45; word-break: break-word; margin: 0; background: var(--bg2); padding: 0.5rem 0.75rem; border-radius: var(--rad); border: 1px solid var(--line); width: 100%;">${p.partnerBrief.slice(0, 140)}</p>` : ''}
         </div>
       `).join('');
     }
@@ -438,6 +440,16 @@ window.openProfileModal = async function() {
       partnerSec.style.display = 'block';
       const bioInput = document.getElementById('partner-bio-input');
       if (bioInput) bioInput.value = userDetails.partnerBio || '';
+      
+      const briefInput = document.getElementById('partner-brief-input');
+      if (briefInput) {
+        briefInput.value = userDetails.partnerBrief || '';
+        const countEl = document.getElementById('partner-brief-count');
+        if (countEl) countEl.textContent = briefInput.value.length + ' / 140';
+      }
+
+      window.currentPartnerGallery = Array.isArray(userDetails.partnerGallery) ? [...userDetails.partnerGallery] : [];
+      window.renderPartnerGalleryPreview();
     } else {
       partnerSec.style.display = 'none';
     }
@@ -2658,16 +2670,40 @@ window.loadPublicPartnerProfile = async function(pid) {
     
     bodyEl.innerHTML = `
       <div class="partner-profile-header" style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.2rem; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--line);">
-        <div style="width: 130px; height: 130px; border-radius: 50%; overflow: hidden; border: 3px solid var(--gold); background: var(--bg3); box-shadow: 0 10px 25px rgba(0,0,0,0.06);">
-          <img src="${partner.partnerLogo || 'imgs/Ozel-Logo--01.png'}" alt="${partner.name}" style="width: 100%; height: 100%; object-fit: cover;" />
-        </div>
+        ${partner.partnerMainImage ? `
+          <div style="width: 100%; max-width: 650px; height: 260px; border-radius: var(--rad-lg); overflow: hidden; border: 1px solid var(--line); margin-bottom: 0.5rem; position: relative;">
+            <img src="${partner.partnerMainImage}" style="width: 100%; height: 100%; object-fit: cover;" />
+            ${partner.partnerLogo ? `<div style="position: absolute; bottom: 12px; right: 12px; width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--gold); overflow: hidden; background: var(--bg); shadow: 0 4px 15px rgba(0,0,0,0.4);"><img src="${partner.partnerLogo}" style="width: 100%; height: 100%; object-fit: cover;" /></div>` : ''}
+          </div>
+        ` : `
+          <div style="width: 130px; height: 130px; border-radius: 50%; overflow: hidden; border: 3px solid var(--gold); background: var(--bg3); box-shadow: 0 10px 25px rgba(0,0,0,0.06);">
+            <img src="${partner.partnerLogo || 'imgs/Ozel-Logo--01.png'}" alt="${partner.name}" style="width: 100%; height: 100%; object-fit: cover;" />
+          </div>
+        `}
         <div>
           <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: var(--text); font-weight: 700;">${partner.name}</h2>
-          <p style="font-family: 'Tajawal', sans-serif; font-size: 0.95rem; color: var(--muted); max-width: 500px; margin: 0.5rem auto 0; line-height: 1.5;">${partner.partnerBio || (isAr ? 'لا توجد نبذة تعريفية بعد.' : 'No bio available.')}</p>
+          ${partner.partnerBrief ? `<p style="font-family: 'Tajawal', sans-serif; font-size: 0.9rem; color: var(--gold); max-width: 550px; margin: 0.4rem auto; font-weight: 600; background: var(--bg3); padding: 0.4rem 1rem; border-radius: var(--rad); border: 1px solid var(--line);">${partner.partnerBrief}</p>` : ''}
+          <p style="font-family: 'Tajawal', sans-serif; font-size: 0.95rem; color: var(--muted); max-width: 550px; margin: 0.5rem auto 0; line-height: 1.6; whitespace: pre-line;">${partner.partnerBio || (isAr ? 'لا توجد نبذة تعريفية بعد.' : 'No bio available.')}</p>
         </div>
       </div>
+
+      <!-- معرض صور الشريك الخاصة -->
+      ${partner.partnerGallery && partner.partnerGallery.length > 0 ? `
+        <div class="partner-gallery-title" style="margin-bottom: 1.5rem;">
+          <h3 style="font-family: 'Tajawal', sans-serif; font-size: 1.25rem; color: var(--text); font-weight: 700; text-align: center;" data-en="Partner Gallery" data-ar="معرض صور أعمال الشريك ✦">معرض صور أعمال الشريك ✦</h3>
+          <div style="width: 40px; height: 2px; background: var(--gold); margin: 0.4rem auto 0;"></div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.2rem; width: 100%; margin-bottom: 2.5rem;">
+          ${partner.partnerGallery.map(imgUrl => `
+            <div style="width: 100%; height: 200px; border-radius: var(--rad); overflow: hidden; border: 1px solid var(--line); cursor: pointer;" onclick="openVlogLightbox('${imgUrl}', '${partner.name}')">
+              <img src="${imgUrl}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" />
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
       <div class="partner-gallery-title" style="margin-bottom: 1.5rem;">
-        <h3 style="font-family: 'Tajawal', sans-serif; font-size: 1.25rem; color: var(--text); font-weight: 700; text-align: center;" data-en="Shared Photo Gallery" data-ar="معرض صور الشريك">معرض صور الشريك</h3>
+        <h3 style="font-family: 'Tajawal', sans-serif; font-size: 1.25rem; color: var(--text); font-weight: 700; text-align: center;" data-en="Shared Community Photos" data-ar="صور الفلوج المشتركة">صور الفلوج المشتركة</h3>
         <div style="width: 40px; height: 2px; background: var(--gold); margin: 0.4rem auto 0;"></div>
       </div>
       <div class="profile-photos-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; justify-content: center; width: 100%;">
@@ -2712,7 +2748,6 @@ window.toggleFavorite = async function(postId, btn) {
         showToast(isAr ? 'تمت إضافة الصورة إلى المفضلة' : 'Added to favorites', 'success');
       }
       
-      // إذا كنا في صفحة الملف الشخصي، نقوم بتحديث الشبكة فوراً
       if (window.location.pathname.includes('profile.html')) {
         const pid = urlParams.get('id');
         if (pid) {
@@ -2727,10 +2762,56 @@ window.toggleFavorite = async function(postId, btn) {
   }
 };
 
+// إعارات ومعاينة معرض صور الشريك
+window.currentPartnerGallery = window.currentPartnerGallery || [];
+
+window.renderPartnerGalleryPreview = function() {
+  const container = document.getElementById('partnerGalleryPreview');
+  if (!container) return;
+  if (!window.currentPartnerGallery || window.currentPartnerGallery.length === 0) {
+    container.innerHTML = `<span style="font-size:0.75rem; color:var(--muted); font-family:'Tajawal',sans-serif;">لا توجد صور في المعرض بعد</span>`;
+    return;
+  }
+  container.innerHTML = window.currentPartnerGallery.map((imgUrl, index) => `
+    <div style="position:relative; width:75px; height:75px; border-radius:var(--rad); overflow:hidden; border:1px solid var(--line); background:var(--bg3);">
+      <img src="${imgUrl}" style="width:100%; height:100%; object-fit:cover;" />
+      <button onclick="window.removePartnerGalleryImage(${index})" style="position:absolute; top:2px; right:2px; background:rgba(192,57,43,0.9); color:#fff; border:none; width:20px; height:20px; border-radius:50%; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+    </div>
+  `).join('');
+};
+
+window.removePartnerGalleryImage = function(index) {
+  if (window.currentPartnerGallery && index >= 0 && index < window.currentPartnerGallery.length) {
+    window.currentPartnerGallery.splice(index, 1);
+    window.renderPartnerGalleryPreview();
+  }
+};
+
+document.addEventListener('change', async function(e) {
+  if (e.target && e.target.id === 'partner-gallery-file') {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    for (const file of files) {
+      const b64 = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => resolve(ev.target.result);
+        reader.readAsDataURL(file);
+      });
+      if (b64) {
+        if (!window.currentPartnerGallery) window.currentPartnerGallery = [];
+        window.currentPartnerGallery.push(b64);
+      }
+    }
+    window.renderPartnerGalleryPreview();
+  }
+});
+
 // حفظ بيانات الملف الشخصي للشريك
 window.savePartnerProfile = async function() {
   const isAr = currentLang === 'ar';
-  const fileInput = document.getElementById('partner-logo-file');
+  const logoInput = document.getElementById('partner-logo-file');
+  const mainImageInput = document.getElementById('partner-main-image-file');
+  const briefInput = document.getElementById('partner-brief-input');
   const bioInput = document.getElementById('partner-bio-input');
   const msgEl = document.getElementById('partner-save-msg');
   
@@ -2739,21 +2820,32 @@ window.savePartnerProfile = async function() {
   msgEl.style.color = 'var(--gold)';
   
   let partnerLogo = undefined;
-  if (fileInput && fileInput.files[0]) {
+  if (logoInput && logoInput.files[0]) {
     partnerLogo = await new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => resolve(e.target.result);
-      reader.readAsDataURL(fileInput.files[0]);
+      reader.readAsDataURL(logoInput.files[0]);
+    });
+  }
+
+  let partnerMainImage = undefined;
+  if (mainImageInput && mainImageInput.files[0]) {
+    partnerMainImage = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.readAsDataURL(mainImageInput.files[0]);
     });
   }
   
+  const partnerBrief = briefInput ? briefInput.value.trim().slice(0, 140) : '';
   const partnerBio = bioInput ? bioInput.value.trim() : '';
+  const partnerGallery = window.currentPartnerGallery || [];
   
   try {
     const res = await fetch('/api/me/partner-profile', {
       method: 'PUT',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ partnerBio, partnerLogo })
+      body: JSON.stringify({ partnerBio, partnerLogo, partnerMainImage, partnerBrief, partnerGallery })
     });
     
     const data = await res.json();
@@ -2761,7 +2853,6 @@ window.savePartnerProfile = async function() {
       msgEl.textContent = isAr ? 'تم حفظ بيانات الشريك بنجاح ✦' : 'Partner details saved successfully ✦';
       msgEl.style.color = 'var(--green)';
       
-      // تحديث البيانات المحلية
       const meRes = await fetch('/api/auth/me', { headers: getAuthHeaders() });
       if (meRes.ok) {
         const userDetails = await meRes.json();

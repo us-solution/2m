@@ -21,24 +21,34 @@ router.get('/', authenticateToken, async (req, res) => {
     isPartner: req.user.isPartner || false,
     partnerLogo: req.user.partnerLogo || '',
     partnerBio: req.user.partnerBio || '',
+    partnerMainImage: req.user.partnerMainImage || '',
+    partnerBrief: req.user.partnerBrief || '',
+    partnerGallery: req.user.partnerGallery || [],
     favorites: req.user.favorites || []
   });
 });
 
-// تحديث الملف الشخصي للشريك (اللوجو والنبذة المختصرة)
+// تحديث الملف الشخصي للشريك (اللوجو والصورة الرئيسية والبريف والنبذة والمعرض)
 router.put('/partner-profile', authenticateToken, async (req, res) => {
   try {
-    const { partnerLogo, partnerBio } = req.body;
+    const { partnerLogo, partnerBio, partnerMainImage, partnerBrief, partnerGallery } = req.body;
     if (!req.user.isPartner && req.user.role !== 'partner') {
       return res.status(403).json({ error: 'Only partners can update partner profile' });
     }
     if (partnerLogo !== undefined) req.user.partnerLogo = partnerLogo;
     if (partnerBio !== undefined) req.user.partnerBio = partnerBio;
+    if (partnerMainImage !== undefined) req.user.partnerMainImage = partnerMainImage;
+    if (partnerBrief !== undefined) req.user.partnerBrief = partnerBrief.slice(0, 140);
+    if (partnerGallery !== undefined) req.user.partnerGallery = partnerGallery;
+
     await req.user.save();
     res.json({
       success: true,
       partnerLogo: req.user.partnerLogo,
-      partnerBio: req.user.partnerBio
+      partnerBio: req.user.partnerBio,
+      partnerMainImage: req.user.partnerMainImage,
+      partnerBrief: req.user.partnerBrief,
+      partnerGallery: req.user.partnerGallery
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -184,7 +184,7 @@ router.get('/me/points', authenticateToken, async (req, res) => {
 // جلب قائمة الشركاء النشطين (عام)
 router.get('/partners', async (req, res) => {
   try {
-    const partners = await User.find({ $or: [{ isPartner: true }, { role: 'partner' }] }).select('name partnerLogo partnerBio');
+    const partners = await User.find({ $or: [{ isPartner: true }, { role: 'partner' }] }).select('name partnerLogo partnerBio partnerMainImage partnerBrief partnerGallery');
     res.json(partners);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -194,7 +194,7 @@ router.get('/partners', async (req, res) => {
 // جلب الملف الشخصي العام لشريك محدد وصوره المرفوعة
 router.get('/partners/:id', async (req, res) => {
   try {
-    const partner = await User.findOne({ _id: req.params.id, $or: [{ isPartner: true }, { role: 'partner' }] }).select('name partnerLogo partnerBio');
+    const partner = await User.findOne({ _id: req.params.id, $or: [{ isPartner: true }, { role: 'partner' }] }).select('name partnerLogo partnerBio partnerMainImage partnerBrief partnerGallery');
     if (!partner) return res.status(404).json({ error: 'Partner not found' });
     
     // جلب صور الشريك المرفوعة من موديل VlogPost
