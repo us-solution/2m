@@ -85,10 +85,10 @@ app.use(cors());
 app.use(compression());
 
 // ============================
-// 4. تفسير جسم الطلب (Body parsers) وتنظيف البيانات
+// 4. تفسير جسم الطلب (Body parsers) وتنظيف البيانات (حد الأقصى 10 ميجابايت للصور)
 // ============================
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(sanitizeInput);
 
 // ============================
