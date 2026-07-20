@@ -583,9 +583,16 @@
         headers: getAuthH(),
         body: JSON.stringify(orderData)
       });
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (jErr) {
+        const textResp = await res.text().catch(() => '');
+        console.error('[Cart] Non-JSON server response:', res.status, textResp);
+        data = { success: false, error: isAr ? `خطأ من الخادم (${res.status})` : `Server Error (${res.status})` };
+      }
       
-      if (data.success) {
+      if (data && data.success) {
         cart = [];
         localStorage.removeItem('ozel_cart');
         loadCart();
@@ -605,7 +612,7 @@
       }
     } catch (e) {
       console.error('[Cart] submitOrder error:', e);
-      alert(isAr ? 'فشل الاتصال بالخادم' : 'Connection error with server');
+      alert(e.message || (isAr ? 'فشل الاتصال بالخادم' : 'Connection error with server'));
       _submittingOrder = false;
       btn.textContent = origText;
       btn.disabled = false;

@@ -197,7 +197,8 @@ router.post('/', async (req, res) => {
     // ──────────────────────────────────────────────
     const CASHIER_API_URL = process.env.CASHIER_API_URL;
     const CASHIER_API_KEY = process.env.CASHIER_API_KEY;
-    if (CASHIER_API_URL && CASHIER_API_KEY && parsedItems.length > 0) {
+    const isLocalhostUrl = CASHIER_API_URL && (CASHIER_API_URL.includes('localhost') || CASHIER_API_URL.includes('127.0.0.1'));
+    if (CASHIER_API_URL && CASHIER_API_KEY && parsedItems.length > 0 && !(process.env.VERCEL && isLocalhostUrl)) {
       try {
         const stockRes = await axios.post(`${CASHIER_API_URL}/api/products/check-stock`, {
           items: parsedItems.map(i => ({ name: i.name, quantity: i.quantity }))
