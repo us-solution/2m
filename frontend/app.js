@@ -2787,22 +2787,63 @@ window.removePartnerGalleryImage = function(index) {
   }
 };
 
+// ضغط الصور تلقائياً على المتصفح قبل رفعها لمنع تجاوز حد Vercel (4.5MB)
+window.compressImage = function(file, maxWidth = 800, maxHeight = 800, quality = 0.65) {
+  return new Promise((resolve) => {
+    if (!file || !file.type || !file.type.startsWith('image/')) {
+      resolve(null);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => resolve(e.target.result);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
+  });
+};
+
 document.addEventListener('change', async function(e) {
   if (e.target && e.target.id === 'partner-gallery-file') {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
+    const msgEl = document.getElementById('partner-save-msg');
+    if (msgEl) {
+      msgEl.textContent = currentLang === 'ar' ? 'جاري المعالجة وتقليل حجم الصور...' : 'Compressing images...';
+      msgEl.style.color = 'var(--gold)';
+    }
     for (const file of files) {
-      const b64 = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (ev) => resolve(ev.target.result);
-        reader.readAsDataURL(file);
-      });
-      if (b64) {
+      const compressed = await window.compressImage(file, 800, 800, 0.65);
+      if (compressed) {
         if (!window.currentPartnerGallery) window.currentPartnerGallery = [];
-        window.currentPartnerGallery.push(b64);
+        window.currentPartnerGallery.push(compressed);
       }
     }
     window.renderPartnerGalleryPreview();
+    if (msgEl) msgEl.textContent = '';
   }
 });
 
@@ -2816,39 +2857,42 @@ window.savePartnerProfile = async function() {
   const msgEl = document.getElementById('partner-save-msg');
   
   if (!msgEl) return;
-  msgEl.textContent = isAr ? 'جاري الحفظ...' : 'Saving...';
+  msgEl.textContent = isAr ? 'جاري التجهيز والحفظ...' : 'Preparing & saving...';
   msgEl.style.color = 'var(--gold)';
   
   let partnerLogo = undefined;
   if (logoInput && logoInput.files[0]) {
-    partnerLogo = await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.readAsDataURL(logoInput.files[0]);
-    });
+    partnerLogo = await window.compressImage(logoInput.files[0], 400, 400, 0.75);
   }
 
   let partnerMainImage = undefined;
   if (mainImageInput && mainImageInput.files[0]) {
-    partnerMainImage = await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.readAsDataURL(mainImageInput.files[0]);
-    });
+    partnerMainImage = await window.compressImage(mainImageInput.files[0], 900, 900, 0.70);
   }
   
   const partnerBrief = briefInput ? briefInput.value.trim().slice(0, 140) : '';
   const partnerBio = bioInput ? bioInput.value.trim() : '';
   const partnerGallery = window.currentPartnerGallery || [];
   
+  const payloadStr = JSON.stringify({ partnerBio, partnerLogo, partnerMainImage, partnerBrief, partnerGallery });
+  
+  // فحص سعة البيانات المرسلة لتفادي تجاوز 3.5MB
+  if (payloadStr.length > 3.5 * 1024 * 1024) {
+    msgEl.textContent = isAr ? 'حجم الصور الإجمالي كبير جداً، يرجى حذف بعض الصور من المعرض.' : 'Total images size is too large. Please remove some photos.';
+    msgEl.style.color = 'var(--red)';
+    return;
+  }
+
   try {
     const res = await fetch('/api/me/partner-profile', {
       method: 'PUT',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ partnerBio, partnerLogo, partnerMainImage, partnerBrief, partnerGallery })
+      body: payloadStr
     });
     
-    const data = await res.json();
+    let data = {};
+    try { data = await res.json(); } catch (_) {}
+
     if (res.ok && data.success) {
       msgEl.textContent = isAr ? 'تم حفظ بيانات الشريك بنجاح ✦' : 'Partner details saved successfully ✦';
       msgEl.style.color = 'var(--green)';
@@ -2859,12 +2903,12 @@ window.savePartnerProfile = async function() {
         localStorage.setItem('ozel_user', JSON.stringify(userDetails));
       }
     } else {
-      msgEl.textContent = data.error || (isAr ? 'فشل حفظ البيانات.' : 'Failed to save details.');
+      msgEl.textContent = data.error || (isAr ? `خطأ الخادم (${res.status}): يرجى محاولة تقليل عدد الصور` : `Server error (${res.status})`);
       msgEl.style.color = 'var(--red)';
     }
   } catch (err) {
-    console.error(err);
-    msgEl.textContent = isAr ? 'حدث خطأ أثناء الاتصال بالخادم.' : 'Server connection error.';
+    console.error('[SavePartnerProfile Error]', err);
+    msgEl.textContent = isAr ? 'حدث خطأ في الاتصال بالخادم. يرجى محاولة تقليل عدد الصور.' : 'Connection error. Please try uploading fewer photos.';
     msgEl.style.color = 'var(--red)';
   }
 };
