@@ -240,7 +240,7 @@ router.patch('/users/:id', authenticateToken, requireRole('admin'), async (req, 
     if (email !== undefined) u.email = email;
     if (role !== undefined) {
       u.role = role;
-      if (role === 'partner') u.isPartner = true;
+      u.isPartner = (role === 'partner') || (isPartner !== undefined ? Boolean(isPartner) : false);
     }
     if (points !== undefined) u.points = parseInt(points);
     if (subscriptionTier !== undefined) u.subscriptionTier = subscriptionTier;

@@ -431,22 +431,14 @@ td, th { white-space: nowrap; }
           <select id="nu-role" class="edit-input">
             <option value="customer">عميل</option>
             <option value="partner">شريك</option>
-            <option value="cashier">كاشير</option>
             <option value="admin">مدير</option>
-          </select>
-        </div>
-        <div class="form-group" style="flex: 0.6; min-width: 80px;">
-          <label for="nu-partner">شريك؟</label>
-          <select id="nu-partner" class="edit-input">
-            <option value="false">لا</option>
-            <option value="true">نعم</option>
           </select>
         </div>
         <button class="hbtn" onclick="addUser()">حفظ</button>
       </div>
 
       <table><thead><tr>
-        <th>الاسم</th><th>الهاتف</th><th>الدور</th><th>شريك؟</th><th>النقاط</th><th>الإنفاق</th><th>حالة العميل</th><th>إجراء</th>
+        <th>الاسم</th><th>الهاتف</th><th>الدور</th><th>النقاط</th><th>الإنفاق</th><th>حالة العميل</th><th>إجراء</th>
       </tr></thead>
       <tbody id="usersTable"></tbody></table>
     </div>
@@ -1106,14 +1098,7 @@ async function loadUsers() {
         <select onchange="changeRole('${u.id}',this.value)" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.3rem;font-family:'Outfit',sans-serif;font-size:.8rem;">
           <option value="customer" ${u.role==='customer'?'selected':''}>عميل</option>
           <option value="partner" ${u.role==='partner'?'selected':''}>شريك</option>
-          <option value="cashier" ${u.role==='cashier'?'selected':''}>كاشير</option>
           <option value="admin" ${u.role==='admin'?'selected':''}>مدير</option>
-        </select>
-      </td>
-      <td>
-        <select onchange="changePartnerStatus('${u.id}',this.value)" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.3rem;font-family:'Tajawal',sans-serif;font-size:.8rem;">
-          <option value="false" ${!u.isPartner?'selected':''}>لا</option>
-          <option value="true" ${u.isPartner?'selected':''}>نعم</option>
         </select>
       </td>
       <td class="points-badge"><span class="editable" onclick="editUserPoints('${u.id}',${u.points || 0},this)">${u.points || 0}</span></td>
@@ -1134,18 +1119,17 @@ async function loadUsers() {
   `).join('');
 }
 
-// ????? ?????? ????
+// إضافة مستخدم جديد
 async function addUser() {
   const name = document.getElementById('nu-name').value.trim();
   const phone = document.getElementById('nu-phone').value.trim();
   const email = document.getElementById('nu-email').value.trim();
   const password = document.getElementById('nu-pass').value;
   const role = document.getElementById('nu-role').value;
-  const isPartner = document.getElementById('nu-partner').value === 'true';
   if(!name || !password) { showModal('تنبيه', 'يرجى إدخال الاسم وكلمة المرور'); return; }
   if(!phone && !email) { showModal('تنبيه', 'يرجى تقديم الهاتف أو البريد الإلكتروني على الأقل'); return; }
   try {
-    const res = await fetch('/api/admin/users', { method:'POST', headers: getAuthH(), body: JSON.stringify({name, phone, email: email || undefined, password, role, isPartner}) });
+    const res = await fetch('/api/admin/users', { method:'POST', headers: getAuthH(), body: JSON.stringify({name, phone, email: email || undefined, password, role}) });
     const data = await res.json();
     if(data.success) {
       document.getElementById('nu-name').value = '';
