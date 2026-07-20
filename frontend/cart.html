@@ -362,29 +362,29 @@
       <div class="tracker-progress" id="trackerProgress"></div>
 
       <div class="tracker-step active" id="step-sent">
-        <div class="step-icon">📤</div>
-        <span class="step-label" data-ar="أُرسل" data-en="Sent">Sent</span>
+        <div class="step-icon">⌛</div>
+        <span class="step-label" data-ar="قائمة الانتظار" data-en="Waiting List">قائمة الانتظار</span>
       </div>
 
       <div class="tracker-step" id="step-received">
         <div class="step-icon">👨‍🍳</div>
-        <span class="step-label" data-ar="استلمه الكاشير" data-en="Received">Received</span>
+        <span class="step-label" data-ar="تم قبول الطلب" data-en="Accepted">تم قبول الطلب</span>
       </div>
 
       <div class="tracker-step" id="step-preparing">
         <div class="step-icon">☕</div>
-        <span class="step-label" data-ar="قيد التحضير" data-en="Preparing">Preparing</span>
+        <span class="step-label" data-ar="قيد التحضير" data-en="Preparing">قيد التحضير</span>
       </div>
 
       <div class="tracker-step" id="step-ready">
-        <div class="step-icon">✅</div>
-        <span class="step-label" data-ar="جاهز!" data-en="Ready!">Ready!</span>
+        <div class="step-icon">🎉</div>
+        <span class="step-label" data-ar="جاهز للتقديم!" data-en="Ready!">جاهز للتقديم!</span>
       </div>
     </div>
     <!-- ===== end tracker ===== -->
 
-    <p style="font-size:0.9rem; color:var(--text); margin: 1rem 0 1.5rem; line-height:1.6;" id="thankYouMsg">Your order has been confirmed. Please wait while we prepare your drinks.</p>
-    <button class="btn-gold" style="width:100%; justify-content:center;" onclick="closeThankYou()" data-en="Done" data-ar="تم">Done</button>
+    <p style="font-size:0.92rem; color:var(--text); margin: 1.2rem 0 1.5rem; line-height:1.6; font-weight:600; font-family:'Tajawal',sans-serif; background:var(--bg3); padding:0.8rem 1rem; border-radius:var(--rad); border:1px solid var(--line);" id="thankYouMsg">جاري متابعة حالة طلبك المباشرة...</p>
+    <button class="btn-gold" style="width:100%; justify-content:center;" onclick="closeThankYou()" data-en="Done" data-ar="موافق">موافق</button>
   </div>
 </div>
 
@@ -797,20 +797,37 @@
         if (!res.ok) return;
         const data = await res.json();
         const status = (data.status || 'pending').toLowerCase();
+        const msgEl = document.getElementById('thankYouMsg');
+        const isAr = currentLang === 'ar';
 
         if (status === 'pending' || status === 'created' || status === 'sent') {
           setTrackerStep(0, 'active');
+          if (msgEl) msgEl.textContent = isAr 
+            ? 'طلبك الآن في قائمة الانتظار، بانتظار موافقة واستلام الكاشير...' 
+            : 'Your order is in the waiting list, awaiting cashier confirmation...';
         } else if (status === 'received' || status === 'accepted' || status === 'confirmed') {
           setTrackerStep(1, 'active');
+          if (msgEl) msgEl.textContent = isAr 
+            ? 'تم قبول واستلام طلبك بنجاح من الكاشير ✦' 
+            : 'Your order has been accepted & confirmed by cashier ✦';
         } else if (status === 'preparing' || status === 'in_progress' || status === 'processing') {
           setTrackerStep(2, 'active');
+          if (msgEl) msgEl.textContent = isAr 
+            ? 'طلبك قيد التحضير الآن في المطبخ ☕' 
+            : 'Your order is currently being prepared in the kitchen ☕';
         } else if (status === 'ready' || status === 'served' || status === 'completed' || status === 'paid') {
           setTrackerStep(3, 'done');
           const pEl = document.getElementById('trackerProgress');
           if (pEl) pEl.style.width = '100%';
+          if (msgEl) msgEl.textContent = isAr 
+            ? 'طلبك جاهز للتقديم! نتمنى لك تجربة ممتعة في أوزيل كافيه 🎉' 
+            : 'Your order is ready to serve! Enjoy your time at OZEL CAFE 🎉';
           clearInterval(trackTimer);
         } else if (status === 'cancelled' || status === 'rejected') {
           setTrackerStep(1, 'cancelled');
+          if (msgEl) msgEl.textContent = isAr 
+            ? 'عفواً، تم إلغاء الطلب من قبل الكاشير.' 
+            : 'Order was cancelled by the cashier.';
           clearInterval(trackTimer);
         }
       } catch (err) {
