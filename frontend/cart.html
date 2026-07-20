@@ -740,9 +740,14 @@
     const msgEl = document.getElementById('thankYouMsg');
     const modalEl = document.getElementById('thankYouModal');
 
-    if (orderIdEl) orderIdEl.textContent = '#' + orderId;
-    if (msgEl) msgEl.textContent = msg;
-    if (modalEl) modalEl.style.display = 'flex';
+    if (orderIdEl) orderIdEl.textContent = '#' + (orderId ? String(orderId).slice(-6) : '--');
+    if (msgEl) msgEl.textContent = msg || '';
+    if (modalEl) {
+      modalEl.style.display = 'flex';
+      modalEl.style.flexDirection = 'row';
+      modalEl.style.justifyContent = 'center';
+      modalEl.style.alignItems = 'center';
+    }
 
     startOrderTracking(orderId);
   }
@@ -751,7 +756,6 @@
     if (!orderId) return;
     if (trackTimer) clearInterval(trackTimer);
 
-    // خطوات التراكر: [stepId, نسبة التقدم عند الوصول لها]
     const STEPS = [
       { id: 'step-sent',      progress: 0   },
       { id: 'step-received',  progress: 33  },
@@ -761,7 +765,6 @@
 
     function setTrackerStep(activeIndex, state) {
       const progressEl = document.getElementById('trackerProgress');
-      // عدد الأقسام بين الخطوات
       const pct = activeIndex === 0 ? 0
                 : activeIndex === 1 ? 33
                 : activeIndex === 2 ? 66
@@ -795,7 +798,8 @@
           setTrackerStep(2, 'active');
         } else if (status === 'served' || status === 'completed') {
           setTrackerStep(3, 'done');
-          if (progressEl) document.getElementById('trackerProgress').style.width = '100%';
+          const pEl = document.getElementById('trackerProgress');
+          if (pEl) pEl.style.width = '100%';
           clearInterval(trackTimer);
         } else if (status === 'cancelled') {
           setTrackerStep(1, 'cancelled');
@@ -806,7 +810,6 @@
       }
     };
 
-    // الخطوة الأولى جاهزة فوراً
     setTrackerStep(0, 'active');
     checkStatus();
     trackTimer = setInterval(checkStatus, 3000);

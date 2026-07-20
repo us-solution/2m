@@ -133,16 +133,37 @@ async function loadPartners() {
         container.innerHTML = `<p style="color: var(--muted); font-size: 0.9rem; text-align: center; width: 100%; font-family: 'Tajawal', sans-serif;">${currentLang === 'ar' ? 'لا يوجد شركاء مضافون بعد' : 'No partners added yet'}</p>`;
         return;
       }
+      // عرض الكروت أولاً مع placeholder للصور
       container.innerHTML = partners.map(p => `
-        <div class="partner-card" onclick="location.href='profile.html?id=${p._id}'" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; background: var(--bg3); border: 1px solid var(--line); border-radius: var(--rad-lg); padding: 1.2rem; width: 270px; flex-shrink: 0; transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 12px 30px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
-          <div style="position: relative; width: 100%; height: 190px; border-radius: var(--rad); overflow: hidden; background: var(--bg2); margin-bottom: 0.9rem;">
-            <img src="${p.partnerMainImage || p.partnerLogo || 'imgs/Ozel-Logo--01.png'}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover;" />
-            ${p.partnerLogo ? `<div style="position: absolute; bottom: 8px; right: 8px; width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--gold); overflow: hidden; background: var(--bg); box-shadow: 0 4px 12px rgba(0,0,0,0.3);"><img src="${p.partnerLogo}" style="width:100%; height:100%; object-fit:cover;" /></div>` : ''}
+        <div class="partner-card" id="pcard-${p._id}" onclick="location.href='profile.html?id=${p._id}'" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; background: var(--bg3); border: 1px solid var(--line); border-radius: var(--rad-lg); padding: 1.2rem; width: 270px; flex-shrink: 0; transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 12px 30px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+          <div style="position: relative; width: 100%; height: 190px; border-radius: var(--rad); overflow: hidden; background: var(--bg2); margin-bottom: 0.9rem; display:flex; align-items:center; justify-content:center;">
+            <img id="pimg-${p._id}" src="imgs/Ozel-Logo--01.png" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s;" />
+            <div id="plogo-${p._id}" style="position: absolute; bottom: 8px; right: 8px; width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--gold); overflow: hidden; background: var(--bg); box-shadow: 0 4px 12px rgba(0,0,0,0.3); display:none;"><img style="width:100%; height:100%; object-fit:cover;" /></div>
           </div>
           <h3 style="font-family: 'Tajawal', sans-serif; font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 0.4rem; text-align: center;">${p.name}</h3>
           ${p.partnerBrief ? `<p style="font-family: 'Tajawal', sans-serif; font-size: 0.82rem; color: var(--muted); text-align: center; line-height: 1.45; word-break: break-word; margin: 0; background: var(--bg2); padding: 0.5rem 0.75rem; border-radius: var(--rad); border: 1px solid var(--line); width: 100%;">${p.partnerBrief.slice(0, 140)}</p>` : ''}
         </div>
       `).join('');
+
+      // تحميل الصور بشكل lazy لكل شريك
+      partners.forEach(async (p) => {
+        try {
+          const imgRes = await fetch(`/api/auth/partners/${p._id}/image`);
+          if (!imgRes.ok) return;
+          const imgs = await imgRes.json();
+          const mainImgEl = document.getElementById(`pimg-${p._id}`);
+          const logoContainer = document.getElementById(`plogo-${p._id}`);
+          if (mainImgEl) {
+            const src = imgs.partnerMainImage || imgs.partnerLogo;
+            if (src) mainImgEl.src = src;
+          }
+          if (logoContainer && imgs.partnerLogo && imgs.partnerMainImage) {
+            logoContainer.style.display = 'block';
+            logoContainer.querySelector('img').src = imgs.partnerLogo;
+          }
+        } catch(e) { /* صورة مش متاحة */ }
+      });
+
     } else {
       container.innerHTML = `<p style="color: var(--muted); font-size: 0.9rem; text-align: center; width: 100%; font-family: 'Tajawal', sans-serif;">${currentLang === 'ar' ? 'لا يوجد شركاء حالياً' : 'No partners currently'}</p>`;
     }

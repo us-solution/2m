@@ -181,26 +181,29 @@ router.get('/me/points', authenticateToken, async (req, res) => {
   }
 });
 
-// جالب قائمة الشركاء النشطين (عام - بدون الصور الضخمة لتجنب timeout في Vercel)
+// جالب قائمة الشركاء النشطين (عام - بدون الصور لتجنب timeout في Vercel)
 router.get('/partners', async (req, res) => {
   try {
     const partners = await User.find({ $or: [{ isPartner: true }, { role: 'partner' }] })
-      .select('name partnerBrief partnerLogo partnerMainImage')
+      .select('name partnerBrief')
       .lean();
-    
-    // إرجاع أول 200 حرف من الصورة فقط للتحقق من وجودها، وإرجاع placeholder flag
-    const lightweight = partners.map(p => ({
-      _id: p._id,
-      name: p.name,
-      partnerBrief: p.partnerBrief || '',
-      hasLogo: !!(p.partnerLogo && p.partnerLogo.length > 10),
-      hasMainImage: !!(p.partnerMainImage && p.partnerMainImage.length > 10),
-      // إرجاع الصور مضغوطة للعرض في الـ grid (أول 100KB فقط)
-      partnerLogo: p.partnerLogo ? p.partnerLogo.substring(0, 100000) : '',
-      partnerMainImage: p.partnerMainImage ? p.partnerMainImage.substring(0, 100000) : ''
-    }));
-    
-    res.json(lightweight);
+    res.json(partners);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// جلب صورة شريك محدد (endpoint منفصل لتجنب timeout)
+router.get('/partners/:id/image', async (req, res) => {
+  try {
+    const p = await User.findOne({ _id: req.params.id, $or: [{ isPartner: true }, { role: 'partner' }] })
+      .select('partnerLogo partnerMainImage')
+      .lean();
+    if (!p) return res.status(404).json({ error: 'Not found' });
+    res.json({
+      partnerLogo: p.partnerLogo || '',
+      partnerMainImage: p.partnerMainImage || ''
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
