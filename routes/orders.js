@@ -370,6 +370,8 @@ router.get('/', authenticateToken, requireRole('cashier'), async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
 // تتبع حالة الطلب للعميل (عام متاح لزوار وطاولات المقهى بدون مصادقة)
 router.get('/track/:id', async (req, res) => {
   try {
