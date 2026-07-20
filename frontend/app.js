@@ -2985,3 +2985,262 @@ window.savePartnerProfile = async function() {
     msgEl.style.color = 'var(--red)';
   }
 };
+
+// ===== نظام تتبع الطلب المباشر الشامل (شريط عائم ونافذة تفاعلية في كل صفحات الموقع) =====
+(function initGlobalOrderTracker() {
+  let globalTrackTimer = null;
+
+  function getActiveOrderId() {
+    try {
+      const orderId = localStorage.getItem('ozel_active_order_id');
+      const orderTime = parseInt(localStorage.getItem('ozel_active_order_time') || '0', 10);
+      if (orderId && (Date.now() - orderTime < 3 * 60 * 60 * 1000)) {
+        return orderId;
+      }
+    } catch(e) {}
+    return null;
+  }
+
+  function createTrackerUI() {
+    if (document.getElementById('globalTrackerBar')) return;
+
+    const isAr = (localStorage.getItem('ozel_lang') || 'ar') === 'ar';
+
+    // 1. الشريط العائم المباشر أسفل الشاشة
+    const bar = document.createElement('div');
+    bar.id = 'globalTrackerBar';
+    bar.style.cssText = `
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 99999;
+      width: calc(100% - 32px);
+      max-width: 480px;
+      background: rgba(18, 18, 18, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--gold, #d4af37);
+      border-radius: 50px;
+      padding: 0.75rem 1.25rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(212,175,55,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      cursor: pointer;
+      font-family: 'Tajawal', sans-serif;
+    `;
+
+    bar.onclick = () => window.openGlobalTrackerModal();
+
+    bar.innerHTML = `
+      <div style="display:flex; align-items:center; gap:0.75rem; overflow:hidden;">
+        <div id="gtb-icon-wrap" style="width:38px; height:38px; border-radius:50%; background:rgba(212,175,55,0.15); border:1px solid var(--gold, #d4af37); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0;">⌛</div>
+        <div style="display:flex; flex-direction:column; min-width:0;">
+          <span style="font-size:0.75rem; color:var(--gold, #d4af37); font-weight:700; letter-spacing:0.03em;" id="gtb-title">${isAr ? 'تتبع طلبك المباشر ✦' : 'Live Order Tracking ✦'}</span>
+          <span style="font-size:0.85rem; color:#fff; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="gtb-status">${isAr ? 'في قائمة الانتظار...' : 'In Waiting List...'}</span>
+        </div>
+      </div>
+      <button style="background:var(--gold, #d4af37); color:#000; border:none; border-radius:20px; padding:0.45rem 0.9rem; font-size:0.8rem; font-weight:700; font-family:'Tajawal',sans-serif; cursor:pointer; flex-shrink:0;">${isAr ? 'عرض' : 'View'}</button>
+    `;
+
+    document.body.appendChild(bar);
+
+    // 2. النافذة المفصلة للتتبع (Modal)
+    const modal = document.createElement('div');
+    modal.id = 'globalTrackerModal';
+    modal.style.cssText = `
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      justify-content: center;
+      align-items: center;
+      z-index: 999999;
+      padding: 1.5rem;
+      font-family: 'Tajawal', sans-serif;
+    `;
+
+    modal.innerHTML = `
+      <div style="max-width:440px; width:100%; background:var(--bg2, #181818); border:1px solid var(--gold, #d4af37); border-radius:20px; padding:2.2rem 1.8rem; text-align:center; box-shadow:0 16px 50px rgba(0,0,0,0.6); position:relative;">
+        <button onclick="window.closeGlobalTrackerModal()" style="position:absolute; top:14px; right:16px; background:none; border:none; color:var(--muted, #888); font-size:1.4rem; cursor:pointer;">✕</button>
+        <div style="margin-bottom:1rem;">
+          <img src="imgs/Ozel-Logo--01.png" alt="OZEL CAFE" style="height:55px; opacity:0.9;"/>
+        </div>
+        <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:var(--gold, #d4af37); margin-bottom:0.2rem;" id="gtm-header-title">${isAr ? 'تتبع حالة الطلب المباشرة' : 'Live Order Tracking'}</h3>
+        <p style="font-size:0.8rem; color:var(--muted, #888); margin-bottom:1.5rem;"><span data-en="Order ID:" data-ar="رقم الطلب:">${isAr ? 'رقم الطلب:' : 'Order ID:'}</span> <strong id="gtm-order-id" style="color:var(--gold, #d4af37)">#--</strong></p>
+
+        <!-- Stepper Visual -->
+        <div style="display:flex; justify-content:space-between; align-items:center; position:relative; margin:2rem 0; padding:0 0.5rem;">
+          <div id="gtm-progress-line" style="position:absolute; top:20px; left:12%; right:12%; height:3px; background:var(--line, #333); z-index:1;">
+            <div id="gtm-progress-fill" style="height:100%; width:0%; background:var(--gold, #d4af37); transition:width 0.5s ease;"></div>
+          </div>
+
+          <div id="gtm-step-0" style="position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:0.4rem;">
+            <div class="gtm-icon" style="width:42px; height:42px; border-radius:50%; background:var(--bg3, #222); border:2px solid var(--line, #333); display:flex; align-items:center; justify-content:center; font-size:1.1rem; transition:all 0.3s;">⌛</div>
+            <span style="font-size:0.72rem; color:var(--muted, #888); font-weight:600;">${isAr ? 'قائمة الانتظار' : 'Waiting List'}</span>
+          </div>
+
+          <div id="gtm-step-1" style="position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:0.4rem;">
+            <div class="gtm-icon" style="width:42px; height:42px; border-radius:50%; background:var(--bg3, #222); border:2px solid var(--line, #333); display:flex; align-items:center; justify-content:center; font-size:1.1rem; transition:all 0.3s;">👨‍🍳</div>
+            <span style="font-size:0.72rem; color:var(--muted, #888); font-weight:600;">${isAr ? 'تم القبول' : 'Accepted'}</span>
+          </div>
+
+          <div id="gtm-step-2" style="position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:0.4rem;">
+            <div class="gtm-icon" style="width:42px; height:42px; border-radius:50%; background:var(--bg3, #222); border:2px solid var(--line, #333); display:flex; align-items:center; justify-content:center; font-size:1.1rem; transition:all 0.3s;">☕</div>
+            <span style="font-size:0.72rem; color:var(--muted, #888); font-weight:600;">${isAr ? 'قيد التحضير' : 'Preparing'}</span>
+          </div>
+
+          <div id="gtm-step-3" style="position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:0.4rem;">
+            <div class="gtm-icon" style="width:42px; height:42px; border-radius:50%; background:var(--bg3, #222); border:2px solid var(--line, #333); display:flex; align-items:center; justify-content:center; font-size:1.1rem; transition:all 0.3s;">🎉</div>
+            <span style="font-size:0.72rem; color:var(--muted, #888); font-weight:600;">${isAr ? 'جاهز!' : 'Ready!'}</span>
+          </div>
+        </div>
+
+        <p id="gtm-status-msg" style="font-size:0.9rem; color:var(--text, #fff); margin:1.2rem 0; line-height:1.6; font-weight:600; background:var(--bg3, #222); padding:0.8rem 1rem; border-radius:12px; border:1px solid var(--line, #333);">${isAr ? 'جاري التحقق من حالة الطلب...' : 'Checking order status...'}</p>
+        <button class="btn-gold" style="width:100%; justify-content:center;" onclick="window.closeGlobalTrackerModal()">${isAr ? 'موافق' : 'OK'}</button>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+  }
+
+  window.openGlobalTrackerModal = function() {
+    const modal = document.getElementById('globalTrackerModal');
+    if (modal) {
+      modal.style.display = 'flex';
+    }
+  };
+
+  window.closeGlobalTrackerModal = function() {
+    const modal = document.getElementById('globalTrackerModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  };
+
+  function updateGlobalTrackerState(orderId, status) {
+    const isAr = (localStorage.getItem('ozel_lang') || 'ar') === 'ar';
+    createTrackerUI();
+
+    const gtbIcon = document.getElementById('gtb-icon-wrap');
+    const gtbStatus = document.getElementById('gtb-status');
+    const gtmOrderId = document.getElementById('gtm-order-id');
+    const gtmStatusMsg = document.getElementById('gtm-status-msg');
+    const fill = document.getElementById('gtm-progress-fill');
+
+    if (gtmOrderId) gtmOrderId.textContent = '#' + String(orderId).slice(-6);
+
+    const s = (status || 'pending').toLowerCase();
+
+    let stepIndex = 0;
+    let icon = '⌛';
+    let shortText = isAr ? 'في قائمة الانتظار ⌛' : 'In Waiting List ⌛';
+    let fullMsg = isAr ? 'طلبك الآن في قائمة الانتظار، بانتظار موافقة واستلام الكاشير...' : 'Your order is currently in the waiting list...';
+
+    if (s === 'pending' || s === 'created' || s === 'sent') {
+      stepIndex = 0;
+      icon = '⌛';
+      shortText = isAr ? 'في قائمة الانتظار ⌛' : 'In Waiting List ⌛';
+      fullMsg = isAr ? 'طلبك الآن في قائمة الانتظار، بانتظار موافقة واستلام الكاشير...' : 'Your order is currently in the waiting list...';
+    } else if (s === 'received' || s === 'accepted' || s === 'confirmed') {
+      stepIndex = 1;
+      icon = '👨‍🍳';
+      shortText = isAr ? 'تم قبول الطلب من الكاشير ✦' : 'Order Accepted ✦';
+      fullMsg = isAr ? 'تم قبول واستلام طلبك بنجاح من الكاشير ✦' : 'Your order has been accepted & confirmed by cashier ✦';
+    } else if (s === 'preparing' || s === 'in_progress' || s === 'processing') {
+      stepIndex = 2;
+      icon = '☕';
+      shortText = isAr ? 'قيد التحضير في المطبخ ☕' : 'Preparing in Kitchen ☕';
+      fullMsg = isAr ? 'طلبك قيد التحضير الآن في المطبخ ☕' : 'Your order is currently being prepared in the kitchen ☕';
+    } else if (s === 'ready' || s === 'served' || s === 'completed' || s === 'paid') {
+      stepIndex = 3;
+      icon = '🎉';
+      shortText = isAr ? 'طلبك جاهز للتقديم! 🎉' : 'Ready to Serve! 🎉';
+      fullMsg = isAr ? 'طلبك جاهز للتقديم! نتمنى لك تجربة ممتعة في أوزيل كافيه 🎉' : 'Your order is ready to serve! Enjoy your time at OZEL CAFE 🎉';
+    } else if (s === 'cancelled' || s === 'rejected') {
+      stepIndex = 1;
+      icon = '❌';
+      shortText = isAr ? 'تم إلغاء الطلب' : 'Order Cancelled';
+      fullMsg = isAr ? 'عفواً، تم إلغاء الطلب من قبل الكاشير.' : 'Order was cancelled by the cashier.';
+    }
+
+    if (gtbIcon) gtbIcon.textContent = icon;
+    if (gtbStatus) gtbStatus.textContent = shortText;
+    if (gtmStatusMsg) gtmStatusMsg.textContent = fullMsg;
+
+    const pct = stepIndex === 0 ? 0 : stepIndex === 1 ? 33 : stepIndex === 2 ? 66 : 100;
+    if (fill) fill.style.width = pct + '%';
+
+    [0, 1, 2, 3].forEach(idx => {
+      const stepEl = document.getElementById('gtm-step-' + idx);
+      if (!stepEl) return;
+      const iconEl = stepEl.querySelector('.gtm-icon');
+      const textEl = stepEl.querySelector('span');
+
+      if (!iconEl) return;
+
+      if (s === 'cancelled' && idx === stepIndex) {
+        iconEl.style.background = 'rgba(239,68,68,0.2)';
+        iconEl.style.borderColor = '#ef4444';
+        iconEl.style.color = '#ef4444';
+        if (textEl) textEl.style.color = '#ef4444';
+      } else if (idx < stepIndex || (idx === 3 && stepIndex === 3)) {
+        iconEl.style.background = 'rgba(34,197,94,0.2)';
+        iconEl.style.borderColor = '#22c55e';
+        iconEl.style.color = '#22c55e';
+        if (textEl) textEl.style.color = '#22c55e';
+      } else if (idx === stepIndex) {
+        iconEl.style.background = 'rgba(212,175,55,0.25)';
+        iconEl.style.borderColor = 'var(--gold, #d4af37)';
+        iconEl.style.color = 'var(--gold, #d4af37)';
+        if (textEl) { textEl.style.color = 'var(--gold, #d4af37)'; textEl.style.fontWeight = '700'; }
+      } else {
+        iconEl.style.background = 'var(--bg3, #222)';
+        iconEl.style.borderColor = 'var(--line, #333)';
+        iconEl.style.color = 'var(--muted, #888)';
+        if (textEl) { textEl.style.color = 'var(--muted, #888)'; textEl.style.fontWeight = '600'; }
+      }
+    });
+  }
+
+  async function checkGlobalOrderStatus(orderId) {
+    try {
+      const res = await fetch('/api/orders/track/' + orderId);
+      if (!res.ok) return;
+      const data = await res.json();
+      updateGlobalTrackerState(orderId, data.status);
+    } catch(e) {}
+  }
+
+  window.startGlobalOrderTracker = function(orderId) {
+    if (!orderId) return;
+    try {
+      localStorage.setItem('ozel_active_order_id', String(orderId));
+      localStorage.setItem('ozel_active_order_time', String(Date.now()));
+    } catch(e) {}
+
+    createTrackerUI();
+    checkGlobalOrderStatus(orderId);
+
+    if (globalTrackTimer) clearInterval(globalTrackTimer);
+    globalTrackTimer = setInterval(() => checkGlobalOrderStatus(orderId), 3500);
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const activeOrderId = getActiveOrderId();
+    if (activeOrderId) {
+      window.startGlobalOrderTracker(activeOrderId);
+    }
+  });
+
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    const activeOrderId = getActiveOrderId();
+    if (activeOrderId) {
+      window.startGlobalOrderTracker(activeOrderId);
+    }
+  }
+})();
