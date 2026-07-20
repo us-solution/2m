@@ -129,12 +129,12 @@ async function loadPartners() {
     const res = await fetch('/api/auth/partners');
     if (res.ok) {
       const partners = await res.json();
-      if (partners.length === 0) {
-        container.innerHTML = `<p style="color: var(--muted); font-size: 0.9rem;" data-en="No partners added yet" data-ar="لا يوجد شركاء مضافون بعد">No partners added yet</p>`;
+      if (!Array.isArray(partners) || partners.length === 0) {
+        container.innerHTML = `<p style="color: var(--muted); font-size: 0.9rem; text-align: center; width: 100%; font-family: 'Tajawal', sans-serif;">${currentLang === 'ar' ? 'لا يوجد شركاء مضافون بعد' : 'No partners added yet'}</p>`;
         return;
       }
       container.innerHTML = partners.map(p => `
-        <div class="partner-card" onclick="location.href='profile.html?id=${p._id}'" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; background: var(--bg3); border: 1px solid var(--line); border-radius: var(--rad-lg); padding: 1.2rem; width: 270px; transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 12px 30px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+        <div class="partner-card" onclick="location.href='profile.html?id=${p._id}'" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; background: var(--bg3); border: 1px solid var(--line); border-radius: var(--rad-lg); padding: 1.2rem; width: 270px; flex-shrink: 0; transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 12px 30px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
           <div style="position: relative; width: 100%; height: 190px; border-radius: var(--rad); overflow: hidden; background: var(--bg2); margin-bottom: 0.9rem;">
             <img src="${p.partnerMainImage || p.partnerLogo || 'imgs/Ozel-Logo--01.png'}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover;" />
             ${p.partnerLogo ? `<div style="position: absolute; bottom: 8px; right: 8px; width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--gold); overflow: hidden; background: var(--bg); box-shadow: 0 4px 12px rgba(0,0,0,0.3);"><img src="${p.partnerLogo}" style="width:100%; height:100%; object-fit:cover;" /></div>` : ''}
@@ -143,8 +143,13 @@ async function loadPartners() {
           ${p.partnerBrief ? `<p style="font-family: 'Tajawal', sans-serif; font-size: 0.82rem; color: var(--muted); text-align: center; line-height: 1.45; word-break: break-word; margin: 0; background: var(--bg2); padding: 0.5rem 0.75rem; border-radius: var(--rad); border: 1px solid var(--line); width: 100%;">${p.partnerBrief.slice(0, 140)}</p>` : ''}
         </div>
       `).join('');
+    } else {
+      container.innerHTML = `<p style="color: var(--muted); font-size: 0.9rem; text-align: center; width: 100%; font-family: 'Tajawal', sans-serif;">${currentLang === 'ar' ? 'لا يوجد شركاء حالياً' : 'No partners currently'}</p>`;
     }
-  } catch(e) { console.warn('Failed to load partners', e); }
+  } catch(e) {
+    console.warn('Failed to load partners', e);
+    container.innerHTML = `<p style="color: var(--muted); font-size: 0.9rem; text-align: center; width: 100%; font-family: 'Tajawal', sans-serif;">${currentLang === 'ar' ? 'عفواً، تعذر تحميل قائمة الشركاء' : 'Unable to load partners'}</p>`;
+  }
 }
 
 // ===== التمرير السلس للأقسام =====

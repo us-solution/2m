@@ -181,10 +181,10 @@ router.get('/me/points', authenticateToken, async (req, res) => {
   }
 });
 
-// جلب قائمة الشركاء النشطين (عام)
+// جالب قائمة الشركاء النشطين (عام - بدون إرجاع المعرض الضخم للسرعة)
 router.get('/partners', async (req, res) => {
   try {
-    const partners = await User.find({ $or: [{ isPartner: true }, { role: 'partner' }] }).select('name partnerLogo partnerBio partnerMainImage partnerBrief partnerGallery');
+    const partners = await User.find({ $or: [{ isPartner: true }, { role: 'partner' }] }).select('name partnerLogo partnerMainImage partnerBrief');
     res.json(partners);
   } catch (err) {
     res.status(500).json({ error: err.message });
