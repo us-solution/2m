@@ -5444,5 +5444,72 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   max-width: 650px !important;
 }
 
+/* ===== Luxury Mobile Partner Profile Responsive Styles ===== */
+.partner-gallery-grid-responsive {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.25rem;
+  width: 100%;
+}
+
+@media (max-width: 650px) {
+  #profileModal .modal-panel {
+    width: 96% !important;
+    max-width: 96% !important;
+    border-radius: 20px !important;
+    padding: 1rem 0.8rem 1.8rem !important;
+    margin: 8px auto !important;
+  }
+  
+  .partner-banner-header {
+    min-height: 180px !important;
+    padding: 1.2rem 1rem 1rem !important;
+    border-radius: 16px !important;
+  }
+  
+  .partner-banner-logo {
+    width: 76px !important;
+    height: 76px !important;
+    border-width: 2.5px !important;
+  }
+  
+  .partner-banner-title {
+    font-size: 1.7rem !important;
+  }
+
+  .partner-gallery-grid-responsive {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+  
+  .partner-gallery-item {
+    border-radius: 14px !important;
+  }
+  
+  .partner-gallery-img-container {
+    height: 165px !important;
+  }
+  
+  .partner-brief-box {
+    padding: 0.85rem 1rem !important;
+    font-size: 0.88rem !important;
+  }
+
+  .partner-action-btn {
+    width: 32px !important;
+    height: 32px !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .partner-gallery-grid-responsive {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+  .partner-gallery-img-container {
+    height: 140px !important;
+  }
+}
+
 
 

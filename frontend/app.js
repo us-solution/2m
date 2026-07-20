@@ -2642,18 +2642,18 @@ window.loadPublicPartnerProfile = async function(pid) {
         const heartFill = isFav ? 'var(--gold)' : 'none';
         
         return `
-          <div class="partner-gallery-item" style="position: relative; border-radius: var(--rad-lg); overflow: hidden; border: 1px solid var(--line); background: var(--bg3); box-shadow: 0 6px 20px rgba(0,0,0,0.1); transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 12px 30px rgba(0,0,0,0.25)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 6px 20px rgba(0,0,0,0.1)'">
-            <div style="width: 100%; height: 230px; position: relative; overflow: hidden; cursor: pointer;" onclick="openVlogLightbox('${safeImg}', '${partner.name.replace(/'/g, "\\'")}')">
+          <div class="partner-gallery-item" style="position: relative; border-radius: var(--rad-lg); overflow: hidden; border: 1px solid var(--line); background: var(--bg3); box-shadow: 0 6px 20px rgba(0,0,0,0.1); transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 10px 25px rgba(0,0,0,0.25)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 6px 20px rgba(0,0,0,0.1)'">
+            <div class="partner-gallery-img-container" style="width: 100%; height: 210px; position: relative; overflow: hidden; cursor: pointer;" onclick="openVlogLightbox('${safeImg}', '${partner.name.replace(/'/g, "\\'")}')">
               <img src="${imgUrl}" alt="${partner.name}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'" />
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg2); border-top: 1px solid var(--line);">
-              <span style="font-size: 0.8rem; color: var(--muted); font-family: 'Tajawal', sans-serif;">📷 ${isAr ? `صورة ${idx+1}` : `Photo ${idx+1}`}</span>
-              <div style="display: flex; gap: 0.6rem; align-items: center;">
-                <button onclick="event.stopPropagation(); window.togglePartnerImageFavorite('${safeImg}', this)" title="${isAr ? 'إضافة للمفضلة' : 'Favorite'}" style="background: var(--bg3); border: 1px solid var(--line); color: var(--gold); border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">
-                  <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: ${heartFill}; stroke: var(--gold); stroke-width: 2;"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0.85rem; background: var(--bg2); border-top: 1px solid var(--line);">
+              <span style="font-size: 0.78rem; color: var(--muted); font-family: 'Tajawal', sans-serif;">📷 ${isAr ? `صورة ${idx+1}` : `Photo ${idx+1}`}</span>
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <button class="partner-action-btn" onclick="event.stopPropagation(); window.togglePartnerImageFavorite('${safeImg}', this)" title="${isAr ? 'إضافة للمفضلة' : 'Favorite'}" style="background: var(--bg3); border: 1px solid var(--line); color: var(--gold); border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">
+                  <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: ${heartFill}; stroke: var(--gold); stroke-width: 2;"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
                 </button>
-                <button onclick="event.stopPropagation(); window.downloadImage('${safeImg}', 'ozel-partner-${idx+1}.jpg')" title="${isAr ? 'تنزيل الصورة' : 'Download photo'}" style="background: var(--bg3); border: 1px solid var(--line); color: var(--text); border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">
-                  <svg viewBox="0 0 24 24" style="width: 17px; height: 17px;"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                <button class="partner-action-btn" onclick="event.stopPropagation(); window.downloadImage('${safeImg}', 'ozel-partner-${idx+1}.jpg')" title="${isAr ? 'تنزيل الصورة' : 'Download photo'}" style="background: var(--bg3); border: 1px solid var(--line); color: var(--text); border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">
+                  <svg viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
                 </button>
               </div>
             </div>
@@ -2663,29 +2663,29 @@ window.loadPublicPartnerProfile = async function(pid) {
     }
 
     bodyEl.innerHTML = `
-      <div style="display: flex; flex-direction: column; gap: 1.8rem; font-family: 'Tajawal', sans-serif;">
+      <div style="display: flex; flex-direction: column; gap: 1.5rem; font-family: 'Tajawal', sans-serif;">
         <!-- Banner / Header -->
-        <div style="position: relative; border-radius: var(--rad-lg); overflow: hidden; background: linear-gradient(135deg, #111 0%, #1e1e1e 100%); border: 1px solid var(--line); min-height: 200px; display: flex; flex-direction: column; justify-content: flex-end; padding: 1.8rem 1.5rem 1.5rem;">
+        <div class="partner-banner-header" style="position: relative; border-radius: var(--rad-lg); overflow: hidden; background: linear-gradient(135deg, #111 0%, #1e1e1e 100%); border: 1px solid var(--line); min-height: 200px; display: flex; flex-direction: column; justify-content: flex-end; padding: 1.8rem 1.5rem 1.5rem;">
           ${partner.partnerMainImage ? `
             <img src="${partner.partnerMainImage}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; filter: brightness(0.95);" />
             <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.25) 100%);"></div>
           ` : ''}
           <div style="position: relative; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 1.2rem;">
-            <div style="width: 90px; height: 90px; border-radius: 50%; overflow: hidden; border: 3px solid var(--gold); background: var(--bg); box-shadow: 0 8px 25px rgba(212,175,55,0.4); flex-shrink: 0;">
+            <div class="partner-banner-logo" style="width: 90px; height: 90px; border-radius: 50%; overflow: hidden; border: 3px solid var(--gold); background: var(--bg); box-shadow: 0 8px 25px rgba(212,175,55,0.4); flex-shrink: 0;">
               <img src="${partner.partnerLogo || 'imgs/Ozel-Logo--01.png'}" alt="${partner.name}" style="width: 100%; height: 100%; object-fit: cover;" />
             </div>
-            <div style="flex: 1; min-width: 200px;">
+            <div style="flex: 1; min-width: 180px;">
               <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid var(--gold); padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.4rem;">
                 <span>✦</span> <span>${isAr ? 'شريك نجاح أوزيل' : 'OZEL SUCCESS PARTNER'}</span>
               </div>
-              <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; color: #fff; font-weight: 700; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">${partner.name}</h2>
+              <h2 class="partner-banner-title" style="font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; color: #fff; font-weight: 700; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">${partner.name}</h2>
             </div>
           </div>
         </div>
 
         <!-- Brief Box -->
         ${partner.partnerBrief ? `
-          <div style="background: var(--bg3); border-right: 4px solid var(--gold); padding: 1rem 1.25rem; border-radius: var(--rad); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); border-left: 1px solid var(--line); display: flex; align-items: flex-start; gap: 0.8rem;">
+          <div class="partner-brief-box" style="background: var(--bg3); border-right: 4px solid var(--gold); padding: 1rem 1.25rem; border-radius: var(--rad); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); border-left: 1px solid var(--line); display: flex; align-items: flex-start; gap: 0.8rem;">
             <span style="font-size: 1.4rem; color: var(--gold); line-height: 1;">💬</span>
             <p style="font-size: 0.95rem; color: var(--text); font-weight: 600; margin: 0; line-height: 1.5;">${partner.partnerBrief}</p>
           </div>
@@ -2703,13 +2703,13 @@ window.loadPublicPartnerProfile = async function(pid) {
 
         <!-- Partner Gallery -->
         <div>
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--line);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--line);">
             <h3 style="font-size: 1.15rem; color: var(--text); font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
               <span>🖼️</span> <span>${isAr ? 'معرض صور الشريك' : 'Partner Gallery'}</span>
             </h3>
             <span style="font-size: 0.8rem; color: var(--gold); font-weight: 700; background: var(--bg3); padding: 0.2rem 0.6rem; border-radius: 12px; border: 1px solid var(--line);">${gallery.length} ${isAr ? 'صور' : 'Photos'}</span>
           </div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.25rem;">
+          <div class="partner-gallery-grid-responsive">
             ${galleryCardsHtml}
           </div>
         </div>
