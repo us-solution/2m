@@ -569,7 +569,7 @@
     const useFreeOrder = document.getElementById('useFreeOrderCheck').checked;
 
     const orderData = {
-      table_number: isTakeaway ? 'Takeaway' : String(parseInt(tableNum)),
+      table_number: isTakeaway ? 'Takeaway' : (tableNum ? String(tableNum).trim() : 'Takeaway'),
       items: cart,
       total_price,
       notes,

@@ -206,12 +206,16 @@ router.post('/', async (req, res) => {
           timeout: 4000 // مهلة قصيرة لمنع تعطيل العميل إذا كان الكاشير أوفلاين
         });
 
-        if (stockRes.data && stockRes.data.available === false) {
-          const outOfStockNames = stockRes.data.insufficient.map(i => i.name).join('، ');
-          return res.status(400).json({
-            error: `المنتجات التالية نفدت أو لا تتوفر بالكمية المطلوبة: ${outOfStockNames}`,
-            insufficient: stockRes.data.insufficient
-          });
+        if (stockRes.data && stockRes.data.available === false && Array.isArray(stockRes.data.insufficient)) {
+          // نحظر الطلب فقط للمنتجات التي تأكد نقص مخزونها الفعلي (insufficient) وليس الأصناف المحضرة (not_found)
+          const strictlyOut = stockRes.data.insufficient.filter(i => i.reason === 'insufficient');
+          if (strictlyOut.length > 0) {
+            const outOfStockNames = strictlyOut.map(i => i.name).join('، ');
+            return res.status(400).json({
+              error: `المنتجات التالية نفدت أو لا تتوفر بالكمية المطلوبة: ${outOfStockNames}`,
+              insufficient: strictlyOut
+            });
+          }
         }
       } catch (err) {
         console.warn('[StockCheck] فشل الاتصال بالكاشير للتحقق من المخزون (سيتم تمرير الطلب):', err.message);
