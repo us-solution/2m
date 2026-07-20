@@ -370,6 +370,24 @@ router.get('/', authenticateToken, requireRole('cashier'), async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+// تتبع حالة الطلب للعميل (عام متاح لزوار وطاولات المقهى بدون مصادقة)
+router.get('/track/:id', async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).select('status table_number total_price createdAt isQrConfirmed syncMeta');
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    res.json({
+      success: true,
+      order_id: order._id,
+      status: order.status,
+      table_number: order.table_number,
+      total_price: order.total_price,
+      isQrConfirmed: order.isQrConfirmed,
+      sync_status: order.syncMeta?.syncStatus || 'pending',
+      created_at: order.createdAt
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 

@@ -269,6 +269,12 @@
     </div>
     <div style="font-size:3rem; margin-bottom:0.5rem;">&#10024;</div>
     <h3 style="font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--gold); margin-bottom:0.5rem;" data-en="Thank You!" data-ar="شكراً لك!">Thank You!</h3>
+    
+    <!-- شارة حالة الاستلام الحية من الكاشير -->
+    <div id="orderStatusBadge" style="margin: 1rem 0; padding: 0.8rem 1rem; border-radius: 12px; font-weight: 600; font-size: 0.95rem; background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); transition: all 0.3s ease;">
+      ⏳ جاري إرسال الطلب للكاشير وتأكيده...
+    </div>
+
     <p style="font-size:0.95rem; color:var(--text); margin-bottom:0.3rem; line-height:1.6;" id="thankYouMsg">Your order has been confirmed. Please wait while we prepare your drinks.</p>
     <p style="font-size:0.8rem; color:var(--muted); margin-bottom:1.5rem;"><span data-en="Order ID:" data-ar="رقم الطلب:">Order ID:</span> <strong id="tyOrderId" style="color:var(--gold)">#--</strong></p>
     <button class="btn-gold" style="width:100%; justify-content:center;" onclick="closeThankYou()" data-en="Done" data-ar="تم">Done</button>
@@ -619,7 +625,9 @@
     }
   }
 
-  // ===== إظهار نافذة الشكر والتأكيد بعد نجاح الطلب =====
+  let trackTimer = null;
+
+  // ===== إظهار نافذة الشكر والتأكيد بعد نجاح الطلب مع تتبع الاستلام حي =====
   function showThankYou(orderId, msg) {
     const orderIdEl = document.getElementById('tyOrderId');
     const msgEl = document.getElementById('thankYouMsg');
@@ -628,10 +636,60 @@
     if (orderIdEl) orderIdEl.textContent = '#' + orderId;
     if (msgEl) msgEl.textContent = msg;
     if (modalEl) modalEl.style.display = 'flex';
+
+    startOrderTracking(orderId);
+  }
+
+  function startOrderTracking(orderId) {
+    if (!orderId) return;
+    if (trackTimer) clearInterval(trackTimer);
+
+    const checkStatus = async () => {
+      try {
+        const res = await fetch('/api/orders/track/' + orderId);
+        if (res.ok) {
+          const data = await res.json();
+          const badgeEl = document.getElementById('orderStatusBadge');
+          if (!badgeEl) return;
+
+          const isAr = currentLang === 'ar';
+          if (data.status === 'confirmed' || data.status === 'served') {
+            badgeEl.style.background = 'rgba(34, 197, 94, 0.15)';
+            badgeEl.style.color = '#22c55e';
+            badgeEl.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+            badgeEl.innerHTML = isAr 
+              ? '✅ تم استلام وتأكيد طلبك من الكاشير بنجاح! ☕' 
+              : '✅ Your order has been received and confirmed by the cashier! ☕';
+            clearInterval(trackTimer);
+          } else if (data.status === 'cancelled') {
+            badgeEl.style.background = 'rgba(239, 68, 68, 0.15)';
+            badgeEl.style.color = '#ef4444';
+            badgeEl.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+            badgeEl.innerHTML = isAr 
+              ? '❌ نعتذر، تم إلغاء الطلب من قبل المقهى' 
+              : '❌ Sorry, your order was cancelled by the cafe.';
+            clearInterval(trackTimer);
+          } else {
+            badgeEl.style.background = 'rgba(245, 158, 11, 0.15)';
+            badgeEl.style.color = '#f59e0b';
+            badgeEl.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+            badgeEl.innerHTML = isAr 
+              ? '⏳ تم وصول طلبك للنظام، وفي انتظار قبول الكاشير...' 
+              : '⏳ Order sent to system, waiting for cashier to accept...';
+          }
+        }
+      } catch (err) {
+        console.warn('[Tracking] error:', err);
+      }
+    };
+
+    checkStatus();
+    trackTimer = setInterval(checkStatus, 3000);
   }
 
   // ===== إغلاق نافذة الشكر والعودة للصفحة الرئيسية =====
   function closeThankYou() {
+    if (trackTimer) clearInterval(trackTimer);
     document.getElementById('thankYouModal').style.display = 'none';
     location.href = 'index.html';
   }
