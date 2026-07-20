@@ -517,11 +517,12 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
 
 
 // ===== نقاط البيع (Bridge API) - استعلام عن الطلبات غير المتزامنة =====
+const EXPECTED_BRIDGE_KEY = process.env.BRIDGE_API_KEY || 'ozel_cafe_bridge_secret_2026_xyz';
 
 // جلب الطلبات التي لم تتم مزامنتها بعد مع نقاط البيع
 router.get('/unsynced', async (req, res) => {
   const bridgeKey = req.headers['x-bridge-key'];
-  if (bridgeKey !== process.env.BRIDGE_API_KEY) {
+  if (!bridgeKey || bridgeKey !== EXPECTED_BRIDGE_KEY) {
     return res.status(403).json({ error: 'Invalid bridge key' });
   }
   try {
@@ -554,7 +555,7 @@ router.get('/unsynced', async (req, res) => {
 // تعليم الطلبات كمزامنة مع نقاط البيع
 router.post('/mark-synced', async (req, res) => {
   const bridgeKey = req.headers['x-bridge-key'];
-  if (bridgeKey !== process.env.BRIDGE_API_KEY) {
+  if (!bridgeKey || bridgeKey !== EXPECTED_BRIDGE_KEY) {
     return res.status(403).json({ error: 'Invalid bridge key' });
   }
   const { ids, eventIds } = req.body;

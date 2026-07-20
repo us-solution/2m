@@ -13,10 +13,12 @@ const retryQueue = require('../retry-queue');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 const { v4: uuidv4 } = require('uuid');
 
+const EXPECTED_BRIDGE_KEY = process.env.BRIDGE_API_KEY || 'ozel_cafe_bridge_secret_2026_xyz';
+
 // التحقق من مفتاح API للجسر
 function verifyBridgeKey(req, res, next) {
   const key = req.headers['x-bridge-key'];
-  if (key !== process.env.BRIDGE_API_KEY) {
+  if (!key || key !== EXPECTED_BRIDGE_KEY) {
     return res.status(403).json({ error: 'Invalid bridge key' });
   }
   next();
@@ -149,7 +151,7 @@ router.post('/inbound-status', verifyBridgeKey, verifyBridgeSignature, async (re
 // السماح بالدخول للأدمن أو الجسر (أحدهما يكفي)
 async function authAdminOrBridge(req, res, next) {
   const bridgeKey = req.headers['x-bridge-key'];
-  if (bridgeKey && bridgeKey === process.env.BRIDGE_API_KEY) return next();
+  if (bridgeKey && bridgeKey === EXPECTED_BRIDGE_KEY) return next();
   authenticateToken(req, res, () => {
     if (!req.user) return res.status(403).json({ error: 'Unauthorized' });
     if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
