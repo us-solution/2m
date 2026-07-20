@@ -2726,12 +2726,6 @@ window.loadPublicPartnerProfile = async function(pid) {
     bodyEl.innerHTML = `<div style="text-align: center; color: var(--red); padding: 4rem 0; font-family: 'Tajawal', sans-serif;">${isAr ? 'خطأ في الاتصال بالخادم.' : 'Server connection error.'}</div>`;
   }
 };
-    
-  } catch (err) {
-    console.error(err);
-    bodyEl.innerHTML = `<div style="text-align: center; color: var(--red); padding: 4rem 0; font-family: 'Tajawal', sans-serif;">${isAr ? 'خطأ في الاتصال بالخادم.' : 'Server connection error.'}</div>`;
-  }
-};
 
 // تبديل حالة المفضلة لصورة
 window.toggleFavorite = async function(postId, btn) {
