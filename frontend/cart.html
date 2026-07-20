@@ -270,7 +270,7 @@
     <div style="font-size:3rem; margin-bottom:0.5rem;">&#10024;</div>
     <h3 style="font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--gold); margin-bottom:0.5rem;" data-en="Thank You!" data-ar="شكراً لك!">Thank You!</h3>
     <p style="font-size:0.95rem; color:var(--text); margin-bottom:0.3rem; line-height:1.6;" id="thankYouMsg">Your order has been confirmed. Please wait while we prepare your drinks.</p>
-    <p style="font-size:0.8rem; color:var(--muted); margin-bottom:1.5rem;" data-en="Order ID:" data-ar="رقم الطلب:">Order ID: <strong id="tyOrderId" style="color:var(--gold)">#--</strong></p>
+    <p style="font-size:0.8rem; color:var(--muted); margin-bottom:1.5rem;"><span data-en="Order ID:" data-ar="رقم الطلب:">Order ID:</span> <strong id="tyOrderId" style="color:var(--gold)">#--</strong></p>
     <button class="btn-gold" style="width:100%; justify-content:center;" onclick="closeThankYou()" data-en="Done" data-ar="تم">Done</button>
   </div>
 </div>
@@ -621,9 +621,13 @@
 
   // ===== إظهار نافذة الشكر والتأكيد بعد نجاح الطلب =====
   function showThankYou(orderId, msg) {
-    document.getElementById('tyOrderId').textContent = '#' + orderId;
-    document.getElementById('thankYouMsg').textContent = msg;
-    document.getElementById('thankYouModal').style.display = 'flex';
+    const orderIdEl = document.getElementById('tyOrderId');
+    const msgEl = document.getElementById('thankYouMsg');
+    const modalEl = document.getElementById('thankYouModal');
+
+    if (orderIdEl) orderIdEl.textContent = '#' + orderId;
+    if (msgEl) msgEl.textContent = msg;
+    if (modalEl) modalEl.style.display = 'flex';
   }
 
   // ===== إغلاق نافذة الشكر والعودة للصفحة الرئيسية =====
