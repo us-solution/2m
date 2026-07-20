@@ -197,12 +197,16 @@ router.get('/partners', async (req, res) => {
 router.get('/partners/:id/image', async (req, res) => {
   try {
     const p = await User.findOne({ _id: req.params.id, $or: [{ isPartner: true }, { role: 'partner' }] })
-      .select('partnerLogo partnerMainImage')
+      .select('partnerLogo partnerMainImage partnerGallery')
       .lean();
     if (!p) return res.status(404).json({ error: 'Not found' });
+
+    const logo = p.partnerLogo || p.partnerMainImage || (p.partnerGallery && p.partnerGallery[0] ? p.partnerGallery[0] : '');
+    const mainImage = p.partnerMainImage || p.partnerLogo || (p.partnerGallery && p.partnerGallery[0] ? p.partnerGallery[0] : '');
+
     res.json({
-      partnerLogo: p.partnerLogo || '',
-      partnerMainImage: p.partnerMainImage || ''
+      partnerLogo: logo,
+      partnerMainImage: mainImage
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

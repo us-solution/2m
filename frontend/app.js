@@ -2688,17 +2688,20 @@ window.loadPublicPartnerProfile = async function(pid) {
       }).join('');
     }
 
+    const mainHeaderImg = partner.partnerMainImage || partner.partnerLogo || (gallery.length > 0 ? gallery[0] : '');
+    const logoHeaderImg = partner.partnerLogo || partner.partnerMainImage || (gallery.length > 0 ? gallery[0] : 'imgs/Ozel-Logo--01.png');
+
     bodyEl.innerHTML = `
       <div style="display: flex; flex-direction: column; gap: 1.5rem; font-family: 'Tajawal', sans-serif;">
         <!-- Banner / Header -->
         <div class="partner-banner-header" style="position: relative; border-radius: var(--rad-lg); overflow: hidden; background: linear-gradient(135deg, #111 0%, #1e1e1e 100%); border: 1px solid var(--line); min-height: 200px; display: flex; flex-direction: column; justify-content: flex-end; padding: 1.8rem 1.5rem 1.5rem;">
-          ${partner.partnerMainImage ? `
-            <img src="${partner.partnerMainImage}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; filter: brightness(0.95);" />
+          ${mainHeaderImg ? `
+            <img src="${mainHeaderImg}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.65; filter: brightness(0.95);" />
             <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.25) 100%);"></div>
           ` : ''}
           <div style="position: relative; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 1.2rem;">
             <div class="partner-banner-logo" style="width: 90px; height: 90px; border-radius: 50%; overflow: hidden; border: 3px solid var(--gold); background: var(--bg); box-shadow: 0 8px 25px rgba(212,175,55,0.4); flex-shrink: 0;">
-              <img src="${partner.partnerLogo || 'imgs/Ozel-Logo--01.png'}" alt="${partner.name}" style="width: 100%; height: 100%; object-fit: cover;" />
+              <img src="${logoHeaderImg}" alt="${partner.name}" style="width: 100%; height: 100%; object-fit: cover;" />
             </div>
             <div style="flex: 1; min-width: 180px;">
               <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid var(--gold); padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.4rem;">

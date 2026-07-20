@@ -756,6 +756,12 @@
     if (!orderId) return;
     if (trackTimer) clearInterval(trackTimer);
 
+    // حفظ الطلب النشط لاستمرارية التتبع عند إعادة التحميل
+    try {
+      localStorage.setItem('ozel_active_order_id', orderId);
+      localStorage.setItem('ozel_active_order_time', String(Date.now()));
+    } catch(e) {}
+
     const STEPS = [
       { id: 'step-sent',      progress: 0   },
       { id: 'step-received',  progress: 33  },
@@ -790,18 +796,20 @@
         const res = await fetch('/api/orders/track/' + orderId);
         if (!res.ok) return;
         const data = await res.json();
-        const status = data.status;
+        const status = (data.status || 'pending').toLowerCase();
 
-        if (status === 'pending') {
+        if (status === 'pending' || status === 'created' || status === 'sent') {
           setTrackerStep(0, 'active');
-        } else if (status === 'confirmed') {
+        } else if (status === 'received' || status === 'accepted' || status === 'confirmed') {
+          setTrackerStep(1, 'active');
+        } else if (status === 'preparing' || status === 'in_progress' || status === 'processing') {
           setTrackerStep(2, 'active');
-        } else if (status === 'served' || status === 'completed') {
+        } else if (status === 'ready' || status === 'served' || status === 'completed' || status === 'paid') {
           setTrackerStep(3, 'done');
           const pEl = document.getElementById('trackerProgress');
           if (pEl) pEl.style.width = '100%';
           clearInterval(trackTimer);
-        } else if (status === 'cancelled') {
+        } else if (status === 'cancelled' || status === 'rejected') {
           setTrackerStep(1, 'cancelled');
           clearInterval(trackTimer);
         }
@@ -845,6 +853,17 @@
       }
     } catch(e) { console.warn('Failed to load customization options', e); }
   }
+
+  // ===== استرجاع تتبع الطلب السابق إذا كان ما يزال نشطاً =====
+  (function restoreActiveTracking() {
+    try {
+      const activeOrderId = localStorage.getItem('ozel_active_order_id');
+      const activeOrderTime = parseInt(localStorage.getItem('ozel_active_order_time') || '0', 10);
+      if (activeOrderId && (Date.now() - activeOrderTime < 2 * 60 * 60 * 1000)) {
+        showThankYou(activeOrderId, currentLang === 'ar' ? 'تتبع الطلب الحالي ✦' : 'Tracking current order ✦');
+      }
+    } catch(e) {}
+  })();
 
   // ===== التحميل الأولي للصفحة =====
   Promise.all([checkUserCoupons(), loadCustomizationOptions()]).then(() => {
