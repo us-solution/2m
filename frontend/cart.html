@@ -113,6 +113,92 @@
   </style>
   <style>
     @keyframes fadeIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+
+    /* ===== Order Tracker Stepper ===== */
+    .order-tracker {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin: 1.5rem 0;
+      position: relative;
+      padding: 0 4px;
+    }
+    .order-tracker::before {
+      content: '';
+      position: absolute;
+      top: 22px;
+      left: 22px;
+      right: 22px;
+      height: 2px;
+      background: var(--line, rgba(255,255,255,0.1));
+      z-index: 0;
+    }
+    .tracker-progress {
+      position: absolute;
+      top: 22px;
+      left: 22px;
+      height: 2px;
+      background: linear-gradient(90deg, #d4a843, #f59e0b);
+      z-index: 1;
+      width: 0%;
+      transition: width 0.6s ease;
+    }
+    .tracker-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      position: relative;
+      z-index: 2;
+    }
+    .tracker-step .step-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid var(--line, rgba(255,255,255,0.15));
+      background: var(--bg3, #1a1a1a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      transition: all 0.4s ease;
+      position: relative;
+    }
+    .tracker-step .step-label {
+      font-size: 0.68rem;
+      color: var(--muted, #888);
+      text-align: center;
+      line-height: 1.3;
+      transition: color 0.4s ease;
+      max-width: 64px;
+    }
+    /* Active step */
+    .tracker-step.active .step-icon {
+      border-color: #f59e0b;
+      background: rgba(245,158,11,0.15);
+      box-shadow: 0 0 0 4px rgba(245,158,11,0.15);
+      animation: pulse-step 1.8s infinite;
+    }
+    .tracker-step.active .step-label { color: #f59e0b; font-weight: 600; }
+    /* Done step */
+    .tracker-step.done .step-icon {
+      border-color: #22c55e;
+      background: rgba(34,197,94,0.15);
+      color: #22c55e;
+    }
+    .tracker-step.done .step-label { color: #22c55e; }
+    /* Cancelled step */
+    .tracker-step.cancelled .step-icon {
+      border-color: #ef4444;
+      background: rgba(239,68,68,0.15);
+      color: #ef4444;
+    }
+    .tracker-step.cancelled .step-label { color: #ef4444; }
+    @keyframes pulse-step {
+      0%,100% { box-shadow: 0 0 0 4px rgba(245,158,11,0.15); }
+      50% { box-shadow: 0 0 0 8px rgba(245,158,11,0.07); }
+    }
   </style>
   <script>
     window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
@@ -268,15 +354,36 @@
       <img src="imgs/Ozel-Logo--01.png" alt="OZEL CAFE" style="height:60px; opacity:0.9;"/>
     </div>
     <div style="font-size:3rem; margin-bottom:0.5rem;">&#10024;</div>
-    <h3 style="font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--gold); margin-bottom:0.5rem;" data-en="Thank You!" data-ar="شكراً لك!">Thank You!</h3>
-    
-    <!-- شارة حالة الاستلام الحية من الكاشير -->
-    <div id="orderStatusBadge" style="margin: 1rem 0; padding: 0.8rem 1rem; border-radius: 12px; font-weight: 600; font-size: 0.95rem; background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); transition: all 0.3s ease;">
-      ⏳ جاري إرسال الطلب للكاشير وتأكيده...
-    </div>
+    <h3 style="font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--gold); margin-bottom:0.3rem;" data-en="Thank You!" data-ar="شكراً لك!">Thank You!</h3>
+    <p style="font-size:0.8rem; color:var(--muted); margin-bottom:1.2rem;"><span data-en="Order ID:" data-ar="رقم الطلب:">Order ID:</span> <strong id="tyOrderId" style="color:var(--gold)">#--</strong></p>
 
-    <p style="font-size:0.95rem; color:var(--text); margin-bottom:0.3rem; line-height:1.6;" id="thankYouMsg">Your order has been confirmed. Please wait while we prepare your drinks.</p>
-    <p style="font-size:0.8rem; color:var(--muted); margin-bottom:1.5rem;"><span data-en="Order ID:" data-ar="رقم الطلب:">Order ID:</span> <strong id="tyOrderId" style="color:var(--gold)">#--</strong></p>
+    <!-- ===== Order Tracker ===== -->
+    <div class="order-tracker" id="orderTracker">
+      <div class="tracker-progress" id="trackerProgress"></div>
+
+      <div class="tracker-step active" id="step-sent">
+        <div class="step-icon">📤</div>
+        <span class="step-label" data-ar="أُرسل" data-en="Sent">Sent</span>
+      </div>
+
+      <div class="tracker-step" id="step-received">
+        <div class="step-icon">👨‍🍳</div>
+        <span class="step-label" data-ar="استلمه الكاشير" data-en="Received">Received</span>
+      </div>
+
+      <div class="tracker-step" id="step-preparing">
+        <div class="step-icon">☕</div>
+        <span class="step-label" data-ar="قيد التحضير" data-en="Preparing">Preparing</span>
+      </div>
+
+      <div class="tracker-step" id="step-ready">
+        <div class="step-icon">✅</div>
+        <span class="step-label" data-ar="جاهز!" data-en="Ready!">Ready!</span>
+      </div>
+    </div>
+    <!-- ===== end tracker ===== -->
+
+    <p style="font-size:0.9rem; color:var(--text); margin: 1rem 0 1.5rem; line-height:1.6;" id="thankYouMsg">Your order has been confirmed. Please wait while we prepare your drinks.</p>
     <button class="btn-gold" style="width:100%; justify-content:center;" onclick="closeThankYou()" data-en="Done" data-ar="تم">Done</button>
   </div>
 </div>
@@ -644,48 +751,67 @@
     if (!orderId) return;
     if (trackTimer) clearInterval(trackTimer);
 
+    // خطوات التراكر: [stepId, نسبة التقدم عند الوصول لها]
+    const STEPS = [
+      { id: 'step-sent',      progress: 0   },
+      { id: 'step-received',  progress: 33  },
+      { id: 'step-preparing', progress: 66  },
+      { id: 'step-ready',     progress: 100 }
+    ];
+
+    function setTrackerStep(activeIndex, state) {
+      const progressEl = document.getElementById('trackerProgress');
+      // عدد الأقسام بين الخطوات
+      const pct = activeIndex === 0 ? 0
+                : activeIndex === 1 ? 33
+                : activeIndex === 2 ? 66
+                : 100;
+      if (progressEl) progressEl.style.width = pct + '%';
+
+      STEPS.forEach((s, i) => {
+        const el = document.getElementById(s.id);
+        if (!el) return;
+        el.classList.remove('active', 'done', 'cancelled');
+        if (state === 'cancelled' && i === activeIndex) {
+          el.classList.add('cancelled');
+        } else if (i < activeIndex) {
+          el.classList.add('done');
+        } else if (i === activeIndex) {
+          el.classList.add(state === 'cancelled' ? 'cancelled' : 'active');
+        }
+      });
+    }
+
     const checkStatus = async () => {
       try {
         const res = await fetch('/api/orders/track/' + orderId);
-        if (res.ok) {
-          const data = await res.json();
-          const badgeEl = document.getElementById('orderStatusBadge');
-          if (!badgeEl) return;
+        if (!res.ok) return;
+        const data = await res.json();
+        const status = data.status;
 
-          const isAr = currentLang === 'ar';
-          if (data.status === 'confirmed' || data.status === 'served') {
-            badgeEl.style.background = 'rgba(34, 197, 94, 0.15)';
-            badgeEl.style.color = '#22c55e';
-            badgeEl.style.borderColor = 'rgba(34, 197, 94, 0.3)';
-            badgeEl.innerHTML = isAr 
-              ? '✅ تم استلام وتأكيد طلبك من الكاشير بنجاح! ☕' 
-              : '✅ Your order has been received and confirmed by the cashier! ☕';
-            clearInterval(trackTimer);
-          } else if (data.status === 'cancelled') {
-            badgeEl.style.background = 'rgba(239, 68, 68, 0.15)';
-            badgeEl.style.color = '#ef4444';
-            badgeEl.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-            badgeEl.innerHTML = isAr 
-              ? '❌ نعتذر، تم إلغاء الطلب من قبل المقهى' 
-              : '❌ Sorry, your order was cancelled by the cafe.';
-            clearInterval(trackTimer);
-          } else {
-            badgeEl.style.background = 'rgba(245, 158, 11, 0.15)';
-            badgeEl.style.color = '#f59e0b';
-            badgeEl.style.borderColor = 'rgba(245, 158, 11, 0.3)';
-            badgeEl.innerHTML = isAr 
-              ? '⏳ تم وصول طلبك للنظام، وفي انتظار قبول الكاشير...' 
-              : '⏳ Order sent to system, waiting for cashier to accept...';
-          }
+        if (status === 'pending') {
+          setTrackerStep(0, 'active');
+        } else if (status === 'confirmed') {
+          setTrackerStep(2, 'active');
+        } else if (status === 'served' || status === 'completed') {
+          setTrackerStep(3, 'done');
+          if (progressEl) document.getElementById('trackerProgress').style.width = '100%';
+          clearInterval(trackTimer);
+        } else if (status === 'cancelled') {
+          setTrackerStep(1, 'cancelled');
+          clearInterval(trackTimer);
         }
       } catch (err) {
         console.warn('[Tracking] error:', err);
       }
     };
 
+    // الخطوة الأولى جاهزة فوراً
+    setTrackerStep(0, 'active');
     checkStatus();
     trackTimer = setInterval(checkStatus, 3000);
   }
+
 
   // ===== إغلاق نافذة الشكر والعودة للصفحة الرئيسية =====
   function closeThankYou() {
