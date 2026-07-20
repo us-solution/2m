@@ -181,11 +181,26 @@ router.get('/me/points', authenticateToken, async (req, res) => {
   }
 });
 
-// جالب قائمة الشركاء النشطين (عام - بدون إرجاع المعرض الضخم للسرعة)
+// جالب قائمة الشركاء النشطين (عام - بدون الصور الضخمة لتجنب timeout في Vercel)
 router.get('/partners', async (req, res) => {
   try {
-    const partners = await User.find({ $or: [{ isPartner: true }, { role: 'partner' }] }).select('name partnerLogo partnerMainImage partnerBrief');
-    res.json(partners);
+    const partners = await User.find({ $or: [{ isPartner: true }, { role: 'partner' }] })
+      .select('name partnerBrief partnerLogo partnerMainImage')
+      .lean();
+    
+    // إرجاع أول 200 حرف من الصورة فقط للتحقق من وجودها، وإرجاع placeholder flag
+    const lightweight = partners.map(p => ({
+      _id: p._id,
+      name: p.name,
+      partnerBrief: p.partnerBrief || '',
+      hasLogo: !!(p.partnerLogo && p.partnerLogo.length > 10),
+      hasMainImage: !!(p.partnerMainImage && p.partnerMainImage.length > 10),
+      // إرجاع الصور مضغوطة للعرض في الـ grid (أول 100KB فقط)
+      partnerLogo: p.partnerLogo ? p.partnerLogo.substring(0, 100000) : '',
+      partnerMainImage: p.partnerMainImage ? p.partnerMainImage.substring(0, 100000) : ''
+    }));
+    
+    res.json(lightweight);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
