@@ -2610,7 +2610,7 @@ window.handleVlogUpload = async function() {
   }
 };
 
-// تحميل الملف الشخصي العام للشريك
+// تحميل الملف الشخصي العام للشريك بالطريقة الفاخرة الجديدة
 window.loadPublicPartnerProfile = async function(pid) {
   const isAr = currentLang === 'ar';
   const modal = document.getElementById('profileModal');
@@ -2618,7 +2618,7 @@ window.loadPublicPartnerProfile = async function(pid) {
   const bodyEl = document.querySelector('#profileModal .modal-body');
   if (!bodyEl) return;
   
-  bodyEl.innerHTML = `<div style="text-align: center; color: var(--muted); padding: 4rem 0; font-family: 'Tajawal', sans-serif;">${isAr ? 'جاري تحميل ملف الشريك...' : 'Loading partner profile...'}</div>`;
+  bodyEl.innerHTML = `<div style="text-align: center; color: var(--gold); padding: 4rem 0; font-family: 'Tajawal', sans-serif;"><div class="spinner" style="margin:0 auto 1rem;"></div>${isAr ? 'جاري تحميل ملف الشريك...' : 'Loading partner profile...'}</div>`;
   
   try {
     const res = await fetch(`/api/auth/partners/${pid}`);
@@ -2629,87 +2629,98 @@ window.loadPublicPartnerProfile = async function(pid) {
     
     const data = await res.json();
     const partner = data.partner;
-    const posts = data.posts || [];
-    
-    // عرض الصور المرفوعة بواسطة الشريك
-    let postsHtml = `<div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 2rem 0; font-size: 0.85rem; font-family: 'Tajawal', sans-serif;">${isAr ? 'لا توجد صور مضافة بعد.' : 'No photos posted yet.'}</div>`;
-    if (posts.length > 0) {
-      postsHtml = posts.map(p => {
-        const capText = p.caption ? p.caption.replace(/'/g, "\\'") : '';
-        const likedClass = (CUSER && p.likes && p.likes.some(id => String(id) === String(CUSER.id))) ? 'liked' : '';
-        const isFav = CUSER && CUSER.favorites && CUSER.favorites.some(id => String(id) === String(p._id || p.id));
-        const heartSvg = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+    const gallery = partner.partnerGallery || [];
+    const userFavs = (CUSER && Array.isArray(CUSER.favorites)) ? CUSER.favorites : [];
+
+    let galleryCardsHtml = '';
+    if (gallery.length === 0) {
+      galleryCardsHtml = `<div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 3rem 1rem; font-family: 'Tajawal', sans-serif; background: var(--bg2); border-radius: var(--rad-lg); border: 1px dashed var(--line);">${isAr ? 'لا توجد صور مضافة في معرض الشريك بعد.' : 'No gallery photos uploaded yet.'}</div>`;
+    } else {
+      galleryCardsHtml = gallery.map((imgUrl, idx) => {
+        const safeImg = imgUrl.replace(/'/g, "\\'");
+        const isFav = userFavs.includes(imgUrl);
+        const heartFill = isFav ? 'var(--gold)' : 'none';
         
         return `
-          <div class="vlog-card" style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column;">
-            <div class="vc-image-wrapper" onclick="openVlogLightbox('${p.image}', '${capText}')" style="cursor: pointer; position: relative;">
-              <img src="${p.image}" alt="Partner photo" style="width: 100%; height: 220px; object-fit: cover; border-top-left-radius: 8px; border-top-right-radius: 8px; display: block;"/>
-              <div class="vc-overlay"></div>
+          <div class="partner-gallery-item" style="position: relative; border-radius: var(--rad-lg); overflow: hidden; border: 1px solid var(--line); background: var(--bg3); box-shadow: 0 6px 20px rgba(0,0,0,0.1); transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 12px 30px rgba(0,0,0,0.25)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 6px 20px rgba(0,0,0,0.1)'">
+            <div style="width: 100%; height: 230px; position: relative; overflow: hidden; cursor: pointer;" onclick="openVlogLightbox('${safeImg}', '${partner.name.replace(/'/g, "\\'")}')">
+              <img src="${imgUrl}" alt="${partner.name}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'" />
             </div>
-            <div class="vc-body" style="padding: 1rem; background: var(--bg2); border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; border: 1px solid var(--line); border-top: none; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
-              <p class="vc-caption" style="margin-bottom: 0.8rem; font-size: 0.85rem; text-align: right; color: var(--text);">${p.caption || ''}</p>
-              <div class="vc-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
-                <button class="vc-like-btn ${likedClass}" onclick="toggleVlogLike('${p._id || p.id}', this)">
-                  ${heartSvg}
-                  <span class="like-count">${p.likesCount || 0}</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg2); border-top: 1px solid var(--line);">
+              <span style="font-size: 0.8rem; color: var(--muted); font-family: 'Tajawal', sans-serif;">📷 ${isAr ? `صورة ${idx+1}` : `Photo ${idx+1}`}</span>
+              <div style="display: flex; gap: 0.6rem; align-items: center;">
+                <button onclick="event.stopPropagation(); window.togglePartnerImageFavorite('${safeImg}', this)" title="${isAr ? 'إضافة للمفضلة' : 'Favorite'}" style="background: var(--bg3); border: 1px solid var(--line); color: var(--gold); border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">
+                  <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: ${heartFill}; stroke: var(--gold); stroke-width: 2;"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
                 </button>
-                <div style="display: flex; gap: 0.5rem;">
-                  <button class="vc-like-btn" onclick="event.stopPropagation(); window.toggleFavorite('${p._id || p.id}', this)" title="${isAr ? 'المفضلة' : 'Favorite'}" style="padding: 0.3rem;">
-                    <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: ${isFav ? 'var(--gold)' : 'none'}; stroke: var(--gold); stroke-width: 2;"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                  </button>
-                  <button class="vc-download-btn" onclick="event.stopPropagation(); downloadVlogPhoto('${p._id || p.id}', '${p.image}')" title="${isAr ? 'تحميل' : 'Download'}" style="padding: 0.3rem; border: none; background: transparent; cursor: pointer; color: var(--muted);">
-                    <svg viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
-                  </button>
-                </div>
+                <button onclick="event.stopPropagation(); window.downloadImage('${safeImg}', 'ozel-partner-${idx+1}.jpg')" title="${isAr ? 'تنزيل الصورة' : 'Download photo'}" style="background: var(--bg3); border: 1px solid var(--line); color: var(--text); border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">
+                  <svg viewBox="0 0 24 24" style="width: 17px; height: 17px;"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                </button>
               </div>
             </div>
           </div>
         `;
       }).join('');
     }
-    
+
     bodyEl.innerHTML = `
-      <div class="partner-profile-header" style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.2rem; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--line);">
-        ${partner.partnerMainImage ? `
-          <div style="width: 100%; max-width: 650px; height: 260px; border-radius: var(--rad-lg); overflow: hidden; border: 1px solid var(--line); margin-bottom: 0.5rem; position: relative;">
-            <img src="${partner.partnerMainImage}" style="width: 100%; height: 100%; object-fit: cover;" />
-            ${partner.partnerLogo ? `<div style="position: absolute; bottom: 12px; right: 12px; width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--gold); overflow: hidden; background: var(--bg); shadow: 0 4px 15px rgba(0,0,0,0.4);"><img src="${partner.partnerLogo}" style="width: 100%; height: 100%; object-fit: cover;" /></div>` : ''}
-          </div>
-        ` : `
-          <div style="width: 130px; height: 130px; border-radius: 50%; overflow: hidden; border: 3px solid var(--gold); background: var(--bg3); box-shadow: 0 10px 25px rgba(0,0,0,0.06);">
-            <img src="${partner.partnerLogo || 'imgs/Ozel-Logo--01.png'}" alt="${partner.name}" style="width: 100%; height: 100%; object-fit: cover;" />
-          </div>
-        `}
-        <div>
-          <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: var(--text); font-weight: 700;">${partner.name}</h2>
-          ${partner.partnerBrief ? `<p style="font-family: 'Tajawal', sans-serif; font-size: 0.9rem; color: var(--gold); max-width: 550px; margin: 0.4rem auto; font-weight: 600; background: var(--bg3); padding: 0.4rem 1rem; border-radius: var(--rad); border: 1px solid var(--line);">${partner.partnerBrief}</p>` : ''}
-          <p style="font-family: 'Tajawal', sans-serif; font-size: 0.95rem; color: var(--muted); max-width: 550px; margin: 0.5rem auto 0; line-height: 1.6; whitespace: pre-line;">${partner.partnerBio || (isAr ? 'لا توجد نبذة تعريفية بعد.' : 'No bio available.')}</p>
-        </div>
-      </div>
-
-      <!-- معرض صور الشريك الخاصة -->
-      ${partner.partnerGallery && partner.partnerGallery.length > 0 ? `
-        <div class="partner-gallery-title" style="margin-bottom: 1.5rem;">
-          <h3 style="font-family: 'Tajawal', sans-serif; font-size: 1.25rem; color: var(--text); font-weight: 700; text-align: center;" data-en="Partner Gallery" data-ar="معرض صور أعمال الشريك ✦">معرض صور أعمال الشريك ✦</h3>
-          <div style="width: 40px; height: 2px; background: var(--gold); margin: 0.4rem auto 0;"></div>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.2rem; width: 100%; margin-bottom: 2.5rem;">
-          ${partner.partnerGallery.map(imgUrl => `
-            <div style="width: 100%; height: 200px; border-radius: var(--rad); overflow: hidden; border: 1px solid var(--line); cursor: pointer;" onclick="openVlogLightbox('${imgUrl}', '${partner.name}')">
-              <img src="${imgUrl}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" />
+      <div style="display: flex; flex-direction: column; gap: 1.8rem; font-family: 'Tajawal', sans-serif;">
+        <!-- Banner / Header -->
+        <div style="position: relative; border-radius: var(--rad-lg); overflow: hidden; background: linear-gradient(135deg, #111 0%, #1e1e1e 100%); border: 1px solid var(--line); min-height: 200px; display: flex; flex-direction: column; justify-content: flex-end; padding: 1.8rem 1.5rem 1.5rem;">
+          ${partner.partnerMainImage ? `
+            <img src="${partner.partnerMainImage}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; filter: brightness(0.95);" />
+            <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.25) 100%);"></div>
+          ` : ''}
+          <div style="position: relative; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 1.2rem;">
+            <div style="width: 90px; height: 90px; border-radius: 50%; overflow: hidden; border: 3px solid var(--gold); background: var(--bg); box-shadow: 0 8px 25px rgba(212,175,55,0.4); flex-shrink: 0;">
+              <img src="${partner.partnerLogo || 'imgs/Ozel-Logo--01.png'}" alt="${partner.name}" style="width: 100%; height: 100%; object-fit: cover;" />
             </div>
-          `).join('')}
+            <div style="flex: 1; min-width: 200px;">
+              <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid var(--gold); padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.4rem;">
+                <span>✦</span> <span>${isAr ? 'شريك نجاح أوزيل' : 'OZEL SUCCESS PARTNER'}</span>
+              </div>
+              <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; color: #fff; font-weight: 700; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">${partner.name}</h2>
+            </div>
+          </div>
         </div>
-      ` : ''}
 
-      <div class="partner-gallery-title" style="margin-bottom: 1.5rem;">
-        <h3 style="font-family: 'Tajawal', sans-serif; font-size: 1.25rem; color: var(--text); font-weight: 700; text-align: center;" data-en="Shared Community Photos" data-ar="صور الفلوج المشتركة">صور الفلوج المشتركة</h3>
-        <div style="width: 40px; height: 2px; background: var(--gold); margin: 0.4rem auto 0;"></div>
-      </div>
-      <div class="profile-photos-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; justify-content: center; width: 100%;">
-        ${postsHtml}
+        <!-- Brief Box -->
+        ${partner.partnerBrief ? `
+          <div style="background: var(--bg3); border-right: 4px solid var(--gold); padding: 1rem 1.25rem; border-radius: var(--rad); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); border-left: 1px solid var(--line); display: flex; align-items: flex-start; gap: 0.8rem;">
+            <span style="font-size: 1.4rem; color: var(--gold); line-height: 1;">💬</span>
+            <p style="font-size: 0.95rem; color: var(--text); font-weight: 600; margin: 0; line-height: 1.5;">${partner.partnerBrief}</p>
+          </div>
+        ` : ''}
+
+        <!-- Full Bio -->
+        ${partner.partnerBio ? `
+          <div style="background: var(--bg2); padding: 1.2rem 1.5rem; border-radius: var(--rad-lg); border: 1px solid var(--line);">
+            <h4 style="font-size: 0.9rem; color: var(--gold); font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+              <span>📜</span> <span>${isAr ? 'عن الشريك' : 'About Partner'}</span>
+            </h4>
+            <p style="font-size: 0.9rem; color: var(--muted); margin: 0; line-height: 1.65; white-space: pre-line;">${partner.partnerBio}</p>
+          </div>
+        ` : ''}
+
+        <!-- Partner Gallery -->
+        <div>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--line);">
+            <h3 style="font-size: 1.15rem; color: var(--text); font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+              <span>🖼️</span> <span>${isAr ? 'معرض صور الشريك' : 'Partner Gallery'}</span>
+            </h3>
+            <span style="font-size: 0.8rem; color: var(--gold); font-weight: 700; background: var(--bg3); padding: 0.2rem 0.6rem; border-radius: 12px; border: 1px solid var(--line);">${gallery.length} ${isAr ? 'صور' : 'Photos'}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.25rem;">
+            ${galleryCardsHtml}
+          </div>
+        </div>
       </div>
     `;
+    
+  } catch (err) {
+    console.error(err);
+    bodyEl.innerHTML = `<div style="text-align: center; color: var(--red); padding: 4rem 0; font-family: 'Tajawal', sans-serif;">${isAr ? 'خطأ في الاتصال بالخادم.' : 'Server connection error.'}</div>`;
+  }
+};
     
   } catch (err) {
     console.error(err);
@@ -2762,7 +2773,46 @@ window.toggleFavorite = async function(postId, btn) {
   }
 };
 
-// إعارات ومعاينة معرض صور الشريك
+// تنزيل صور الشريك للجهاز
+window.downloadImage = function(url, filename = 'ozel-partner-photo.jpg') {
+  const isAr = currentLang === 'ar';
+  try {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast(isAr ? 'جاري تحميل الصورة على جهازك 📥' : 'Downloading photo 📥', 'success');
+  } catch (e) {
+    console.error('Download error', e);
+  }
+};
+
+// إضافة / إزالة صور المعرض الخاصة بالشريك للمفضلة
+window.togglePartnerImageFavorite = async function(imgUrl, btn) {
+  const isAr = currentLang === 'ar';
+  if (!CUSER) {
+    alert(isAr ? 'يرجى تسجيل الدخول أولاً لإضافة الصورة إلى المفضلة! ⭐' : 'Please log in first to favorite photos! ⭐');
+    return;
+  }
+  
+  if (!CUSER.favorites) CUSER.favorites = [];
+  const svg = btn.querySelector('svg');
+  const index = CUSER.favorites.indexOf(imgUrl);
+  
+  if (index > -1) {
+    CUSER.favorites.splice(index, 1);
+    if (svg) svg.style.fill = 'none';
+    showToast(isAr ? 'تمت إزالة الصورة من المفضلة' : 'Removed from favorites', 'success');
+  } else {
+    CUSER.favorites.push(imgUrl);
+    if (svg) svg.style.fill = 'var(--gold)';
+    showToast(isAr ? 'تمت إضافة الصورة إلى المفضلة ⭐' : 'Added to favorites ⭐', 'success');
+  }
+  
+  localStorage.setItem('ozel_user', JSON.stringify(CUSER));
+};
 window.currentPartnerGallery = window.currentPartnerGallery || [];
 
 window.renderPartnerGalleryPreview = function() {
