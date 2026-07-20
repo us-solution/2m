@@ -176,7 +176,10 @@ router.get('/users', authenticateToken, requireRole('admin'), async (req, res) =
       total_spent: parseFloat(u.total_spent),
       date_joined: u.createdAt.toISOString(),
       subscriptionTier: u.subscriptionTier,
-      customerStatus: u.customerStatus || 'standard'
+      customerStatus: u.customerStatus || 'standard',
+      isPartner: u.isPartner || false,
+      partnerLogo: u.partnerLogo || '',
+      partnerBio: u.partnerBio || ''
     }));
     res.json(serialized);
   } catch (err) {
@@ -186,7 +189,7 @@ router.get('/users', authenticateToken, requireRole('admin'), async (req, res) =
 
 // إنشاء مستخدم جديد بواسطة الأدمن (مع تشفير كلمة المرور)
 router.post('/users', authenticateToken, requireRole('admin'), async (req, res) => {
-  const { name, phone, email, password, role, points, subscriptionTier, customerStatus } = req.body;
+  const { name, phone, email, password, role, points, subscriptionTier, customerStatus, isPartner, partnerLogo, partnerBio } = req.body;
 
   if (!name || !password || (!phone && !email)) {
     return res.status(400).json({ error: 'Missing fields: name, password, and phone/email required' });
@@ -203,6 +206,7 @@ router.post('/users', authenticateToken, requireRole('admin'), async (req, res) 
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const isPartnerVal = role === 'partner' ? true : Boolean(isPartner);
     const u = await User.create({
       name,
       phone: phone || `email_${Date.now()}`,
@@ -211,7 +215,10 @@ router.post('/users', authenticateToken, requireRole('admin'), async (req, res) 
       role: role || 'customer',
       points: parseInt(points || 0),
       subscriptionTier: subscriptionTier || 'none',
-      customerStatus: customerStatus || 'standard'
+      customerStatus: customerStatus || 'standard',
+      isPartner: isPartnerVal,
+      partnerLogo: partnerLogo || '',
+      partnerBio: partnerBio || ''
     });
 
     res.json({ success: true, id: u._id });
@@ -222,7 +229,7 @@ router.post('/users', authenticateToken, requireRole('admin'), async (req, res) 
 
 // تعديل بيانات مستخدم موجود
 router.patch('/users/:id', authenticateToken, requireRole('admin'), async (req, res) => {
-  const { name, phone, email, role, points, password, subscriptionTier, customerStatus } = req.body;
+  const { name, phone, email, role, points, password, subscriptionTier, customerStatus, isPartner, partnerLogo, partnerBio } = req.body;
 
   try {
     const u = await User.findById(req.params.id);
@@ -231,10 +238,16 @@ router.patch('/users/:id', authenticateToken, requireRole('admin'), async (req, 
     if (name !== undefined) u.name = name;
     if (phone !== undefined) u.phone = phone;
     if (email !== undefined) u.email = email;
-    if (role !== undefined) u.role = role;
+    if (role !== undefined) {
+      u.role = role;
+      if (role === 'partner') u.isPartner = true;
+    }
     if (points !== undefined) u.points = parseInt(points);
     if (subscriptionTier !== undefined) u.subscriptionTier = subscriptionTier;
     if (customerStatus !== undefined) u.customerStatus = customerStatus;
+    if (isPartner !== undefined) u.isPartner = isPartner;
+    if (partnerLogo !== undefined) u.partnerLogo = partnerLogo;
+    if (partnerBio !== undefined) u.partnerBio = partnerBio;
     if (password) {
       u.password = await bcrypt.hash(password, 10);
     }

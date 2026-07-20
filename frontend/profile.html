@@ -152,6 +152,24 @@
             </div>
           </div>
 
+          <!-- PARTNER PROFILE EDIT -->
+          <div id="partnerEditSection" style="display: none; background: var(--bg2); padding: 1.25rem 1.5rem; border-radius: var(--rad-lg); border: 1px solid var(--line); box-shadow: 0 4px 15px rgba(0,0,0,0.01); margin-bottom: 1.25rem;">
+            <h4 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;" data-en="Partner Details" data-ar="بيانات الشريك">
+              Partner Details
+            </h4>
+            <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+              <label style="font-size: 0.75rem; color: var(--muted); font-family: 'Tajawal', sans-serif;" data-en="Partner Logo (Image File)" data-ar="شعار الشريك (ملف صورة)"></label>
+              <input id="partner-logo-file" type="file" accept="image/*" style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
+              
+              <label style="font-size: 0.75rem; color: var(--muted); font-family: 'Tajawal', sans-serif;" data-en="Partner Bio / Brief" data-ar="نبذة تعريفية عن الشريك"></label>
+              <textarea id="partner-bio-input" data-placeholder-en="Brief description of your business..." data-placeholder-ar="نبذة تعريفية عن عملك..." placeholder="Brief description of your business..."
+                style="width:100%; min-height:80px; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none; resize:vertical;"></textarea>
+              
+              <button class="btn-gold" style="width:100%; justify-content:center; padding:0.6rem;" onclick="savePartnerProfile()" data-en="Save Partner Info ✦" data-ar="حفظ بيانات الشريك ✦">Save Partner Info ✦</button>
+              <p id="partner-save-msg" style="font-size:0.8rem; text-align:center; margin-top:0.4rem; font-family: 'Tajawal', sans-serif;"></p>
+            </div>
+          </div>
+
           <!-- CHANGE PASSWORD -->
           <div style="background: var(--bg2); padding: 1.25rem 1.5rem; border-radius: var(--rad-lg); border: 1px solid var(--line); box-shadow: 0 4px 15px rgba(0,0,0,0.01); margin-bottom: 1.25rem;">
             <h4 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;" data-en="Change Password" data-ar="تغيير كلمة المرور">

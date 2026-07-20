@@ -625,8 +625,31 @@
     location.href = 'index.html';
   }
 
+  // ===== خيارات التخصيص الديناميكية (من الخادم) =====
+  let customizationOptions = null;
+
+  async function loadCustomizationOptions() {
+    try {
+      const res = await fetch('/api/customization');
+      if (res.ok) {
+        const data = await res.json();
+        customizationOptions = data;
+        if (data.sugarLevels) {
+          data.sugarLevels.forEach(s => {
+            transMap[s.key] = { en: s.nameEn, ar: s.nameAr };
+          });
+        }
+        if (data.extras) {
+          data.extras.forEach(e => {
+            transMap[e.key] = { en: e.nameEn, ar: e.nameAr };
+          });
+        }
+      }
+    } catch(e) { console.warn('Failed to load customization options', e); }
+  }
+
   // ===== التحميل الأولي للصفحة =====
-  checkUserCoupons().then(() => {
+  Promise.all([checkUserCoupons(), loadCustomizationOptions()]).then(() => {
     applyLanguage(currentLang);
   });
 </script>

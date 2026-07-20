@@ -121,6 +121,30 @@ async function loadCustomizationOptions() {
   } catch(e) { console.warn('Failed to load customization options', e); }
 }
 
+// تحميل الشركاء وعرض شعاراتهم في الصفحة الرئيسية
+async function loadPartners() {
+  const container = document.getElementById('partnersContainer');
+  if (!container) return;
+  try {
+    const res = await fetch('/api/auth/partners');
+    if (res.ok) {
+      const partners = await res.json();
+      if (partners.length === 0) {
+        container.innerHTML = `<p style="color: var(--muted); font-size: 0.9rem;" data-en="No partners added yet" data-ar="لا يوجد شركاء مضافون بعد">No partners added yet</p>`;
+        return;
+      }
+      container.innerHTML = partners.map(p => `
+        <div class="partner-logo-card" onclick="location.href='profile.html?id=${p._id}'" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.8rem; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; background: var(--bg3); box-shadow: 0 8px 20px rgba(0,0,0,0.05);">
+            <img src="${p.partnerLogo || 'imgs/Ozel-Logo--01.png'}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover;" />
+          </div>
+          <span style="font-family: 'Tajawal', sans-serif; font-size: 0.9rem; font-weight: 700; color: var(--text);">${p.name}</span>
+        </div>
+      `).join('');
+    }
+  } catch(e) { console.warn('Failed to load partners', e); }
+}
+
 // ===== التمرير السلس للأقسام =====
 window.scrollToSection = function(id) {
   const el = document.getElementById(id);
@@ -183,15 +207,23 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartUI();
     fetchMenu();
     loadCustomizationOptions();
+    if (document.getElementById('partnersContainer')) {
+      loadPartners();
+    }
     if (document.getElementById('vlogGalleryGrid')) {
       loadVlog();
     }
     if (window.location.pathname.includes('profile.html')) {
-      if (!localStorage.getItem('ozel_token')) {
-        window.location.href = 'index.html';
-        return;
+      const pid = urlParams.get('id');
+      if (pid) {
+        window.loadPublicPartnerProfile(pid);
+      } else {
+        if (!localStorage.getItem('ozel_token')) {
+          window.location.href = 'index.html';
+          return;
+        }
+        window.openProfileModal();
       }
-      window.openProfileModal();
     }
   } catch(e) { console.error('[Init]', e); }
   setTimeout(() => {
@@ -332,11 +364,11 @@ window.loadProfileMedia = async function() {
   }
 
   try {
-    const likedRes = await fetch('/api/vlog/my-liked', { headers: getAuthHeaders() });
+    const likedRes = await fetch('/api/vlog/my-favorites', { headers: getAuthHeaders() });
     if (likedRes.ok) {
       const liked = await likedRes.json();
       if (liked.length === 0) {
-        myLikedGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 2rem 0; font-size: 0.85rem;">${isAr ? 'لم تقم بالإعجاب بأي صور بعد.' : 'You haven\'t liked any photos yet.'}</div>`;
+        myLikedGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 2rem 0; font-size: 0.85rem;">${isAr ? 'لا توجد صور في المفضلة بعد.' : 'No favorited photos yet.'}</div>`;
       } else {
         myLikedGrid.innerHTML = liked.map(p => {
           const capText = p.caption ? p.caption.replace(/'/g, "\\'") : '';
@@ -348,9 +380,14 @@ window.loadProfileMedia = async function() {
                   <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                   ${p.likesCount || 0}
                 </span>
-                <button class="ppc-btn" onclick="event.stopPropagation(); downloadVlogPhoto('${p._id || p.id}', '${p.image}')" title="${isAr ? 'تحميل' : 'Download'}">
-                  <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>
-                </button>
+                <div style="display: flex; gap: 0.3rem; margin-top: 0.3rem;">
+                  <button class="ppc-btn" onclick="event.stopPropagation(); downloadVlogPhoto('${p._id || p.id}', '${p.image}')" title="${isAr ? 'تحميل' : 'Download'}">
+                    <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>
+                  </button>
+                  <button class="ppc-btn delete-btn" onclick="event.stopPropagation(); window.toggleFavorite('${p._id || p.id}', this)" title="${isAr ? 'إزالة من المفضلة' : 'Remove from Favorites'}">
+                    <svg viewBox="0 0 24 24" style="fill: var(--gold); stroke: var(--gold); stroke-width: 2;"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                  </button>
+                </div>
               </div>
             </div>
           `;
@@ -393,6 +430,17 @@ window.openProfileModal = async function() {
   document.getElementById('profilePoints').textContent = userDetails.points || 0;
   if (document.getElementById('profileMemberName')) {
     document.getElementById('profileMemberName').textContent = userDetails.name || 'MEMBER';
+  }
+
+  const partnerSec = document.getElementById('partnerEditSection');
+  if (partnerSec) {
+    if (userDetails.isPartner || userDetails.role === 'partner') {
+      partnerSec.style.display = 'block';
+      const bioInput = document.getElementById('partner-bio-input');
+      if (bioInput) bioInput.value = userDetails.partnerBio || '';
+    } else {
+      partnerSec.style.display = 'none';
+    }
   }
 
   // معالجة تنسيق بطاقة العضوية الديناميكي حسب حالة العميل
@@ -2547,5 +2595,185 @@ window.handleVlogUpload = async function() {
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalText;
+  }
+};
+
+// تحميل الملف الشخصي العام للشريك
+window.loadPublicPartnerProfile = async function(pid) {
+  const isAr = currentLang === 'ar';
+  const modal = document.getElementById('profileModal');
+  if (modal) modal.classList.add('open');
+  const bodyEl = document.querySelector('#profileModal .modal-body');
+  if (!bodyEl) return;
+  
+  bodyEl.innerHTML = `<div style="text-align: center; color: var(--muted); padding: 4rem 0; font-family: 'Tajawal', sans-serif;">${isAr ? 'جاري تحميل ملف الشريك...' : 'Loading partner profile...'}</div>`;
+  
+  try {
+    const res = await fetch(`/api/auth/partners/${pid}`);
+    if (!res.ok) {
+      bodyEl.innerHTML = `<div style="text-align: center; color: var(--red); padding: 4rem 0; font-family: 'Tajawal', sans-serif;">${isAr ? 'لم يتم العثور على الشريك' : 'Partner profile not found'}</div>`;
+      return;
+    }
+    
+    const data = await res.json();
+    const partner = data.partner;
+    const posts = data.posts || [];
+    
+    // عرض الصور المرفوعة بواسطة الشريك
+    let postsHtml = `<div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 2rem 0; font-size: 0.85rem; font-family: 'Tajawal', sans-serif;">${isAr ? 'لا توجد صور مضافة بعد.' : 'No photos posted yet.'}</div>`;
+    if (posts.length > 0) {
+      postsHtml = posts.map(p => {
+        const capText = p.caption ? p.caption.replace(/'/g, "\\'") : '';
+        const likedClass = (CUSER && p.likes && p.likes.some(id => String(id) === String(CUSER.id))) ? 'liked' : '';
+        const isFav = CUSER && CUSER.favorites && CUSER.favorites.some(id => String(id) === String(p._id || p.id));
+        const heartSvg = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+        
+        return `
+          <div class="vlog-card" style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column;">
+            <div class="vc-image-wrapper" onclick="openVlogLightbox('${p.image}', '${capText}')" style="cursor: pointer; position: relative;">
+              <img src="${p.image}" alt="Partner photo" style="width: 100%; height: 220px; object-fit: cover; border-top-left-radius: 8px; border-top-right-radius: 8px; display: block;"/>
+              <div class="vc-overlay"></div>
+            </div>
+            <div class="vc-body" style="padding: 1rem; background: var(--bg2); border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; border: 1px solid var(--line); border-top: none; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+              <p class="vc-caption" style="margin-bottom: 0.8rem; font-size: 0.85rem; text-align: right; color: var(--text);">${p.caption || ''}</p>
+              <div class="vc-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
+                <button class="vc-like-btn ${likedClass}" onclick="toggleVlogLike('${p._id || p.id}', this)">
+                  ${heartSvg}
+                  <span class="like-count">${p.likesCount || 0}</span>
+                </button>
+                <div style="display: flex; gap: 0.5rem;">
+                  <button class="vc-like-btn" onclick="event.stopPropagation(); window.toggleFavorite('${p._id || p.id}', this)" title="${isAr ? 'المفضلة' : 'Favorite'}" style="padding: 0.3rem;">
+                    <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: ${isFav ? 'var(--gold)' : 'none'}; stroke: var(--gold); stroke-width: 2;"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                  </button>
+                  <button class="vc-download-btn" onclick="event.stopPropagation(); downloadVlogPhoto('${p._id || p.id}', '${p.image}')" title="${isAr ? 'تحميل' : 'Download'}" style="padding: 0.3rem; border: none; background: transparent; cursor: pointer; color: var(--muted);">
+                    <svg viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    bodyEl.innerHTML = `
+      <div class="partner-profile-header" style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.2rem; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--line);">
+        <div style="width: 130px; height: 130px; border-radius: 50%; overflow: hidden; border: 3px solid var(--gold); background: var(--bg3); box-shadow: 0 10px 25px rgba(0,0,0,0.06);">
+          <img src="${partner.partnerLogo || 'imgs/Ozel-Logo--01.png'}" alt="${partner.name}" style="width: 100%; height: 100%; object-fit: cover;" />
+        </div>
+        <div>
+          <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: var(--text); font-weight: 700;">${partner.name}</h2>
+          <p style="font-family: 'Tajawal', sans-serif; font-size: 0.95rem; color: var(--muted); max-width: 500px; margin: 0.5rem auto 0; line-height: 1.5;">${partner.partnerBio || (isAr ? 'لا توجد نبذة تعريفية بعد.' : 'No bio available.')}</p>
+        </div>
+      </div>
+      <div class="partner-gallery-title" style="margin-bottom: 1.5rem;">
+        <h3 style="font-family: 'Tajawal', sans-serif; font-size: 1.25rem; color: var(--text); font-weight: 700; text-align: center;" data-en="Shared Photo Gallery" data-ar="معرض صور الشريك">معرض صور الشريك</h3>
+        <div style="width: 40px; height: 2px; background: var(--gold); margin: 0.4rem auto 0;"></div>
+      </div>
+      <div class="profile-photos-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; justify-content: center; width: 100%;">
+        ${postsHtml}
+      </div>
+    `;
+    
+  } catch (err) {
+    console.error(err);
+    bodyEl.innerHTML = `<div style="text-align: center; color: var(--red); padding: 4rem 0; font-family: 'Tajawal', sans-serif;">${isAr ? 'خطأ في الاتصال بالخادم.' : 'Server connection error.'}</div>`;
+  }
+};
+
+// تبديل حالة المفضلة لصورة
+window.toggleFavorite = async function(postId, btn) {
+  const isAr = currentLang === 'ar';
+  if (!CUSER) {
+    alert(isAr ? 'يرجى تسجيل الدخول لتتمكن من إضافة الصور إلى المفضلة! ⭐' : 'Please log in to add photos to favorites! ⭐');
+    return;
+  }
+  
+  const svg = btn.querySelector('svg');
+  const isFav = svg.style.fill !== 'none';
+  const method = isFav ? 'DELETE' : 'POST';
+  
+  try {
+    const res = await fetch(`/api/me/favorites/${postId}`, {
+      method: method,
+      headers: getAuthHeaders()
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      CUSER.favorites = data.favorites;
+      localStorage.setItem('ozel_user', JSON.stringify(CUSER));
+      
+      if (isFav) {
+        svg.style.fill = 'none';
+        showToast(isAr ? 'تمت إزالة الصورة من المفضلة' : 'Removed from favorites', 'success');
+      } else {
+        svg.style.fill = 'var(--gold)';
+        showToast(isAr ? 'تمت إضافة الصورة إلى المفضلة' : 'Added to favorites', 'success');
+      }
+      
+      // إذا كنا في صفحة الملف الشخصي، نقوم بتحديث الشبكة فوراً
+      if (window.location.pathname.includes('profile.html')) {
+        const pid = urlParams.get('id');
+        if (pid) {
+          window.loadPublicPartnerProfile(pid);
+        } else {
+          window.loadProfileMedia();
+        }
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+// حفظ بيانات الملف الشخصي للشريك
+window.savePartnerProfile = async function() {
+  const isAr = currentLang === 'ar';
+  const fileInput = document.getElementById('partner-logo-file');
+  const bioInput = document.getElementById('partner-bio-input');
+  const msgEl = document.getElementById('partner-save-msg');
+  
+  if (!msgEl) return;
+  msgEl.textContent = isAr ? 'جاري الحفظ...' : 'Saving...';
+  msgEl.style.color = 'var(--gold)';
+  
+  let partnerLogo = undefined;
+  if (fileInput && fileInput.files[0]) {
+    partnerLogo = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.readAsDataURL(fileInput.files[0]);
+    });
+  }
+  
+  const partnerBio = bioInput ? bioInput.value.trim() : '';
+  
+  try {
+    const res = await fetch('/api/me/partner-profile', {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ partnerBio, partnerLogo })
+    });
+    
+    const data = await res.json();
+    if (res.ok && data.success) {
+      msgEl.textContent = isAr ? 'تم حفظ بيانات الشريك بنجاح ✦' : 'Partner details saved successfully ✦';
+      msgEl.style.color = 'var(--green)';
+      
+      // تحديث البيانات المحلية
+      const meRes = await fetch('/api/auth/me', { headers: getAuthHeaders() });
+      if (meRes.ok) {
+        const userDetails = await meRes.json();
+        localStorage.setItem('ozel_user', JSON.stringify(userDetails));
+      }
+    } else {
+      msgEl.textContent = data.error || (isAr ? 'فشل حفظ البيانات.' : 'Failed to save details.');
+      msgEl.style.color = 'var(--red)';
+    }
+  } catch (err) {
+    console.error(err);
+    msgEl.textContent = isAr ? 'حدث خطأ أثناء الاتصال بالخادم.' : 'Server connection error.';
+    msgEl.style.color = 'var(--red)';
   }
 };

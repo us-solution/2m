@@ -106,6 +106,17 @@ router.get('/my-liked', authenticateToken, async (req, res) => {
   }
 });
 
+// جلب الصور التي تمت إضافتها للمفضلة للعميل الحالي
+router.get('/my-favorites', authenticateToken, async (req, res) => {
+  try {
+    const favIds = req.user.favorites || [];
+    const posts = await VlogPost.find({ _id: { $in: favIds } }).sort({ createdAt: -1 });
+    res.json(posts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 3. رفع صورة جديدة (يسمح بصورة واحدة فقط كل 24 ساعة لمنع التكرار المفرط)
 router.post('/', authenticateToken, async (req, res) => {
   const { image, caption } = req.body;

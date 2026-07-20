@@ -146,7 +146,6 @@ app.post('/api/debug-log', requireDB, (req, res) => {
 app.use(express.static(path.join(__dirname, 'frontend')));
 
 // مسارات مخصصة للصفحات عند عدم وجود امتداد
-app.get('/cashier', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'cashier.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'admin.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'login.html')));
 

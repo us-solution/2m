@@ -2,7 +2,6 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
-const QRCode = require('qrcode');
 const Order = require('../models/Order');
 const User = require('../models/User');
 const Drink = require('../models/Drink'); // ← مُضاف: ضروري لخصم المخزون
@@ -257,13 +256,7 @@ router.post('/', async (req, res) => {
       }
     }
 
-    // إنشاء رمز QR للطلب (للتأكيد)
-    try {
-      const host = req.get('host');
-      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-      const confirmUrl = `${protocol}://${host}/api/orders/confirm-qr?token=${qrCodeToken}`;
-      await QRCode.toDataURL(confirmUrl);
-    } catch (_) {}
+
 
     // إعلام الكاشير بالطلب الجديد عبر Pusher (إذا كان مهيأ)
     const cashierPayload = buildOrderPayload(order, user);
@@ -374,73 +367,7 @@ router.get('/', authenticateToken, requireRole('cashier'), async (req, res) => {
   }
 });
 
-// تأكيد الطلب عبر QR (صفحة HTML)
-router.get('/confirm-qr', async (req, res) => {
-  const { token } = req.query;
 
-  if (!token) {
-    return res.status(400).send('<h1>Error</h1><p>Missing verification token</p>');
-  }
-
-  try {
-    const order = await Order.findOne({ qrCodeToken: token });
-    if (!order) {
-      return res.status(404).send('<h1>Not Found</h1><p>Order not found or invalid token</p>');
-    }
-
-    // إذا كان الطلب مؤكداً بالفعل
-    if (order.isQrConfirmed) {
-      return res.send(`
-        <html>
-          <head>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>
-              body { font-family: 'Tajawal', sans-serif; background: #0b1310; color: #fff; text-align: center; padding: 3rem 1rem; }
-              .card { background: #121e1a; padding: 2rem; border-radius: 12px; border: 1px solid #c29f43; max-width: 400px; margin: 0 auto; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-              h1 { color: #c29f43; }
-            </style>
-          </head>
-          <body>
-            <div class="card">
-              <h1>الطلب مؤكد بالفعل!</h1>
-              <p>تم تأكيد هذا الطلب #${order._id} مسبقاً.</p>
-              <p style="color: #6d8e80;">Table: ${order.table_number}</p>
-            </div>
-          </body>
-        </html>
-      `);
-    }
-
-    // تأكيد الطلب
-    order.isQrConfirmed = true;
-    order.status = 'confirmed';
-    await order.save();
-
-    res.send(`
-      <html>
-        <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            body { font-family: 'Tajawal', sans-serif; background: #0b1310; color: #fff; text-align: center; padding: 3rem 1rem; }
-            .card { background: #121e1a; padding: 2rem; border-radius: 12px; border: 1px solid #27ae60; max-width: 400px; margin: 0 auto; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-            h1 { color: #27ae60; }
-            .btn { display: inline-block; background: #c29f43; color: #fff; text-decoration: none; padding: 0.8rem 1.5rem; border-radius: 6px; margin-top: 1.5rem; font-weight: bold; }
-          </style>
-        </head>
-        <body>
-          <div class="card">
-            <h1>تم تأكيد الطلب بنجاح!</h1>
-            <p>الطلب رقم #${order._id} تم تأكيده وتغيير حالته في النظام.</p>
-            <p style="color: #6d8e80;">طاولة: ${order.table_number} | المجموع: ${order.total_price} ج.م</p>
-            <a href="/cashier" class="btn">الذهاب للوحة الكاشير</a>
-          </div>
-        </body>
-      </html>
-    `);
-  } catch (err) {
-    res.status(500).send(`<h1>Internal Server Error</h1><p>${err.message}</p>`);
-  }
-});
 
 // جلب تاريخ طلبات العميل المسجل
 router.get('/me', authenticateToken, async (req, res) => {
@@ -582,22 +509,7 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
   }
 });
 
-// تأكيد QR يدوياً للطلب (الكاشير بدون مسح QR)
-router.patch('/:id/confirm-qr', authenticateToken, requireRole('cashier'), async (req, res) => {
-  try {
-    const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ error: 'Order not found' });
 
-    order.isQrConfirmed = true;
-    order.status = 'confirmed';
-    order.cashierId = req.user._id;
-    await order.save();
-
-    res.json({ success: true, message: 'Order confirmed via QR' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 // ===== نقاط البيع (Bridge API) - استعلام عن الطلبات غير المتزامنة =====
 

@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, unique: true, sparse: true, default: null },
   // كلمة المرور المشفرة
   password: { type: String, required: true },
-  // صلاحية المستخدم (customer, admin, cashier)
+  // صلاحية المستخدم (customer, admin, cashier, partner)
   role: { type: String, default: 'customer' },
   // نقاط الولاء
   points: { type: Number, default: 0 },
@@ -22,6 +22,14 @@ const userSchema = new mongoose.Schema({
   customerStatus: { type: String, enum: ['standard', 'gold', 'student', 'ozel_family'], default: 'standard' },
   // عدد الأوردرات الهدية المتاحة للعميل
   freeOrdersCount: { type: Number, default: 0 },
+  // هل هو شريك في المكان
+  isPartner: { type: Boolean, default: false },
+  // اللوجو الخاص بالشريك (Base64 أو رابط)
+  partnerLogo: { type: String, default: '' },
+  // نبذة مختصرة عن الشريك
+  partnerBio: { type: String, default: '' },
+  // مصفوفة الصور المفضلة
+  favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'VlogPost' }],
   // العنوان
   address: { type: String, default: '' },
   // ملاحظات

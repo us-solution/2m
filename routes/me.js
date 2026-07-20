@@ -5,6 +5,75 @@ const Order = require('../models/Order');
 const PointsLog = require('../models/PointsLog');
 const { authenticateToken } = require('../middlewares/auth');
 
+// جلب الملف الشخصي للعميل الحالي
+router.get('/', authenticateToken, async (req, res) => {
+  res.json({
+    id: req.user._id,
+    name: req.user.name,
+    phone: req.user.phone && req.user.phone.startsWith('email_') ? '' : (req.user.phone || ''),
+    email: req.user.email,
+    role: req.user.role,
+    points: req.user.points,
+    total_spent: parseFloat(req.user.total_spent),
+    subscriptionTier: req.user.subscriptionTier,
+    customerStatus: req.user.customerStatus || 'standard',
+    freeOrdersCount: req.user.freeOrdersCount || 0,
+    isPartner: req.user.isPartner || false,
+    partnerLogo: req.user.partnerLogo || '',
+    partnerBio: req.user.partnerBio || '',
+    favorites: req.user.favorites || []
+  });
+});
+
+// تحديث الملف الشخصي للشريك (اللوجو والنبذة المختصرة)
+router.put('/partner-profile', authenticateToken, async (req, res) => {
+  try {
+    const { partnerLogo, partnerBio } = req.body;
+    if (!req.user.isPartner && req.user.role !== 'partner') {
+      return res.status(403).json({ error: 'Only partners can update partner profile' });
+    }
+    if (partnerLogo !== undefined) req.user.partnerLogo = partnerLogo;
+    if (partnerBio !== undefined) req.user.partnerBio = partnerBio;
+    await req.user.save();
+    res.json({
+      success: true,
+      partnerLogo: req.user.partnerLogo,
+      partnerBio: req.user.partnerBio
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// إضافة صورة للمفضلة
+router.post('/favorites/:postId', authenticateToken, async (req, res) => {
+  try {
+    const { postId } = req.params;
+    if (!req.user.favorites) req.user.favorites = [];
+    if (!req.user.favorites.includes(postId)) {
+      req.user.favorites.push(postId);
+      await req.user.save();
+    }
+    res.json({ success: true, favorites: req.user.favorites });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// إزالة صورة من المفضلة
+router.delete('/favorites/:postId', authenticateToken, async (req, res) => {
+  try {
+    const { postId } = req.params;
+    if (req.user.favorites) {
+      req.user.favorites = req.user.favorites.filter(id => String(id) !== String(postId));
+      await req.user.save();
+    }
+    res.json({ success: true, favorites: req.user.favorites });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // جلب تاريخ طلبات العميل المسجل (آخر 20 طلب)
 router.get('/orders', authenticateToken, async (req, res) => {
   try {

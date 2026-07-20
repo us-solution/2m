@@ -66,8 +66,8 @@ async function wipeDatabase() {
     // Clean up User collection - keep admin and cashier, delete customers and others
     console.log('Cleaning up users collection...');
     
-    // Delete non-admin and non-cashier users
-    const resUsers = await User.deleteMany({ role: { $nin: ['admin', 'cashier'] } });
+    // Delete non-admin, non-cashier and non-partner users
+    const resUsers = await User.deleteMany({ role: { $nin: ['admin', 'cashier', 'partner'] } });
     console.log(`🧹 Deleted ${resUsers.deletedCount} customer/other user accounts.`);
 
     // Ensure default admin user exists

@@ -65,7 +65,8 @@ router.post('/register', async (req, res) => {
         email: user.email,
         role: user.role,
         points: user.points,
-        subscriptionTier: user.subscriptionTier
+        subscriptionTier: user.subscriptionTier,
+        freeOrdersCount: user.freeOrdersCount || 0
       }
     });
   } catch (err) {
@@ -108,7 +109,8 @@ router.post('/login', async (req, res) => {
         email: user.email,
         role: user.role,
         points: user.points,
-        subscriptionTier: user.subscriptionTier
+        subscriptionTier: user.subscriptionTier,
+        freeOrdersCount: user.freeOrdersCount || 0
       }
     });
   } catch (err) {
@@ -128,7 +130,8 @@ router.get('/me', authenticateToken, async (req, res) => {
     points: req.user.points,
     total_spent: parseFloat(req.user.total_spent),
     subscriptionTier: req.user.subscriptionTier,
-    customerStatus: req.user.customerStatus || 'standard'
+    customerStatus: req.user.customerStatus || 'standard',
+    freeOrdersCount: req.user.freeOrdersCount || 0
   });
 });
 
@@ -172,6 +175,35 @@ router.get('/me/points', authenticateToken, async (req, res) => {
         order_id: l.orderId,
         created_at: l.created_at.toISOString()
       }))
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// جلب قائمة الشركاء النشطين (عام)
+router.get('/partners', async (req, res) => {
+  try {
+    const partners = await User.find({ $or: [{ isPartner: true }, { role: 'partner' }] }).select('name partnerLogo partnerBio');
+    res.json(partners);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// جلب الملف الشخصي العام لشريك محدد وصوره المرفوعة
+router.get('/partners/:id', async (req, res) => {
+  try {
+    const partner = await User.findOne({ _id: req.params.id, $or: [{ isPartner: true }, { role: 'partner' }] }).select('name partnerLogo partnerBio');
+    if (!partner) return res.status(404).json({ error: 'Partner not found' });
+    
+    // جلب صور الشريك المرفوعة من موديل VlogPost
+    const VlogPost = require('../models/VlogPost');
+    const posts = await VlogPost.find({ userId: partner._id }).sort({ createdAt: -1 });
+    
+    res.json({
+      partner,
+      posts
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
