@@ -3002,7 +3002,20 @@ window.savePartnerProfile = async function() {
   }
 
   function createTrackerUI() {
-    if (document.getElementById('globalTrackerBar')) return;
+    // لو المستخدم أغلق الشريط في هذه الجلسة، لا تُنشئه مجدداً
+    if (sessionStorage.getItem('gtb_dismissed') === '1') return;
+
+    const existingBar = document.getElementById('globalTrackerBar');
+    if (existingBar) {
+      if (!document.getElementById('gtb-dismiss-btn')) {
+        existingBar.remove();
+        const existingModal = document.getElementById('globalTrackerModal');
+        if (existingModal) existingModal.remove();
+      } else {
+        return;
+      }
+    }
+
 
     const isAr = (localStorage.getItem('ozel_lang') || 'ar') === 'ar';
 
@@ -3011,38 +3024,50 @@ window.savePartnerProfile = async function() {
     bar.id = 'globalTrackerBar';
     bar.style.cssText = `
       position: fixed;
-      bottom: 24px;
+      bottom: 28px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 99999;
       width: calc(100% - 32px);
-      max-width: 480px;
-      background: rgba(18, 18, 18, 0.94);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--gold, #d4af37);
-      border-radius: 50px;
-      padding: 0.75rem 1.25rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(212,175,55,0.2);
+      max-width: 520px;
+      background: linear-gradient(135deg, #1a1208 0%, #2d1f06 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1.5px solid #d4af37;
+      border-radius: 16px;
+      padding: 0.85rem 1.2rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 24px rgba(212,175,55,0.25);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.8rem;
-      cursor: pointer;
+      gap: 0.75rem;
       font-family: 'Tajawal', sans-serif;
     `;
 
-    bar.onclick = () => window.openGlobalTrackerModal();
-
     bar.innerHTML = `
-      <div style="display:flex; align-items:center; gap:0.75rem; overflow:hidden;">
-        <div id="gtb-icon-wrap" style="width:38px; height:38px; border-radius:50%; background:rgba(212,175,55,0.15); border:1px solid var(--gold, #d4af37); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0;">⌛</div>
+      <div id="gtb-content-wrap" style="display:flex; align-items:center; gap:0.75rem; flex:1; min-width:0;">
+        <div id="gtb-icon-wrap" style="font-size:1.5rem; flex-shrink:0; line-height:1;">🟡</div>
         <div style="display:flex; flex-direction:column; min-width:0;">
-          <span style="font-size:0.75rem; color:var(--gold, #d4af37); font-weight:700; letter-spacing:0.03em;" id="gtb-title">${isAr ? 'تتبع طلبك المباشر ✦' : 'Live Order Tracking ✦'}</span>
-          <span style="font-size:0.85rem; color:#fff; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="gtb-status">${isAr ? 'في قائمة الانتظار...' : 'In Waiting List...'}</span>
+          <span id="gtb-status" style="font-size:0.9rem; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">${isAr ? 'لم يتم استلام وتأكيد الطلب بعد 🟡' : 'Order Not Received Yet 🟡'}</span>
+          <span style="font-size:0.72rem; color:#d4af37; font-weight:600; opacity:0.85;">${isAr ? 'OZEL CAFE' : 'OZEL CAFE'}</span>
         </div>
       </div>
-      <button style="background:var(--gold, #d4af37); color:#000; border:none; border-radius:20px; padding:0.45rem 0.9rem; font-size:0.8rem; font-weight:700; font-family:'Tajawal',sans-serif; cursor:pointer; flex-shrink:0;">${isAr ? 'عرض' : 'View'}</button>
+      <button id="gtb-dismiss-btn" onclick="event.stopPropagation(); window.dismissGlobalTrackerBar();" title="${isAr ? 'إغلاق' : 'Dismiss'}" style="
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #ffffff;
+        font-size: 0.85rem;
+        line-height: 1;
+        flex-shrink: 0;
+        transition: background 0.2s;
+      " onmouseover="this.style.background='rgba(239,68,68,0.7)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">✕</button>
     `;
 
     document.body.appendChild(bar);
@@ -3071,10 +3096,14 @@ window.savePartnerProfile = async function() {
           <img src="imgs/Ozel-Logo--01.png" alt="OZEL CAFE" style="height:55px; opacity:0.9;"/>
         </div>
         <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:var(--gold, #d4af37); margin-bottom:0.2rem;" id="gtm-header-title">${isAr ? 'تتبع حالة الطلب المباشرة' : 'Live Order Tracking'}</h3>
-        <p style="font-size:0.8rem; color:var(--muted, #888); margin-bottom:1.5rem;"><span data-en="Order ID:" data-ar="رقم الطلب:">${isAr ? 'رقم الطلب:' : 'Order ID:'}</span> <strong id="gtm-order-id" style="color:var(--gold, #d4af37)">#--</strong></p>
+        <p style="font-size:0.8rem; color:var(--muted, #888); margin-bottom:1rem;"><span data-en="Order ID:" data-ar="رقم الطلب:">${isAr ? 'رقم الطلب:' : 'Order ID:'}</span> <strong id="gtm-order-id" style="color:var(--gold, #d4af37)">#--</strong></p>
+
+        <div style="margin-bottom:1rem;">
+          <button id="gtm-toggle-btn" onclick="window.toggleModalTrackerVisibility()" style="background:rgba(212,175,55,0.12); color:var(--gold, #d4af37); border:1px solid rgba(212,175,55,0.4); border-radius:20px; padding:0.4rem 0.9rem; font-size:0.78rem; font-weight:700; font-family:'Tajawal',sans-serif; cursor:pointer; transition:all 0.2s;">${isAr ? 'إخفاء تتبع الحالة' : 'Hide Tracker'}</button>
+        </div>
 
         <!-- Stepper Visual -->
-        <div style="display:flex; justify-content:space-between; align-items:center; position:relative; margin:2rem 0; padding:0 0.5rem;">
+        <div id="gtm-stepper-container" style="display:flex; justify-content:space-between; align-items:center; position:relative; margin:1.5rem 0; padding:0 0.5rem;">
           <div id="gtm-progress-line" style="position:absolute; top:20px; left:12%; right:12%; height:3px; background:var(--line, #333); z-index:1;">
             <div id="gtm-progress-fill" style="height:100%; width:0%; background:var(--gold, #d4af37); transition:width 0.5s ease;"></div>
           </div>
@@ -3122,6 +3151,61 @@ window.savePartnerProfile = async function() {
     }
   };
 
+  // إغلاق وإخفاء الشريط نهائياً
+  window.dismissGlobalTrackerBar = function() {
+    const bar = document.getElementById('globalTrackerBar');
+    if (bar) {
+      bar.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      bar.style.opacity = '0';
+      bar.style.transform = 'translateX(-50%) translateY(20px)';
+      setTimeout(() => bar.remove(), 320);
+    }
+    sessionStorage.setItem('gtb_dismissed', '1');
+  };
+
+  window.toggleGlobalTrackerBarVisibility = function() {
+    const isAr = (localStorage.getItem('ozel_lang') || 'ar') === 'ar';
+    const barContent = document.getElementById('gtb-content-wrap');
+    const toggleBtn = document.getElementById('gtb-toggle-btn');
+    const bar = document.getElementById('globalTrackerBar');
+    
+    if (!barContent || !toggleBtn || !bar) return;
+    
+    const isHidden = barContent.style.display === 'none';
+    if (isHidden) {
+      barContent.style.display = 'flex';
+      toggleBtn.innerHTML = isAr ? 'إخفاء تتبع الحالة' : 'Hide Tracker';
+      toggleBtn.style.background = 'rgba(212,175,55,0.12)';
+      toggleBtn.style.color = 'var(--gold, #d4af37)';
+      bar.style.padding = '0.75rem 1.25rem';
+    } else {
+      barContent.style.display = 'none';
+      toggleBtn.innerHTML = isAr ? '👁️ إظهار تتبع الحالة' : '👁️ Show Tracker';
+      toggleBtn.style.background = 'var(--gold, #d4af37)';
+      toggleBtn.style.color = '#000';
+      bar.style.padding = '0.5rem 1rem';
+    }
+  };
+
+  window.toggleModalTrackerVisibility = function() {
+    const isAr = (localStorage.getItem('ozel_lang') || 'ar') === 'ar';
+    const stepper = document.getElementById('gtm-stepper-container');
+    const btn = document.getElementById('gtm-toggle-btn');
+    if (!stepper || !btn) return;
+    const isHidden = stepper.style.display === 'none';
+    if (isHidden) {
+      stepper.style.display = 'flex';
+      btn.innerHTML = isAr ? 'إخفاء تتبع الحالة' : 'Hide Tracker';
+      btn.style.background = 'rgba(212,175,55,0.12)';
+      btn.style.color = 'var(--gold, #d4af37)';
+    } else {
+      stepper.style.display = 'none';
+      btn.innerHTML = isAr ? '👁️ إظهار تتبع الحالة' : '👁️ Show Tracker';
+      btn.style.background = 'var(--gold, #d4af37)';
+      btn.style.color = '#000';
+    }
+  };
+
   function updateGlobalTrackerState(orderId, status) {
     const isAr = (localStorage.getItem('ozel_lang') || 'ar') === 'ar';
     createTrackerUI();
@@ -3134,43 +3218,41 @@ window.savePartnerProfile = async function() {
 
     if (gtmOrderId) gtmOrderId.textContent = '#' + String(orderId).slice(-6);
 
+    const bar = document.getElementById('globalTrackerBar');
     const s = (status || 'pending').toLowerCase();
 
-    let stepIndex = 0;
-    let icon = '⌛';
-    let shortText = isAr ? 'في قائمة الانتظار ⌛' : 'In Waiting List ⌛';
-    let fullMsg = isAr ? 'طلبك الآن في قائمة الانتظار، بانتظار موافقة واستلام الكاشير...' : 'Your order is currently in the waiting list...';
-
-    if (s === 'pending' || s === 'created' || s === 'sent') {
-      stepIndex = 0;
-      icon = '⌛';
-      shortText = isAr ? 'في قائمة الانتظار ⌛' : 'In Waiting List ⌛';
-      fullMsg = isAr ? 'طلبك الآن في قائمة الانتظار، بانتظار موافقة واستلام الكاشير...' : 'Your order is currently in the waiting list...';
-    } else if (s === 'received' || s === 'accepted' || s === 'confirmed') {
-      stepIndex = 1;
-      icon = '👨‍🍳';
-      shortText = isAr ? 'تم قبول الطلب من الكاشير ✦' : 'Order Accepted ✦';
-      fullMsg = isAr ? 'تم قبول واستلام طلبك بنجاح من الكاشير ✦' : 'Your order has been accepted & confirmed by cashier ✦';
-    } else if (s === 'preparing' || s === 'in_progress' || s === 'processing') {
-      stepIndex = 2;
-      icon = '☕';
-      shortText = isAr ? 'قيد التحضير في المطبخ ☕' : 'Preparing in Kitchen ☕';
-      fullMsg = isAr ? 'طلبك قيد التحضير الآن في المطبخ ☕' : 'Your order is currently being prepared in the kitchen ☕';
-    } else if (s === 'ready' || s === 'served' || s === 'completed' || s === 'paid') {
-      stepIndex = 3;
-      icon = '🎉';
-      shortText = isAr ? 'طلبك جاهز للتقديم! 🎉' : 'Ready to Serve! 🎉';
-      fullMsg = isAr ? 'طلبك جاهز للتقديم! نتمنى لك تجربة ممتعة في أوزيل كافيه 🎉' : 'Your order is ready to serve! Enjoy your time at OZEL CAFE 🎉';
+    if (s === 'confirmed' || s === 'preparing' || s === 'ready' || s === 'received' || s === 'accepted' || s === 'completed') {
+      if (gtbIcon) gtbIcon.textContent = '🟢';
+      if (gtbStatus) {
+        gtbStatus.textContent = isAr ? 'تم استلام وتأكيد الطلب بنجاح ✅' : 'Order Received & Confirmed ✅';
+        gtbStatus.style.color = '#ffffff';
+      }
+      if (bar) {
+        bar.style.border = '1.5px solid #10b981';
+        bar.style.background = 'linear-gradient(135deg, #065f46 0%, #047857 100%)';
+      }
     } else if (s === 'cancelled' || s === 'rejected') {
-      stepIndex = 1;
-      icon = '❌';
-      shortText = isAr ? 'تم إلغاء الطلب' : 'Order Cancelled';
-      fullMsg = isAr ? 'عفواً، تم إلغاء الطلب من قبل الكاشير.' : 'Order was cancelled by the cashier.';
+      if (gtbIcon) gtbIcon.textContent = '🔴';
+      if (gtbStatus) {
+        gtbStatus.textContent = isAr ? 'لم يتم استلام وتأكيد الطلب ❌' : 'Order Was Cancelled ❌';
+        gtbStatus.style.color = '#ffffff';
+      }
+      if (bar) {
+        bar.style.border = '1.5px solid #ef4444';
+        bar.style.background = 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%)';
+      }
+    } else {
+      if (gtbIcon) gtbIcon.textContent = '🟡';
+      if (gtbStatus) {
+        gtbStatus.textContent = isAr ? 'لم يتم استلام وتأكيد الطلب بعد 🟡' : 'Order Not Received Yet 🟡';
+        gtbStatus.style.color = '#ffffff';
+      }
+      if (bar) {
+        bar.style.border = '1.5px solid #d4af37';
+        bar.style.background = 'linear-gradient(135deg, #1a1208 0%, #2d1f06 100%)';
+      }
     }
 
-    if (gtbIcon) gtbIcon.textContent = icon;
-    if (gtbStatus) gtbStatus.textContent = shortText;
-    if (gtmStatusMsg) gtmStatusMsg.textContent = fullMsg;
 
     const pct = stepIndex === 0 ? 0 : stepIndex === 1 ? 33 : stepIndex === 2 ? 66 : 100;
     if (fill) fill.style.width = pct + '%';

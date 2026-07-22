@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="style.css?v=4"/>
+  <link rel="stylesheet" href="style.css?v=102"/>
   <style>
     /* ===== تنسيقات خاصة بصفحة السلة ===== */
     .cart-page {
@@ -349,44 +349,48 @@
 
 <!-- ===== نافذة شكراً بعد نجاح الطلب ===== -->
 <div class="modal-overlay" id="thankYouModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); backdrop-filter:blur(12px); justify-content:center; align-items:center; z-index:9999; padding:1.5rem;">
-  <div class="modal-panel" style="max-width:420px; width:100%; background:var(--bg2); border:1px solid var(--gold); border-radius:16px; padding:2.5rem 2rem; text-align:center; box-shadow:0 12px 40px rgba(0,0,0,0.4); position:relative; animation:fadeIn 0.4s ease;">
-    <div style="margin-bottom:1.5rem;">
-      <img src="imgs/Ozel-Logo--01.png" alt="OZEL CAFE" style="height:60px; opacity:0.9;"/>
+  <div class="modal-panel" style="max-width:420px; width:100%; background:#1a1208; border:1.5px solid #d4af37; border-radius:20px; padding:2.5rem 2rem; text-align:center; box-shadow:0 16px 50px rgba(0,0,0,0.7), 0 0 30px rgba(212,175,55,0.15); position:relative; animation:fadeIn 0.4s ease;">
+    <!-- زرار الإغلاق -->
+    <button onclick="closeThankYou()" title="إغلاق" style="position:absolute; top:14px; right:14px; width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#ffffff; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.7)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">✕</button>
+
+    <div style="margin-bottom:1.2rem;">
+      <img src="imgs/Ozel-Logo--01.png" alt="OZEL CAFE" style="height:55px; opacity:0.9;"/>
     </div>
-    <div style="font-size:3rem; margin-bottom:0.5rem;">&#10024;</div>
-    <h3 style="font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--gold); margin-bottom:0.3rem;" data-en="Thank You!" data-ar="شكراً لك!">Thank You!</h3>
-    <p style="font-size:0.8rem; color:var(--muted); margin-bottom:1.2rem;"><span data-en="Order ID:" data-ar="رقم الطلب:">Order ID:</span> <strong id="tyOrderId" style="color:var(--gold)">#--</strong></p>
+    <div style="font-size:2.8rem; margin-bottom:0.4rem;">✨</div>
+    <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.9rem; color:#d4af37; margin-bottom:0.3rem;" data-en="Thank You!" data-ar="شكراً لك!">Thank You!</h3>
+    <p style="font-size:0.8rem; color:rgba(255,255,255,0.55); margin-bottom:1.2rem;"><span data-en="Order ID:" data-ar="رقم الطلب:">Order ID:</span> <strong id="tyOrderId" style="color:#d4af37">#--</strong></p>
 
-    <!-- ===== Order Tracker ===== -->
-    <div class="order-tracker" id="orderTracker">
-      <div class="tracker-progress" id="trackerProgress"></div>
-
-      <div class="tracker-step active" id="step-sent">
-        <div class="step-icon">⌛</div>
-        <span class="step-label" data-ar="قائمة الانتظار" data-en="Waiting List">قائمة الانتظار</span>
-      </div>
-
-      <div class="tracker-step" id="step-received">
-        <div class="step-icon">👨‍🍳</div>
-        <span class="step-label" data-ar="تم قبول الطلب" data-en="Accepted">تم قبول الطلب</span>
-      </div>
-
-      <div class="tracker-step" id="step-preparing">
-        <div class="step-icon">☕</div>
-        <span class="step-label" data-ar="قيد التحضير" data-en="Preparing">قيد التحضير</span>
-      </div>
-
-      <div class="tracker-step" id="step-ready">
-        <div class="step-icon">🎉</div>
-        <span class="step-label" data-ar="جاهز للتقديم!" data-en="Ready!">جاهز للتقديم!</span>
-      </div>
+    <!-- ===== حالة استلام الطلب ===== -->
+    <div id="orderStatusBox" style="margin: 1.2rem 0; padding: 1rem 1.2rem; border-radius: 14px; background: rgba(245,158,11,0.18); border: 1.5px solid rgba(245,158,11,0.5); font-weight: 800; font-size: 1rem; line-height: 1.6; font-family: 'Tajawal', sans-serif; color: #ffffff; display:flex; align-items:center; justify-content:center; gap:0.5rem;">
+      <span>🟡</span><span data-text>لم يتم استلام وتأكيد الطلب بعد</span>
     </div>
-    <!-- ===== end tracker ===== -->
+    <!-- ===== end status ===== -->
 
-    <p style="font-size:0.92rem; color:var(--text); margin: 1.2rem 0 1.5rem; line-height:1.6; font-weight:600; font-family:'Tajawal',sans-serif; background:var(--bg3); padding:0.8rem 1rem; border-radius:var(--rad); border:1px solid var(--line);" id="thankYouMsg">جاري متابعة حالة طلبك المباشرة...</p>
-    <button class="btn-gold" style="width:100%; justify-content:center;" onclick="closeThankYou()" data-en="Done" data-ar="موافق">موافق</button>
+    <button class="btn-gold" style="width:100%; justify-content:center; margin-top:1rem;" onclick="closeThankYou()" data-en="Done" data-ar="موافق">موافق</button>
   </div>
 </div>
+
+
+<script>
+  function toggleCartTrackerVisibility() {
+    const isAr = (localStorage.getItem('ozel_lang') || 'ar') === 'ar';
+    const tracker = document.getElementById('orderTracker');
+    const btn = document.getElementById('cart-toggle-tracker-btn');
+    if (!tracker || !btn) return;
+    const isHidden = tracker.style.display === 'none';
+    if (isHidden) {
+      tracker.style.display = 'flex';
+      btn.innerHTML = isAr ? 'إخفاء تتبع الحالة' : 'Hide Tracker';
+      btn.style.background = 'rgba(212,175,55,0.12)';
+      btn.style.color = 'var(--gold)';
+    } else {
+      tracker.style.display = 'none';
+      btn.innerHTML = isAr ? '👁️ إظهار تتبع الحالة' : '👁️ Show Tracker';
+      btn.style.background = 'var(--gold)';
+      btn.style.color = '#000';
+    }
+  }
+</script>
 
 <script>
   // ===== أوزيل كافيه — منطق صفحة سلة المشتريات =====
@@ -797,38 +801,31 @@
         if (!res.ok) return;
         const data = await res.json();
         const status = (data.status || 'pending').toLowerCase();
-        const msgEl = document.getElementById('thankYouMsg');
+        const boxEl = document.getElementById('orderStatusBox');
+        if (!boxEl) return;
         const isAr = currentLang === 'ar';
+        const iconEl = boxEl.querySelector('span:first-child');
+        const textEl = boxEl.querySelector('[data-text]');
 
-        if (status === 'pending' || status === 'created' || status === 'sent') {
-          setTrackerStep(0, 'active');
-          if (msgEl) msgEl.textContent = isAr 
-            ? 'طلبك الآن في قائمة الانتظار، بانتظار موافقة واستلام الكاشير...' 
-            : 'Your order is in the waiting list, awaiting cashier confirmation...';
-        } else if (status === 'received' || status === 'accepted' || status === 'confirmed') {
-          setTrackerStep(1, 'active');
-          if (msgEl) msgEl.textContent = isAr 
-            ? 'تم قبول واستلام طلبك بنجاح من الكاشير ✦' 
-            : 'Your order has been accepted & confirmed by cashier ✦';
-        } else if (status === 'preparing' || status === 'in_progress' || status === 'processing') {
-          setTrackerStep(2, 'active');
-          if (msgEl) msgEl.textContent = isAr 
-            ? 'طلبك قيد التحضير الآن في المطبخ ☕' 
-            : 'Your order is currently being prepared in the kitchen ☕';
-        } else if (status === 'ready' || status === 'served' || status === 'completed' || status === 'paid') {
-          setTrackerStep(3, 'done');
-          const pEl = document.getElementById('trackerProgress');
-          if (pEl) pEl.style.width = '100%';
-          if (msgEl) msgEl.textContent = isAr 
-            ? 'طلبك جاهز للتقديم! نتمنى لك تجربة ممتعة في أوزيل كافيه 🎉' 
-            : 'Your order is ready to serve! Enjoy your time at OZEL CAFE 🎉';
-          clearInterval(trackTimer);
+        if (status === 'confirmed' || status === 'preparing' || status === 'ready' || status === 'received' || status === 'accepted' || status === 'completed') {
+          if (iconEl) iconEl.textContent = '✅';
+          if (textEl) textEl.textContent = isAr ? 'تم استلام وتأكيد الطلب بنجاح' : 'Order Received & Confirmed';
+          boxEl.style.background = 'rgba(16,185,129,0.2)';
+          boxEl.style.border = '1.5px solid rgba(16,185,129,0.6)';
+          boxEl.style.color = '#ffffff';
         } else if (status === 'cancelled' || status === 'rejected') {
-          setTrackerStep(1, 'cancelled');
-          if (msgEl) msgEl.textContent = isAr 
-            ? 'عفواً، تم إلغاء الطلب من قبل الكاشير.' 
-            : 'Order was cancelled by the cashier.';
+          if (iconEl) iconEl.textContent = '❌';
+          if (textEl) textEl.textContent = isAr ? 'لم يتم استلام وتأكيد الطلب' : 'Order Was Not Accepted';
+          boxEl.style.background = 'rgba(239,68,68,0.2)';
+          boxEl.style.border = '1.5px solid rgba(239,68,68,0.6)';
+          boxEl.style.color = '#ffffff';
           clearInterval(trackTimer);
+        } else {
+          if (iconEl) iconEl.textContent = '🟡';
+          if (textEl) textEl.textContent = isAr ? 'لم يتم استلام وتأكيد الطلب بعد' : 'Order Has Not Been Confirmed Yet';
+          boxEl.style.background = 'rgba(245,158,11,0.18)';
+          boxEl.style.border = '1.5px solid rgba(245,158,11,0.5)';
+          boxEl.style.color = '#ffffff';
         }
       } catch (err) {
         console.warn('[Tracking] error:', err);
@@ -839,6 +836,7 @@
     checkStatus();
     trackTimer = setInterval(checkStatus, 3000);
   }
+
 
 
   // ===== إغلاق نافذة الشكر والعودة للصفحة الرئيسية =====
@@ -887,7 +885,7 @@
     applyLanguage(currentLang);
   });
 </script>
-<script src="app.js?v=4"></script>
+<script src="app.js?v=102"></script>
 
 </body>
 </html>

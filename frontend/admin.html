@@ -2,32 +2,38 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8"/>
-<script src="api-override.js?v=3"></script>
+<script src="api-override.js?v=3">
+
+
+</script>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>لوحة التحكم — OZEL CAFE</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js">
+
+
+</script>
 <style>
 :root {
-  --burgundy:      #541a1a;
-  --burgundy2:     #702424;
-  --burgundy-glow: rgba(84, 26, 26, 0.08);
-  --accent-emerald:       #5c766d;
-  --accent-emerald-light: #759288;
-  --accent-emerald-glow:  rgba(92, 118, 109, 0.08);
-  --gold:          #541a1a;
-  --gold2:         #702424;
-  --gold-glow:     rgba(84, 26, 26, 0.12);
+  --burgundy:      #241E1A;
+  --burgundy2:     #322822;
+  --burgundy-glow: rgba(212, 175, 55, 0.10);
+  --accent-emerald:       #d4af37;
+  --accent-emerald-light: #e5c158;
+  --accent-emerald-glow:  rgba(212, 175, 55, 0.12);
+  --gold:          #d4af37;
+  --gold2:         #b38f24;
+  --gold-glow:     rgba(212, 175, 55, 0.15);
   --bg:            #FDFBF7;
   --bg2:           #FFFFFF;
   --bg3:           #F5F2EC;
   --bg4:           #EAE5DA;
-  --line:          rgba(92, 118, 109, 0.16);
-  --text:          #241E1A;
-  --muted:         rgba(36, 30, 26, 0.65);
+  --line:          rgba(212, 175, 55, 0.22);
+  --text:          #1e1b18;
+  --muted:         rgba(30, 27, 24, 0.68);
   --white:         #ffffff;
-  --green:         #27AE60;
-  --red:           #C0392B;
+  --green:         #2ECC71;
+  --red:           #E74C3C;
   --orange:        #E67E22;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -315,8 +321,14 @@ td, th { white-space: nowrap; }
 </style>
   <script>
     window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
-  </script>
-  <script defer src="/_vercel/speed-insights/script.js"></script>
+  
+
+
+</script>
+  <script defer src="/_vercel/speed-insights/script.js">
+
+
+</script>
 </head>
 <body>
 <div class="toast-container" id="toastContainer"></div>
@@ -341,6 +353,7 @@ td, th { white-space: nowrap; }
       <option value="tables">📱 رموز QR للطاولات</option>
       <option value="customization">⚙ خيارات التخصيص</option>
       <option value="vlog">📸 ألبوم الصور (Vlog)</option>
+
     </select>
     <div class="nav-item active" onclick="showPage('dashboard',this)">📊 لوحة التحكم</div>
     <div class="nav-item" onclick="showPage('menu',this)">🍽 إدارة القائمة</div>
@@ -350,6 +363,7 @@ td, th { white-space: nowrap; }
     <div class="nav-item" onclick="showPage('tables',this)">📱 رموز QR للطاولات</div>
     <div class="nav-item" onclick="showPage('customization',this)">⚙ خيارات التخصيص</div>
     <div class="nav-item" onclick="showPage('vlog',this)">📸 ألبوم الصور (Vlog)</div>
+
   </nav>
   <div style="overflow-y:auto;max-height:calc(100vh - 60px)">
 
@@ -359,6 +373,10 @@ td, th { white-space: nowrap; }
       <p class="page-sub">نظرة عامة على أداء اليوم</p>
       <div class="stats-grid" id="statsGrid"><p style="color:var(--muted)">جارٍ التحميل...</p></div>
       <div id="cashierStatsArea" style="margin-top: 2rem;"></div>
+    </div>
+
+    
+    
     </div>
 
     <!-- ===== إدارة القائمة ===== -->
@@ -1595,6 +1613,9 @@ window.deleteVlogPost = async function(id) {
     showToast('خطأ في الاتصال بالخادم', 'error');
   }
 };
+
+
+
 
 </script>
 
