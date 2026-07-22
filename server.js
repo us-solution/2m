@@ -36,6 +36,7 @@ require('./models/ExpenseCategory');
 require('./models/CustomizationOption');
 require('./models/QueueOrder');
 require('./models/VlogPost');
+require('./models/SystemLicense');
 
 const app = express();
 const PORT = process.env.PORT || 5000;

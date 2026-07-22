@@ -7,6 +7,7 @@ const Order = require('../models/Order');
 const User = require('../models/User');
 const Drink = require('../models/Drink');
 const Category = require('../models/Category');
+const SystemLicense = require('../models/SystemLicense');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const retryQueue = require('../retry-queue');
@@ -43,7 +44,10 @@ function verifyBridgeSignature(req, res, next) {
   const rawBody = JSON.stringify(req.body || {});
   const payload = `${timestamp}.${eventId}.${rawBody}`;
   const expected = crypto.createHmac('sha256', secret).update(payload).digest('hex');
-  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+
+  const sigBuf = Buffer.from(signature, 'utf-8');
+  const expBuf = Buffer.from(expected, 'utf-8');
+  if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
     return res.status(403).json({ error: 'Invalid bridge signature' });
   }
   next();
@@ -478,12 +482,12 @@ router.delete('/drinks/:id', verifyBridgeKey, async (req, res) => {
   }
 });
 
-// 5. جلب الطلبات أونلاين المعلقة التي تنتظر تأكيد الكاشير
+// 5. جلب الطلبات أونلاين النشطة وتتبع حالتها للكاشير
 router.get('/orders/online-pending', verifyBridgeKey, async (req, res) => {
   try {
     const orders = await Order.find({ 
-      status: 'pending'
-    }).populate('userId');
+      status: { $in: ['pending', 'confirmed', 'preparing', 'ready'] }
+    }).sort({ createdAt: -1 }).populate('userId');
     
     const serialized = orders.map(o => {
       let customerStatus = 'standard';
@@ -504,6 +508,7 @@ router.get('/orders/online-pending', verifyBridgeKey, async (req, res) => {
         customerName: o.userId ? o.userId.name : (o.customerPhone ? 'عميل أونلاين' : 'زائر'),
         customerStatus,
         discountPercent,
+        status: o.status || 'pending',
         createdAt: o.createdAt
       };
     });
