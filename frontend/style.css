@@ -4483,41 +4483,48 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   box-shadow: 0 12px 30px rgba(46, 204, 113, 0.2);
 }
 
-/* Custom card colors (set by admin) */
-.vip-card.card-green {
-  background: #1c1c24;
-  border-color: rgba(26, 46, 36, 0.5);
-  box-shadow: 0 12px 30px rgba(26, 46, 36, 0.25);
-  animation: none;
-  background-size: 100% 100%;
+/* Custom card colors (set by admin & system) */
+.vip-card.card-standard,
+.vip-card.is-light-card {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 50%, #E2E8F0 100%) !important;
+  border: 1px solid rgba(74, 21, 23, 0.25) !important;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08), 0 0 15px rgba(74, 21, 23, 0.06) !important;
+  color: #2C1415 !important;
+  animation: none !important;
 }
-.vip-card.card-blue {
-  background: #1a5276;
-  border-color: rgba(26, 82, 118, 0.5);
-  box-shadow: 0 12px 30px rgba(26, 82, 118, 0.25);
-  animation: none;
-  background-size: 100% 100%;
+.vip-card.is-light-card span,
+.vip-card.is-light-card div {
+  color: #2C1415 !important;
 }
-.vip-card.card-red {
-  background: #4A1517;
-  border-color: rgba(74, 21, 23, 0.5);
-  box-shadow: 0 12px 30px rgba(74, 21, 23, 0.25);
-  animation: none;
-  background-size: 100% 100%;
+.vip-card.is-light-card .vip-card-badge {
+  background: rgba(74, 21, 23, 0.08) !important;
+  border: 1px solid rgba(74, 21, 23, 0.3) !important;
+  color: #4A1517 !important;
+  font-weight: 800 !important;
 }
+
 .vip-card.card-gold {
-  background: #7a5a00;
-  border-color: rgba(122, 90, 0, 0.5);
-  box-shadow: 0 12px 30px rgba(122, 90, 0, 0.25);
-  animation: none;
-  background-size: 100% 100%;
+  background: linear-gradient(135deg, #3D2D00 0%, #7A5A00 35%, #B8860B 70%, #D4AF37 100%) !important;
+  border: 1px solid rgba(255, 215, 0, 0.6) !important;
+  box-shadow: 0 12px 35px rgba(212, 175, 55, 0.4), 0 0 20px rgba(255, 215, 0, 0.25) !important;
+  animation: none !important;
 }
-.vip-card.card-purple {
-  background: #1a0a30;
-  border-color: rgba(90, 30, 120, 0.5);
-  box-shadow: 0 12px 30px rgba(90, 30, 120, 0.3);
-  animation: none;
-  background-size: 100% 100%;
+
+.vip-card.card-cyan,
+.vip-card.card-blue {
+  background: linear-gradient(135deg, #032B45 0%, #0284C7 50%, #38BDF8 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.6) !important;
+  box-shadow: 0 12px 35px rgba(14, 165, 233, 0.35), 0 0 20px rgba(56, 189, 248, 0.25) !important;
+  animation: none !important;
+}
+
+.vip-card.card-ozel,
+.vip-card.card-purple,
+.vip-card.card-red {
+  background: linear-gradient(135deg, #2B0B0C 0%, #4A1517 45%, #6E2225 75%, #8C5523 100%) !important;
+  border: 1px solid rgba(212, 160, 23, 0.6) !important;
+  box-shadow: 0 12px 35px rgba(74, 21, 23, 0.5), 0 0 20px rgba(140, 85, 35, 0.3) !important;
+  animation: none !important;
 }
 .vip-card-badge {
   position: absolute;

@@ -489,22 +489,25 @@ window.openProfileModal = async function() {
   if (cardEl && badgeEl && discountEl) {
     // تكوين حالة العميل: الحالة → [classCSS, لون الخلفية, اللقب, نسبة الخصم]
     const STATUS_MAP = {
-      standard:    ['card-green',  '#1a2e24', 'STANDARD',     null],
-      gold:        ['card-red',    '#541a1a', 'GOLD',         '10%'],
-      student:     ['card-blue',   '#1a5276', 'STUDENT',      '15%'],
-      ozel_family: ['card-purple', '#1a0a30', 'OZEL FAMILY', '30%']
+      standard:    ['card-standard', 'linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 50%, #E2E8F0 100%)', 'STANDARD GUEST 👤', null],
+      gold:        ['card-gold',     'linear-gradient(135deg, #3D2D00 0%, #7A5A00 35%, #B8860B 70%, #D4AF37 100%)', 'GOLD MEMBER ⭐', '10%'],
+      student:     ['card-cyan',     'linear-gradient(135deg, #032B45 0%, #0284C7 50%, #38BDF8 100%)', 'STUDENT MEMBER 🎓', '15%'],
+      ozel_family: ['card-ozel',     'linear-gradient(135deg, #2B0B0C 0%, #4A1517 45%, #6E2225 75%, #8C5523 100%)', 'OZEL FAMILY 👑', '20%']
     };
     const status = userDetails.customerStatus || 'standard';
     const [cssClass, bgColor, title, discountPct] = STATUS_MAP[status] || STATUS_MAP.standard;
 
     // إزالة كلاسات الحالة القديمة
-    ['card-green','card-red','card-blue','card-purple','tier-none','tier-bronze','tier-silver','tier-gold','tier-student'].forEach(cls => cardEl.classList.remove(cls));
+    ['card-standard','card-gold','card-cyan','card-ozel','card-green','card-red','card-blue','card-purple','tier-none','tier-bronze','tier-silver','tier-gold','tier-student','is-light-card'].forEach(cls => cardEl.classList.remove(cls));
     cardEl.classList.add('vip-card', cssClass);
+    if (status === 'standard') {
+      cardEl.classList.add('is-light-card');
+    }
 
     // إضافة تنسيق لون الخلفية للبطاقة
     let styleTag = document.getElementById('card-color-override');
     if (!styleTag) { styleTag = document.createElement('style'); styleTag.id = 'card-color-override'; document.head.appendChild(styleTag); }
-    styleTag.textContent = `#profileVipCard { background: ${bgColor} !important; background-image: none !important; animation: none !important; background-size: 100% 100% !important; }`;
+    styleTag.textContent = `#profileVipCard { background: ${bgColor} !important; animation: none !important; }`;
 
     badgeEl.textContent = title;
 
@@ -512,9 +515,9 @@ window.openProfileModal = async function() {
       // الحالة العادية: الخصم بناءً على النقاط (كل 100 نقطة = 10 جنيه)
       const pts = userDetails.points || 0;
       const egpDiscount = Math.floor(pts / 100) * 10;
-      discountEl.innerHTML = `Your discount rate: <span style="color:#fff; font-size:1.15rem; font-weight:700;">${egpDiscount} EGP</span>`;
+      discountEl.innerHTML = `Your discount rate: <span style="color:#4A1517; font-size:1.15rem; font-weight:800;">${egpDiscount} EGP</span>`;
     } else {
-      discountEl.innerHTML = `Your discount rate: <span style="color:#fff; font-size:1.15rem; font-weight:700;">${discountPct}</span>`;
+      discountEl.innerHTML = `Your discount rate: <span style="color:#ffffff; font-size:1.15rem; font-weight:800;">${discountPct}</span>`;
     }
   }
 
