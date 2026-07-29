@@ -2700,11 +2700,11 @@ window.loadPublicPartnerProfile = async function(pid) {
             <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.25) 100%);"></div>
           ` : ''}
           <div style="position: relative; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 1.2rem;">
-            <div class="partner-banner-logo" style="width: 90px; height: 90px; border-radius: 50%; overflow: hidden; border: 3px solid var(--gold); background: var(--bg); box-shadow: 0 8px 25px rgba(212,175,55,0.4); flex-shrink: 0;">
+            <div class="partner-banner-logo" style="width: 90px; height: 90px; border-radius: 50%; overflow: hidden; border: 3px solid var(--gold); background: var(--bg); box-shadow: 0 8px 25px rgba(74, 21, 23,0.4); flex-shrink: 0;">
               <img src="${logoHeaderImg}" alt="${partner.name}" style="width: 100%; height: 100%; object-fit: cover;" />
             </div>
             <div style="flex: 1; min-width: 180px;">
-              <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid var(--gold); padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.4rem;">
+              <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(74, 21, 23,0.15); color: var(--gold); border: 1px solid var(--gold); padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.4rem;">
                 <span>✦</span> <span>${isAr ? 'شريك نجاح أوزيل' : 'OZEL SUCCESS PARTNER'}</span>
               </div>
               <h2 class="partner-banner-title" style="font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; color: #fff; font-weight: 700; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">${partner.name}</h2>
@@ -3033,10 +3033,10 @@ window.savePartnerProfile = async function() {
       background: linear-gradient(135deg, #1a1208 0%, #2d1f06 100%);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1.5px solid #d4af37;
+      border: 1.5px solid #4A1517;
       border-radius: 16px;
       padding: 0.85rem 1.2rem;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 24px rgba(212,175,55,0.25);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 24px rgba(74, 21, 23,0.25);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -3049,7 +3049,7 @@ window.savePartnerProfile = async function() {
         <div id="gtb-icon-wrap" style="font-size:1.5rem; flex-shrink:0; line-height:1;">🟡</div>
         <div style="display:flex; flex-direction:column; min-width:0;">
           <span id="gtb-status" style="font-size:0.9rem; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">${isAr ? 'لم يتم استلام وتأكيد الطلب بعد 🟡' : 'Order Not Received Yet 🟡'}</span>
-          <span style="font-size:0.72rem; color:#d4af37; font-weight:600; opacity:0.85;">${isAr ? 'OZEL CAFE' : 'OZEL CAFE'}</span>
+          <span style="font-size:0.72rem; color:#4A1517; font-weight:600; opacity:0.85;">${isAr ? 'OZEL CAFE' : 'OZEL CAFE'}</span>
         </div>
       </div>
       <button id="gtb-dismiss-btn" onclick="event.stopPropagation(); window.dismissGlobalTrackerBar();" title="${isAr ? 'إغلاق' : 'Dismiss'}" style="
@@ -3090,22 +3090,22 @@ window.savePartnerProfile = async function() {
     `;
 
     modal.innerHTML = `
-      <div style="max-width:440px; width:100%; background:var(--bg2, #181818); border:1px solid var(--gold, #d4af37); border-radius:20px; padding:2.2rem 1.8rem; text-align:center; box-shadow:0 16px 50px rgba(0,0,0,0.6); position:relative;">
+      <div style="max-width:440px; width:100%; background:var(--bg2, #181818); border:1px solid var(--gold, #4A1517); border-radius:20px; padding:2.2rem 1.8rem; text-align:center; box-shadow:0 16px 50px rgba(0,0,0,0.6); position:relative;">
         <button onclick="window.closeGlobalTrackerModal()" style="position:absolute; top:14px; right:16px; background:none; border:none; color:var(--muted, #888); font-size:1.4rem; cursor:pointer;">✕</button>
         <div style="margin-bottom:1rem;">
           <img src="imgs/Ozel-Logo--01.png" alt="OZEL CAFE" style="height:55px; opacity:0.9;"/>
         </div>
-        <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:var(--gold, #d4af37); margin-bottom:0.2rem;" id="gtm-header-title">${isAr ? 'تتبع حالة الطلب المباشرة' : 'Live Order Tracking'}</h3>
-        <p style="font-size:0.8rem; color:var(--muted, #888); margin-bottom:1rem;"><span data-en="Order ID:" data-ar="رقم الطلب:">${isAr ? 'رقم الطلب:' : 'Order ID:'}</span> <strong id="gtm-order-id" style="color:var(--gold, #d4af37)">#--</strong></p>
+        <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:var(--gold, #4A1517); margin-bottom:0.2rem;" id="gtm-header-title">${isAr ? 'تتبع حالة الطلب المباشرة' : 'Live Order Tracking'}</h3>
+        <p style="font-size:0.8rem; color:var(--muted, #888); margin-bottom:1rem;"><span data-en="Order ID:" data-ar="رقم الطلب:">${isAr ? 'رقم الطلب:' : 'Order ID:'}</span> <strong id="gtm-order-id" style="color:var(--gold, #4A1517)">#--</strong></p>
 
         <div style="margin-bottom:1rem;">
-          <button id="gtm-toggle-btn" onclick="window.toggleModalTrackerVisibility()" style="background:rgba(212,175,55,0.12); color:var(--gold, #d4af37); border:1px solid rgba(212,175,55,0.4); border-radius:20px; padding:0.4rem 0.9rem; font-size:0.78rem; font-weight:700; font-family:'Tajawal',sans-serif; cursor:pointer; transition:all 0.2s;">${isAr ? 'إخفاء تتبع الحالة' : 'Hide Tracker'}</button>
+          <button id="gtm-toggle-btn" onclick="window.toggleModalTrackerVisibility()" style="background:rgba(74, 21, 23,0.12); color:var(--gold, #4A1517); border:1px solid rgba(74, 21, 23,0.4); border-radius:20px; padding:0.4rem 0.9rem; font-size:0.78rem; font-weight:700; font-family:'Tajawal',sans-serif; cursor:pointer; transition:all 0.2s;">${isAr ? 'إخفاء تتبع الحالة' : 'Hide Tracker'}</button>
         </div>
 
         <!-- Stepper Visual -->
         <div id="gtm-stepper-container" style="display:flex; justify-content:space-between; align-items:center; position:relative; margin:1.5rem 0; padding:0 0.5rem;">
           <div id="gtm-progress-line" style="position:absolute; top:20px; left:12%; right:12%; height:3px; background:var(--line, #333); z-index:1;">
-            <div id="gtm-progress-fill" style="height:100%; width:0%; background:var(--gold, #d4af37); transition:width 0.5s ease;"></div>
+            <div id="gtm-progress-fill" style="height:100%; width:0%; background:var(--gold, #4A1517); transition:width 0.5s ease;"></div>
           </div>
 
           <div id="gtm-step-0" style="position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:0.4rem;">
@@ -3175,13 +3175,13 @@ window.savePartnerProfile = async function() {
     if (isHidden) {
       barContent.style.display = 'flex';
       toggleBtn.innerHTML = isAr ? 'إخفاء تتبع الحالة' : 'Hide Tracker';
-      toggleBtn.style.background = 'rgba(212,175,55,0.12)';
-      toggleBtn.style.color = 'var(--gold, #d4af37)';
+      toggleBtn.style.background = 'rgba(74, 21, 23,0.12)';
+      toggleBtn.style.color = 'var(--gold, #4A1517)';
       bar.style.padding = '0.75rem 1.25rem';
     } else {
       barContent.style.display = 'none';
       toggleBtn.innerHTML = isAr ? '👁️ إظهار تتبع الحالة' : '👁️ Show Tracker';
-      toggleBtn.style.background = 'var(--gold, #d4af37)';
+      toggleBtn.style.background = 'var(--gold, #4A1517)';
       toggleBtn.style.color = '#000';
       bar.style.padding = '0.5rem 1rem';
     }
@@ -3196,12 +3196,12 @@ window.savePartnerProfile = async function() {
     if (isHidden) {
       stepper.style.display = 'flex';
       btn.innerHTML = isAr ? 'إخفاء تتبع الحالة' : 'Hide Tracker';
-      btn.style.background = 'rgba(212,175,55,0.12)';
-      btn.style.color = 'var(--gold, #d4af37)';
+      btn.style.background = 'rgba(74, 21, 23,0.12)';
+      btn.style.color = 'var(--gold, #4A1517)';
     } else {
       stepper.style.display = 'none';
       btn.innerHTML = isAr ? '👁️ إظهار تتبع الحالة' : '👁️ Show Tracker';
-      btn.style.background = 'var(--gold, #d4af37)';
+      btn.style.background = 'var(--gold, #4A1517)';
       btn.style.color = '#000';
     }
   };
@@ -3248,7 +3248,7 @@ window.savePartnerProfile = async function() {
         gtbStatus.style.color = '#ffffff';
       }
       if (bar) {
-        bar.style.border = '1.5px solid #d4af37';
+        bar.style.border = '1.5px solid #4A1517';
         bar.style.background = 'linear-gradient(135deg, #1a1208 0%, #2d1f06 100%)';
       }
     }
@@ -3276,10 +3276,10 @@ window.savePartnerProfile = async function() {
         iconEl.style.color = '#22c55e';
         if (textEl) textEl.style.color = '#22c55e';
       } else if (idx === stepIndex) {
-        iconEl.style.background = 'rgba(212,175,55,0.25)';
-        iconEl.style.borderColor = 'var(--gold, #d4af37)';
-        iconEl.style.color = 'var(--gold, #d4af37)';
-        if (textEl) { textEl.style.color = 'var(--gold, #d4af37)'; textEl.style.fontWeight = '700'; }
+        iconEl.style.background = 'rgba(74, 21, 23,0.25)';
+        iconEl.style.borderColor = 'var(--gold, #4A1517)';
+        iconEl.style.color = 'var(--gold, #4A1517)';
+        if (textEl) { textEl.style.color = 'var(--gold, #4A1517)'; textEl.style.fontWeight = '700'; }
       } else {
         iconEl.style.background = 'var(--bg3, #222)';
         iconEl.style.borderColor = 'var(--line, #333)';

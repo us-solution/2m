@@ -104,6 +104,33 @@ router.post('/ack', verifyBridgeKey, async (req, res) => {
   }
 });
 
+// Synchronize local invoice to cloud with Idempotency Key check
+router.post('/invoices/sync', verifyBridgeKey, async (req, res) => {
+  const { invoice_number, idempotency_key, total, payment_method } = req.body || {};
+  if (!idempotency_key) {
+    return res.status(400).json({ error: 'idempotency_key is required' });
+  }
+  try {
+    const existing = await SyncEvent.findOne({ 'payload.idempotency_key': idempotency_key });
+    if (existing) {
+      return res.json({ success: true, message: 'Already synced (Idempotent OK)', eventId: existing.eventId });
+    }
+
+    const eventId = uuidv4();
+    await SyncEvent.create({
+      eventId,
+      eventType: 'INVOICE_SYNCED',
+      payload: req.body,
+      status: 'acked',
+      acknowledgedAt: new Date()
+    });
+
+    res.json({ success: true, message: 'Invoice synced successfully', eventId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // استقبال تحديث حالة الطلب من نظام نقاط البيع (مع التوقيع الرقمي)
 router.post('/inbound-status', verifyBridgeKey, verifyBridgeSignature, async (req, res) => {
   const { meta, data } = req.body || {};

@@ -349,7 +349,7 @@
 
 <!-- ===== نافذة شكراً بعد نجاح الطلب ===== -->
 <div class="modal-overlay" id="thankYouModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); backdrop-filter:blur(12px); justify-content:center; align-items:center; z-index:9999; padding:1.5rem;">
-  <div class="modal-panel" style="max-width:420px; width:100%; background:#1a1208; border:1.5px solid #d4af37; border-radius:20px; padding:2.5rem 2rem; text-align:center; box-shadow:0 16px 50px rgba(0,0,0,0.7), 0 0 30px rgba(212,175,55,0.15); position:relative; animation:fadeIn 0.4s ease;">
+  <div class="modal-panel" style="max-width:420px; width:100%; background:#1a1208; border:1.5px solid #4A1517; border-radius:20px; padding:2.5rem 2rem; text-align:center; box-shadow:0 16px 50px rgba(0,0,0,0.7), 0 0 30px rgba(74, 21, 23,0.15); position:relative; animation:fadeIn 0.4s ease;">
     <!-- زرار الإغلاق -->
     <button onclick="closeThankYou()" title="إغلاق" style="position:absolute; top:14px; right:14px; width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#ffffff; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.7)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">✕</button>
 
@@ -357,8 +357,8 @@
       <img src="imgs/Ozel-Logo--01.png" alt="OZEL CAFE" style="height:55px; opacity:0.9;"/>
     </div>
     <div style="font-size:2.8rem; margin-bottom:0.4rem;">✨</div>
-    <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.9rem; color:#d4af37; margin-bottom:0.3rem;" data-en="Thank You!" data-ar="شكراً لك!">Thank You!</h3>
-    <p style="font-size:0.8rem; color:rgba(255,255,255,0.55); margin-bottom:1.2rem;"><span data-en="Order ID:" data-ar="رقم الطلب:">Order ID:</span> <strong id="tyOrderId" style="color:#d4af37">#--</strong></p>
+    <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.9rem; color:#4A1517; margin-bottom:0.3rem;" data-en="Thank You!" data-ar="شكراً لك!">Thank You!</h3>
+    <p style="font-size:0.8rem; color:rgba(255,255,255,0.55); margin-bottom:1.2rem;"><span data-en="Order ID:" data-ar="رقم الطلب:">Order ID:</span> <strong id="tyOrderId" style="color:#4A1517">#--</strong></p>
 
     <!-- ===== حالة استلام الطلب ===== -->
     <div id="orderStatusBox" style="margin: 1.2rem 0; padding: 1rem 1.2rem; border-radius: 14px; background: rgba(245,158,11,0.18); border: 1.5px solid rgba(245,158,11,0.5); font-weight: 800; font-size: 1rem; line-height: 1.6; font-family: 'Tajawal', sans-serif; color: #ffffff; display:flex; align-items:center; justify-content:center; gap:0.5rem;">
@@ -381,7 +381,7 @@
     if (isHidden) {
       tracker.style.display = 'flex';
       btn.innerHTML = isAr ? 'إخفاء تتبع الحالة' : 'Hide Tracker';
-      btn.style.background = 'rgba(212,175,55,0.12)';
+      btn.style.background = 'rgba(74, 21, 23,0.12)';
       btn.style.color = 'var(--gold)';
     } else {
       tracker.style.display = 'none';
