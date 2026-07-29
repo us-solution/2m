@@ -94,7 +94,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at 50% 45%, #2D0B0D 0%, #170405 60%, #0A0102 100%);
+  background: radial-gradient(circle at 50% 45%, #FFFFFF 0%, #F9F6F0 50%, #ECE5D8 100%);
   transition: transform 1.2s cubic-bezier(0.85, 0, 0.15, 1), 
               opacity 1.2s cubic-bezier(0.85, 0, 0.15, 1);
   overflow: hidden;
@@ -108,9 +108,9 @@ body {
   position: absolute;
   inset: 0;
   background: 
-    radial-gradient(circle 550px at 50% 42%, rgba(245, 208, 97, 0.32) 0%, rgba(140, 85, 35, 0.22) 45%, rgba(74, 21, 23, 0.15) 75%, transparent 100%),
-    radial-gradient(ellipse 900px 600px at 15% 20%, rgba(74, 21, 23, 0.2) 0%, transparent 60%),
-    radial-gradient(ellipse 900px 600px at 85% 80%, rgba(132, 28, 28, 0.2) 0%, transparent 60%);
+    radial-gradient(circle 550px at 50% 42%, rgba(74, 21, 23, 0.06) 0%, rgba(140, 85, 35, 0.04) 45%, transparent 75%),
+    radial-gradient(ellipse 900px 600px at 15% 20%, rgba(74, 21, 23, 0.03) 0%, transparent 60%),
+    radial-gradient(ellipse 900px 600px at 85% 80%, rgba(132, 28, 28, 0.03) 0%, transparent 60%);
   z-index: 1;
   animation: glassBreath 8s ease-in-out infinite alternate;
 }
@@ -134,7 +134,7 @@ body {
   left: -100%;
   width: 50%;
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(74, 21, 23, 0.8), rgba(255, 255, 255, 0.6), rgba(74, 21, 23, 0.8), transparent);
+  background: linear-gradient(90deg, transparent, rgba(74, 21, 23, 0.4), rgba(140, 85, 35, 0.6), rgba(74, 21, 23, 0.4), transparent);
   z-index: 4;
   animation: shimmerSlide 2.8s ease-in-out infinite;
 }
@@ -165,12 +165,12 @@ body {
   font-size: clamp(3rem, 8vw, 4.8rem);
   font-weight: 700;
   text-transform: uppercase;
-  background: linear-gradient(135deg, #4A1517 0%, #EAE5DA 35%, #6E2225 70%, #4A1517 100%);
+  background: linear-gradient(135deg, #3B0E10 0%, #4A1517 40%, #6E2225 70%, #8C5523 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 0 15px rgba(74, 21, 23, 0.45));
+  filter: drop-shadow(0 4px 10px rgba(74, 21, 23, 0.18));
   opacity: 0;
   transform: translateY(-120px); /* Drop from above */
   animation: 
@@ -203,7 +203,7 @@ body {
 .loader-ozel-line {
   width: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(74, 21, 23, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(74, 21, 23, 0.4), transparent);
   animation: lineExpand 1.2s cubic-bezier(0.25, 1, 0.3, 1) 1.2s forwards;
   margin-top: 0.4rem;
   margin-bottom: 0.8rem;
@@ -215,10 +215,10 @@ body {
 .loader-ozel-subtitle {
   font-family: 'Montserrat', sans-serif;
   font-size: clamp(0.5rem, 1.1vw, 0.68rem);
-  font-weight: 300;
+  font-weight: 600;
   letter-spacing: 0.55em;
   text-transform: uppercase;
-  color: rgba(247, 231, 190, 0.5);
+  color: rgba(74, 21, 23, 0.75);
   opacity: 0;
   transform: translateY(10px);
   animation: subtitleFadeUp 1s cubic-bezier(0.25, 1, 0.3, 1) 1.4s forwards;
@@ -294,7 +294,7 @@ body {
 .loader-progress-track {
   width: 100%;
   height: 2px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(74, 21, 23, 0.12);
   border-radius: 2px;
   overflow: hidden;
   position: relative;
@@ -305,16 +305,16 @@ body {
   left: 0;
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #4A1517, #EAE5DA, #6E2225);
-  box-shadow: 0 0 10px rgba(74, 21, 23, 0.8);
+  background: linear-gradient(90deg, #4A1517, #6E2225, #8C5523);
+  box-shadow: 0 0 10px rgba(74, 21, 23, 0.3);
   transition: width 0.1s ease-out;
 }
 .loader-percent {
   font-family: 'Montserrat', sans-serif;
   font-size: 0.72rem;
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: 0.15em;
-  color: rgba(247, 231, 190, 0.65);
+  color: rgba(74, 21, 23, 0.85);
 }
 @keyframes spin {
   to { transform: rotate(360deg); }
