@@ -352,8 +352,7 @@ td, th { white-space: nowrap; }
       <option value="users">👥 المستخدمين</option>
       <option value="tables">📱 رموز QR للطاولات</option>
       <option value="customization">⚙ خيارات التخصيص</option>
-      <option value="vlog">📸 ألبوم الصور (Vlog)</option>
-
+      <option value="vlog">📸 إدارة صور الموقع</option>
     </select>
     <div class="nav-item active" onclick="showPage('dashboard',this)">📊 لوحة التحكم</div>
     <div class="nav-item" onclick="showPage('menu',this)">🍽 إدارة القائمة</div>
@@ -362,7 +361,7 @@ td, th { white-space: nowrap; }
     <div class="nav-item" onclick="showPage('users',this)">👥 المستخدمين</div>
     <div class="nav-item" onclick="showPage('tables',this)">📱 رموز QR للطاولات</div>
     <div class="nav-item" onclick="showPage('customization',this)">⚙ خيارات التخصيص</div>
-    <div class="nav-item" onclick="showPage('vlog',this)">📸 ألبوم الصور (Vlog)</div>
+    <div class="nav-item" onclick="showPage('vlog',this)">📸 إدارة صور الموقع</div>
 
   </nav>
   <div style="overflow-y:auto;max-height:calc(100vh - 60px)">
@@ -565,32 +564,48 @@ td, th { white-space: nowrap; }
       <button class="hbtn" onclick="saveCustomization()" style="margin-top:1.5rem; background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.6rem 2rem; font-weight:700;">💾 حفظ التغييرات</button>
     </div>
 
-    <!-- ===== ألبوم الصور والفلوج (Vlog) ===== -->
+    <!-- ===== إدارة الصور (Vlog & الشركاء) ===== -->
     <div class="page" id="page-vlog">
-      <h1 class="page-title">📸 ألبوم الصور والفلوج (Vlog)</h1>
-      <p class="page-sub">إدارة الصور التي يرفعها العملاء وتحديد الفائزين بـ الأوردر الهدية</p>
-      
-      <div class="search-bar" style="position:relative;">
-        <input id="vlog-admin-search" type="text" placeholder="🔍 ابحث بالاسم أو الوصف..." oninput="filterAdminVlogTable()" style="flex:1; padding-right:2.5rem;"/>
-        <span onclick="document.getElementById('vlog-admin-search').value='';filterAdminVlogTable()" style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--muted); font-size:1.1rem;">×</span>
+      <h1 class="page-title">📸 إدارة صور الموقع والشركاء</h1>
+      <p class="page-sub">مراجعة وقبول أو حذف صور ألبوم المكان وصور الملفات الشخصية للشركاء</p>
+
+      <!-- تبويبات التنقل -->
+      <div style="display: flex; gap: 1rem; border-bottom: 1.5px solid var(--line); margin-bottom: 1.5rem; padding-bottom: 0.5rem;">
+        <button class="hbtn" id="tab-vlog-album" onclick="switchVlogTab('album')" style="background: var(--gold); color: #fff; height: 36px; padding: 0 1rem; font-size: 0.85rem;">ألبوم المكان (Vlog & Album)</button>
+        <button class="hbtn" id="tab-vlog-partners" onclick="switchVlogTab('partners')" style="background: transparent; color: var(--muted); border-color: var(--line); height: 36px; padding: 0 1rem; font-size: 0.85rem;">صور ومعارض الشركاء</button>
       </div>
-      
-      <table>
-        <thead>
-          <tr>
-            <th>الصورة</th>
-            <th>الناشر</th>
-            <th>الوصف</th>
-            <th>الإعجابات</th>
-            <th>الحالة</th>
-            <th>تحديد كفائز</th>
-            <th>إجراء</th>
-          </tr>
-        </thead>
-        <tbody id="vlogAdminTable">
-          <tr><td colspan="7" style="text-align:center; color:var(--muted);">جاري التحميل...</td></tr>
-        </tbody>
-      </table>
+
+      <!-- قسم ألبوم المكان -->
+      <div id="vlog-album-section">
+        <div class="search-bar" style="position:relative;">
+          <input id="vlog-admin-search" type="text" placeholder="🔍 ابحث بالاسم أو الوصف..." oninput="filterAdminVlogTable()" style="flex:1; padding-right:2.5rem;"/>
+          <span onclick="document.getElementById('vlog-admin-search').value='';filterAdminVlogTable()" style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--muted); font-size:1.1rem;">×</span>
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>الصورة</th>
+              <th>الناشر</th>
+              <th>الوصف</th>
+              <th>الإعجابات</th>
+              <th>الحالة</th>
+              <th>تحديد كفائز</th>
+              <th>إجراء</th>
+            </tr>
+          </thead>
+          <tbody id="vlogAdminTable">
+            <tr><td colspan="7" style="text-align:center; color:var(--muted);">جاري التحميل...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- قسم صور ومعارض الشركاء -->
+      <div id="vlog-partners-section" style="display: none;">
+        <div id="vlogPartnersContainer" style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <p style="text-align:center; color:var(--muted); font-family:'Tajawal', sans-serif;">جاري تحميل بيانات صور الشركاء...</p>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -1496,6 +1511,36 @@ async function saveCustomization() {
 let vlogAdminData = [];
 let selectedVlogPostIdForWinner = null;
 
+// تبديل تبويب إدارة الصور
+window.switchVlogTab = function(tab) {
+  const btnAlbum = document.getElementById('tab-vlog-album');
+  const btnPartners = document.getElementById('tab-vlog-partners');
+  const secAlbum = document.getElementById('vlog-album-section');
+  const secPartners = document.getElementById('vlog-partners-section');
+  
+  if (tab === 'album') {
+    btnAlbum.style.background = 'var(--gold)';
+    btnAlbum.style.color = '#fff';
+    btnPartners.style.background = 'transparent';
+    btnPartners.style.color = 'var(--muted)';
+    btnPartners.style.borderColor = 'var(--line)';
+    
+    secAlbum.style.display = 'block';
+    secPartners.style.display = 'none';
+    loadAdminVlog();
+  } else {
+    btnPartners.style.background = 'var(--gold)';
+    btnPartners.style.color = '#fff';
+    btnAlbum.style.background = 'transparent';
+    btnAlbum.style.color = 'var(--muted)';
+    btnAlbum.style.borderColor = 'var(--line)';
+    
+    secAlbum.style.display = 'none';
+    secPartners.style.display = 'block';
+    loadAdminPartnersImages();
+  }
+};
+
 async function loadAdminVlog() {
   try {
     const res = await fetch('/api/vlog/admin-all', { headers: getAuthH() });
@@ -1517,11 +1562,22 @@ function renderAdminVlogTable(data) {
   }
 
   tbody.innerHTML = data.map(p => {
-    const statusText = p.isWinner ? '🏆 فائز بالمسابقة' : 'نشط';
-    const statusClass = p.isWinner ? 'badge badge-featured' : 'badge badge-cashier';
-    const winnerBtnHtml = p.isWinner 
-      ? `<span style="color:var(--green); font-size:0.8rem; font-weight:bold;">تم الفوز</span>`
-      : `<button class="hbtn" onclick="openVlogWinnerModal('${p._id}')" style="font-size:0.75rem; color:var(--green); border-color:rgba(39,174,96,0.5)">اختر كفائز 🏆</button>`;
+    let statusText = 'قيد الانتظار';
+    let statusClass = 'badge badge-hidden';
+    if (p.isApproved) {
+      statusText = p.isWinner ? '🏆 فائز بالمسابقة' : 'نشط (مقبول)';
+      statusClass = p.isWinner ? 'badge badge-featured' : 'badge badge-cashier';
+    }
+
+    const winnerBtnHtml = !p.isApproved
+      ? `<span style="color:var(--muted); font-size:0.8rem;">بانتظار القبول</span>`
+      : (p.isWinner 
+        ? `<span style="color:var(--green); font-size:0.8rem; font-weight:bold;">تم الفوز</span>`
+        : `<button class="hbtn" onclick="openVlogWinnerModal('${p._id}')" style="font-size:0.75rem; color:var(--green); border-color:rgba(39,174,96,0.5)">اختر كفائز 🏆</button>`);
+
+    const approveBtnHtml = p.isApproved
+      ? ''
+      : `<button class="hbtn" onclick="approveVlogPost('${p._id}')" style="font-size:0.75rem; color:var(--green); border-color:rgba(39,174,96,0.5); margin-left: 0.5rem; display: inline-block; height: 28px; line-height: 26px; padding: 0 0.5rem;">قبول ✅</button>`;
 
     return `
       <tr id="vlog-row-${p._id}">
@@ -1536,12 +1592,33 @@ function renderAdminVlogTable(data) {
         <td><span class="${statusClass}">${statusText}</span></td>
         <td>${winnerBtnHtml}</td>
         <td>
-          <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,0.4)" onclick="deleteVlogPost('${p._id}')">حذف 🗑️</button>
+          <div style="display: flex; gap: 0.3rem; align-items: center;">
+            ${approveBtnHtml}
+            <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,0.4); height: 28px; padding: 0 0.5rem;" onclick="deleteVlogPost('${p._id}')">حذف 🗑️</button>
+          </div>
         </td>
       </tr>
     `;
   }).join('');
 }
+
+window.approveVlogPost = async function(id) {
+  try {
+    const res = await fetch(`/api/vlog/${id}/approve`, {
+      method: 'PATCH',
+      headers: getAuthH()
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast('تم قبول الصورة ونشرها في ألبوم المكان بنجاح ✅', 'success');
+      loadAdminVlog();
+    } else {
+      showToast(data.error || 'فشل قبول الصورة', 'error');
+    }
+  } catch(e) {
+    showToast('خطأ في الاتصال بالخادم', 'error');
+  }
+};
 
 function filterAdminVlogTable() {
   const q = document.getElementById('vlog-admin-search').value.toLowerCase();
@@ -1606,6 +1683,201 @@ window.deleteVlogPost = async function(id) {
     if (res.ok && data.success) {
       showToast('تم حذف الصورة بنجاح 🗑️', 'success');
       loadAdminVlog();
+    } else {
+      showToast(data.error || 'فشل حذف الصورة', 'error');
+    }
+  } catch(e) {
+    showToast('خطأ في الاتصال بالخادم', 'error');
+  }
+};
+
+// ── دوال إدارة صور الشركاء ──
+let partnersImagesData = [];
+
+async function loadAdminPartnersImages() {
+  try {
+    const res = await fetch('/api/admin/partners-images', { headers: getAuthH() });
+    if (!res.ok) throw new Error('Failed to load partners images');
+    partnersImagesData = await res.json();
+    renderAdminPartnersImages(partnersImagesData);
+  } catch(err) {
+    document.getElementById('vlogPartnersContainer').innerHTML = `<p style="text-align:center; color:var(--red);">فشل تحميل صور الشركاء: ${err.message}</p>`;
+  }
+}
+
+function renderAdminPartnersImages(data) {
+  const container = document.getElementById('vlogPartnersContainer');
+  if (!container) return;
+
+  if (data.length === 0) {
+    container.innerHTML = `<p style="text-align:center; color:var(--muted);">لا يوجد شركاء مضافون حالياً</p>`;
+    return;
+  }
+
+  container.innerHTML = data.map(p => {
+    // اللوجو
+    let logoHtml = '';
+    if (p.partnerLogo) {
+      logoHtml += `
+        <div style="text-align:center; position:relative; background:var(--bg3); border:1px solid var(--line); border-radius:8px; padding:0.5rem; width:120px;">
+          <div style="font-size:0.75rem; color:var(--muted); margin-bottom:0.25rem;">اللوجو المعتمد</div>
+          <img src="${p.partnerLogo}" style="width:70px; height:70px; object-fit:contain; border-radius:4px; margin-bottom:0.4rem;" />
+          <button class="action-btn2" style="color:var(--red); font-size:0.75rem; width:100%; border-color:rgba(192,57,43,0.3); height:24px; padding:0;" onclick="deletePartnerImage('${p._id}', 'logo', false, '')">حذف 🗑️</button>
+        </div>
+      `;
+    } else {
+      logoHtml += `<div style="text-align:center; color:var(--muted); font-size:0.8rem; padding:1.5rem; border:1px dashed var(--line); border-radius:8px; width:120px; display:flex; align-items:center; justify-content:center;">لا يوجد لوجو</div>`;
+    }
+
+    if (p.pendingPartnerLogo) {
+      logoHtml += `
+        <div style="text-align:center; position:relative; background:rgba(230,126,34,0.05); border:2px solid var(--orange); border-radius:8px; padding:0.5rem; width:120px;">
+          <div style="font-size:0.75rem; color:var(--orange); font-weight:bold; margin-bottom:0.25rem;">لوجو جديد ⏳</div>
+          <img src="${p.pendingPartnerLogo}" style="width:70px; height:70px; object-fit:contain; border-radius:4px; margin-bottom:0.4rem;" />
+          <div style="display:flex; gap:0.2rem;">
+            <button class="hbtn" style="flex:1; font-size:0.7rem; padding:0.2rem; color:var(--green); border-color:var(--green); background:transparent; height:24px; min-width:unset;" onclick="approvePartnerImage('${p._id}', 'logo', '')">قبول</button>
+            <button class="hbtn" style="flex:1; font-size:0.7rem; padding:0.2rem; color:var(--red); border-color:var(--red); background:transparent; height:24px; min-width:unset;" onclick="deletePartnerImage('${p._id}', 'logo', true, '')">رفض</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // الصورة الرئيسية (Cover)
+    let mainImageHtml = '';
+    if (p.partnerMainImage) {
+      mainImageHtml += `
+        <div style="position:relative; background:var(--bg3); border:1px solid var(--line); border-radius:8px; padding:0.5rem; width:180px;">
+          <div style="font-size:0.75rem; color:var(--muted); margin-bottom:0.25rem;">المعتمدة للغلاف</div>
+          <img src="${p.partnerMainImage}" style="width:100%; height:90px; object-fit:cover; border-radius:4px; margin-bottom:0.4rem;" />
+          <button class="action-btn2" style="color:var(--red); font-size:0.75rem; width:100%; border-color:rgba(192,57,43,0.3); height:24px; padding:0;" onclick="deletePartnerImage('${p._id}', 'mainImage', false, '')">حذف 🗑️</button>
+        </div>
+      `;
+    } else {
+      mainImageHtml += `<div style="text-align:center; color:var(--muted); font-size:0.8rem; padding:2rem 1rem; border:1px dashed var(--line); border-radius:8px; width:180px; display:flex; align-items:center; justify-content:center;">لا توجد غلاف</div>`;
+    }
+
+    if (p.pendingPartnerMainImage) {
+      mainImageHtml += `
+        <div style="position:relative; background:rgba(230,126,34,0.05); border:2px solid var(--orange); border-radius:8px; padding:0.5rem; width:180px;">
+          <div style="font-size:0.75rem; color:var(--orange); font-weight:bold; margin-bottom:0.25rem;">غلاف جديد ⏳</div>
+          <img src="${p.pendingPartnerMainImage}" style="width:100%; height:90px; object-fit:cover; border-radius:4px; margin-bottom:0.4rem;" />
+          <div style="display:flex; gap:0.2rem;">
+            <button class="hbtn" style="flex:1; font-size:0.7rem; padding:0.2rem; color:var(--green); border-color:var(--green); background:transparent; height:24px; min-width:unset;" onclick="approvePartnerImage('${p._id}', 'mainImage', '')">قبول</button>
+            <button class="hbtn" style="flex:1; font-size:0.7rem; padding:0.2rem; color:var(--red); border-color:var(--red); background:transparent; height:24px; min-width:unset;" onclick="deletePartnerImage('${p._id}', 'mainImage', true, '')">رفض</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // معرض الصور المعتمد
+    let galleryHtml = '';
+    const approvedGallery = p.partnerGallery || [];
+    if (approvedGallery.length === 0) {
+      galleryHtml += `<div style="font-size:0.8rem; color:var(--muted); padding:1rem 0;">لا توجد صور معتمدة في المعرض</div>`;
+    } else {
+      galleryHtml += `
+        <div style="display:flex; flex-direction:column; gap:0.3rem; margin-top:0.4rem;">
+          <div style="font-size:0.75rem; color:var(--muted);">المعرض المعتمد:</div>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            ${approvedGallery.map(imgUrl => `
+              <div style="position:relative; width:90px; height:90px; border-radius:4px; overflow:hidden; border:1px solid var(--line);">
+                <img src="${imgUrl}" style="width:100%; height:100%; object-fit:cover;" />
+                <button onclick="deletePartnerImage('${p._id}', 'gallery', false, '${imgUrl.replace(/'/g, "\\'")}')" style="position:absolute; top:2px; right:2px; background:rgba(192,57,43,0.9); color:#fff; border:none; width:22px; height:22px; border-radius:50%; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;" title="حذف">✕</button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // معرض الصور قيد الانتظار
+    let pendingGalleryHtml = '';
+    const pendingGallery = p.pendingPartnerGallery || [];
+    if (pendingGallery.length > 0) {
+      pendingGalleryHtml += `
+        <div style="display:flex; flex-direction:column; gap:0.3rem; margin-top:0.8rem; background:rgba(230,126,34,0.03); border:1px dashed var(--orange); border-radius:8px; padding:0.8rem;">
+          <div style="font-size:0.78rem; color:var(--orange); font-weight:bold;">📸 صور جديدة بالمعرض تنتظر الموافقة (${pendingGallery.length} صور):</div>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.4rem;">
+            ${pendingGallery.map(imgUrl => `
+              <div style="position:relative; width:100px; height:100px; border-radius:6px; overflow:hidden; border:2px solid var(--orange);">
+                <img src="${imgUrl}" style="width:100%; height:100%; object-fit:cover;" />
+                <div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.7); display:flex; justify-content:space-around; padding:0.2rem 0;">
+                  <button onclick="approvePartnerImage('${p._id}', 'gallery', '${imgUrl.replace(/'/g, "\\'")}')" style="background:none; border:none; color:#2ecc71; font-size:12px; cursor:pointer; font-weight:bold;" title="موافقة">✓ موافقة</button>
+                  <button onclick="deletePartnerImage('${p._id}', 'gallery', true, '${imgUrl.replace(/'/g, "\\'")}')" style="background:none; border:none; color:#e74c3c; font-size:12px; cursor:pointer; font-weight:bold;" title="رفض وحذف">✕ رفض</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div style="background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:1.5rem; box-shadow:0 4px 12px rgba(0,0,0,0.02); display:flex; flex-direction:column; gap:1.2rem;">
+        <div style="border-bottom:1px solid var(--line); padding-bottom:0.5rem; display:flex; justify-content:space-between; align-items:center;">
+          <h3 style="color:var(--gold); font-family:'Tajawal',sans-serif; font-size:1.15rem;">🤝 ${p.name}</h3>
+          ${pendingGallery.length > 0 || p.pendingPartnerLogo || p.pendingPartnerMainImage ? '<span class="badge badge-featured" style="background:rgba(230,126,34,0.1); color:var(--orange); border:1px solid rgba(230,126,34,0.2);">لديه صور معلقة ⏳</span>' : '<span class="badge badge-cashier">مكتمل الموافقة ✓</span>'}
+        </div>
+        
+        <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+          <!-- عمود اللوجو -->
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <div style="font-weight:600; font-size:0.85rem; color:var(--text);">شعار الشريك (Logo):</div>
+            <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+              ${logoHtml}
+            </div>
+          </div>
+          
+          <!-- عمود الصورة الرئيسية -->
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <div style="font-weight:600; font-size:0.85rem; color:var(--text);">الصورة التعريفية (Cover):</div>
+            <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+              ${mainImageHtml}
+            </div>
+          </div>
+        </div>
+        
+        <!-- معرض الصور المعتمد والمنبثق -->
+        <div>
+          ${galleryHtml}
+          ${pendingGalleryHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.approvePartnerImage = async function(partnerId, type, imageUrl) {
+  try {
+    const res = await fetch(`/api/admin/partners/${partnerId}/approve-image`, {
+      method: 'POST',
+      headers: getAuthH(),
+      body: JSON.stringify({ type, imageUrl })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast('تم قبول الصورة وتحديث الملف الشخصي بنجاح ✅', 'success');
+      loadAdminPartnersImages();
+    } else {
+      showToast(data.error || 'فشل قبول الصورة', 'error');
+    }
+  } catch(e) {
+    showToast('خطأ في الاتصال بالخادم', 'error');
+  }
+};
+
+window.deletePartnerImage = async function(partnerId, type, isPending, imageUrl) {
+  if (!confirm(isPending ? 'هل أنت متأكد من رفض وحذف هذه الصورة المعلقة؟' : 'هل أنت متأكد من حذف هذه الصورة المعتمدة نهائياً؟')) return;
+  try {
+    const res = await fetch(`/api/admin/partners/${partnerId}/delete-image`, {
+      method: 'POST',
+      headers: getAuthH(),
+      body: JSON.stringify({ type, isPending, imageUrl })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast('تم حذف/رفض الصورة بنجاح 🗑️', 'success');
+      loadAdminPartnersImages();
     } else {
       showToast(data.error || 'فشل حذف الصورة', 'error');
     }

@@ -475,7 +475,33 @@ window.openProfileModal = async function() {
       }
 
       window.currentPartnerGallery = Array.isArray(userDetails.partnerGallery) ? [...userDetails.partnerGallery] : [];
+      window.currentPendingPartnerGallery = Array.isArray(userDetails.pendingPartnerGallery) ? [...userDetails.pendingPartnerGallery] : [];
       window.renderPartnerGalleryPreview();
+
+      // تحديث إشعار الصور المعلقة للشركاء
+      const pendingNotice = document.getElementById('partner-pending-notice');
+      if (pendingNotice) {
+        const hasPendingLogo = !!userDetails.pendingPartnerLogo;
+        const hasPendingMain = !!userDetails.pendingPartnerMainImage;
+        const pendingCount = window.currentPendingPartnerGallery.length;
+        
+        if (hasPendingLogo || hasPendingMain || pendingCount > 0) {
+          let msg = currentLang === 'ar' 
+            ? '⏳ لديك صور جديدة قيد الانتظار لموافقة الإدارة: ' 
+            : '⏳ You have new photos pending admin approval: ';
+          
+          let parts = [];
+          if (hasPendingLogo) parts.push(currentLang === 'ar' ? 'اللوجو' : 'Logo');
+          if (hasPendingMain) parts.push(currentLang === 'ar' ? 'صورة الغلاف' : 'Cover image');
+          if (pendingCount > 0) parts.push((currentLang === 'ar' ? 'صور المعرض' : 'Gallery photos') + ` (${pendingCount})`);
+          
+          msg += parts.join(' - ');
+          pendingNotice.textContent = msg;
+          pendingNotice.style.display = 'block';
+        } else {
+          pendingNotice.style.display = 'none';
+        }
+      }
     } else {
       partnerSec.style.display = 'none';
     }
@@ -2840,20 +2866,39 @@ window.togglePartnerImageFavorite = async function(imgUrl, btn) {
   localStorage.setItem('ozel_user', JSON.stringify(CUSER));
 };
 window.currentPartnerGallery = window.currentPartnerGallery || [];
+window.currentPendingPartnerGallery = window.currentPendingPartnerGallery || [];
 
 window.renderPartnerGalleryPreview = function() {
   const container = document.getElementById('partnerGalleryPreview');
   if (!container) return;
-  if (!window.currentPartnerGallery || window.currentPartnerGallery.length === 0) {
+  
+  const approvedList = window.currentPartnerGallery || [];
+  const pendingList = window.currentPendingPartnerGallery || [];
+  const isAr = currentLang === 'ar';
+  
+  if (approvedList.length === 0 && pendingList.length === 0) {
     container.innerHTML = `<span style="font-size:0.75rem; color:var(--muted); font-family:'Tajawal',sans-serif;">لا توجد صور في المعرض بعد</span>`;
     return;
   }
-  container.innerHTML = window.currentPartnerGallery.map((imgUrl, index) => `
-    <div style="position:relative; width:75px; height:75px; border-radius:var(--rad); overflow:hidden; border:1px solid var(--line); background:var(--bg3);">
+  
+  let html = '';
+  // عرض الصور المعتمدة
+  html += approvedList.map((imgUrl, index) => `
+    <div style="position:relative; width:75px; height:75px; border-radius:var(--rad); overflow:hidden; border:1px solid var(--line); background:var(--bg3);" title="${isAr?'صورة معتمدة':'Approved photo'}">
       <img src="${imgUrl}" style="width:100%; height:100%; object-fit:cover;" />
       <button onclick="window.removePartnerGalleryImage(${index})" style="position:absolute; top:2px; right:2px; background:rgba(192,57,43,0.9); color:#fff; border:none; width:20px; height:20px; border-radius:50%; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
     </div>
   `).join('');
+  
+  // عرض الصور قيد الانتظار
+  html += pendingList.map((imgUrl) => `
+    <div style="position:relative; width:75px; height:75px; border-radius:var(--rad); overflow:hidden; border:2px solid var(--orange); background:var(--bg3);" title="${isAr?'قيد مراجعة الآدمن':'Awaiting admin approval'}">
+      <img src="${imgUrl}" style="width:100%; height:100%; object-fit:cover; opacity:0.85;" />
+      <div style="position:absolute; bottom:0; left:0; right:0; background:var(--orange); color:#fff; font-size:8px; text-align:center; padding:1px 0; font-family:'Tajawal',sans-serif;">قيد الانتظار</div>
+    </div>
+  `).join('');
+  
+  container.innerHTML = html;
 };
 
 window.removePartnerGalleryImage = function(index) {

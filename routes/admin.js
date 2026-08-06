@@ -604,12 +604,83 @@ router.post('/restore', authenticateToken, requireRole('admin'), async (req, res
   }
 });
 
-// حذف لقطة تقرير
-router.delete('/reports/:id', authenticateToken, requireRole('admin'), async (req, res) => {
+// جلب صور الشركاء المعتمدة وقيد الانتظار
+router.get('/partners-images', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
-    const snap = await ReportSnapshot.findById(req.params.id);
-    if (!snap) return res.status(404).json({ error: 'Report snapshot not found' });
-    await snap.deleteOne();
+    const partners = await User.find({ $or: [{ isPartner: true }, { role: 'partner' }] })
+      .select('name partnerLogo partnerMainImage partnerGallery pendingPartnerLogo pendingPartnerMainImage pendingPartnerGallery')
+      .sort({ name: 1 });
+    res.json(partners);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// الموافقة على صورة الشريك (لوجو، صورة رئيسية، معرض صور)
+router.post('/partners/:id/approve-image', authenticateToken, requireRole('admin'), async (req, res) => {
+  const { type, imageUrl } = req.body;
+  try {
+    const u = await User.findById(req.params.id);
+    if (!u) return res.status(404).json({ error: 'Partner not found' });
+
+    if (type === 'logo') {
+      if (u.pendingPartnerLogo) {
+        u.partnerLogo = u.pendingPartnerLogo;
+        u.pendingPartnerLogo = '';
+      }
+    } else if (type === 'mainImage') {
+      if (u.pendingPartnerMainImage) {
+        u.partnerMainImage = u.pendingPartnerMainImage;
+        u.pendingPartnerMainImage = '';
+      }
+    } else if (type === 'gallery') {
+      if (u.pendingPartnerGallery && u.pendingPartnerGallery.includes(imageUrl)) {
+        u.partnerGallery.push(imageUrl);
+        u.pendingPartnerGallery = u.pendingPartnerGallery.filter(img => img !== imageUrl);
+      } else {
+        return res.status(400).json({ error: 'Image not found in pending gallery' });
+      }
+    } else {
+      return res.status(400).json({ error: 'Invalid type' });
+    }
+
+    await u.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// حذف/رفض صورة الشريك (سواء معتمدة أو قيد الانتظار)
+router.post('/partners/:id/delete-image', authenticateToken, requireRole('admin'), async (req, res) => {
+  const { type, isPending, imageUrl } = req.body;
+  try {
+    const u = await User.findById(req.params.id);
+    if (!u) return res.status(404).json({ error: 'Partner not found' });
+
+    if (type === 'logo') {
+      if (isPending) {
+        u.pendingPartnerLogo = '';
+      } else {
+        u.partnerLogo = '';
+      }
+    } else if (type === 'mainImage') {
+      if (isPending) {
+        u.pendingPartnerMainImage = '';
+      } else {
+        u.partnerMainImage = '';
+      }
+    } else if (type === 'gallery') {
+      if (isPending) {
+        u.pendingPartnerGallery = (u.pendingPartnerGallery || []).filter(img => img !== imageUrl);
+      } else {
+        u.partnerGallery = (u.partnerGallery || []).filter(img => img !== imageUrl);
+      }
+    } else {
+      return res.status(400).json({ error: 'Invalid type' });
+    }
+
+    await u.save();
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

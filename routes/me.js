@@ -24,6 +24,9 @@ router.get('/', authenticateToken, async (req, res) => {
     partnerMainImage: req.user.partnerMainImage || '',
     partnerBrief: req.user.partnerBrief || '',
     partnerGallery: req.user.partnerGallery || [],
+    pendingPartnerLogo: req.user.pendingPartnerLogo || '',
+    pendingPartnerMainImage: req.user.pendingPartnerMainImage || '',
+    pendingPartnerGallery: req.user.pendingPartnerGallery || [],
     favorites: req.user.favorites || []
   });
 });
@@ -35,11 +38,40 @@ router.put('/partner-profile', authenticateToken, async (req, res) => {
     if (!req.user.isPartner && req.user.role !== 'partner') {
       return res.status(403).json({ error: 'Only partners can update partner profile' });
     }
-    if (partnerLogo !== undefined) req.user.partnerLogo = partnerLogo;
     if (partnerBio !== undefined) req.user.partnerBio = partnerBio;
-    if (partnerMainImage !== undefined) req.user.partnerMainImage = partnerMainImage;
     if (partnerBrief !== undefined) req.user.partnerBrief = partnerBrief.slice(0, 140);
-    if (partnerGallery !== undefined) req.user.partnerGallery = partnerGallery;
+
+    // معالجة اللوجو
+    if (partnerLogo !== undefined) {
+      if (partnerLogo === '') {
+        req.user.partnerLogo = '';
+        req.user.pendingPartnerLogo = '';
+      } else if (partnerLogo.startsWith('data:image/')) {
+        req.user.pendingPartnerLogo = partnerLogo;
+      }
+    }
+
+    // معالجة الصورة الرئيسية
+    if (partnerMainImage !== undefined) {
+      if (partnerMainImage === '') {
+        req.user.partnerMainImage = '';
+        req.user.pendingPartnerMainImage = '';
+      } else if (partnerMainImage.startsWith('data:image/')) {
+        req.user.pendingPartnerMainImage = partnerMainImage;
+      }
+    }
+
+    // معالجة معرض الصور
+    if (partnerGallery !== undefined) {
+      const newPending = partnerGallery.filter(img => img.startsWith('data:image/'));
+      const existingApproved = partnerGallery.filter(img => !img.startsWith('data:image/'));
+      
+      // الإبقاء فقط على الصور المعتمدة مسبقاً والتي لم يتم حذفها
+      req.user.partnerGallery = req.user.partnerGallery.filter(img => existingApproved.includes(img));
+      
+      // إضافة الصور الجديدة للمراجعة
+      req.user.pendingPartnerGallery = [...(req.user.pendingPartnerGallery || []), ...newPending];
+    }
 
     await req.user.save();
     res.json({
@@ -48,7 +80,10 @@ router.put('/partner-profile', authenticateToken, async (req, res) => {
       partnerBio: req.user.partnerBio,
       partnerMainImage: req.user.partnerMainImage,
       partnerBrief: req.user.partnerBrief,
-      partnerGallery: req.user.partnerGallery
+      partnerGallery: req.user.partnerGallery,
+      pendingPartnerLogo: req.user.pendingPartnerLogo,
+      pendingPartnerMainImage: req.user.pendingPartnerMainImage,
+      pendingPartnerGallery: req.user.pendingPartnerGallery
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -131,7 +131,16 @@ router.get('/me', authenticateToken, async (req, res) => {
     total_spent: parseFloat(req.user.total_spent),
     subscriptionTier: req.user.subscriptionTier,
     customerStatus: req.user.customerStatus || 'standard',
-    freeOrdersCount: req.user.freeOrdersCount || 0
+    freeOrdersCount: req.user.freeOrdersCount || 0,
+    isPartner: req.user.isPartner || false,
+    partnerLogo: req.user.partnerLogo || '',
+    partnerBio: req.user.partnerBio || '',
+    partnerMainImage: req.user.partnerMainImage || '',
+    partnerBrief: req.user.partnerBrief || '',
+    partnerGallery: req.user.partnerGallery || [],
+    pendingPartnerLogo: req.user.pendingPartnerLogo || '',
+    pendingPartnerMainImage: req.user.pendingPartnerMainImage || '',
+    pendingPartnerGallery: req.user.pendingPartnerGallery || []
   });
 });
 

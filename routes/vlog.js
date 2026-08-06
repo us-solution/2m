@@ -8,7 +8,7 @@ const { authenticateToken, requireRole } = require('../middlewares/auth');
 // 1. جلب الصور النشطة (ليست الفائزة بعد) مرتبة من الأحدث للأقدم
 router.get('/', async (req, res) => {
   try {
-    const posts = await VlogPost.find({ isWinner: false })
+    const posts = await VlogPost.find({ isWinner: false, isApproved: true })
       .sort({ createdAt: -1 })
       .limit(50);
     
@@ -48,7 +48,7 @@ router.get('/', async (req, res) => {
 router.get('/contest', async (req, res) => {
   try {
     // أكثر 5 صور حازت على إعجابات في المسابقة الحالية
-    const leaders = await VlogPost.find({ isWinner: false })
+    const leaders = await VlogPost.find({ isWinner: false, isApproved: true })
       .sort({ likesCount: -1, createdAt: -1 })
       .limit(5);
 
@@ -144,7 +144,8 @@ router.post('/', authenticateToken, async (req, res) => {
       image,
       likes: [],
       likesCount: 0,
-      isWinner: false
+      isWinner: false,
+      isApproved: req.user.role === 'admin'
     });
 
     res.json({ success: true, id: post._id });
@@ -211,6 +212,21 @@ router.patch('/:id/winner', authenticateToken, requireRole('admin'), async (req,
     }
 
     res.json({ success: true, user: user ? user.name : 'Unknown' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// الموافقة على نشر الصورة في الألبوم (للأدمن فقط)
+router.patch('/:id/approve', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const post = await VlogPost.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ error: 'Photo not found' });
+    }
+    post.isApproved = true;
+    await post.save();
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

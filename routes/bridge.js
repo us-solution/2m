@@ -513,7 +513,7 @@ router.delete('/drinks/:id', verifyBridgeKey, async (req, res) => {
 router.get('/orders/online-pending', verifyBridgeKey, async (req, res) => {
   try {
     const orders = await Order.find({ 
-      status: { $in: ['pending', 'confirmed', 'preparing', 'ready'] }
+      status: { $in: ['pending', 'confirmed'] }
     }).sort({ createdAt: -1 }).populate('userId');
     
     const serialized = orders.map(o => {
@@ -545,7 +545,7 @@ router.get('/orders/online-pending', verifyBridgeKey, async (req, res) => {
   }
 });
 
-// 6. جلب أكثر 3 أصناف يطلبها العميل بالترتيب مع التكرار
+// 6. جلب إحصائيات العميل (أكثر 3 مشاريب طلباً، آخر أوردر، الاسم ورقم الهاتف)
 router.get('/customers/:phone/top-items', verifyBridgeKey, async (req, res) => {
   const { phone } = req.params;
   try {
@@ -564,11 +564,37 @@ router.get('/customers/:phone/top-items', verifyBridgeKey, async (req, res) => {
       { $sort: { count: -1 } },
       { $limit: 3 }
     ]);
-    res.json(topItems.map(item => ({ name: item._id, count: item.count })));
+    const lastOrder = await Order.findOne(matchQuery).sort({ createdAt: -1 });
+
+    const formattedLastOrder = lastOrder ? {
+      id: lastOrder._id,
+      orderId: lastOrder.orderId || lastOrder._id,
+      createdAt: lastOrder.createdAt,
+      total: lastOrder.totalAmount || lastOrder.total || 0,
+      status: lastOrder.status,
+      items: (lastOrder.items || []).map(i => ({
+        name: i.name,
+        quantity: i.quantity,
+        price: i.price,
+        sugar: i.sugar,
+        extras: i.extras,
+        notes: i.notes
+      }))
+    } : null;
+
+    const resultTopItems = topItems.map(item => ({ name: item._id, count: item.count }));
+
+    res.json({
+      name: user ? user.name : (lastOrder ? lastOrder.customerName : 'عميل أونلاين'),
+      phone: phone,
+      topItems: resultTopItems,
+      lastOrder: formattedLastOrder
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // 7. استقبال الفاتورة المحلية للمزامنة وتحديث نقاط العميل سحابياً
 router.post('/sync-invoice', verifyBridgeKey, async (req, res) => {

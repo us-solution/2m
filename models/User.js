@@ -34,6 +34,10 @@ const userSchema = new mongoose.Schema({
   partnerBrief: { type: String, maxlength: 140, default: '' },
   // معرض صور الشريك
   partnerGallery: [{ type: String }],
+  // صور الشريك قيد المراجعة والموافقة من الإدارة
+  pendingPartnerLogo: { type: String, default: '' },
+  pendingPartnerMainImage: { type: String, default: '' },
+  pendingPartnerGallery: [{ type: String }],
   // مصفوفة الصور المفضلة
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'VlogPost' }],
   // العنوان

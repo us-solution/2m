@@ -34,6 +34,12 @@ const vlogPostSchema = new mongoose.Schema({
     default: 0,
     index: true
   },
+  // هل تمت الموافقة على هذه الصورة من قبل الأدمن لتظهر على الموقع
+  isApproved: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
   // هل تم تحديد هذه الصورة كفائزة بالمسابقة بواسطة الأدمن
   isWinner: {
     type: Boolean,
