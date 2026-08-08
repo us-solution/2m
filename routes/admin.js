@@ -1,4 +1,4 @@
-// ===== مسار لوحة التحكم (Admin) - إدارة المستخدمين والمشروبات والعروض والفئات والتقارير والنسخ الاحتياطي =====
+﻿// ===== Ù…Ø³Ø§Ø± Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ… (Admin) - Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠÙ† ÙˆØ§Ù„Ù…Ø´Ø±ÙˆØ¨Ø§Øª ÙˆØ§Ù„Ø¹Ø±ÙˆØ¶ ÙˆØ§Ù„ÙØ¦Ø§Øª ÙˆØ§Ù„ØªÙ‚Ø§Ø±ÙŠØ± ÙˆØ§Ù„Ù†Ø³Ø® Ø§Ù„Ø§Ø­ØªÙŠØ§Ø·ÙŠ =====
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
@@ -11,7 +11,7 @@ const ReportSnapshot = require('../models/ReportSnapshot');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 const Pusher = require('pusher');
 
-// تهيئة Pusher للإشعارات الفورية
+// ØªÙ‡ÙŠØ¦Ø© Pusher Ù„Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª Ø§Ù„ÙÙˆØ±ÙŠØ©
 let pusher = null;
 if (process.env.PUSHER_APP_ID && process.env.PUSHER_KEY && process.env.PUSHER_SECRET) {
   try {
@@ -27,7 +27,7 @@ if (process.env.PUSHER_APP_ID && process.env.PUSHER_KEY && process.env.PUSHER_SE
   }
 }
 
-// إعلام الواجهة الأمامية بتغيير المنيو
+// Ø¥Ø¹Ù„Ø§Ù… Ø§Ù„ÙˆØ§Ø¬Ù‡Ø© Ø§Ù„Ø£Ù…Ø§Ù…ÙŠØ© Ø¨ØªØºÙŠÙŠØ± Ø§Ù„Ù…Ù†ÙŠÙˆ
 async function triggerMenuUpdate() {
   if (pusher) {
     try {
@@ -40,23 +40,23 @@ async function triggerMenuUpdate() {
 }
 
 
-// جلب إحصائيات عامة للوحة التحكم (إجمالي الطلبات، إيرادات اليوم والشهر، أداء الكاشير)
+// Ø¬Ù„Ø¨ Ø¥Ø­ØµØ§Ø¦ÙŠØ§Øª Ø¹Ø§Ù…Ø© Ù„Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ… (Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø·Ù„Ø¨Ø§ØªØŒ Ø¥ÙŠØ±Ø§Ø¯Ø§Øª Ø§Ù„ÙŠÙˆÙ… ÙˆØ§Ù„Ø´Ù‡Ø±ØŒ Ø£Ø¯Ø§Ø¡ Ø§Ù„ÙƒØ§Ø´ÙŠØ±)
 router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    // بداية الشهر الحالي
+    // Ø¨Ø¯Ø§ÙŠØ© Ø§Ù„Ø´Ù‡Ø± Ø§Ù„Ø­Ø§Ù„ÙŠ
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-    // إجمالي عدد الطلبات الكلي
+    // Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø¹Ø¯Ø¯ Ø§Ù„Ø·Ù„Ø¨Ø§Øª Ø§Ù„ÙƒÙ„ÙŠ
     const total_orders = await Order.countDocuments();
 
-    // عدد طلبات اليوم
+    // Ø¹Ø¯Ø¯ Ø·Ù„Ø¨Ø§Øª Ø§Ù„ÙŠÙˆÙ…
     const today_orders = await Order.countDocuments({
       createdAt: { $gte: today }
     });
 
-    // إيرادات اليوم (بدون الملغاة)
+    // Ø¥ÙŠØ±Ø§Ø¯Ø§Øª Ø§Ù„ÙŠÙˆÙ… (Ø¨Ø¯ÙˆÙ† Ø§Ù„Ù…Ù„ØºØ§Ø©)
     const todayRevenueAgg = await Order.aggregate([
       {
         $match: {
@@ -73,7 +73,7 @@ router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) =
     ]);
     const today_revenue = todayRevenueAgg.length > 0 ? parseFloat(todayRevenueAgg[0].total) : 0;
 
-    // إيرادات الشهر الحالي
+    // Ø¥ÙŠØ±Ø§Ø¯Ø§Øª Ø§Ù„Ø´Ù‡Ø± Ø§Ù„Ø­Ø§Ù„ÙŠ
     const monthlyRevenueAgg = await Order.aggregate([
       {
         $match: {
@@ -90,7 +90,7 @@ router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) =
     ]);
     const monthly_revenue = monthlyRevenueAgg.length > 0 ? parseFloat(monthlyRevenueAgg[0].total) : 0;
 
-    // إجمالي الإيرادات لكل الوقت
+    // Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø¥ÙŠØ±Ø§Ø¯Ø§Øª Ù„ÙƒÙ„ Ø§Ù„ÙˆÙ‚Øª
     const totalRevenueAgg = await Order.aggregate([
       {
         $match: {
@@ -106,13 +106,13 @@ router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) =
     ]);
     const total_revenue = totalRevenueAgg.length > 0 ? parseFloat(totalRevenueAgg[0].total) : 0;
 
-    // إجمالي عدد العملاء المسجلين
+    // Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø¹Ø¯Ø¯ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡ Ø§Ù„Ù…Ø³Ø¬Ù„ÙŠÙ†
     const total_customers = await User.countDocuments({ role: 'customer' });
 
-    // الطلبات المعلقة
+    // Ø§Ù„Ø·Ù„Ø¨Ø§Øª Ø§Ù„Ù…Ø¹Ù„Ù‚Ø©
     const pending_orders = await Order.countDocuments({ status: 'pending' });
 
-    // إحصائيات أداء الكاشير (الطلبات التي تمت معالجتها اليوم)
+    // Ø¥Ø­ØµØ§Ø¦ÙŠØ§Øª Ø£Ø¯Ø§Ø¡ Ø§Ù„ÙƒØ§Ø´ÙŠØ± (Ø§Ù„Ø·Ù„Ø¨Ø§Øª Ø§Ù„ØªÙŠ ØªÙ…Øª Ù…Ø¹Ø§Ù„Ø¬ØªÙ‡Ø§ Ø§Ù„ÙŠÙˆÙ…)
     const cashierStatsAgg = await Order.aggregate([
       {
         $match: {
@@ -162,7 +162,7 @@ router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) =
   }
 });
 
-// جلب قائمة جميع المستخدمين (sorted by newest first)
+// Ø¬Ù„Ø¨ Ù‚Ø§Ø¦Ù…Ø© Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠÙ† (sorted by newest first)
 router.get('/users', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const users = await User.find().sort({ createdAt: -1 });
@@ -187,7 +187,7 @@ router.get('/users', authenticateToken, requireRole('admin'), async (req, res) =
   }
 });
 
-// إنشاء مستخدم جديد بواسطة الأدمن (مع تشفير كلمة المرور)
+// Ø¥Ù†Ø´Ø§Ø¡ Ù…Ø³ØªØ®Ø¯Ù… Ø¬Ø¯ÙŠØ¯ Ø¨ÙˆØ§Ø³Ø·Ø© Ø§Ù„Ø£Ø¯Ù…Ù† (Ù…Ø¹ ØªØ´ÙÙŠØ± ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±)
 router.post('/users', authenticateToken, requireRole('admin'), async (req, res) => {
   const { name, phone, email, password, role, points, subscriptionTier, customerStatus, isPartner, partnerLogo, partnerBio } = req.body;
 
@@ -227,7 +227,7 @@ router.post('/users', authenticateToken, requireRole('admin'), async (req, res) 
   }
 });
 
-// تعديل بيانات مستخدم موجود
+// ØªØ¹Ø¯ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ù…Ø³ØªØ®Ø¯Ù… Ù…ÙˆØ¬ÙˆØ¯
 router.patch('/users/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   const { name, phone, email, role, points, password, subscriptionTier, customerStatus, isPartner, partnerLogo, partnerBio } = req.body;
 
@@ -259,7 +259,7 @@ router.patch('/users/:id', authenticateToken, requireRole('admin'), async (req, 
   }
 });
 
-// حذف مستخدم (يمنع حذف النفس)
+// Ø­Ø°Ù Ù…Ø³ØªØ®Ø¯Ù… (ÙŠÙ…Ù†Ø¹ Ø­Ø°Ù Ø§Ù„Ù†ÙØ³)
 router.delete('/users/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   if (String(req.params.id) === String(req.user._id)) {
     return res.status(400).json({ error: 'Cannot delete yourself' });
@@ -276,14 +276,14 @@ router.delete('/users/:id', authenticateToken, requireRole('admin'), async (req,
   }
 });
 
-// ===== إدارة المشروبات =====
+// ===== Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø´Ø±ÙˆØ¨Ø§Øª =====
 
-// جلب جميع المشروبات مع الفئة (مرتبة حسب ترتيب الفئة)
+// Ø¬Ù„Ø¨ Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù…Ø´Ø±ÙˆØ¨Ø§Øª Ù…Ø¹ Ø§Ù„ÙØ¦Ø© (Ù…Ø±ØªØ¨Ø© Ø­Ø³Ø¨ ØªØ±ØªÙŠØ¨ Ø§Ù„ÙØ¦Ø©)
 router.get('/drinks', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const drinks = await Drink.find().populate('category_id');
     
-    // ترتيب حسب sort_order للفئة ثم حسب id
+    // ØªØ±ØªÙŠØ¨ Ø­Ø³Ø¨ sort_order Ù„Ù„ÙØ¦Ø© Ø«Ù… Ø­Ø³Ø¨ id
     const sortedDrinks = drinks.sort((a, b) => {
       const orderA = a.category_id ? a.category_id.sort_order : 999;
       const orderB = b.category_id ? b.category_id.sort_order : 999;
@@ -319,7 +319,7 @@ router.get('/drinks', authenticateToken, requireRole('admin'), async (req, res) 
   }
 });
 
-// إضافة مشروب جديد
+// Ø¥Ø¶Ø§ÙØ© Ù…Ø´Ø±ÙˆØ¨ Ø¬Ø¯ÙŠØ¯
 router.post('/drinks', authenticateToken, requireRole('admin'), async (req, res) => {
   const {
     category_id, name, name_ar, tagline, description, ingredients,
@@ -359,7 +359,7 @@ router.post('/drinks', authenticateToken, requireRole('admin'), async (req, res)
   }
 });
 
-// تعديل مشروب موجود
+// ØªØ¹Ø¯ÙŠÙ„ Ù…Ø´Ø±ÙˆØ¨ Ù…ÙˆØ¬ÙˆØ¯
 router.patch('/drinks/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const d = await Drink.findById(req.params.id);
@@ -397,7 +397,7 @@ router.patch('/drinks/:id', authenticateToken, requireRole('admin'), async (req,
   }
 });
 
-// حذف مشروب
+// Ø­Ø°Ù Ù…Ø´Ø±ÙˆØ¨
 router.delete('/drinks/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const d = await Drink.findById(req.params.id);
@@ -412,9 +412,9 @@ router.delete('/drinks/:id', authenticateToken, requireRole('admin'), async (req
   }
 });
 
-// ===== إدارة العروض =====
+// ===== Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø¹Ø±ÙˆØ¶ =====
 
-// جلب جميع العروض مع المشروبات المرتبطة
+// Ø¬Ù„Ø¨ Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø¹Ø±ÙˆØ¶ Ù…Ø¹ Ø§Ù„Ù…Ø´Ø±ÙˆØ¨Ø§Øª Ø§Ù„Ù…Ø±ØªØ¨Ø·Ø©
 router.get('/offers', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const offers = await Offer.find({}).populate('drinkId').sort({ created_at: -1 });
@@ -435,7 +435,7 @@ router.get('/offers', authenticateToken, requireRole('admin'), async (req, res) 
   }
 });
 
-// إنشاء عرض جديد (خصم على مشروب)
+// Ø¥Ù†Ø´Ø§Ø¡ Ø¹Ø±Ø¶ Ø¬Ø¯ÙŠØ¯ (Ø®ØµÙ… Ø¹Ù„Ù‰ Ù…Ø´Ø±ÙˆØ¨)
 router.post('/offers', authenticateToken, requireRole('admin'), async (req, res) => {
   const { drink_id, discount_percent, expires_at } = req.body;
 
@@ -459,7 +459,7 @@ router.post('/offers', authenticateToken, requireRole('admin'), async (req, res)
   }
 });
 
-// حذف عرض
+// Ø­Ø°Ù Ø¹Ø±Ø¶
 router.delete('/offers/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const o = await Offer.findById(req.params.id);
@@ -472,9 +472,9 @@ router.delete('/offers/:id', authenticateToken, requireRole('admin'), async (req
   }
 });
 
-// ===== إدارة الفئات =====
+// ===== Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„ÙØ¦Ø§Øª =====
 
-// جلب جميع الفئات مرتبة
+// Ø¬Ù„Ø¨ Ø¬Ù…ÙŠØ¹ Ø§Ù„ÙØ¦Ø§Øª Ù…Ø±ØªØ¨Ø©
 router.get('/categories', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const cats = await Category.find().sort({ sort_order: 1, _id: 1 });
@@ -484,7 +484,7 @@ router.get('/categories', authenticateToken, requireRole('admin'), async (req, r
   }
 });
 
-// إنشاء فئة جديدة
+// Ø¥Ù†Ø´Ø§Ø¡ ÙØ¦Ø© Ø¬Ø¯ÙŠØ¯Ø©
 router.post('/categories', authenticateToken, requireRole('admin'), async (req, res) => {
   const { name, name_ar, sort_order } = req.body;
   if (!name) return res.status(400).json({ error: 'Category name (EN) is required' });
@@ -502,7 +502,7 @@ router.post('/categories', authenticateToken, requireRole('admin'), async (req, 
   }
 });
 
-// تعديل فئة
+// ØªØ¹Ø¯ÙŠÙ„ ÙØ¦Ø©
 router.patch('/categories/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const c = await Category.findById(req.params.id);
@@ -521,13 +521,13 @@ router.patch('/categories/:id', authenticateToken, requireRole('admin'), async (
   }
 });
 
-// حذف فئة (يمنع إذا كان هناك مشروبات مرتبطة بها)
+// Ø­Ø°Ù ÙØ¦Ø© (ÙŠÙ…Ù†Ø¹ Ø¥Ø°Ø§ ÙƒØ§Ù† Ù‡Ù†Ø§Ùƒ Ù…Ø´Ø±ÙˆØ¨Ø§Øª Ù…Ø±ØªØ¨Ø·Ø© Ø¨Ù‡Ø§)
 router.delete('/categories/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const c = await Category.findById(req.params.id);
     if (!c) return res.status(404).json({ error: 'Category not found' });
 
-    // التحقق من عدم وجود مشروبات تستخدم هذه الفئة
+    // Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø¹Ø¯Ù… ÙˆØ¬ÙˆØ¯ Ù…Ø´Ø±ÙˆØ¨Ø§Øª ØªØ³ØªØ®Ø¯Ù… Ù‡Ø°Ù‡ Ø§Ù„ÙØ¦Ø©
     const drinksUsing = await Drink.countDocuments({ category_id: req.params.id });
     if (drinksUsing > 0) {
       return res.status(400).json({ error: `Cannot delete: ${drinksUsing} drink(s) use this category. Reassign them first.` });
@@ -541,7 +541,7 @@ router.delete('/categories/:id', authenticateToken, requireRole('admin'), async 
   }
 });
 
-// إنشاء رمز QR لرقم طاولة معين
+// Ø¥Ù†Ø´Ø§Ø¡ Ø±Ù…Ø² QR Ù„Ø±Ù‚Ù… Ø·Ø§ÙˆÙ„Ø© Ù…Ø¹ÙŠÙ†
 router.get('/qr-table/:number', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const tableNum = parseInt(req.params.number);
@@ -556,427 +556,464 @@ router.get('/qr-table/:number', authenticateToken, requireRole('admin'), async (
   }
 });
 
-// إنشاء ملف PDF لبطاقات رموز QR للطاولات مع التصميم المخصص
+// Ø¥Ù†Ø´Ø§Ø¡ Ù…Ù„Ù PDF Ù„Ø¨Ø·Ø§Ù‚Ø§Øª Ø±Ù…ÙˆØ² QR Ù„Ù„Ø·Ø§ÙˆÙ„Ø§Øª Ù…Ø¹ Ø§Ù„ØªØµÙ…ÙŠÙ… Ø§Ù„Ù…Ø®ØµØµ
 router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
-    const start = parseInt(req.query.start) || 1;
-    const end = parseInt(req.query.end) || 1;
-    const baseUrl = req.query.baseUrl || process.env.BASE_URL || 'https://www.ozel.cafe';
-    const welcomeText = req.query.welcomeText || 'Welcome!';
-    const thankYouText = req.query.thankYouText || 'Thank you for choosing Özel.';
-    const enjoyText = req.query.enjoyText || 'Enjoy your time with us.';
-    const showTableNum = req.query.showTableNum !== 'false';
+    const start   = parseInt(req.query.start) || 1;
+    const end     = parseInt(req.query.end)   || 1;
+    const baseUrl       = req.query.baseUrl       || process.env.BASE_URL || 'https://www.ozel.cafe';
+    const welcomeText   = req.query.welcomeText   || 'Welcome!';
+    const thankYouText  = req.query.thankYouText  || 'Thank you for choosing Ã–zel.';
+    const enjoyText     = req.query.enjoyText     || 'Enjoy your time with us.';
+    const showTableNum  = req.query.showTableNum  !== 'false';
 
     if (start < 1 || end < 1 || start > end) {
-      return res.status(400).json({ error: 'Invalid range: start and end must be >= 1 and start <= end' });
+      return res.status(400).json({ error: 'Invalid range' });
     }
 
-    const fs = require('fs');
-    const path = require('path');
+    const fs    = require('fs');
+    const path  = require('path');
     const axios = require('axios');
     const PDFDocument = require('pdfkit');
-    const QRCode = require('qrcode');
+    const QRCode      = require('qrcode');
 
-    // التأكد من تحميل الخطوط
+    // â”€â”€ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø®Ø·ÙˆØ· Ø§Ù„Ø«Ø§Ø¨ØªØ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const fontsDir = path.join(__dirname, '../fonts');
-    if (!fs.existsSync(fontsDir)) {
-      fs.mkdirSync(fontsDir, { recursive: true });
-    }
+    if (!fs.existsSync(fontsDir)) fs.mkdirSync(fontsDir, { recursive: true });
 
     const fontUrls = {
-      'CormorantGaramond-Bold': 'https://fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_hg9KnTOj9k7Ifo.ttf',
+      'CormorantGaramond-Bold':    'https://fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_hg9KnTOj9k7Ifo.ttf',
       'CormorantGaramond-Regular': 'https://fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_v86KnTOj9k7Ifo.ttf',
-      'AlexBrush-Regular': 'https://fonts.gstatic.com/s/alexbrush/v23/SZc83FzrJKuqFbwMKk6EhUXz6BlNiCY.ttf',
-      'Montserrat-Medium': 'https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtZ6Hw5aX9-obK4.ttf',
-      'Tajawal-Bold': 'https://fonts.gstatic.com/s/tajawal/v12/Iura6YBj_oCad4k1nzGNDw.ttf',
-      'Tajawal-Regular': 'https://fonts.gstatic.com/s/tajawal/v12/Iura6YBj_oCad4k1nzGBCw.ttf'
+      'AlexBrush-Regular':         'https://fonts.gstatic.com/s/alexbrush/v23/SZc83FzrJKuqFbwMKk6EhUXz6BlNiCY.ttf',
+      'Montserrat-Medium':         'https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtZ6Hw5aX9-obK4.ttf',
+      'Tajawal-Bold':              'https://fonts.gstatic.com/s/tajawal/v12/Iura6YBj_oCad4k1nzGNDw.ttf',
+      'Tajawal-Regular':           'https://fonts.gstatic.com/s/tajawal/v12/Iura6YBj_oCad4k1nzGBCw.ttf'
     };
-
     for (const [name, url] of Object.entries(fontUrls)) {
-      const fontPath = path.join(fontsDir, `${name}.ttf`);
-      if (!fs.existsSync(fontPath)) {
-        console.log(`[Admin PDF] Downloading missing font: ${name}...`);
+      const fp = path.join(fontsDir, `${name}.ttf`);
+      if (!fs.existsSync(fp)) {
         try {
-          const response = await axios({ method: 'get', url, responseType: 'stream' });
-          const writer = fs.createWriteStream(fontPath);
-          response.data.pipe(writer);
-          await new Promise((resolve, reject) => {
-            writer.on('finish', resolve);
-            writer.on('error', reject);
-          });
-        } catch (err) {
-          console.error(`[Admin PDF] Error downloading font ${name}:`, err.message);
-        }
+          const r = await axios({ method: 'get', url, responseType: 'stream' });
+          const w = fs.createWriteStream(fp);
+          r.data.pipe(w);
+          await new Promise((res, rej) => { w.on('finish', res); w.on('error', rej); });
+        } catch (e) { console.error('[PDF Font]', name, e.message); }
       }
     }
 
-    // إعداد مستند PDF
-    const doc = new PDFDocument({
-      size: [297.64, 419.53], // A6 في نقاط (points)
-      margins: { top: 0, bottom: 0, left: 0, right: 0 }
-    });
+    // â”€â”€ Ø¥Ø¹Ø¯Ø§Ø¯ Ù…Ø³ØªÙ†Ø¯ PDF  A6 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Ø­Ø¬Ù… A6 Ø¨Ø§Ù„Ù†Ù‚Ø§Ø·: 297.64 Ã— 419.53  (Ø¹Ø±Ø¶ Ã— Ø§Ø±ØªÙØ§Ø¹)
+    const PW = 297.64;
+    const PH = 419.53;
 
+    const doc = new PDFDocument({ size: [PW, PH], margins: { top: 0, bottom: 0, left: 0, right: 0 } });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="OZEL-Table-Cards-${start}-to-${end}.pdf"`);
     doc.pipe(res);
 
-    // مسارات الخطوط
-    const fontBold = fs.existsSync(path.join(fontsDir, 'CormorantGaramond-Bold.ttf')) ? path.join(fontsDir, 'CormorantGaramond-Bold.ttf') : 'Helvetica-Bold';
-    const fontRegular = fs.existsSync(path.join(fontsDir, 'CormorantGaramond-Regular.ttf')) ? path.join(fontsDir, 'CormorantGaramond-Regular.ttf') : 'Helvetica';
-    const fontScript = fs.existsSync(path.join(fontsDir, 'AlexBrush-Regular.ttf')) ? path.join(fontsDir, 'AlexBrush-Regular.ttf') : 'Times-Italic';
-    const fontSans = fs.existsSync(path.join(fontsDir, 'Montserrat-Medium.ttf')) ? path.join(fontsDir, 'Montserrat-Medium.ttf') : 'Helvetica';
-    const fontArabicReg = fs.existsSync(path.join(fontsDir, 'Tajawal-Regular.ttf')) ? path.join(fontsDir, 'Tajawal-Regular.ttf') : 'Helvetica';
-    const fontArabicBold = fs.existsSync(path.join(fontsDir, 'Tajawal-Bold.ttf')) ? path.join(fontsDir, 'Tajawal-Bold.ttf') : 'Helvetica-Bold';
-
-    // تسجيل الخطوط في PDFKit
-    if (fontBold !== 'Helvetica-Bold') doc.registerFont('Serif-Bold', fontBold);
-    if (fontRegular !== 'Helvetica') doc.registerFont('Serif-Regular', fontRegular);
-    if (fontScript !== 'Times-Italic') doc.registerFont('Script', fontScript);
-    if (fontSans !== 'Helvetica') doc.registerFont('Sans', fontSans);
-    doc.registerFont('Ar-Reg', fontArabicReg);
-    doc.registerFont('Ar-Bold', fontArabicBold);
-
-    const hasArabic = (text) => /[\u0600-\u06FF]/.test(text);
-
-    // دالة مساعدة لرسم غصن نباتي زخرفي واقعي وجميل
-    // دالة مساعدة لرسم غصن نباتي زخرفي بالمتجهات المطلقة لضمان دقة الرندر والظهور بالكامل
-    const drawLeafBranch = (pdfDoc, branchType, color) => {
-      pdfDoc.save();
-      pdfDoc.strokeColor(color).lineWidth(1.2);
-      
-      const drawAbsoluteLeaf = (x1, y1, x2, y2) => {
-        const dx = x2 - x1;
-        const dy = y2 - y1;
-        const px = -dy * 0.35;
-        const py = dx * 0.35;
-        
-        pdfDoc.save();
-        pdfDoc.moveTo(x1, y1)
-              .bezierCurveTo(x1 + dx * 0.4 + px, y1 + dy * 0.4 + py, x1 + dx * 0.8 + px, y1 + dy * 0.8 + py, x2, y2)
-              .bezierCurveTo(x1 + dx * 0.8 - px, y1 + dy * 0.8 - py, x1 + dx * 0.4 - px, y1 + dy * 0.4 - py, x1, y1)
-              .closePath()
-              .fillColor(color)
-              .fill()
-              .restore();
-      };
-
-      pdfDoc.fillOpacity(0.55);
-
-      if (branchType === 'top-right') {
-        // غصن الزاوية العلوية اليمنى
-        pdfDoc.moveTo(250, 45)
-              .bezierCurveTo(240, 75, 215, 90, 195, 100)
-              .stroke();
-
-        drawAbsoluteLeaf(195, 100, 182, 105); // ورقة القمة
-        drawAbsoluteLeaf(208, 92, 196, 82);
-        drawAbsoluteLeaf(218, 83, 226, 95);
-        drawAbsoluteLeaf(230, 71, 216, 62);
-        drawAbsoluteLeaf(242, 55, 252, 68);
-      } else if (branchType === 'bottom-left') {
-        // غصن الزاوية السفلية اليسرى
-        pdfDoc.moveTo(45, 375)
-              .bezierCurveTo(55, 345, 80, 340, 95, 335)
-              .stroke();
-
-        drawAbsoluteLeaf(95, 335, 108, 330); // ورقة القمة
-        drawAbsoluteLeaf(82, 340, 94, 350);
-        drawAbsoluteLeaf(72, 347, 62, 335);
-        drawAbsoluteLeaf(60, 357, 72, 368);
-        drawAbsoluteLeaf(50, 368, 40, 356);
-      }
-
-      pdfDoc.restore();
+    // â”€â”€ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø·ÙˆØ· â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const F = (name, fallback) => {
+      const fp = path.join(fontsDir, `${name}.ttf`);
+      if (fs.existsSync(fp)) { doc.registerFont(name, fp); return name; }
+      return fallback;
     };
+    const fSerif  = F('CormorantGaramond-Regular', 'Times-Roman');
+    const fSerifB = F('CormorantGaramond-Bold',    'Times-Bold');
+    const fScript = F('AlexBrush-Regular',         'Times-Italic');
+    const fSans   = F('Montserrat-Medium',          'Helvetica');
+    const fArReg  = F('Tajawal-Regular',            'Helvetica');
+    const fArBold = F('Tajawal-Bold',               'Helvetica-Bold');
 
-    // حلقة توليد البطاقات
-    for (let tableNum = start; tableNum <= end; tableNum++) {
-      if (tableNum > start) {
-        doc.addPage({
-          size: [297.64, 419.53],
-          margins: { top: 0, bottom: 0, left: 0, right: 0 }
-        });
-      }
+    const hasArabic = t => /[\u0600-\u06FF]/.test(t);
 
-      const qrUrl = `${baseUrl}/cart.html?table=${tableNum}`;
-      const qr = QRCode.create(qrUrl, { errorCorrectionLevel: 'H' });
-      const N = qr.modules.size;
+    // â”€â”€ Ø£Ù„ÙˆØ§Ù† â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const bgColor   = '#F4F0EB';
+    const dkGreen   = '#3F4E46';
+    const burgundy  = '#4E1B1B';
+    const textDark  = '#2C2520';
+    const leafColor = '#8FA090';
+    const woodDark  = '#5C3A1E';
+    const woodLight = '#8B5E3C';
 
-      // الألوان
-      const bgColor = '#F4F0EB';
-      const darkGreen = '#3F4E46';
-      const burgundy = '#4E1B1B';
-      const textDark = '#2C2520';
-      const softGreen = '#7E8F85';
+    // â”€â”€ Ù…Ø³Ø§Ø± Ø§Ù„Ù„ÙˆØ¬Ùˆ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const logoPath = path.join(__dirname, '../frontend/imgs/Ozel-Logo--02.png');
 
-      // 1. رسم الحدود الخارجية والإطار القوسي المقصوص
-      // أولاً: تعبئة لون الخلفية
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    //  Ø¯Ø§Ù„Ø©: Ø±Ø³Ù… Ø§Ù„ÙƒØ§Ø±Øª ÙƒØ§Ù…Ù„Ø§Ù‹ Ù„Ø·Ø§ÙˆÙ„Ø© Ù…Ø¹ÙŠÙ‘Ù†Ø©
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    const drawCard = (tableNum) => {
+
+      // Ø§Ù„Ø«ÙˆØ§Ø¨Øª Ø§Ù„Ù‡Ù†Ø¯Ø³ÙŠØ© Ù„Ù„Ø´ÙƒÙ„ Ø§Ù„Ù‚ÙˆØ³ÙŠ
+      // Ø§Ù„Ù‚ÙˆØ³ ÙŠØ¨Ø¯Ø£ Ù…Ù† Ø£Ø³ÙÙ„ Ø¨Ø­Ø§ÙØ© Ù…Ø³ØªÙ‚ÙŠÙ…Ø© Ø¹Ù†Ø¯ Y=408 Ø«Ù… ÙŠØ±ØªÙØ¹ Ø¨Ø´ÙƒÙ„ Ù…Ø³ØªÙ‚ÙŠÙ… Ø­ØªÙ‰ Y=155
+      // Ø«Ù… ÙŠÙ†Ø­Ù†ÙŠ ÙÙŠ Ù‚ÙˆØ³ Ø¯Ø§Ø¦Ø±ÙŠ ÙˆÙŠÙ†ØªÙ‡ÙŠ Ø¹Ù†Ø¯ Ø§Ù„Ù‚Ù…Ø©
+      const arcCenterY = 140;   // Ù…Ø±ÙƒØ² Ø§Ù„Ù‚ÙˆØ³ Ø§Ù„Ø¹Ù„ÙˆÙŠ
+      const arcR       = 130;   // Ù†ØµÙ Ù‚Ø·Ø± Ø§Ù„Ù‚ÙˆØ³
+      const arcCenterX = PW / 2;
+      const cardLeft   = arcCenterX - arcR;   // = 18.82
+      const cardRight  = arcCenterX + arcR;   // = 278.82
+      const cardBottom = 408;                 // Ø§Ù„Ø­Ø¯ Ø§Ù„Ø³ÙÙ„ÙŠ Ù„Ù„ÙƒØ§Ø±Øª (ÙÙˆÙ‚ Ø§Ù„Ù‚Ø§Ø¹Ø¯Ø© Ø§Ù„Ø®Ø´Ø¨ÙŠØ©)
+
+      // â”€â”€ 1. Ø®Ù„ÙÙŠØ© Ø§Ù„ÙƒØ§Ø±Øª Ø§Ù„Ù‚ÙˆØ³ÙŠØ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       doc.save()
-         .moveTo(10, 410)
-         .lineTo(10, 149)
-         .arc(149, 149, 139, 180, 0, false)
-         .lineTo(288, 410)
+         .moveTo(cardLeft, cardBottom)
+         .lineTo(cardLeft, arcCenterY)
+         .arc(arcCenterX, arcCenterY, arcR, Math.PI, 0, false)
+         .lineTo(cardRight, cardBottom)
          .closePath()
          .fill(bgColor)
          .restore();
 
-      // ثانياً: رسم الخط المتقطع كحواف ودليل للقص والطباعة
+      // Ø§Ù„Ø¥Ø·Ø§Ø± Ø§Ù„Ù…ØªÙ‚Ø·Ø¹ (Ø­ÙˆØ§Ù Ø§Ù„Ù‚Øµ)
       doc.save()
-         .moveTo(10, 410)
-         .lineTo(10, 149)
-         .arc(149, 149, 139, 180, 0, false)
-         .lineTo(288, 410)
-         .closePath()
-         .strokeColor('#888888')
-         .lineWidth(0.6)
+         .moveTo(cardLeft, cardBottom)
+         .lineTo(cardLeft, arcCenterY)
+         .arc(arcCenterX, arcCenterY, arcR, Math.PI, 0, false)
+         .lineTo(cardRight, cardBottom)
+         .lineTo(cardLeft, cardBottom)
+         .strokeColor('#AAAAAA')
+         .lineWidth(0.5)
          .dash(3, { space: 3 })
          .stroke()
          .restore();
 
-      // رسم ورقة نباتية زخرفية في الزاوية العلوية اليمنى (منحنية لأسفل ولليسار)
-      drawLeafBranch(doc, 'top-right', softGreen);
+      // â”€â”€ 2. Ø§Ù„ÙØ±ÙˆØ¹ Ø§Ù„Ù†Ø¨Ø§ØªÙŠØ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      // Ø¯Ø§Ù„Ø© Ø±Ø³Ù… ÙˆØ±Ù‚Ø© Ù†Ø¨Ø§ØªÙŠØ© Ù…Ù† Ù†Ù‚Ø·ØªÙŠÙ†
+      const leaf = (x1, y1, x2, y2, bulge = 0.4) => {
+        const dx = x2 - x1, dy = y2 - y1;
+        const nx = -dy * bulge, ny = dx * bulge;
+        doc.moveTo(x1, y1)
+           .bezierCurveTo(x1 + dx*0.3 + nx, y1 + dy*0.3 + ny, x1 + dx*0.7 + nx, y1 + dy*0.7 + ny, x2, y2)
+           .bezierCurveTo(x1 + dx*0.7 - nx, y1 + dy*0.7 - ny, x1 + dx*0.3 - nx, y1 + dy*0.3 - ny, x1, y1)
+           .closePath()
+           .fill();
+      };
 
-      // رسم ورقة نباتية زخرفية في الزاوية السفلية اليسرى (منحنية لأعلى ولليمين)
-      drawLeafBranch(doc, 'bottom-left', softGreen);
+      // â† ÙØ±ÙˆØ¹ Ø§Ù„Ø²Ø§ÙˆÙŠØ© Ø§Ù„Ø¹Ù„ÙˆÙŠØ© Ø§Ù„ÙŠÙ…Ù†Ù‰
+      doc.save().fillColor(leafColor).fillOpacity(0.7);
+      // Ø³Ø§Ù‚ Ø±Ø¦ÙŠØ³ÙŠ
+      doc.strokeColor(leafColor).lineWidth(1).fillOpacity(0.0);
+      doc.moveTo(240, 40).bezierCurveTo(260, 55, 268, 85, 255, 110).stroke();
+      doc.moveTo(255, 80).bezierCurveTo(270, 70, 278, 60, 272, 50).stroke();
+      doc.moveTo(250, 100).bezierCurveTo(268, 95, 276, 85, 271, 72).stroke();
+      // Ø§Ù„Ø£ÙˆØ±Ø§Ù‚
+      doc.fillOpacity(0.6);
+      leaf(248, 42,  264, 30,  0.45);
+      leaf(257, 56,  275, 48,  0.45);
+      leaf(260, 72,  280, 63,  0.45);
+      leaf(258, 88,  277, 82,  0.45);
+      leaf(252, 105, 270, 102, 0.40);
+      doc.restore();
 
-      // 2. رسم شعار الكافيه العلوي (اللوجو الرأسي الكامل الذي يحتوي على الشعار والنص)
-      let logoTopPath = path.join(__dirname, '../frontend/imgs/ozel-logo-vertical.png');
-      if (!fs.existsSync(logoTopPath)) {
-        logoTopPath = path.join(__dirname, '../frontend/imgs/Ozel-Logo--01.png');
+      // â† ÙØ±ÙˆØ¹ Ø§Ù„Ø²Ø§ÙˆÙŠØ© Ø§Ù„Ø³ÙÙ„ÙŠØ© Ø§Ù„ÙŠØ³Ø±Ù‰
+      doc.save().fillColor(leafColor).fillOpacity(0.7);
+      doc.strokeColor(leafColor).lineWidth(1).fillOpacity(0.0);
+      doc.moveTo(55, 370).bezierCurveTo(38, 355, 30, 325, 42, 300).stroke();
+      doc.moveTo(42, 325).bezierCurveTo(28, 332, 20, 345, 26, 358).stroke();
+      doc.moveTo(47, 344).bezierCurveTo(30, 347, 22, 360, 27, 372).stroke();
+      doc.fillOpacity(0.6);
+      leaf(53, 368,  38, 378, 0.45);
+      leaf(46, 352,  28, 358, 0.45);
+      leaf(43, 336,  24, 338, 0.45);
+      leaf(43, 318,  25, 316, 0.45);
+      leaf(44, 300,  28, 296, 0.40);
+      doc.restore();
+
+      // â”€â”€ 3. Ù„ÙˆØ¬Ùˆ + Ø§Ø³Ù… Ø§Ù„ÙƒØ§ÙÙŠÙ‡ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      const midX = PW / 2;
+
+      // Ø¯Ø§Ø¦Ø±Ø© Ø§Ù„Ù„ÙˆØ¬Ùˆ
+      if (fs.existsSync(logoPath)) {
+        doc.image(logoPath, midX - 18, 28, { width: 36 });
+      } else {
+        // Ø¨Ø¯ÙŠÙ„ Ù…Ø±Ø³ÙˆÙ… ÙŠØ¯ÙˆÙŠØ§Ù‹
+        doc.save()
+           .strokeColor(burgundy).lineWidth(1.2)
+           .circle(midX, 46, 16).stroke()
+           .restore();
       }
 
-      if (fs.existsSync(logoTopPath)) {
-        // رسم اللوجو بالكامل في المنتصف
-        doc.image(logoTopPath, 149 - 45, 35, { width: 90 });
-      }
+      // Ã¶zel Ø¨Ø§Ù„Ø®Ø· Ø§Ù„Ù€ Serif Ø§Ù„ÙƒØ¨ÙŠØ±
+      doc.fillColor(burgundy)
+         .font(fSerifB)
+         .fontSize(38)
+         .text('Ã¶zel', 0, 68, { align: 'center', width: PW, characterSpacing: 1 });
 
-      // رسم الخط الفاصل
-      doc.strokeColor(textDark)
-         .lineWidth(0.5)
-         .moveTo(100, 145)
-         .lineTo(198, 145)
-         .stroke();
-
-      // العناوين
+      // Hidden Gem ØµØºÙŠØ±Ø©
       doc.fillColor(textDark)
-         .font(fontRegular !== 'Helvetica' ? 'Serif-Regular' : 'Helvetica')
-         .fontSize(16)
-         .text('Scan the QR Code', 0, 155, { align: 'center', width: 297.64 });
+         .font(fSans)
+         .fontSize(6.5)
+         .text('Hidden Gem', 0, 108, { align: 'center', width: PW, characterSpacing: 1.5 });
 
-      doc.font(fontSans !== 'Helvetica' ? 'Sans' : 'Helvetica')
-         .fontSize(8)
-         .text('TO VIEW OUR MENU', 0, 175, { align: 'center', width: 297.64 });
-
-      // 3. رسم كارت رمز QR بالزوايا الدائرية مع تأثير الظل ثلاثي الأبعاد
-      const cardSize = 135;
-      const cardX = 149 - cardSize / 2;
-      const cardY = 190;
-
-      // ظل الكارت ناعم ودافئ
+      // Ø®Ø· ÙØ§ØµÙ„ Ø±ÙÙŠØ¹
       doc.save()
-         .fillColor('#E5DED5')
-         .roundedRect(cardX + 2, cardY + 2, cardSize, cardSize, 14)
+         .strokeColor(textDark).lineWidth(0.4)
+         .moveTo(midX - 55, 120).lineTo(midX + 55, 120)
+         .stroke()
+         .restore();
+
+      // â”€â”€ 4. Ø¹Ù†ÙˆØ§Ù† Scan the QR Code â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      doc.fillColor(textDark)
+         .font(fSerif)
+         .fontSize(18)
+         .text('Scan the QR Code', 0, 126, { align: 'center', width: PW });
+
+      // Ø®Ø·ÙˆØ· TO VIEW OUR MENU Ù…Ø¹ Ø³Ø·Ø±ÙŠÙ† Ø¹Ù„Ù‰ Ø§Ù„Ø¬Ø§Ù†Ø¨ÙŠÙ†
+      const menuY = 148;
+      doc.save()
+         .strokeColor(textDark).lineWidth(0.4)
+         .moveTo(cardLeft + 8, menuY + 4).lineTo(midX - 52, menuY + 4)
+         .stroke()
+         .restore();
+      doc.fillColor(textDark).font(fSans).fontSize(6.5)
+         .text('TO VIEW OUR MENU', 0, menuY, { align: 'center', width: PW, characterSpacing: 1.2 });
+      doc.save()
+         .strokeColor(textDark).lineWidth(0.4)
+         .moveTo(midX + 52, menuY + 4).lineTo(cardRight - 8, menuY + 4)
+         .stroke()
+         .restore();
+
+      // Ù†Ù‚Ø·Ø© Ø²Ø®Ø±ÙÙŠØ© ØµØºÙŠØ±Ø© ÙÙŠ Ø§Ù„Ù…Ù†ØªØµÙ Ø£Ø³ÙÙ„ Ø§Ù„Ø³Ø·Ø±
+      doc.save()
+         .fillColor(textDark)
+         .circle(midX, menuY + 12, 1.5)
          .fill()
          .restore();
 
-      // خلفية الكارت البيضاء الأساسية
+      // â”€â”€ 5. ÙƒØ§Ø±Øª QR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      const qrUrl = `${baseUrl}/cart.html?table=${tableNum}`;
+      const qr = QRCode.create(qrUrl, { errorCorrectionLevel: 'H' });
+      const N  = qr.modules.size;
+
+      const cardSz = 138;
+      const cardX  = midX - cardSz / 2;
+      const cardY  = 163;
+
+      // Ø¸Ù„ Ù†Ø§Ø¹Ù…
+      doc.save()
+         .fillColor('#D9D3CA')
+         .roundedRect(cardX + 3, cardY + 3, cardSz, cardSz, 12)
+         .fill()
+         .restore();
+
+      // Ø®Ù„ÙÙŠØ© Ø¨ÙŠØ¶Ø§Ø¡
       doc.save()
          .fillColor('#FFFFFF')
-         .roundedRect(cardX, cardY, cardSize, cardSize, 12)
+         .roundedRect(cardX, cardY, cardSz, cardSz, 12)
          .fill()
          .restore();
 
-      // رسم مربعات ونقاط رمز QR الدائرية لمظهر جمالي ممتاز
-      const qrPadding = 12.5;
-      const qrSize = cardSize - qrPadding * 2;
-      const d = qrSize / N;
-      const qx = cardX + qrPadding;
-      const qy = cardY + qrPadding;
+      // Ø­Ø³Ø§Ø¨ Ù†Ù‚Ø§Ø· QR
+      const qrPad  = 12;
+      const qrSz   = cardSz - qrPad * 2;
+      const d      = qrSz / N;
+      const qx     = cardX + qrPad;
+      const qy     = cardY + qrPad;
+      const cx     = qx + qrSz / 2;
+      const cy     = qy + qrSz / 2;
+      const cRad   = 4.8 * d;   // Ù…Ù†Ø·Ù‚Ø© Ø§Ù„Ù„ÙˆØ¬Ùˆ Ø§Ù„Ù…Ø±ÙƒØ²ÙŠØ©
 
-      const cx = qx + qrSize / 2;
-      const cy = qy + qrSize / 2;
-      const centerRadiusLimit = 4.5 * d;
-
+      // Ù†Ù‚Ø§Ø· QR Ø§Ù„Ø¯Ø§Ø¦Ø±ÙŠØ©
       for (let r = 0; r < N; r++) {
         for (let c = 0; c < N; c++) {
-          // تخطي زوايا التوجيه الرئيسية الثلاث
-          if (r < 7 && c < 7) continue;
-          if (r < 7 && c >= N - 7) continue;
-          if (r >= N - 7 && c < 7) continue;
-
-          const mx = qx + c * d;
-          const my = qy + r * d;
-
-          // تخطي المركز لوضع الشعار الدائري
-          const dist = Math.sqrt((mx + d/2 - cx) ** 2 + (my + d/2 - cy) ** 2);
-          if (dist < centerRadiusLimit) continue;
-
+          if (r < 7 && c < 7)       continue;
+          if (r < 7 && c >= N - 7)  continue;
+          if (r >= N - 7 && c < 7)  continue;
+          const mx = qx + c * d + d / 2;
+          const my = qy + r * d + d / 2;
+          const dist = Math.sqrt((mx - cx) ** 2 + (my - cy) ** 2);
+          if (dist < cRad) continue;
           if (qr.modules.get(r, c)) {
             doc.save()
-               .fillColor(darkGreen)
-               .circle(mx + d/2, my + d/2, d/2 * 0.88)
+               .fillColor(dkGreen)
+               .circle(mx, my, d * 0.42)
                .fill()
                .restore();
           }
         }
       }
 
-      // رسم زوايا التوجيه الدائرية المخصصة (Finder Patterns)
+      // Finder Patterns Ø§Ù„Ù…Ø®ØµØµØ©
       const finders = [
         { fx: qx, fy: qy },
         { fx: qx + (N - 7) * d, fy: qy },
         { fx: qx, fy: qy + (N - 7) * d }
       ];
-
       finders.forEach(({ fx, fy }) => {
-        // الإطار الخارجي الأخضر
-        doc.fillColor(darkGreen)
-           .roundedRect(fx, fy, 7 * d, 7 * d, 1.8 * d)
-           .fill();
-        // الإطار الأوسط الأبيض
-        doc.fillColor('#FFFFFF')
-           .roundedRect(fx + 0.85 * d, fy + 0.85 * d, 5.3 * d, 5.3 * d, 1.2 * d)
-           .fill();
-        // المربع الداخلي العنابي
-        doc.fillColor(burgundy)
-           .roundedRect(fx + 2 * d, fy + 2 * d, 3 * d, 3 * d, 0.8 * d)
-           .fill();
+        doc.save()
+           .fillColor(dkGreen)
+           .roundedRect(fx, fy, 7*d, 7*d, 1.6*d).fill()
+           .fillColor('#FFFFFF')
+           .roundedRect(fx + 0.9*d, fy + 0.9*d, 5.2*d, 5.2*d, 1.1*d).fill()
+           .fillColor(burgundy)
+           .roundedRect(fx + 2*d, fy + 2*d, 3*d, 3*d, 0.7*d).fill()
+           .restore();
       });
 
-      // رسم الدائرة البيضاء في المنتصف
-      doc.fillColor('#FFFFFF')
-         .strokeColor(darkGreen)
-         .lineWidth(1)
-         .circle(cx, cy, centerRadiusLimit - 0.5)
-         .fillAndStroke();
+      // Ø¯Ø§Ø¦Ø±Ø© Ø§Ù„Ù„ÙˆØ¬Ùˆ Ø§Ù„Ù…Ø±ÙƒØ²ÙŠØ©
+      doc.save()
+         .fillColor('#FFFFFF')
+         .strokeColor(dkGreen).lineWidth(1)
+         .circle(cx, cy, cRad - 0.5)
+         .fillAndStroke()
+         .restore();
 
-      // وضع شعار الوردة الصغير في منتصف الـ QR
-      const logoEmblemPath = path.join(__dirname, '../frontend/imgs/Ozel-Logo--02.png');
-      if (fs.existsSync(logoEmblemPath)) {
-        const lSize = 5.6 * d;
-        doc.image(logoEmblemPath, cx - lSize / 2, cy - lSize / 2, { width: lSize });
+      if (fs.existsSync(logoPath)) {
+        const lSz = cRad * 1.5;
+        doc.image(logoPath, cx - lSz/2, cy - lSz/2, { width: lSz });
       }
 
-      // الأيقونات الجانبية (explore / phone)
-      const iconY = cardY + cardSize / 2 - 10;
-      
-      // اليسار: أيقونة غطاء تقديم الطعام (Explore menu)
-      doc.strokeColor(darkGreen)
-         .lineWidth(1.2)
-         .moveTo(35, iconY + 5)
-         .lineTo(55, iconY + 5)
-         .stroke()
-         .arc(45, iconY + 5, 8, 180, 360, false)
-         .stroke()
-         .circle(45, iconY - 4, 1.5)
-         .fill(darkGreen);
+      // â”€â”€ 6. Ø§Ù„Ø£ÙŠÙ‚ÙˆÙ†Ø§Øª Ø§Ù„Ø¬Ø§Ù†Ø¨ÙŠØ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      const iconMidY = cardY + cardSz / 2;
 
-      doc.fillColor(textDark)
-         .font(fontSans !== 'Helvetica' ? 'Sans' : 'Helvetica')
-         .fontSize(4.5)
-         .text('EXPLORE', 20, iconY + 12, { align: 'center', width: 50 })
-         .text('OUR MENU', 20, iconY + 18, { align: 'center', width: 50 });
-
-      // اليمين: أيقونة الهاتف والنقر (Fast & Easy)
-      doc.strokeColor(darkGreen)
-         .lineWidth(1.2)
-         .roundedRect(240, iconY - 8, 10, 16, 2)
-         .stroke()
-         .circle(245, iconY + 5, 1)
-         .fill(darkGreen);
-      
-      doc.strokeColor(burgundy)
-         .lineWidth(0.8)
-         .moveTo(252, iconY - 2)
-         .lineTo(256, iconY - 4)
-         .moveTo(253, iconY + 2)
-         .lineTo(257, iconY + 2)
-         .moveTo(252, iconY + 6)
-         .lineTo(256, iconY + 8)
-         .stroke();
-
-      doc.fillColor(textDark)
-         .font(fontSans !== 'Helvetica' ? 'Sans' : 'Helvetica')
-         .fontSize(4.5)
-         .text('FAST', 220, iconY + 12, { align: 'center', width: 50 })
-         .text('& EASY', 220, iconY + 18, { align: 'center', width: 50 });
-
-      // رسم زر الموقع الأخضر متوسطاً أسفل كارت الـ QR مع أيقونة ومؤشر نقر
-      const pillW = 80;
-      const pillH = 16;
-      const pillX = 149 - pillW / 2;
-      const pillY = cardY + cardSize + 10;
-      
+      // â† ÙŠØ³Ø§Ø±: ØºØ·Ø§Ø¡ ØªÙ‚Ø¯ÙŠÙ… Ø§Ù„Ø·Ø¹Ø§Ù…
+      const LX = cardX - 35;
       doc.save()
-         .fillColor(darkGreen)
-         .roundedRect(pillX, pillY, pillW, pillH, 8)
-         .fill();
-
-      // الكرة الأرضية البيضاء داخل الزر
-      const iconCenterX = pillX + 22;
-      doc.strokeColor('#FFFFFF')
-         .lineWidth(0.8)
-         .circle(iconCenterX, pillY + 8, 3.5)
+         .strokeColor(dkGreen).lineWidth(1.2);
+      // Ù‚Ø§Ø¹Ø¯Ø© Ø§Ù„ØµØ­Ù†
+      doc.moveTo(LX - 12, iconMidY + 8).lineTo(LX + 12, iconMidY + 8).stroke();
+      // Ù‚Ø¨Ø© Ø§Ù„ØºØ·Ø§Ø¡
+      doc.moveTo(LX - 10, iconMidY + 8)
+         .bezierCurveTo(LX - 10, iconMidY, LX + 10, iconMidY, LX + 10, iconMidY + 8)
          .stroke();
+      // Ø§Ù„Ù…Ù‚Ø¨Ø¶
+      doc.circle(LX, iconMidY - 2, 2).stroke();
+      doc.restore();
+      doc.fillColor(textDark).font(fSans).fontSize(5)
+         .text('EXPLORE', LX - 18, iconMidY + 11, { width: 36, align: 'center', characterSpacing: 0.5 })
+         .text('OUR MENU', LX - 18, iconMidY + 17, { width: 36, align: 'center', characterSpacing: 0.5 });
 
-      doc.moveTo(iconCenterX - 3.5, pillY + 8)
-         .lineTo(iconCenterX + 3.5, pillY + 8)
-         .stroke();
+      // â† ÙŠÙ…ÙŠÙ†: Ù‡Ø§ØªÙ + Ø¨Ø±Ù‚
+      const RX = cardX + cardSz + 35;
+      doc.save()
+         .strokeColor(dkGreen).lineWidth(1.2)
+         .roundedRect(RX - 7, iconMidY - 10, 12, 18, 2).stroke()
+         .circle(RX - 1, iconMidY + 5, 1.2).fill(dkGreen)
+         .restore();
+      // Ø§Ù„Ø¨Ø±Ù‚
+      doc.save()
+         .strokeColor(burgundy).lineWidth(1)
+         .moveTo(RX + 8,  iconMidY - 6)
+         .lineTo(RX + 4,  iconMidY + 0)
+         .lineTo(RX + 8,  iconMidY + 0)
+         .lineTo(RX + 4,  iconMidY + 7)
+         .stroke()
+         .restore();
+      doc.fillColor(textDark).font(fSans).fontSize(5)
+         .text('FAST',  RX - 16, iconMidY + 11, { width: 32, align: 'center', characterSpacing: 0.5 })
+         .text('& EASY', RX - 16, iconMidY + 17, { width: 32, align: 'center', characterSpacing: 0.5 });
 
-      doc.moveTo(iconCenterX, pillY + 4.5)
-         .lineTo(iconCenterX, pillY + 11.5)
-         .stroke();
+      // â”€â”€ 7. Ø²Ø± ozel.cafe â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      const pillW  = 90;
+      const pillH  = 17;
+      const pillX  = midX - pillW / 2;
+      const pillY  = cardY + cardSz + 12;
 
-      doc.fillColor('#FFFFFF')
-         .font(fontSans !== 'Helvetica' ? 'Sans' : 'Helvetica')
-         .fontSize(6.5)
-         .text('ozel.cafe', pillX + 30, pillY + 4.8, { width: pillW - 30, align: 'left' });
+      doc.save()
+         .fillColor(dkGreen)
+         .roundedRect(pillX, pillY, pillW, pillH, pillH / 2)
+         .fill()
+         .restore();
 
-      // مؤشر ماوس ينقر على الزر باللون الأبيض والأسود
-      doc.fillColor('#FFFFFF')
-         .strokeColor('#000000')
-         .lineWidth(0.5)
-         .moveTo(pillX + pillW - 2, pillY + pillH - 2)
-         .lineTo(pillX + pillW - 6, pillY + pillH + 8)
-         .lineTo(pillX + pillW - 3, pillY + pillH + 5)
-         .lineTo(pillX + pillW + 1, pillY + pillH + 8)
-         .closePath()
-         .fillAndStroke();
+      // Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø§Ù„ÙƒØ±Ø© Ø§Ù„Ø£Ø±Ø¶ÙŠØ©
+      const gX = pillX + 15, gY = pillY + pillH / 2;
+      doc.save()
+         .strokeColor('#FFFFFF').lineWidth(0.85)
+         .circle(gX, gY, 5).stroke()
+         .moveTo(gX - 5, gY).lineTo(gX + 5, gY).stroke()
+         .moveTo(gX, gY - 5).lineTo(gX, gY + 5).stroke()
+         .restore();
+      // Ø®Ø·ÙˆØ· Ø®Ø· Ø§Ù„Ø¹Ø±Ø¶ Ø§Ù„Ù…Ù†Ø­Ù†ÙŠØ©
+      doc.save().strokeColor('#FFFFFF').lineWidth(0.6);
+      doc.moveTo(gX - 4.5, gY - 2.5).bezierCurveTo(gX, gY - 3.5, gX, gY - 3.5, gX + 4.5, gY - 2.5).stroke();
+      doc.moveTo(gX - 4.5, gY + 2.5).bezierCurveTo(gX, gY + 3.5, gX, gY + 3.5, gX + 4.5, gY + 2.5).stroke();
       doc.restore();
 
-      // 4. رسالة الترحيب الكيرسيف اليدوية
+      // Ø§Ù„Ù†Øµ
+      doc.fillColor('#FFFFFF')
+         .font(fSans).fontSize(7.5)
+         .text('ozel.cafe', pillX + 26, pillY + 4.5, { width: pillW - 28, align: 'center' });
+
+      // Ù…Ø¤Ø´Ø± Ø§Ù„Ù…Ø§ÙˆØ³ Ø¨Ø¬Ø§Ù†Ø¨ Ø§Ù„Ø²Ø±
+      const curX = pillX + pillW + 4, curY = pillY + pillH - 2;
+      doc.save()
+         .fillColor('#FFFFFF').strokeColor('#333333').lineWidth(0.5)
+         .moveTo(curX, curY)
+         .lineTo(curX - 4, curY + 10)
+         .lineTo(curX - 1, curY + 7)
+         .lineTo(curX + 3, curY + 11)
+         .lineTo(curX + 5, curY + 9)
+         .lineTo(curX + 1, curY + 5)
+         .lineTo(curX + 4, curY + 2)
+         .closePath()
+         .fillAndStroke()
+         .restore();
+
+      // â”€â”€ 8. Ù†Øµ Ø§Ù„ØªØ±Ø­ÙŠØ¨ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      const welcomeY = pillY + pillH + 10;
       doc.fillColor(burgundy)
-         .font(fontScript !== 'Times-Italic' ? 'Script' : 'Times-Italic')
-         .fontSize(28)
-         .text(welcomeText, 0, 345, { align: 'center', width: 297.64 });
+         .font(fScript)
+         .fontSize(26)
+         .text(welcomeText, 0, welcomeY, { align: 'center', width: PW });
 
-      // 5. رسائل الشكر وتمنيات المتعة
-      const isThankAr = hasArabic(thankYouText);
-      const isEnjoyAr = hasArabic(enjoyText);
+      // Ø®Ø· ÙØ§ØµÙ„ Ø®ÙÙŠÙ
+      doc.save()
+         .strokeColor(textDark).lineWidth(0.3).opacity(0.4)
+         .moveTo(midX - 60, welcomeY + 30).lineTo(midX + 60, welcomeY + 30)
+         .stroke()
+         .restore();
 
-      doc.fillColor(textDark)
-         .font(isThankAr ? 'Ar-Reg' : (fontRegular !== 'Helvetica' ? 'Serif-Regular' : 'Helvetica'))
-         .fontSize(isThankAr ? 8 : 9)
-         .text(thankYouText, 0, 375, { align: 'center', width: 297.64 });
+      // Ø¬Ù…Ù„Ø© Ø§Ù„Ø´ÙƒØ±
+      const tyF = hasArabic(thankYouText) ? fArReg : fSerif;
+      doc.fillColor(textDark).font(tyF).fontSize(8)
+         .text(thankYouText, 0, welcomeY + 34, { align: 'center', width: PW });
 
-      doc.font(isEnjoyAr ? 'Ar-Reg' : (fontRegular !== 'Helvetica' ? 'Serif-Regular' : 'Helvetica'))
-         .fontSize(isEnjoyAr ? 8 : 9)
-         .text(enjoyText, 0, 386, { align: 'center', width: 297.64 });
+      // Ø¬Ù…Ù„Ø© Ø§Ù„Ø§Ø³ØªÙ…ØªØ§Ø¹
+      const ejF = hasArabic(enjoyText) ? fArReg : fSerif;
+      doc.fillColor(textDark).font(ejF).fontSize(8)
+         .text(enjoyText, 0, welcomeY + 45, { align: 'center', width: PW });
 
-      // رسم الغصن النباتي البسيط أسفل كارت الترحيب
-      doc.strokeColor(softGreen)
-         .lineWidth(0.5)
-         .moveTo(140, 400)
-         .quadraticCurveTo(149, 398, 158, 400)
-         .stroke();
+      // â”€â”€ 9. Ø§Ù„Ù‚Ø§Ø¹Ø¯Ø© Ø§Ù„Ø®Ø´Ø¨ÙŠØ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      const baseTop = cardBottom;  // = 408
+      const baseH   = PH - baseTop; // Ø§Ù„Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ù…ØªØ¨Ù‚ÙŠØ©
 
-      // 6. كتابة رقم الطاولة
-      if (showTableNum) {
-        doc.fillColor(burgundy)
-           .font(fontRegular !== 'Helvetica' ? 'Serif-Bold' : 'Helvetica-Bold')
-           .fontSize(10)
-           .text(`Table ${tableNum}`, 0, 405, { align: 'center', width: 297.64 });
+      // Ø§Ù„Ø´ÙƒÙ„ Ø§Ù„Ù…Ù‚ÙˆØ³ Ù„Ù„Ù‚Ø§Ø¹Ø¯Ø© Ø§Ù„Ø®Ø´Ø¨ÙŠØ© (ÙŠØ´Ø¨Ù‡ Ø§Ù„Ù‚Ø§Ø¹Ø¯Ø© ÙÙŠ Ø§Ù„ØµÙˆØ±Ø©)
+      const baseW = 70, baseHgt = baseH - 4;
+      const bx = midX - baseW / 2;
+      const by = baseTop;
+
+      // Ø§Ù„Ø¬Ø²Ø¡ Ø§Ù„Ø¹Ù„ÙˆÙŠ Ù…Ù† Ø§Ù„Ù‚Ø§Ø¹Ø¯Ø© (Ù…Ø³ØªØ·ÙŠÙ„ Ù…Ù†Ø­Ù†ÙŠ Ø§Ù„Ø­ÙˆØ§Ù)
+      doc.save()
+         .fillColor(woodLight)
+         .roundedRect(bx, by, baseW, baseHgt, 3)
+         .fill()
+         .restore();
+
+      // Ø®Ø´Ø¨ Ø¯Ø§ÙƒÙ† (Ø­Ø¨ÙŠØ¨Ø§Øª)
+      doc.save().strokeColor(woodDark).lineWidth(0.5).opacity(0.3);
+      for (let i = 0; i < 5; i++) {
+        doc.moveTo(bx + 6 + i * 11, by + 2).lineTo(bx + 8 + i * 11, by + baseHgt - 2).stroke();
       }
+      doc.restore();
+
+      // Ø§Ù„Ù„ÙˆØ¬Ùˆ Ø§Ù„ØµØºÙŠØ± ÙÙŠ ÙˆØ³Ø· Ø§Ù„Ù‚Ø§Ø¹Ø¯Ø©
+      if (fs.existsSync(logoPath)) {
+        const lbSz = 10;
+        doc.image(logoPath, midX - lbSz/2, by + (baseHgt - lbSz)/2, { width: lbSz });
+      }
+
+      // Ø±Ù‚Ù… Ø§Ù„Ø·Ø§ÙˆÙ„Ø©
+      if (showTableNum) {
+        doc.fillColor(burgundy).font(fSerifB).fontSize(8)
+           .text(`Table ${tableNum}`, bx, by + baseHgt + 1, { width: baseW, align: 'center' });
+      }
+    };
+
+    // â”€â”€ ØªÙˆÙ„ÙŠØ¯ ØµÙØ­Ø© Ù„ÙƒÙ„ Ø·Ø§ÙˆÙ„Ø© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    for (let tableNum = start; tableNum <= end; tableNum++) {
+      if (tableNum > start) {
+        doc.addPage({ size: [PW, PH], margins: { top: 0, bottom: 0, left: 0, right: 0 } });
+      }
+      drawCard(tableNum);
     }
 
     doc.end();
@@ -985,8 +1022,7 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
     res.status(500).json({ error: err.message });
   }
 });
-
-// جلب تقارير متزامنة من نظام نقاط البيع (POS)
+// Ø¬Ù„Ø¨ ØªÙ‚Ø§Ø±ÙŠØ± Ù…ØªØ²Ø§Ù…Ù†Ø© Ù…Ù† Ù†Ø¸Ø§Ù… Ù†Ù‚Ø§Ø· Ø§Ù„Ø¨ÙŠØ¹ (POS)
 router.get('/reports/:type', authenticateToken, requireRole('admin'), async (req, res) => {
   const { type } = req.params;
   const { days } = req.query;
@@ -1002,7 +1038,7 @@ router.get('/reports/:type', authenticateToken, requireRole('admin'), async (req
   }
 });
 
-// تصدير نسخة احتياطية لجميع المجموعات
+// ØªØµØ¯ÙŠØ± Ù†Ø³Ø®Ø© Ø§Ø­ØªÙŠØ§Ø·ÙŠØ© Ù„Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø§Øª
 router.get('/backup', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const collections = ['User', 'Category', 'Drink', 'Order', 'Offer', 'Expense', 'CashMovement', 'Shift', 'SyncEvent', 'Ingredient', 'Recipe', 'RecipeItem', 'InventoryTransaction', 'InventoryCount', 'StockAlert', 'ExpenseCategory'];
@@ -1019,7 +1055,7 @@ router.get('/backup', authenticateToken, requireRole('admin'), async (req, res) 
   }
 });
 
-// استعادة مجموعة محددة من النسخة الاحتياطية (يمنع استعادة المستخدمين والطلبات عبر API)
+// Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ù…Ø¬Ù…ÙˆØ¹Ø© Ù…Ø­Ø¯Ø¯Ø© Ù…Ù† Ø§Ù„Ù†Ø³Ø®Ø© Ø§Ù„Ø§Ø­ØªÙŠØ§Ø·ÙŠØ© (ÙŠÙ…Ù†Ø¹ Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠÙ† ÙˆØ§Ù„Ø·Ù„Ø¨Ø§Øª Ø¹Ø¨Ø± API)
 router.post('/restore', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const { collection, records } = req.body;
@@ -1034,7 +1070,7 @@ router.post('/restore', authenticateToken, requireRole('admin'), async (req, res
   }
 });
 
-// جلب صور الشركاء المعتمدة وقيد الانتظار
+// Ø¬Ù„Ø¨ ØµÙˆØ± Ø§Ù„Ø´Ø±ÙƒØ§Ø¡ Ø§Ù„Ù…Ø¹ØªÙ…Ø¯Ø© ÙˆÙ‚ÙŠØ¯ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±
 router.get('/partners-images', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const partners = await User.find({ $or: [{ isPartner: true }, { role: 'partner' }] })
@@ -1046,7 +1082,7 @@ router.get('/partners-images', authenticateToken, requireRole('admin'), async (r
   }
 });
 
-// الموافقة على صورة الشريك (لوجو، صورة رئيسية، معرض صور)
+// Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø© Ø¹Ù„Ù‰ ØµÙˆØ±Ø© Ø§Ù„Ø´Ø±ÙŠÙƒ (Ù„ÙˆØ¬ÙˆØŒ ØµÙˆØ±Ø© Ø±Ø¦ÙŠØ³ÙŠØ©ØŒ Ù…Ø¹Ø±Ø¶ ØµÙˆØ±)
 router.post('/partners/:id/approve-image', authenticateToken, requireRole('admin'), async (req, res) => {
   const { type, imageUrl } = req.body;
   try {
@@ -1081,7 +1117,7 @@ router.post('/partners/:id/approve-image', authenticateToken, requireRole('admin
   }
 });
 
-// حذف/رفض صورة الشريك (سواء معتمدة أو قيد الانتظار)
+// Ø­Ø°Ù/Ø±ÙØ¶ ØµÙˆØ±Ø© Ø§Ù„Ø´Ø±ÙŠÙƒ (Ø³ÙˆØ§Ø¡ Ù…Ø¹ØªÙ…Ø¯Ø© Ø£Ùˆ Ù‚ÙŠØ¯ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±)
 router.post('/partners/:id/delete-image', authenticateToken, requireRole('admin'), async (req, res) => {
   const { type, isPending, imageUrl } = req.body;
   try {
