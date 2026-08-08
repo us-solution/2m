@@ -1,4 +1,4 @@
-﻿// ===== Ù…Ø³Ø§Ø± Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ… (Admin) - Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠÙ† ÙˆØ§Ù„Ù…Ø´Ø±ÙˆØ¨Ø§Øª ÙˆØ§Ù„Ø¹Ø±ÙˆØ¶ ÙˆØ§Ù„ÙØ¦Ø§Øª ÙˆØ§Ù„ØªÙ‚Ø§Ø±ÙŠØ± ÙˆØ§Ù„Ù†Ø³Ø® Ø§Ù„Ø§Ø­ØªÙŠØ§Ø·ÙŠ =====
+// ===== Ù…Ø³Ø§Ø± Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ… (Admin) - Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠÙ† ÙˆØ§Ù„Ù…Ø´Ø±ÙˆØ¨Ø§Øª ÙˆØ§Ù„Ø¹Ø±ÙˆØ¶ ÙˆØ§Ù„ÙØ¦Ø§Øª ÙˆØ§Ù„ØªÙ‚Ø§Ø±ÙŠØ± ÙˆØ§Ù„Ù†Ø³Ø® Ø§Ù„Ø§Ø­ØªÙŠØ§Ø·ÙŠ =====
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
@@ -564,7 +564,7 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
     const end          = parseInt(req.query.end)    || 1;
     const baseUrl      = req.query.baseUrl      || process.env.BASE_URL || 'https://www.ozel.cafe';
     const welcomeText  = req.query.welcomeText  || 'Welcome!';
-    const thankYouText = req.query.thankYouText || 'Thank you for choosing Ozel.';
+    const thankYouText = req.query.thankYouText || 'Thank you for choosing \u00d6zel.';
     const enjoyText    = req.query.enjoyText    || 'Enjoy your time with us.';
     const showTableNum = req.query.showTableNum !== 'false';
 
@@ -616,13 +616,13 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
     const hasAr = t => /[\u0600-\u06FF]/.test(t);
 
     // ─── Colors ───────────────────────────────────────────────────────────
-    const BG    = '#F4F0EB';
-    const GREEN = '#3F4E46';
-    const RED   = '#4E1B1B';
-    const DARK  = '#2C2520';
-    const LEAF  = '#8FA090';
-    const WD1   = '#7B4F2E';
-    const WD2   = '#A67C52';
+    const BG    = '#F5F1EC';   // creamy off-white (matches reference image)
+    const GREEN = '#3F4E46';   // dark forest green
+    const RED   = '#4E1B1B';   // dark maroon
+    const DARK  = '#2C2520';   // near-black brown
+    const LEAF  = '#7A9A82';   // sage green for botanicals (slightly darker)
+    const WD1   = '#5C3A1E';   // dark walnut
+    const WD2   = '#8B5E3C';   // walnut mid
 
     // ─── Logo ─────────────────────────────────────────────────────────────
     const LOGO = path.join(__dirname, '../frontend/imgs/Ozel-Logo--02.png');
@@ -668,35 +668,67 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
       doc.dash(3, { space: 2 }).stroke().undash();
       doc.restore();
 
-      // ② BOTANICAL BRANCHES ────────────────────────────────────────────
-      // Top-right (within arch area, verified against arch boundary)
+      // ② BOTANICAL BRANCHES (match reference image: large sweeping branches) ──────
+      // ── TOP-RIGHT branch: sweeping down-left from top-right corner of arch
       doc.save();
-      doc.fillColor(LEAF).fillOpacity(0.65);
-      doc.strokeColor(LEAF).lineWidth(1.1);
-      // Stems
-      doc.save().fillOpacity(0).moveTo(198,26).bezierCurveTo(214,38,222,58,214,80).stroke().restore();
-      doc.save().fillOpacity(0).moveTo(214,56).bezierCurveTo(228,46,234,36,228,24).stroke().restore();
-      doc.save().fillOpacity(0).moveTo(212,70).bezierCurveTo(228,62,232,50,226,38).stroke().restore();
-      // Leaves
-      leaf(198,26, 204,18, 0.45);
-      leaf(205,40, 218,32, 0.45);
-      leaf(210,54, 224,47, 0.43);
-      leaf(210,68, 224,62, 0.40);
-      leaf(208,80, 220,77, 0.38);
+      doc.fillColor(LEAF).fillOpacity(0.55).strokeColor(LEAF).lineWidth(1.3);
+      // Main stem
+      doc.save().fillOpacity(0)
+         .moveTo(242, 18).bezierCurveTo(252, 36, 252, 60, 238, 88)
+         .bezierCurveTo(228, 108, 210, 118, 200, 130).stroke().restore();
+      // Branch-right 1
+      doc.save().fillOpacity(0)
+         .moveTo(248, 40).bezierCurveTo(262, 32, 272, 22, 268, 12).stroke().restore();
+      // Branch-right 2
+      doc.save().fillOpacity(0)
+         .moveTo(247, 62).bezierCurveTo(264, 54, 274, 42, 270, 30).stroke().restore();
+      // Branch-right 3
+      doc.save().fillOpacity(0)
+         .moveTo(241, 84).bezierCurveTo(258, 78, 268, 66, 264, 52).stroke().restore();
+      // Leaves on main stem and branches
+      doc.fillOpacity(0.60);
+      leaf(242, 18, 250, 8,  0.48);  // tip leaf
+      leaf(243, 30, 256, 20, 0.46);
+      leaf(248, 48, 264, 36, 0.46);
+      leaf(248, 66, 266, 56, 0.44);
+      leaf(244, 84, 262, 76, 0.42);
+      leaf(234, 100, 250, 94, 0.40);
+      leaf(220, 116, 234, 112, 0.38);
+      // Extra small accent leaves on branches
+      leaf(262, 22, 274, 14, 0.44);
+      leaf(268, 40, 282, 32, 0.42);
+      leaf(264, 60, 278, 52, 0.40);
       doc.restore();
 
-      // Bottom-left (in rectangular portion of card, Y>ACY)
+      // ── BOTTOM-LEFT branch: sweeping up-right from bottom-left corner
       doc.save();
-      doc.fillColor(LEAF).fillOpacity(0.65);
-      doc.strokeColor(LEAF).lineWidth(1.1);
-      doc.save().fillOpacity(0).moveTo(58,376).bezierCurveTo(42,360,34,336,44,312).stroke().restore();
-      doc.save().fillOpacity(0).moveTo(44,336).bezierCurveTo(30,344,22,356,28,368).stroke().restore();
-      doc.save().fillOpacity(0).moveTo(50,354).bezierCurveTo(34,358,26,370,30,382).stroke().restore();
-      leaf(57,376, 42,385, 0.45);
-      leaf(50,360, 35,367, 0.45);
-      leaf(45,343, 30,346, 0.42);
-      leaf(44,327, 29,325, 0.42);
-      leaf(45,311, 31,308, 0.38);
+      doc.fillColor(LEAF).fillOpacity(0.55).strokeColor(LEAF).lineWidth(1.3);
+      // Main stem
+      doc.save().fillOpacity(0)
+         .moveTo(56, 388).bezierCurveTo(44, 370, 38, 348, 44, 320)
+         .bezierCurveTo(50, 296, 60, 278, 72, 260).stroke().restore();
+      // Branch-left 1
+      doc.save().fillOpacity(0)
+         .moveTo(42, 358).bezierCurveTo(28, 366, 18, 378, 22, 390).stroke().restore();
+      // Branch-left 2
+      doc.save().fillOpacity(0)
+         .moveTo(40, 334).bezierCurveTo(26, 340, 16, 350, 20, 362).stroke().restore();
+      // Branch-left 3
+      doc.save().fillOpacity(0)
+         .moveTo(44, 308).bezierCurveTo(28, 312, 18, 322, 22, 334).stroke().restore();
+      // Leaves
+      doc.fillOpacity(0.60);
+      leaf(56, 388, 42, 396, 0.48);  // tip leaf
+      leaf(50, 374, 36, 382, 0.46);
+      leaf(42, 358, 26, 366, 0.45);
+      leaf(40, 340, 24, 347, 0.44);
+      leaf(42, 320, 26, 326, 0.43);
+      leaf(48, 300, 34, 304, 0.41);
+      leaf(58, 280, 44, 282, 0.40);
+      // Accent leaves on branches
+      leaf(26, 376, 14, 384, 0.42);
+      leaf(20, 354, 8,  360, 0.40);
+      leaf(22, 330, 10, 336, 0.38);
       doc.restore();
 
       // ③ LOGO + OZEL + HIDDEN GEM ──────────────────────────────────────
@@ -705,37 +737,37 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
         doc.save().strokeColor(RED).lineWidth(1.2).circle(CX,33,15).stroke().restore();
       }
 
-      doc.fillColor(RED).font(fBold).fontSize(36)
-         .text('ozel', 0, 55, { align:'center', width:PW, characterSpacing:2 });
+      doc.fillColor(RED).font(fBold).fontSize(38)
+         .text('\u00f6zel', 0, 55, { align:'center', width:PW, characterSpacing:1.5 });
 
-      doc.fillColor(DARK).font(fSans).fontSize(6.5)
-         .text('H I D D E N   G E M', 0, 97, { align:'center', width:PW, characterSpacing:1 });
+      doc.fillColor(DARK).font(fSans).fontSize(6.8)
+         .text('Hidden Gem', 0, 99, { align:'center', width:PW, characterSpacing:2.5 });
 
-      doc.save().strokeColor(DARK).lineWidth(0.35)
-         .moveTo(CX-48,108).lineTo(CX+48,108).stroke().restore();
+      doc.save().strokeColor(DARK).lineWidth(0.4)
+         .moveTo(CX-50,111).lineTo(CX+50,111).stroke().restore();
 
       // ④ SCAN TEXT ─────────────────────────────────────────────────────
-      doc.fillColor(DARK).font(fReg).fontSize(17)
-         .text('Scan the QR Code', 0, 113, { align:'center', width:PW });
+      doc.fillColor(DARK).font(fReg).fontSize(18)
+         .text('Scan the QR Code', 0, 116, { align:'center', width:PW });
 
       // — TO VIEW OUR MENU —
-      const MY = 135;
-      doc.save().strokeColor(DARK).lineWidth(0.35)
-         .moveTo(CX-AR+12, MY+4).lineTo(CX-46, MY+4).stroke().restore();
-      doc.fillColor(DARK).font(fSans).fontSize(6.5)
-         .text('TO VIEW OUR MENU', 0, MY, { align:'center', width:PW, characterSpacing:1.5 });
-      doc.save().strokeColor(DARK).lineWidth(0.35)
-         .moveTo(CX+46, MY+4).lineTo(CX+AR-12, MY+4).stroke().restore();
+      const MY = 139;
+      doc.save().strokeColor(DARK).lineWidth(0.4)
+         .moveTo(CX-AR+14, MY+4).lineTo(CX-50, MY+4).stroke().restore();
+      doc.fillColor(DARK).font(fSans).fontSize(7)
+         .text('TO VIEW OUR MENU', 0, MY, { align:'center', width:PW, characterSpacing:2 });
+      doc.save().strokeColor(DARK).lineWidth(0.4)
+         .moveTo(CX+50, MY+4).lineTo(CX+AR-14, MY+4).stroke().restore();
 
-      // Diamond decoration
-      doc.save().fillColor(DARK)
-         .moveTo(CX,MY+14).lineTo(CX-3,MY+18).lineTo(CX,MY+22).lineTo(CX+3,MY+18).closePath().fill()
+      // Small diamond / dot decoration below the line
+      doc.save().fillColor(GREEN)
+         .moveTo(CX,MY+13).lineTo(CX-2.5,MY+17).lineTo(CX,MY+21).lineTo(CX+2.5,MY+17).closePath().fill()
          .restore();
 
       // ⑤ QR CARD ───────────────────────────────────────────────────────
-      const CSZ = 126;                    // QR white-card square size
-      const QCX = CX - CSZ/2;            // QR card left X = 85.82
-      const QCY = 158;                    // QR card top Y
+      const CSZ = 128;                    // QR white-card square size
+      const QCX = CX - CSZ/2;            // QR card left X
+      const QCY = 162;                    // QR card top Y (below diamond)
       // At Y=158 the card is in straight-sided portion (Y > ACY=149.82), full width OK.
 
       // shadow
@@ -837,8 +869,8 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
          .lineTo(CuX+4,CuY+2.5).closePath().fillAndStroke().restore();
 
       // ⑧ WELCOME + THANK YOU ───────────────────────────────────────────
-      const WY = PLY + PLH + 8;
-      doc.fillColor(RED).font(fScr).fontSize(24)
+      const WY = PLY + PLH + 7;
+      doc.fillColor(RED).font(fScr).fontSize(26)
          .text(welcomeText, 0, WY, {align:'center', width:PW});
 
       doc.save().strokeColor(DARK).lineWidth(0.3).opacity(0.3)
@@ -846,10 +878,10 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
 
       const tyF = hasAr(thankYouText) ? fAr : fReg;
       const ejF = hasAr(enjoyText)    ? fAr : fReg;
-      doc.fillColor(DARK).font(tyF).fontSize(8)
-         .text(thankYouText, 0, WY+33, {align:'center', width:PW});
-      doc.fillColor(DARK).font(ejF).fontSize(8)
-         .text(enjoyText, 0, WY+44, {align:'center', width:PW});
+      doc.fillColor(DARK).font(tyF).fontSize(8.5)
+         .text(thankYouText, 0, WY+34, {align:'center', width:PW});
+      doc.fillColor(DARK).font(ejF).fontSize(8.5)
+         .text(enjoyText, 0, WY+46, {align:'center', width:PW});
 
       // Small decorative sprig
       const SPY = WY+57;
