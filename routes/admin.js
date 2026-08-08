@@ -723,24 +723,20 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
       gBranch(TX, TBY-170, TX, TBY-295, 9, 3);
       doc.restore();
 
-      // ③ LOGO (Balanced size & clean spacing) + HIDDEN GEM ─────────────────
-      const logoW = 46;
+      // ③ LOGO (Balanced size & clean spacing) ──────────────────────────
+      const logoW = 50;
       if (hasLogo) {
-        doc.image(LOGO, CX - logoW/2, 10, { width: logoW });
+        doc.image(LOGO, CX - logoW/2, 14, { width: logoW });
       } else {
-        doc.save().strokeColor(RED).lineWidth(1.5).circle(CX, 33, 20).stroke().restore();
+        doc.save().strokeColor(RED).lineWidth(1.5).circle(CX, 38, 22).stroke().restore();
       }
 
-      // Hidden Gem nicely spaced under logo
-      doc.fillColor(DARK).font(fSans).fontSize(6.5)
-         .text('Hidden Gem', 0, 62, { align:'center', width:PW, characterSpacing:2.5 });
-
       doc.save().strokeColor(DARK).lineWidth(0.4)
-         .moveTo(CX-45, 74).lineTo(CX+45, 74).stroke().restore();
+         .moveTo(CX-45, 72).lineTo(CX+45, 72).stroke().restore();
 
       // ④ SCAN TEXT ─────────────────────────────────────────────────────
-      doc.fillColor(DARK).font(fReg).fontSize(16)
-         .text('Scan the QR Code', 0, 80, { align:'center', width:PW });
+      doc.fillColor(DARK).font(fReg).fontSize(16.5)
+         .text('Scan the QR Code', 0, 78, { align:'center', width:PW });
 
       // — TO VIEW OUR MENU —
       const MY = 102;
