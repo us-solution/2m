@@ -666,156 +666,81 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
       doc.dash(3, { space: 2 }).stroke().undash();
       doc.restore();
 
-      // ── BACKGROUND TREE (large hollow olive/botanical tree silhouette) ─
-      // Drawn AFTER card fill so it appears on the card surface
+      // ── BACKGROUND TREE (Grand, elegant botanical tree) ───────────────
       doc.save();
-      doc.strokeColor(LEAF).lineWidth(1.2).opacity(0.20).fillColor(LEAF).fillOpacity(0);
-      const TX = CX, TBY = CBOT - 10;   // tree base X center, base Y
-      // ── trunk
-      doc.moveTo(TX-6, TBY)
-         .bezierCurveTo(TX-8, TBY-60, TX-4, TBY-100, TX, TBY-120)
-         .bezierCurveTo(TX+4, TBY-100, TX+8, TBY-60, TX+6, TBY)
-         .closePath().strokeColor(LEAF).lineWidth(1.5).stroke();
-      // ── root lines
-      doc.moveTo(TX, TBY-4).lineTo(TX-20, TBY+4).stroke();
-      doc.moveTo(TX, TBY-4).lineTo(TX+20, TBY+4).stroke();
-      doc.moveTo(TX, TBY-4).lineTo(TX-8, TBY+8).stroke();
-      doc.moveTo(TX, TBY-4).lineTo(TX+8, TBY+8).stroke();
+      doc.strokeColor(LEAF).lineWidth(1.2).opacity(0.18).fillColor(LEAF).fillOpacity(0.12);
+      const TX = CX, TBY = CBOT - 5;
+      
+      // Trunk & Roots
+      doc.moveTo(TX-7, TBY)
+         .bezierCurveTo(TX-9, TBY-80, TX-5, TBY-140, TX, TBY-170)
+         .bezierCurveTo(TX+5, TBY-140, TX+9, TBY-80, TX+7, TBY)
+         .closePath().strokeColor(LEAF).lineWidth(1.6).stroke();
 
-      // helper: draw a hollow almond-shaped leaf
-      const tLeaf = (x1,y1, x2,y2, b=0.38) => {
+      // Hollow leaf helper
+      const gLeaf = (x1,y1, x2,y2, b=0.45) => {
         const dx=x2-x1, dy=y2-y1, nx=-dy*b, ny=dx*b;
         doc.moveTo(x1,y1)
-           .bezierCurveTo(x1+dx*.3+nx,y1+dy*.3+ny, x1+dx*.7+nx,y1+dy*.7+ny, x2,y2)
-           .bezierCurveTo(x1+dx*.7-nx,y1+dy*.7-ny, x1+dx*.3-nx,y1+dy*.3-ny, x1,y1)
-           .closePath().stroke();
+           .bezierCurveTo(x1+dx*.3+nx, y1+dy*.3+ny, x1+dx*.7+nx, y1+dy*.7+ny, x2,y2)
+           .bezierCurveTo(x1+dx*.7-nx, y1+dy*.7-ny, x1+dx*.3-nx, y1+dy*.3-ny, x1,y1)
+           .closePath().fillAndStroke();
       };
-      // helper: branch + leaves
-      const tBranch = (bx,by, ex,ey, leafSz, leafCount) => {
+
+      // Branch drawer helper
+      const gBranch = (bx,by, ex,ey, leafSz=10, leafNum=3) => {
         doc.moveTo(bx,by).bezierCurveTo(
-          bx+(ex-bx)*0.3, by+(ey-by)*0.3,
-          bx+(ex-bx)*0.7, by+(ey-by)*0.7, ex, ey).stroke();
-        for (let i=0; i<leafCount; i++) {
-          const t  = (i+1)/(leafCount+1);
+          bx+(ex-bx)*0.35, by+(ey-by)*0.25,
+          bx+(ex-bx)*0.65, by+(ey-by)*0.75, ex, ey).stroke();
+        for (let i=0; i<leafNum; i++) {
+          const t = (i+1)/(leafNum+1);
           const lx = bx + (ex-bx)*t, ly = by + (ey-by)*t;
           const ang = Math.atan2(ey-by, ex-bx) + Math.PI/2;
           const off = leafSz * (i%2===0 ? 1 : -1);
-          tLeaf(lx, ly, lx+Math.cos(ang)*off, ly+Math.sin(ang)*off, 0.5);
+          gLeaf(lx, ly, lx+Math.cos(ang)*off, ly+Math.sin(ang)*off, 0.5);
         }
-        // tip leaf
-        tLeaf(ex, ey, ex+(ex-bx)*0.12, ey+(ey-by)*0.12, 0.5);
+        gLeaf(ex, ey, ex+(ex-bx)*0.15, ey+(ey-by)*0.15, 0.5);
       };
 
-      // trunk reference points
-      const t1y = TBY-30, t2y = TBY-60, t3y = TBY-90, t4y = TBY-115;
+      // Spreading canopy branches (Left side)
+      gBranch(TX-5, TBY-50,  TX-85, TBY-110, 11, 4);
+      gBranch(TX-4, TBY-90,  TX-105, TBY-160, 10, 4);
+      gBranch(TX-3, TBY-130, TX-90, TBY-210, 9, 3);
+      gBranch(TX-2, TBY-150, TX-65, TBY-250, 8, 3);
+      gBranch(TX-85, TBY-110, TX-115, TBY-150, 8, 2);
+      gBranch(TX-105, TBY-160, TX-120, TBY-210, 7, 2);
 
-      // Major branches - left side
-      tBranch(TX-4, t2y,  TX-55, t2y-50,  10, 3);
-      tBranch(TX-3, t3y,  TX-70, t3y-30,  9,  3);
-      tBranch(TX-2, t4y,  TX-50, t4y-40,  8,  2);
-      // Major branches - right side
-      tBranch(TX+4, t2y,  TX+55, t2y-50,  10, 3);
-      tBranch(TX+3, t3y,  TX+70, t3y-30,  9,  3);
-      tBranch(TX+2, t4y,  TX+50, t4y-40,  8,  2);
-      // Medium branches - left
-      tBranch(TX-4, t1y,  TX-38, t1y-36,  7,  2);
-      tBranch(TX-3, t2y-20, TX-45, t2y-60, 7, 2);
-      tBranch(TX-2, t3y-15, TX-30, t3y-50, 6, 2);
-      // Medium branches - right
-      tBranch(TX+4, t1y,  TX+38, t1y-36,  7,  2);
-      tBranch(TX+3, t2y-20, TX+45, t2y-60, 7, 2);
-      tBranch(TX+2, t3y-15, TX+30, t3y-50, 6, 2);
-      // Top crown
-      tBranch(TX, t4y, TX-25, t4y-45, 7, 2);
-      tBranch(TX, t4y, TX+25, t4y-45, 7, 2);
-      tBranch(TX, t4y, TX,    t4y-55, 8, 2);
-      // Extra small twigs
-      tBranch(TX-50, t2y-45, TX-68, t2y-80, 5, 2);
-      tBranch(TX+50, t2y-45, TX+68, t2y-80, 5, 2);
-      tBranch(TX-68, t3y-28, TX-85, t3y-58, 5, 2);
-      tBranch(TX+68, t3y-28, TX+85, t3y-58, 5, 2);
+      // Spreading canopy branches (Right side)
+      gBranch(TX+5, TBY-50,  TX+85, TBY-110, 11, 4);
+      gBranch(TX+4, TBY-90,  TX+105, TBY-160, 10, 4);
+      gBranch(TX+3, TBY-130, TX+90, TBY-210, 9, 3);
+      gBranch(TX+2, TBY-150, TX+65, TBY-250, 8, 3);
+      gBranch(TX+85, TBY-110, TX+115, TBY-150, 8, 2);
+      gBranch(TX+105, TBY-160, TX+120, TBY-210, 7, 2);
+
+      // Crown top branches
+      gBranch(TX, TBY-170, TX-35, TBY-280, 8, 3);
+      gBranch(TX, TBY-170, TX+35, TBY-280, 8, 3);
+      gBranch(TX, TBY-170, TX, TBY-295, 9, 3);
       doc.restore();
 
-      // ② BOTANICAL BRANCHES (match reference image: large sweeping branches) ──────
-      // ── TOP-RIGHT branch: sweeping down-left from top-right corner of arch
-      doc.save();
-      doc.fillColor(LEAF).fillOpacity(0.55).strokeColor(LEAF).lineWidth(1.3);
-      // Main stem
-      doc.save().fillOpacity(0)
-         .moveTo(242, 18).bezierCurveTo(252, 36, 252, 60, 238, 88)
-         .bezierCurveTo(228, 108, 210, 118, 200, 130).stroke().restore();
-      // Branch-right 1
-      doc.save().fillOpacity(0)
-         .moveTo(248, 40).bezierCurveTo(262, 32, 272, 22, 268, 12).stroke().restore();
-      // Branch-right 2
-      doc.save().fillOpacity(0)
-         .moveTo(247, 62).bezierCurveTo(264, 54, 274, 42, 270, 30).stroke().restore();
-      // Branch-right 3
-      doc.save().fillOpacity(0)
-         .moveTo(241, 84).bezierCurveTo(258, 78, 268, 66, 264, 52).stroke().restore();
-      // Leaves on main stem and branches
-      doc.fillOpacity(0.60);
-      leaf(242, 18, 250, 8,  0.48);  // tip leaf
-      leaf(243, 30, 256, 20, 0.46);
-      leaf(248, 48, 264, 36, 0.46);
-      leaf(248, 66, 266, 56, 0.44);
-      leaf(244, 84, 262, 76, 0.42);
-      leaf(234, 100, 250, 94, 0.40);
-      leaf(220, 116, 234, 112, 0.38);
-      // Extra small accent leaves on branches
-      leaf(262, 22, 274, 14, 0.44);
-      leaf(268, 40, 282, 32, 0.42);
-      leaf(264, 60, 278, 52, 0.40);
-      doc.restore();
-
-      // ── BOTTOM-LEFT branch: sweeping up-right from bottom-left corner
-      doc.save();
-      doc.fillColor(LEAF).fillOpacity(0.55).strokeColor(LEAF).lineWidth(1.3);
-      // Main stem
-      doc.save().fillOpacity(0)
-         .moveTo(56, 388).bezierCurveTo(44, 370, 38, 348, 44, 320)
-         .bezierCurveTo(50, 296, 60, 278, 72, 260).stroke().restore();
-      // Branch-left 1
-      doc.save().fillOpacity(0)
-         .moveTo(42, 358).bezierCurveTo(28, 366, 18, 378, 22, 390).stroke().restore();
-      // Branch-left 2
-      doc.save().fillOpacity(0)
-         .moveTo(40, 334).bezierCurveTo(26, 340, 16, 350, 20, 362).stroke().restore();
-      // Branch-left 3
-      doc.save().fillOpacity(0)
-         .moveTo(44, 308).bezierCurveTo(28, 312, 18, 322, 22, 334).stroke().restore();
-      // Leaves
-      doc.fillOpacity(0.60);
-      leaf(56, 388, 42, 396, 0.48);  // tip leaf
-      leaf(50, 374, 36, 382, 0.46);
-      leaf(42, 358, 26, 366, 0.45);
-      leaf(40, 340, 24, 347, 0.44);
-      leaf(42, 320, 26, 326, 0.43);
-      leaf(48, 300, 34, 304, 0.41);
-      leaf(58, 280, 44, 282, 0.40);
-      // Accent leaves on branches
-      leaf(26, 376, 14, 384, 0.42);
-      leaf(20, 354, 8,  360, 0.40);
-      leaf(22, 330, 10, 336, 0.38);
-      doc.restore();
-
-      // ③ LOGO (bigger, no özel text below) + HIDDEN GEM ─────────────────
-      // Logo enlarged to 56pt, centered from Y=12 (replacing özel text)
-      if (hasLogo) doc.image(LOGO, CX-28, 12, { width:56 });
-      else {
-        doc.save().strokeColor(RED).lineWidth(1.5).circle(CX, 40, 24).stroke().restore();
+      // ③ LOGO (Large, Prominent & Crystal Clear) + HIDDEN GEM ─────────────────
+      const logoW = 68;
+      if (hasLogo) {
+        doc.image(LOGO, CX - logoW/2, 10, { width: logoW });
+      } else {
+        doc.save().strokeColor(RED).lineWidth(1.8).circle(CX, 42, 28).stroke().restore();
       }
 
       // Hidden Gem directly below logo
-      doc.fillColor(DARK).font(fSans).fontSize(7)
-         .text('Hidden Gem', 0, 73, { align:'center', width:PW, characterSpacing:2.5 });
+      doc.fillColor(DARK).font(fSans).fontSize(7.5)
+         .text('Hidden Gem', 0, 82, { align:'center', width:PW, characterSpacing:2.8 });
 
       doc.save().strokeColor(DARK).lineWidth(0.4)
-         .moveTo(CX-50, 85).lineTo(CX+50, 85).stroke().restore();
+         .moveTo(CX-50, 94).lineTo(CX+50, 94).stroke().restore();
 
       // ④ SCAN TEXT ─────────────────────────────────────────────────────
       doc.fillColor(DARK).font(fReg).fontSize(18)
-         .text('Scan the QR Code', 0, 90, { align:'center', width:PW });
+         .text('Scan the QR Code', 0, 99, { align:'center', width:PW });
 
       // — TO VIEW OUR MENU —
       const MY = 112;
