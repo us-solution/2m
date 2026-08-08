@@ -639,40 +639,52 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
     const hasArabic = (text) => /[\u0600-\u06FF]/.test(text);
 
     // دالة مساعدة لرسم غصن نباتي زخرفي واقعي وجميل
-    const drawLeafBranch = (pdfDoc, x, y, scale, rotation, leafColor) => {
+    // دالة مساعدة لرسم غصن نباتي زخرفي بالمتجهات المطلقة لضمان دقة الرندر والظهور بالكامل
+    const drawLeafBranch = (pdfDoc, branchType, color) => {
       pdfDoc.save();
-      pdfDoc.translate(x, y);
-      pdfDoc.scale(scale);
-      pdfDoc.rotate(rotation);
-
-      // رسم الساق الرئيسي (stem)
-      pdfDoc.strokeColor(leafColor)
-            .lineWidth(1)
-            .moveTo(0, 0)
-            .bezierCurveTo(20, -10, 45, -25, 55, -55)
-            .stroke();
-
-      // دالة فرعية لرسم ورقة واحدة
-      const drawSingleLeaf = (lx, ly, w, h, angle) => {
+      pdfDoc.strokeColor(color).lineWidth(1.2);
+      
+      const drawAbsoluteLeaf = (x1, y1, x2, y2) => {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const px = -dy * 0.35;
+        const py = dx * 0.35;
+        
         pdfDoc.save();
-        pdfDoc.translate(lx, ly);
-        pdfDoc.rotate(angle);
-        pdfDoc.moveTo(0, 0)
-              .bezierCurveTo(w * 0.3, -h * 0.5, w * 0.7, -h * 0.5, w, 0)
-              .bezierCurveTo(w * 0.7, h * 0.5, w * 0.3, h * 0.5, 0, 0)
+        pdfDoc.moveTo(x1, y1)
+              .bezierCurveTo(x1 + dx * 0.4 + px, y1 + dy * 0.4 + py, x1 + dx * 0.8 + px, y1 + dy * 0.8 + py, x2, y2)
+              .bezierCurveTo(x1 + dx * 0.8 - px, y1 + dy * 0.8 - py, x1 + dx * 0.4 - px, y1 + dy * 0.4 - py, x1, y1)
               .closePath()
-              .fillColor(leafColor)
-              .fill();
-        pdfDoc.restore();
+              .fillColor(color)
+              .fill()
+              .restore();
       };
 
-      // رسم الأوراق على امتداد الساق بـ opacity
-      pdfDoc.fillOpacity(0.45);
-      drawSingleLeaf(52, -50, 14, 5.5, -45); // ورقة القمة
-      drawSingleLeaf(42, -32, 16, 6, -15);
-      drawSingleLeaf(33, -25, 15, 5.5, -75);
-      drawSingleLeaf(22, -14, 18, 6.5, 0);
-      drawSingleLeaf(15, -11, 16, 6, -95);
+      pdfDoc.fillOpacity(0.55);
+
+      if (branchType === 'top-right') {
+        // غصن الزاوية العلوية اليمنى
+        pdfDoc.moveTo(250, 45)
+              .bezierCurveTo(240, 75, 215, 90, 195, 100)
+              .stroke();
+
+        drawAbsoluteLeaf(195, 100, 182, 105); // ورقة القمة
+        drawAbsoluteLeaf(208, 92, 196, 82);
+        drawAbsoluteLeaf(218, 83, 226, 95);
+        drawAbsoluteLeaf(230, 71, 216, 62);
+        drawAbsoluteLeaf(242, 55, 252, 68);
+      } else if (branchType === 'bottom-left') {
+        // غصن الزاوية السفلية اليسرى
+        pdfDoc.moveTo(45, 375)
+              .bezierCurveTo(55, 345, 80, 340, 95, 335)
+              .stroke();
+
+        drawAbsoluteLeaf(95, 335, 108, 330); // ورقة القمة
+        drawAbsoluteLeaf(82, 340, 94, 350);
+        drawAbsoluteLeaf(72, 347, 62, 335);
+        drawAbsoluteLeaf(60, 357, 72, 368);
+        drawAbsoluteLeaf(50, 368, 40, 356);
+      }
 
       pdfDoc.restore();
     };
@@ -698,36 +710,45 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
       const softGreen = '#7E8F85';
 
       // 1. رسم الحدود الخارجية والإطار القوسي المقصوص
+      // أولاً: تعبئة لون الخلفية
       doc.save()
          .moveTo(10, 410)
          .lineTo(10, 149)
          .arc(149, 149, 139, 180, 0, false)
          .lineTo(288, 410)
          .closePath()
-         .fillAndStroke(bgColor, '#CCCCCC');
+         .fill(bgColor)
+         .restore();
+
+      // ثانياً: رسم الخط المتقطع كحواف ودليل للقص والطباعة
+      doc.save()
+         .moveTo(10, 410)
+         .lineTo(10, 149)
+         .arc(149, 149, 139, 180, 0, false)
+         .lineTo(288, 410)
+         .closePath()
+         .strokeColor('#888888')
+         .lineWidth(0.6)
+         .dash(3, { space: 3 })
+         .stroke()
+         .restore();
 
       // رسم ورقة نباتية زخرفية في الزاوية العلوية اليمنى (منحنية لأسفل ولليسار)
-      drawLeafBranch(doc, 250, 60, 1.1, 40, softGreen);
+      drawLeafBranch(doc, 'top-right', softGreen);
 
       // رسم ورقة نباتية زخرفية في الزاوية السفلية اليسرى (منحنية لأعلى ولليمين)
-      drawLeafBranch(doc, 45, 360, 1.1, 220, softGreen);
+      drawLeafBranch(doc, 'bottom-left', softGreen);
 
-      // 2. رسم شعار الكافيه العلوي
-      const logoPath = path.join(__dirname, '../frontend/imgs/Ozel-Logo--02.png');
-      if (fs.existsSync(logoPath)) {
-        doc.image(logoPath, 149 - 25, 45, { width: 50 });
+      // 2. رسم شعار الكافيه العلوي (اللوجو الرأسي الكامل الذي يحتوي على الشعار والنص)
+      let logoTopPath = path.join(__dirname, '../frontend/imgs/ozel-logo-vertical.png');
+      if (!fs.existsSync(logoTopPath)) {
+        logoTopPath = path.join(__dirname, '../frontend/imgs/Ozel-Logo--01.png');
       }
 
-      // رسم اسم الكافيه
-      doc.fillColor(burgundy)
-         .font(fontRegular !== 'Helvetica' ? 'Serif-Regular' : 'Helvetica')
-         .fontSize(36)
-         .text('özel', 0, 95, { align: 'center', width: 297.64 });
-
-      doc.fillColor(textDark)
-         .font(fontSans !== 'Helvetica' ? 'Sans' : 'Helvetica')
-         .fontSize(7)
-         .text('H I D D E N   G E M', 0, 135, { align: 'center', width: 297.64 });
+      if (fs.existsSync(logoTopPath)) {
+        // رسم اللوجو بالكامل في المنتصف
+        doc.image(logoTopPath, 149 - 45, 35, { width: 90 });
+      }
 
       // رسم الخط الفاصل
       doc.strokeColor(textDark)
@@ -746,16 +767,27 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
          .fontSize(8)
          .text('TO VIEW OUR MENU', 0, 175, { align: 'center', width: 297.64 });
 
-      // 3. رسم كارت رمز QR بالزوايا الدائرية والخلفية البيضاء
-      const cardSize = 130;
+      // 3. رسم كارت رمز QR بالزوايا الدائرية مع تأثير الظل ثلاثي الأبعاد
+      const cardSize = 135;
       const cardX = 149 - cardSize / 2;
-      const cardY = 195;
-      doc.roundedRect(cardX, cardY, cardSize, cardSize, 12)
-         .fillColor('#FFFFFF')
-         .fill();
+      const cardY = 190;
 
-      // رسم مربعات ونقاط رمز QR
-      const qrPadding = 12;
+      // ظل الكارت ناعم ودافئ
+      doc.save()
+         .fillColor('#E5DED5')
+         .roundedRect(cardX + 2, cardY + 2, cardSize, cardSize, 14)
+         .fill()
+         .restore();
+
+      // خلفية الكارت البيضاء الأساسية
+      doc.save()
+         .fillColor('#FFFFFF')
+         .roundedRect(cardX, cardY, cardSize, cardSize, 12)
+         .fill()
+         .restore();
+
+      // رسم مربعات ونقاط رمز QR الدائرية لمظهر جمالي ممتاز
+      const qrPadding = 12.5;
       const qrSize = cardSize - qrPadding * 2;
       const d = qrSize / N;
       const qx = cardX + qrPadding;
@@ -763,7 +795,7 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
 
       const cx = qx + qrSize / 2;
       const cy = qy + qrSize / 2;
-      const centerRadiusLimit = 4.2 * d;
+      const centerRadiusLimit = 4.5 * d;
 
       for (let r = 0; r < N; r++) {
         for (let c = 0; c < N; c++) {
@@ -780,9 +812,11 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
           if (dist < centerRadiusLimit) continue;
 
           if (qr.modules.get(r, c)) {
-            doc.fillColor(darkGreen)
-               .roundedRect(mx + d * 0.05, my + d * 0.05, d * 0.9, d * 0.9, d * 0.3)
-               .fill();
+            doc.save()
+               .fillColor(darkGreen)
+               .circle(mx + d/2, my + d/2, d/2 * 0.88)
+               .fill()
+               .restore();
           }
         }
       }
@@ -801,7 +835,7 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
            .fill();
         // الإطار الأوسط الأبيض
         doc.fillColor('#FFFFFF')
-           .roundedRect(fx + d, fy + d, 5 * d, 5 * d, 1.2 * d)
+           .roundedRect(fx + 0.85 * d, fy + 0.85 * d, 5.3 * d, 5.3 * d, 1.2 * d)
            .fill();
         // المربع الداخلي العنابي
         doc.fillColor(burgundy)
@@ -817,9 +851,10 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
          .fillAndStroke();
 
       // وضع شعار الوردة الصغير في منتصف الـ QR
-      if (fs.existsSync(logoPath)) {
-        const lSize = 5.5 * d;
-        doc.image(logoPath, cx - lSize / 2, cy - lSize / 2, { width: lSize });
+      const logoEmblemPath = path.join(__dirname, '../frontend/imgs/Ozel-Logo--02.png');
+      if (fs.existsSync(logoEmblemPath)) {
+        const lSize = 5.6 * d;
+        doc.image(logoEmblemPath, cx - lSize / 2, cy - lSize / 2, { width: lSize });
       }
 
       // الأيقونات الجانبية (explore / phone)
@@ -866,26 +901,48 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
          .text('FAST', 220, iconY + 12, { align: 'center', width: 50 })
          .text('& EASY', 220, iconY + 18, { align: 'center', width: 50 });
 
-      // رسم زر الموقع الأخضر أسفل كارت الـ QR
-      const pillW = 75;
-      const pillH = 15;
+      // رسم زر الموقع الأخضر متوسطاً أسفل كارت الـ QR مع أيقونة ومؤشر نقر
+      const pillW = 80;
+      const pillH = 16;
       const pillX = 149 - pillW / 2;
       const pillY = cardY + cardSize + 10;
       
-      doc.fillColor(darkGreen)
-         .roundedRect(pillX, pillY, pillW, pillH, 7.5)
+      doc.save()
+         .fillColor(darkGreen)
+         .roundedRect(pillX, pillY, pillW, pillH, 8)
          .fill();
 
       // الكرة الأرضية البيضاء داخل الزر
+      const iconCenterX = pillX + 22;
       doc.strokeColor('#FFFFFF')
          .lineWidth(0.8)
-         .circle(pillX + 8, pillY + 7.5, 4)
+         .circle(iconCenterX, pillY + 8, 3.5)
+         .stroke();
+
+      doc.moveTo(iconCenterX - 3.5, pillY + 8)
+         .lineTo(iconCenterX + 3.5, pillY + 8)
+         .stroke();
+
+      doc.moveTo(iconCenterX, pillY + 4.5)
+         .lineTo(iconCenterX, pillY + 11.5)
          .stroke();
 
       doc.fillColor('#FFFFFF')
          .font(fontSans !== 'Helvetica' ? 'Sans' : 'Helvetica')
-         .fontSize(6)
-         .text('ozel.cafe', pillX + 15, pillY + 4.5, { width: pillW - 15, align: 'left' });
+         .fontSize(6.5)
+         .text('ozel.cafe', pillX + 30, pillY + 4.8, { width: pillW - 30, align: 'left' });
+
+      // مؤشر ماوس ينقر على الزر باللون الأبيض والأسود
+      doc.fillColor('#FFFFFF')
+         .strokeColor('#000000')
+         .lineWidth(0.5)
+         .moveTo(pillX + pillW - 2, pillY + pillH - 2)
+         .lineTo(pillX + pillW - 6, pillY + pillH + 8)
+         .lineTo(pillX + pillW - 3, pillY + pillH + 5)
+         .lineTo(pillX + pillW + 1, pillY + pillH + 8)
+         .closePath()
+         .fillAndStroke();
+      doc.restore();
 
       // 4. رسالة الترحيب الكيرسيف اليدوية
       doc.fillColor(burgundy)
