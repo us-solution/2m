@@ -584,12 +584,12 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
     }
 
     const fontUrls = {
-      'CormorantGaramond-Bold': 'https://github.com/google/fonts/raw/main/ofl/cormorantgaramond/CormorantGaramond%5Bwght%5D.ttf',
-      'CormorantGaramond-Regular': 'https://github.com/google/fonts/raw/main/ofl/cormorantgaramond/CormorantGaramond%5Bwght%5D.ttf',
-      'AlexBrush-Regular': 'https://github.com/google/fonts/raw/main/ofl/alexbrush/AlexBrush-Regular.ttf',
-      'Montserrat-Medium': 'https://github.com/google/fonts/raw/main/ofl/montserrat/Montserrat%5Bwght%5D.ttf',
-      'Tajawal-Bold': 'https://github.com/google/fonts/raw/main/ofl/tajawal/Tajawal-Bold.ttf',
-      'Tajawal-Regular': 'https://github.com/google/fonts/raw/main/ofl/tajawal/Tajawal-Regular.ttf'
+      'CormorantGaramond-Bold': 'https://fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_hg9KnTOj9k7Ifo.ttf',
+      'CormorantGaramond-Regular': 'https://fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_v86KnTOj9k7Ifo.ttf',
+      'AlexBrush-Regular': 'https://fonts.gstatic.com/s/alexbrush/v23/SZc83FzrJKuqFbwMKk6EhUXz6BlNiCY.ttf',
+      'Montserrat-Medium': 'https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtZ6Hw5aX9-obK4.ttf',
+      'Tajawal-Bold': 'https://fonts.gstatic.com/s/tajawal/v12/Iura6YBj_oCad4k1nzGNDw.ttf',
+      'Tajawal-Regular': 'https://fonts.gstatic.com/s/tajawal/v12/Iura6YBj_oCad4k1nzGBCw.ttf'
     };
 
     for (const [name, url] of Object.entries(fontUrls)) {
@@ -638,6 +638,45 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
 
     const hasArabic = (text) => /[\u0600-\u06FF]/.test(text);
 
+    // دالة مساعدة لرسم غصن نباتي زخرفي واقعي وجميل
+    const drawLeafBranch = (pdfDoc, x, y, scale, rotation, leafColor) => {
+      pdfDoc.save();
+      pdfDoc.translate(x, y);
+      pdfDoc.scale(scale);
+      pdfDoc.rotate(rotation);
+
+      // رسم الساق الرئيسي (stem)
+      pdfDoc.strokeColor(leafColor)
+            .lineWidth(1)
+            .moveTo(0, 0)
+            .bezierCurveTo(20, -10, 45, -25, 55, -55)
+            .stroke();
+
+      // دالة فرعية لرسم ورقة واحدة
+      const drawSingleLeaf = (lx, ly, w, h, angle) => {
+        pdfDoc.save();
+        pdfDoc.translate(lx, ly);
+        pdfDoc.rotate(angle);
+        pdfDoc.moveTo(0, 0)
+              .bezierCurveTo(w * 0.3, -h * 0.5, w * 0.7, -h * 0.5, w, 0)
+              .bezierCurveTo(w * 0.7, h * 0.5, w * 0.3, h * 0.5, 0, 0)
+              .closePath()
+              .fillColor(leafColor)
+              .fill();
+        pdfDoc.restore();
+      };
+
+      // رسم الأوراق على امتداد الساق بـ opacity
+      pdfDoc.fillOpacity(0.45);
+      drawSingleLeaf(52, -50, 14, 5.5, -45); // ورقة القمة
+      drawSingleLeaf(42, -32, 16, 6, -15);
+      drawSingleLeaf(33, -25, 15, 5.5, -75);
+      drawSingleLeaf(22, -14, 18, 6.5, 0);
+      drawSingleLeaf(15, -11, 16, 6, -95);
+
+      pdfDoc.restore();
+    };
+
     // حلقة توليد البطاقات
     for (let tableNum = start; tableNum <= end; tableNum++) {
       if (tableNum > start) {
@@ -667,18 +706,11 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
          .closePath()
          .fillAndStroke(bgColor, '#CCCCCC');
 
-      // رسم ورقة نباتية زخرفية في الزاوية العلوية اليمنى
-      doc.save()
-         .translate(288, 100)
-         .scale(0.8)
-         .strokeColor(softGreen)
-         .lineWidth(1)
-         .moveTo(0, 0)
-         .quadraticCurveTo(-30, -20, -50, -50)
-         .moveTo(0, 0)
-         .quadraticCurveTo(-15, -40, -40, -60)
-         .stroke();
-      doc.restore();
+      // رسم ورقة نباتية زخرفية في الزاوية العلوية اليمنى (منحنية لأسفل ولليسار)
+      drawLeafBranch(doc, 250, 60, 1.1, 40, softGreen);
+
+      // رسم ورقة نباتية زخرفية في الزاوية السفلية اليسرى (منحنية لأعلى ولليمين)
+      drawLeafBranch(doc, 45, 360, 1.1, 220, softGreen);
 
       // 2. رسم شعار الكافيه العلوي
       const logoPath = path.join(__dirname, '../frontend/imgs/Ozel-Logo--02.png');
