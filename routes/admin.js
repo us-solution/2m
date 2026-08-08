@@ -653,7 +653,6 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
       };
 
       // ① CARD SHAPE ─────────────────────────────────────────────────────
-      // Path: bottom-left → up left side → arch over top → down right side → bottom-right → close
       const archShape = () =>
         doc.moveTo(CX-AR, CBOT)
            .lineTo(CX-AR, ACY)
@@ -664,8 +663,77 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
       doc.save(); archShape(); doc.fill(BG); doc.restore();
       doc.save(); archShape();
       doc.strokeColor('#C0B8B0').lineWidth(0.5);
-      // Note: PDFKit dash is set via .dash()
       doc.dash(3, { space: 2 }).stroke().undash();
+      doc.restore();
+
+      // ── BACKGROUND TREE (large hollow olive/botanical tree silhouette) ─
+      // Drawn AFTER card fill so it appears on the card surface
+      doc.save();
+      doc.strokeColor(LEAF).lineWidth(1.2).opacity(0.20).fillColor(LEAF).fillOpacity(0);
+      const TX = CX, TBY = CBOT - 10;   // tree base X center, base Y
+      // ── trunk
+      doc.moveTo(TX-6, TBY)
+         .bezierCurveTo(TX-8, TBY-60, TX-4, TBY-100, TX, TBY-120)
+         .bezierCurveTo(TX+4, TBY-100, TX+8, TBY-60, TX+6, TBY)
+         .closePath().strokeColor(LEAF).lineWidth(1.5).stroke();
+      // ── root lines
+      doc.moveTo(TX, TBY-4).lineTo(TX-20, TBY+4).stroke();
+      doc.moveTo(TX, TBY-4).lineTo(TX+20, TBY+4).stroke();
+      doc.moveTo(TX, TBY-4).lineTo(TX-8, TBY+8).stroke();
+      doc.moveTo(TX, TBY-4).lineTo(TX+8, TBY+8).stroke();
+
+      // helper: draw a hollow almond-shaped leaf
+      const tLeaf = (x1,y1, x2,y2, b=0.38) => {
+        const dx=x2-x1, dy=y2-y1, nx=-dy*b, ny=dx*b;
+        doc.moveTo(x1,y1)
+           .bezierCurveTo(x1+dx*.3+nx,y1+dy*.3+ny, x1+dx*.7+nx,y1+dy*.7+ny, x2,y2)
+           .bezierCurveTo(x1+dx*.7-nx,y1+dy*.7-ny, x1+dx*.3-nx,y1+dy*.3-ny, x1,y1)
+           .closePath().stroke();
+      };
+      // helper: branch + leaves
+      const tBranch = (bx,by, ex,ey, leafSz, leafCount) => {
+        doc.moveTo(bx,by).bezierCurveTo(
+          bx+(ex-bx)*0.3, by+(ey-by)*0.3,
+          bx+(ex-bx)*0.7, by+(ey-by)*0.7, ex, ey).stroke();
+        for (let i=0; i<leafCount; i++) {
+          const t  = (i+1)/(leafCount+1);
+          const lx = bx + (ex-bx)*t, ly = by + (ey-by)*t;
+          const ang = Math.atan2(ey-by, ex-bx) + Math.PI/2;
+          const off = leafSz * (i%2===0 ? 1 : -1);
+          tLeaf(lx, ly, lx+Math.cos(ang)*off, ly+Math.sin(ang)*off, 0.5);
+        }
+        // tip leaf
+        tLeaf(ex, ey, ex+(ex-bx)*0.12, ey+(ey-by)*0.12, 0.5);
+      };
+
+      // trunk reference points
+      const t1y = TBY-30, t2y = TBY-60, t3y = TBY-90, t4y = TBY-115;
+
+      // Major branches - left side
+      tBranch(TX-4, t2y,  TX-55, t2y-50,  10, 3);
+      tBranch(TX-3, t3y,  TX-70, t3y-30,  9,  3);
+      tBranch(TX-2, t4y,  TX-50, t4y-40,  8,  2);
+      // Major branches - right side
+      tBranch(TX+4, t2y,  TX+55, t2y-50,  10, 3);
+      tBranch(TX+3, t3y,  TX+70, t3y-30,  9,  3);
+      tBranch(TX+2, t4y,  TX+50, t4y-40,  8,  2);
+      // Medium branches - left
+      tBranch(TX-4, t1y,  TX-38, t1y-36,  7,  2);
+      tBranch(TX-3, t2y-20, TX-45, t2y-60, 7, 2);
+      tBranch(TX-2, t3y-15, TX-30, t3y-50, 6, 2);
+      // Medium branches - right
+      tBranch(TX+4, t1y,  TX+38, t1y-36,  7,  2);
+      tBranch(TX+3, t2y-20, TX+45, t2y-60, 7, 2);
+      tBranch(TX+2, t3y-15, TX+30, t3y-50, 6, 2);
+      // Top crown
+      tBranch(TX, t4y, TX-25, t4y-45, 7, 2);
+      tBranch(TX, t4y, TX+25, t4y-45, 7, 2);
+      tBranch(TX, t4y, TX,    t4y-55, 8, 2);
+      // Extra small twigs
+      tBranch(TX-50, t2y-45, TX-68, t2y-80, 5, 2);
+      tBranch(TX+50, t2y-45, TX+68, t2y-80, 5, 2);
+      tBranch(TX-68, t3y-28, TX-85, t3y-58, 5, 2);
+      tBranch(TX+68, t3y-28, TX+85, t3y-58, 5, 2);
       doc.restore();
 
       // ② BOTANICAL BRANCHES (match reference image: large sweeping branches) ──────
@@ -731,27 +799,26 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
       leaf(22, 330, 10, 336, 0.38);
       doc.restore();
 
-      // ③ LOGO + OZEL + HIDDEN GEM ──────────────────────────────────────
-      if (hasLogo) doc.image(LOGO, CX-17, 16, { width:34 });
+      // ③ LOGO (bigger, no özel text below) + HIDDEN GEM ─────────────────
+      // Logo enlarged to 56pt, centered from Y=12 (replacing özel text)
+      if (hasLogo) doc.image(LOGO, CX-28, 12, { width:56 });
       else {
-        doc.save().strokeColor(RED).lineWidth(1.2).circle(CX,33,15).stroke().restore();
+        doc.save().strokeColor(RED).lineWidth(1.5).circle(CX, 40, 24).stroke().restore();
       }
 
-      doc.fillColor(RED).font(fBold).fontSize(38)
-         .text('\u00f6zel', 0, 55, { align:'center', width:PW, characterSpacing:1.5 });
-
-      doc.fillColor(DARK).font(fSans).fontSize(6.8)
-         .text('Hidden Gem', 0, 99, { align:'center', width:PW, characterSpacing:2.5 });
+      // Hidden Gem directly below logo
+      doc.fillColor(DARK).font(fSans).fontSize(7)
+         .text('Hidden Gem', 0, 73, { align:'center', width:PW, characterSpacing:2.5 });
 
       doc.save().strokeColor(DARK).lineWidth(0.4)
-         .moveTo(CX-50,111).lineTo(CX+50,111).stroke().restore();
+         .moveTo(CX-50, 85).lineTo(CX+50, 85).stroke().restore();
 
       // ④ SCAN TEXT ─────────────────────────────────────────────────────
       doc.fillColor(DARK).font(fReg).fontSize(18)
-         .text('Scan the QR Code', 0, 116, { align:'center', width:PW });
+         .text('Scan the QR Code', 0, 90, { align:'center', width:PW });
 
       // — TO VIEW OUR MENU —
-      const MY = 139;
+      const MY = 112;
       doc.save().strokeColor(DARK).lineWidth(0.4)
          .moveTo(CX-AR+14, MY+4).lineTo(CX-50, MY+4).stroke().restore();
       doc.fillColor(DARK).font(fSans).fontSize(7)
@@ -759,16 +826,15 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
       doc.save().strokeColor(DARK).lineWidth(0.4)
          .moveTo(CX+50, MY+4).lineTo(CX+AR-14, MY+4).stroke().restore();
 
-      // Small diamond / dot decoration below the line
+      // Small diamond decoration
       doc.save().fillColor(GREEN)
          .moveTo(CX,MY+13).lineTo(CX-2.5,MY+17).lineTo(CX,MY+21).lineTo(CX+2.5,MY+17).closePath().fill()
          .restore();
 
       // ⑤ QR CARD ───────────────────────────────────────────────────────
-      const CSZ = 128;                    // QR white-card square size
+      const CSZ = 130;                    // QR white-card square size
       const QCX = CX - CSZ/2;            // QR card left X
-      const QCY = 162;                    // QR card top Y (below diamond)
-      // At Y=158 the card is in straight-sided portion (Y > ACY=149.82), full width OK.
+      const QCY = 134;                    // QR card top Y (pushed up since logo is bigger)
 
       // shadow
       doc.save().fillColor('#CEC8C2')
@@ -833,18 +899,29 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
          .text('EXPLORE', LX-16, IROW+11, {width:32, align:'center', characterSpacing:0.4})
          .text('OUR MENU', LX-16, IROW+17, {width:32, align:'center', characterSpacing:0.4});
 
-      // RIGHT: phone + lightning
-      const RX = QCX + CSZ + 34;  // = 85.82 + 126 + 34 = 245.82  (< card right=292.64) ✓
-      doc.save().strokeColor(GREEN).lineWidth(1.2)
-         .roundedRect(RX-6, IROW-10, 11, 17, 2).stroke()
-         .save().fillColor(GREEN).circle(RX-0.5, IROW+4.5, 1.2).fill().restore()
+      // RIGHT: bigger phone with centered lightning bolt inside
+      const RX = QCX + CSZ + 36;
+      // Phone body (bigger: 18w x 28h)
+      doc.save().strokeColor(GREEN).lineWidth(1.4)
+         .roundedRect(RX-9, IROW-14, 18, 28, 3).stroke()
+         // speaker notch at top
+         .moveTo(RX-4, IROW-12).lineTo(RX+4, IROW-12).stroke()
+         // home dot at bottom
+         .save().fillColor(GREEN).circle(RX, IROW+11, 2).fill().restore()
          .restore();
-      doc.save().strokeColor(RED).lineWidth(1)
-         .moveTo(RX+7, IROW-6).lineTo(RX+4, IROW+1)
-         .lineTo(RX+7, IROW+1).lineTo(RX+3, IROW+8).stroke().restore();
+      // Lightning bolt CENTERED inside phone body
+      const boltCX = RX, boltMY = IROW - 2;
+      doc.save().fillColor(GREEN).strokeColor(GREEN).lineWidth(0.5)
+         .moveTo(boltCX+2,  boltMY-8)
+         .lineTo(boltCX-2,  boltMY+1)
+         .lineTo(boltCX+1,  boltMY+1)
+         .lineTo(boltCX-2,  boltMY+9)
+         .lineTo(boltCX+2,  boltMY+0)
+         .lineTo(boltCX-1,  boltMY+0)
+         .closePath().fill().restore();
       doc.fillColor(DARK).font(fSans).fontSize(5)
-         .text('FAST',   RX-14, IROW+11, {width:28, align:'center', characterSpacing:0.4})
-         .text('& EASY', RX-14, IROW+17, {width:28, align:'center', characterSpacing:0.4});
+         .text('FAST',   RX-14, IROW+15, {width:28, align:'center', characterSpacing:0.4})
+         .text('& EASY', RX-14, IROW+21, {width:28, align:'center', characterSpacing:0.4});
 
       // ⑦ OZEL.CAFE PILL BUTTON ─────────────────────────────────────────
       const PLW=88, PLH=16, PLX=CX-44, PLY=QCY+CSZ+10;
@@ -894,20 +971,7 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
       leaf(CX+4,SPY+1, CX+1,SPY-5, 0.5);
       doc.restore();
 
-      // ⑨ WOODEN BASE ───────────────────────────────────────────────────
-      const BW=70, BH=PH-CBOT-2;
-      const BX=CX-35, BY=CBOT+2;
-      doc.save().fillColor(WD2).roundedRect(BX,BY,BW,BH,3).fill().restore();
-      doc.save().strokeColor(WD1).lineWidth(0.6).opacity(0.35);
-      for(let i=0;i<6;i++) { const wx=BX+5+i*10; doc.moveTo(wx,BY+2).lineTo(wx+2,BY+BH-2).stroke(); }
-      doc.restore();
-      if (hasLogo) { const ls=9; doc.image(LOGO, CX-ls/2, BY+(BH-ls)/2, {width:ls}); }
-
-      if (showTableNum) {
-        doc.fillColor(RED).font(fBold).fontSize(7)
-           .text(`Table ${tbl}`, BX, BY+BH+1, {width:BW, align:'center'});
-      }
-    };
+    }; // end drawCard
 
     // ── Generate pages ─────────────────────────────────────────────────────
     for (let t = start; t <= end; t++) {
