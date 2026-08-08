@@ -406,7 +406,27 @@
   
   // معاملات URL ورقم الطاولة
   const urlParams  = new URLSearchParams(window.location.search);
-  const tableParam = urlParams.get('table');
+  let tableParam = urlParams.get('table');
+  if (tableParam) {
+    localStorage.setItem('ozel_table_number', tableParam.trim());
+  } else {
+    tableParam = localStorage.getItem('ozel_table_number');
+  }
+
+  // حفظ رقم الطاولة المدخل يدوياً
+  setTimeout(() => {
+    const tableField = document.getElementById('tableNum');
+    if (tableField) {
+      tableField.addEventListener('input', (e) => {
+        const val = e.target.value.trim();
+        if (val) {
+          localStorage.setItem('ozel_table_number', val);
+        } else {
+          localStorage.removeItem('ozel_table_number');
+        }
+      });
+    }
+  }, 100);
 
   // تحميل السلة من التخزين المحلي
   let cart = JSON.parse(localStorage.getItem('ozel_cart') || '[]');

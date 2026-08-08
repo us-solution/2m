@@ -28,3 +28,7 @@ pgdata10/
 
 .vercel
 .env*
+
+# Fonts Cache & Temp PDF Outputs
+/fonts/
+test_output.pdf

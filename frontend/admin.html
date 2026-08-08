@@ -534,6 +534,49 @@ td, th { white-space: nowrap; }
           <button class="hbtn" onclick="generateTableQR()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.5rem 1.2rem; font-weight:700;">+ إنشاء آخر</button>
         </div>
       </div>
+
+      <!-- ===== توليد ملف بطاقات الطاولات للطباعة (PDF) ===== -->
+      <div style="background:var(--bg2); padding: 1.5rem; border: 1px solid var(--line); margin-top: 1.5rem;">
+        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text); font-size:1.3rem; border-bottom: 1px solid var(--line); padding-bottom:.5rem;">🖨️ طباعة بطاقات الطاولات بتصميم مقوس مخصص (PDF)</h3>
+        <p style="font-size:0.8rem; color:var(--muted); margin-bottom:1.5rem;">توليد ملف PDF جاهز للطباعة والقص على شكل حامل الطاولة القوسي (Arch Stand) لعدة طاولات دفعة واحدة بدقة عالية.</p>
+        
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">من طاولة:</label>
+            <input type="number" id="tqr-range-start" value="1" min="1" class="edit-input" style="width:100%; box-sizing:border-box;">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">إلى طاولة:</label>
+            <input type="number" id="tqr-range-end" value="10" min="1" class="edit-input" style="width:100%; box-sizing:border-box;">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">رابط الموقع الأساسي (Base URL):</label>
+            <input type="text" id="tqr-base-url" placeholder="https://www.ozel.cafe" class="edit-input" style="width:100%; box-sizing:border-box;">
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">رسالة الترحيب (Welcome):</label>
+            <input type="text" id="tqr-welcome" value="Welcome!" class="edit-input" style="width:100%; box-sizing:border-box;">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">رسالة الشكر (بما في ذلك اللغة العربية):</label>
+            <input type="text" id="tqr-thankyou" value="Thank you for choosing Özel." class="edit-input" style="width:100%; box-sizing:border-box;">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">رسالة الاستمتاع بالوقت:</label>
+            <input type="text" id="tqr-enjoy" value="Enjoy your time with us." class="edit-input" style="width:100%; box-sizing:border-box;">
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1.5rem;">
+          <input type="checkbox" id="tqr-show-num" checked style="width:auto; cursor:pointer;">
+          <label for="tqr-show-num" style="margin-bottom:0; cursor:pointer; font-size:.85rem; color:var(--text);">إظهار رقم الطاولة أسفل الكارت (Table 1, Table 2, ...)</label>
+        </div>
+
+        <button class="hbtn" onclick="downloadTablesPDF()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.6rem 2rem; font-weight:700;">💾 تحميل ملف الـ PDF الجاهز</button>
+      </div>
     </div>
 
     <!-- ===== خيارات التخصيص (السكر والإضافات) ===== -->
@@ -634,7 +677,10 @@ function showPage(name, el) {
   if (name === 'categories') loadCategories();
   if (name === 'offers') loadOffers();
   if (name === 'users') loadUsers();
-  if (name === 'tables') document.getElementById('tqr-result').style.display = 'none';
+  if (name === 'tables') {
+    document.getElementById('tqr-result').style.display = 'none';
+    document.getElementById('tqr-base-url').value = window.location.origin;
+  }
   if (name === 'customization') loadCustomization();
   if (name === 'vlog') loadAdminVlog();
 }
@@ -671,6 +717,27 @@ function downloadTableQR() {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+}
+
+// تحميل ملف بطاقات الطاولات PDF مخصص للطباعة
+function downloadTablesPDF() {
+  const start = parseInt(document.getElementById('tqr-range-start').value) || 1;
+  const end = parseInt(document.getElementById('tqr-range-end').value) || 1;
+  const baseUrl = encodeURIComponent(document.getElementById('tqr-base-url').value.trim() || window.location.origin);
+  const welcomeText = encodeURIComponent(document.getElementById('tqr-welcome').value.trim());
+  const thankYouText = encodeURIComponent(document.getElementById('tqr-thankyou').value.trim());
+  const enjoyText = encodeURIComponent(document.getElementById('tqr-enjoy').value.trim());
+  const showTableNum = document.getElementById('tqr-show-num').checked;
+
+  if (start < 1 || end < 1 || start > end) {
+    alert('الرجاء إدخال نطاق طاولات صحيح (البداية يجب أن تكون أقل من أو تساوي النهاية)');
+    return;
+  }
+
+  const token = localStorage.getItem('ozel_token');
+  const pdfUrl = `/api/admin/qr-tables-pdf?start=${start}&end=${end}&baseUrl=${baseUrl}&welcomeText=${welcomeText}&thankYouText=${thankYouText}&enjoyText=${enjoyText}&showTableNum=${showTableNum}&token=${token}`;
+  
+  window.open(pdfUrl, '_blank');
 }
 
 // ????? ??? QR ???????

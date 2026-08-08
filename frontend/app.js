@@ -16,7 +16,12 @@ window.debounceClick = function(key, fn, ms = 300) {
 // ===== متغيرات الحالة العامة للتطبيق =====
 let allDrinks = [], allCategories = [], currentCat = 'all', cart = JSON.parse(localStorage.getItem('ozel_cart') || '[]');
 const urlParams  = new URLSearchParams(window.location.search);
-const tableParam = urlParams.get('table');
+let tableParam = urlParams.get('table');
+if (tableParam) {
+  localStorage.setItem('ozel_table_number', tableParam.trim());
+} else {
+  tableParam = localStorage.getItem('ozel_table_number');
+}
 window.currentPuzzle = { sugar: 'Normal', extra: 'None' };
 
 // ===== تهيئة Pusher للتحديثات الفورية للمنيو =====

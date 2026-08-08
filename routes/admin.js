@@ -556,6 +556,347 @@ router.get('/qr-table/:number', authenticateToken, requireRole('admin'), async (
   }
 });
 
+// إنشاء ملف PDF لبطاقات رموز QR للطاولات مع التصميم المخصص
+router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const start = parseInt(req.query.start) || 1;
+    const end = parseInt(req.query.end) || 1;
+    const baseUrl = req.query.baseUrl || process.env.BASE_URL || 'https://www.ozel.cafe';
+    const welcomeText = req.query.welcomeText || 'Welcome!';
+    const thankYouText = req.query.thankYouText || 'Thank you for choosing Özel.';
+    const enjoyText = req.query.enjoyText || 'Enjoy your time with us.';
+    const showTableNum = req.query.showTableNum !== 'false';
+
+    if (start < 1 || end < 1 || start > end) {
+      return res.status(400).json({ error: 'Invalid range: start and end must be >= 1 and start <= end' });
+    }
+
+    const fs = require('fs');
+    const path = require('path');
+    const axios = require('axios');
+    const PDFDocument = require('pdfkit');
+    const QRCode = require('qrcode');
+
+    // التأكد من تحميل الخطوط
+    const fontsDir = path.join(__dirname, '../fonts');
+    if (!fs.existsSync(fontsDir)) {
+      fs.mkdirSync(fontsDir, { recursive: true });
+    }
+
+    const fontUrls = {
+      'CormorantGaramond-Bold': 'https://github.com/google/fonts/raw/main/ofl/cormorantgaramond/CormorantGaramond%5Bwght%5D.ttf',
+      'CormorantGaramond-Regular': 'https://github.com/google/fonts/raw/main/ofl/cormorantgaramond/CormorantGaramond%5Bwght%5D.ttf',
+      'AlexBrush-Regular': 'https://github.com/google/fonts/raw/main/ofl/alexbrush/AlexBrush-Regular.ttf',
+      'Montserrat-Medium': 'https://github.com/google/fonts/raw/main/ofl/montserrat/Montserrat%5Bwght%5D.ttf',
+      'Tajawal-Bold': 'https://github.com/google/fonts/raw/main/ofl/tajawal/Tajawal-Bold.ttf',
+      'Tajawal-Regular': 'https://github.com/google/fonts/raw/main/ofl/tajawal/Tajawal-Regular.ttf'
+    };
+
+    for (const [name, url] of Object.entries(fontUrls)) {
+      const fontPath = path.join(fontsDir, `${name}.ttf`);
+      if (!fs.existsSync(fontPath)) {
+        console.log(`[Admin PDF] Downloading missing font: ${name}...`);
+        try {
+          const response = await axios({ method: 'get', url, responseType: 'stream' });
+          const writer = fs.createWriteStream(fontPath);
+          response.data.pipe(writer);
+          await new Promise((resolve, reject) => {
+            writer.on('finish', resolve);
+            writer.on('error', reject);
+          });
+        } catch (err) {
+          console.error(`[Admin PDF] Error downloading font ${name}:`, err.message);
+        }
+      }
+    }
+
+    // إعداد مستند PDF
+    const doc = new PDFDocument({
+      size: [297.64, 419.53], // A6 في نقاط (points)
+      margins: { top: 0, bottom: 0, left: 0, right: 0 }
+    });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="OZEL-Table-Cards-${start}-to-${end}.pdf"`);
+    doc.pipe(res);
+
+    // مسارات الخطوط
+    const fontBold = fs.existsSync(path.join(fontsDir, 'CormorantGaramond-Bold.ttf')) ? path.join(fontsDir, 'CormorantGaramond-Bold.ttf') : 'Helvetica-Bold';
+    const fontRegular = fs.existsSync(path.join(fontsDir, 'CormorantGaramond-Regular.ttf')) ? path.join(fontsDir, 'CormorantGaramond-Regular.ttf') : 'Helvetica';
+    const fontScript = fs.existsSync(path.join(fontsDir, 'AlexBrush-Regular.ttf')) ? path.join(fontsDir, 'AlexBrush-Regular.ttf') : 'Times-Italic';
+    const fontSans = fs.existsSync(path.join(fontsDir, 'Montserrat-Medium.ttf')) ? path.join(fontsDir, 'Montserrat-Medium.ttf') : 'Helvetica';
+    const fontArabicReg = fs.existsSync(path.join(fontsDir, 'Tajawal-Regular.ttf')) ? path.join(fontsDir, 'Tajawal-Regular.ttf') : 'Helvetica';
+    const fontArabicBold = fs.existsSync(path.join(fontsDir, 'Tajawal-Bold.ttf')) ? path.join(fontsDir, 'Tajawal-Bold.ttf') : 'Helvetica-Bold';
+
+    // تسجيل الخطوط في PDFKit
+    if (fontBold !== 'Helvetica-Bold') doc.registerFont('Serif-Bold', fontBold);
+    if (fontRegular !== 'Helvetica') doc.registerFont('Serif-Regular', fontRegular);
+    if (fontScript !== 'Times-Italic') doc.registerFont('Script', fontScript);
+    if (fontSans !== 'Helvetica') doc.registerFont('Sans', fontSans);
+    doc.registerFont('Ar-Reg', fontArabicReg);
+    doc.registerFont('Ar-Bold', fontArabicBold);
+
+    const hasArabic = (text) => /[\u0600-\u06FF]/.test(text);
+
+    // حلقة توليد البطاقات
+    for (let tableNum = start; tableNum <= end; tableNum++) {
+      if (tableNum > start) {
+        doc.addPage({
+          size: [297.64, 419.53],
+          margins: { top: 0, bottom: 0, left: 0, right: 0 }
+        });
+      }
+
+      const qrUrl = `${baseUrl}/cart.html?table=${tableNum}`;
+      const qr = QRCode.create(qrUrl, { errorCorrectionLevel: 'H' });
+      const N = qr.modules.size;
+
+      // الألوان
+      const bgColor = '#F4F0EB';
+      const darkGreen = '#3F4E46';
+      const burgundy = '#4E1B1B';
+      const textDark = '#2C2520';
+      const softGreen = '#7E8F85';
+
+      // 1. رسم الحدود الخارجية والإطار القوسي المقصوص
+      doc.save()
+         .moveTo(10, 410)
+         .lineTo(10, 149)
+         .arc(149, 149, 139, 180, 0, false)
+         .lineTo(288, 410)
+         .closePath()
+         .fillAndStroke(bgColor, '#CCCCCC');
+
+      // رسم ورقة نباتية زخرفية في الزاوية العلوية اليمنى
+      doc.save()
+         .translate(288, 100)
+         .scale(0.8)
+         .strokeColor(softGreen)
+         .lineWidth(1)
+         .moveTo(0, 0)
+         .quadraticCurveTo(-30, -20, -50, -50)
+         .moveTo(0, 0)
+         .quadraticCurveTo(-15, -40, -40, -60)
+         .stroke();
+      doc.restore();
+
+      // 2. رسم شعار الكافيه العلوي
+      const logoPath = path.join(__dirname, '../frontend/imgs/Ozel-Logo--02.png');
+      if (fs.existsSync(logoPath)) {
+        doc.image(logoPath, 149 - 25, 45, { width: 50 });
+      }
+
+      // رسم اسم الكافيه
+      doc.fillColor(burgundy)
+         .font(fontRegular !== 'Helvetica' ? 'Serif-Regular' : 'Helvetica')
+         .fontSize(36)
+         .text('özel', 0, 95, { align: 'center', width: 297.64 });
+
+      doc.fillColor(textDark)
+         .font(fontSans !== 'Helvetica' ? 'Sans' : 'Helvetica')
+         .fontSize(7)
+         .text('H I D D E N   G E M', 0, 135, { align: 'center', width: 297.64 });
+
+      // رسم الخط الفاصل
+      doc.strokeColor(textDark)
+         .lineWidth(0.5)
+         .moveTo(100, 145)
+         .lineTo(198, 145)
+         .stroke();
+
+      // العناوين
+      doc.fillColor(textDark)
+         .font(fontRegular !== 'Helvetica' ? 'Serif-Regular' : 'Helvetica')
+         .fontSize(16)
+         .text('Scan the QR Code', 0, 155, { align: 'center', width: 297.64 });
+
+      doc.font(fontSans !== 'Helvetica' ? 'Sans' : 'Helvetica')
+         .fontSize(8)
+         .text('TO VIEW OUR MENU', 0, 175, { align: 'center', width: 297.64 });
+
+      // 3. رسم كارت رمز QR بالزوايا الدائرية والخلفية البيضاء
+      const cardSize = 130;
+      const cardX = 149 - cardSize / 2;
+      const cardY = 195;
+      doc.roundedRect(cardX, cardY, cardSize, cardSize, 12)
+         .fillColor('#FFFFFF')
+         .fill();
+
+      // رسم مربعات ونقاط رمز QR
+      const qrPadding = 12;
+      const qrSize = cardSize - qrPadding * 2;
+      const d = qrSize / N;
+      const qx = cardX + qrPadding;
+      const qy = cardY + qrPadding;
+
+      const cx = qx + qrSize / 2;
+      const cy = qy + qrSize / 2;
+      const centerRadiusLimit = 4.2 * d;
+
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          // تخطي زوايا التوجيه الرئيسية الثلاث
+          if (r < 7 && c < 7) continue;
+          if (r < 7 && c >= N - 7) continue;
+          if (r >= N - 7 && c < 7) continue;
+
+          const mx = qx + c * d;
+          const my = qy + r * d;
+
+          // تخطي المركز لوضع الشعار الدائري
+          const dist = Math.sqrt((mx + d/2 - cx) ** 2 + (my + d/2 - cy) ** 2);
+          if (dist < centerRadiusLimit) continue;
+
+          if (qr.modules.get(r, c)) {
+            doc.fillColor(darkGreen)
+               .roundedRect(mx + d * 0.05, my + d * 0.05, d * 0.9, d * 0.9, d * 0.3)
+               .fill();
+          }
+        }
+      }
+
+      // رسم زوايا التوجيه الدائرية المخصصة (Finder Patterns)
+      const finders = [
+        { fx: qx, fy: qy },
+        { fx: qx + (N - 7) * d, fy: qy },
+        { fx: qx, fy: qy + (N - 7) * d }
+      ];
+
+      finders.forEach(({ fx, fy }) => {
+        // الإطار الخارجي الأخضر
+        doc.fillColor(darkGreen)
+           .roundedRect(fx, fy, 7 * d, 7 * d, 1.8 * d)
+           .fill();
+        // الإطار الأوسط الأبيض
+        doc.fillColor('#FFFFFF')
+           .roundedRect(fx + d, fy + d, 5 * d, 5 * d, 1.2 * d)
+           .fill();
+        // المربع الداخلي العنابي
+        doc.fillColor(burgundy)
+           .roundedRect(fx + 2 * d, fy + 2 * d, 3 * d, 3 * d, 0.8 * d)
+           .fill();
+      });
+
+      // رسم الدائرة البيضاء في المنتصف
+      doc.fillColor('#FFFFFF')
+         .strokeColor(darkGreen)
+         .lineWidth(1)
+         .circle(cx, cy, centerRadiusLimit - 0.5)
+         .fillAndStroke();
+
+      // وضع شعار الوردة الصغير في منتصف الـ QR
+      if (fs.existsSync(logoPath)) {
+        const lSize = 5.5 * d;
+        doc.image(logoPath, cx - lSize / 2, cy - lSize / 2, { width: lSize });
+      }
+
+      // الأيقونات الجانبية (explore / phone)
+      const iconY = cardY + cardSize / 2 - 10;
+      
+      // اليسار: أيقونة غطاء تقديم الطعام (Explore menu)
+      doc.strokeColor(darkGreen)
+         .lineWidth(1.2)
+         .moveTo(35, iconY + 5)
+         .lineTo(55, iconY + 5)
+         .stroke()
+         .arc(45, iconY + 5, 8, 180, 360, false)
+         .stroke()
+         .circle(45, iconY - 4, 1.5)
+         .fill(darkGreen);
+
+      doc.fillColor(textDark)
+         .font(fontSans !== 'Helvetica' ? 'Sans' : 'Helvetica')
+         .fontSize(4.5)
+         .text('EXPLORE', 20, iconY + 12, { align: 'center', width: 50 })
+         .text('OUR MENU', 20, iconY + 18, { align: 'center', width: 50 });
+
+      // اليمين: أيقونة الهاتف والنقر (Fast & Easy)
+      doc.strokeColor(darkGreen)
+         .lineWidth(1.2)
+         .roundedRect(240, iconY - 8, 10, 16, 2)
+         .stroke()
+         .circle(245, iconY + 5, 1)
+         .fill(darkGreen);
+      
+      doc.strokeColor(burgundy)
+         .lineWidth(0.8)
+         .moveTo(252, iconY - 2)
+         .lineTo(256, iconY - 4)
+         .moveTo(253, iconY + 2)
+         .lineTo(257, iconY + 2)
+         .moveTo(252, iconY + 6)
+         .lineTo(256, iconY + 8)
+         .stroke();
+
+      doc.fillColor(textDark)
+         .font(fontSans !== 'Helvetica' ? 'Sans' : 'Helvetica')
+         .fontSize(4.5)
+         .text('FAST', 220, iconY + 12, { align: 'center', width: 50 })
+         .text('& EASY', 220, iconY + 18, { align: 'center', width: 50 });
+
+      // رسم زر الموقع الأخضر أسفل كارت الـ QR
+      const pillW = 75;
+      const pillH = 15;
+      const pillX = 149 - pillW / 2;
+      const pillY = cardY + cardSize + 10;
+      
+      doc.fillColor(darkGreen)
+         .roundedRect(pillX, pillY, pillW, pillH, 7.5)
+         .fill();
+
+      // الكرة الأرضية البيضاء داخل الزر
+      doc.strokeColor('#FFFFFF')
+         .lineWidth(0.8)
+         .circle(pillX + 8, pillY + 7.5, 4)
+         .stroke();
+
+      doc.fillColor('#FFFFFF')
+         .font(fontSans !== 'Helvetica' ? 'Sans' : 'Helvetica')
+         .fontSize(6)
+         .text('ozel.cafe', pillX + 15, pillY + 4.5, { width: pillW - 15, align: 'left' });
+
+      // 4. رسالة الترحيب الكيرسيف اليدوية
+      doc.fillColor(burgundy)
+         .font(fontScript !== 'Times-Italic' ? 'Script' : 'Times-Italic')
+         .fontSize(28)
+         .text(welcomeText, 0, 345, { align: 'center', width: 297.64 });
+
+      // 5. رسائل الشكر وتمنيات المتعة
+      const isThankAr = hasArabic(thankYouText);
+      const isEnjoyAr = hasArabic(enjoyText);
+
+      doc.fillColor(textDark)
+         .font(isThankAr ? 'Ar-Reg' : (fontRegular !== 'Helvetica' ? 'Serif-Regular' : 'Helvetica'))
+         .fontSize(isThankAr ? 8 : 9)
+         .text(thankYouText, 0, 375, { align: 'center', width: 297.64 });
+
+      doc.font(isEnjoyAr ? 'Ar-Reg' : (fontRegular !== 'Helvetica' ? 'Serif-Regular' : 'Helvetica'))
+         .fontSize(isEnjoyAr ? 8 : 9)
+         .text(enjoyText, 0, 386, { align: 'center', width: 297.64 });
+
+      // رسم الغصن النباتي البسيط أسفل كارت الترحيب
+      doc.strokeColor(softGreen)
+         .lineWidth(0.5)
+         .moveTo(140, 400)
+         .quadraticCurveTo(149, 398, 158, 400)
+         .stroke();
+
+      // 6. كتابة رقم الطاولة
+      if (showTableNum) {
+        doc.fillColor(burgundy)
+           .font(fontRegular !== 'Helvetica' ? 'Serif-Bold' : 'Helvetica-Bold')
+           .fontSize(10)
+           .text(`Table ${tableNum}`, 0, 405, { align: 'center', width: 297.64 });
+      }
+    }
+
+    doc.end();
+  } catch (err) {
+    console.error('[Admin PDF Generate Error]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // جلب تقارير متزامنة من نظام نقاط البيع (POS)
 router.get('/reports/:type', authenticateToken, requireRole('admin'), async (req, res) => {
   const { type } = req.params;
