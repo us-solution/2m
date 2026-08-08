@@ -723,43 +723,43 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
       gBranch(TX, TBY-170, TX, TBY-295, 9, 3);
       doc.restore();
 
-      // ③ LOGO (Large, Prominent & Crystal Clear) + HIDDEN GEM ─────────────────
-      const logoW = 68;
+      // ③ LOGO (Balanced size & clean spacing) + HIDDEN GEM ─────────────────
+      const logoW = 46;
       if (hasLogo) {
         doc.image(LOGO, CX - logoW/2, 10, { width: logoW });
       } else {
-        doc.save().strokeColor(RED).lineWidth(1.8).circle(CX, 42, 28).stroke().restore();
+        doc.save().strokeColor(RED).lineWidth(1.5).circle(CX, 33, 20).stroke().restore();
       }
 
-      // Hidden Gem directly below logo
-      doc.fillColor(DARK).font(fSans).fontSize(7.5)
-         .text('Hidden Gem', 0, 82, { align:'center', width:PW, characterSpacing:2.8 });
+      // Hidden Gem nicely spaced under logo
+      doc.fillColor(DARK).font(fSans).fontSize(6.5)
+         .text('Hidden Gem', 0, 62, { align:'center', width:PW, characterSpacing:2.5 });
 
       doc.save().strokeColor(DARK).lineWidth(0.4)
-         .moveTo(CX-50, 94).lineTo(CX+50, 94).stroke().restore();
+         .moveTo(CX-45, 74).lineTo(CX+45, 74).stroke().restore();
 
       // ④ SCAN TEXT ─────────────────────────────────────────────────────
-      doc.fillColor(DARK).font(fReg).fontSize(18)
-         .text('Scan the QR Code', 0, 99, { align:'center', width:PW });
+      doc.fillColor(DARK).font(fReg).fontSize(16)
+         .text('Scan the QR Code', 0, 80, { align:'center', width:PW });
 
       // — TO VIEW OUR MENU —
-      const MY = 112;
+      const MY = 102;
       doc.save().strokeColor(DARK).lineWidth(0.4)
-         .moveTo(CX-AR+14, MY+4).lineTo(CX-50, MY+4).stroke().restore();
-      doc.fillColor(DARK).font(fSans).fontSize(7)
+         .moveTo(CX-AR+14, MY+4).lineTo(CX-46, MY+4).stroke().restore();
+      doc.fillColor(DARK).font(fSans).fontSize(6.5)
          .text('TO VIEW OUR MENU', 0, MY, { align:'center', width:PW, characterSpacing:2 });
       doc.save().strokeColor(DARK).lineWidth(0.4)
-         .moveTo(CX+50, MY+4).lineTo(CX+AR-14, MY+4).stroke().restore();
+         .moveTo(CX+46, MY+4).lineTo(CX+AR-14, MY+4).stroke().restore();
 
       // Small diamond decoration
       doc.save().fillColor(GREEN)
-         .moveTo(CX,MY+13).lineTo(CX-2.5,MY+17).lineTo(CX,MY+21).lineTo(CX+2.5,MY+17).closePath().fill()
+         .moveTo(CX,MY+12).lineTo(CX-2.5,MY+16).lineTo(CX,MY+20).lineTo(CX+2.5,MY+16).closePath().fill()
          .restore();
 
       // ⑤ QR CARD ───────────────────────────────────────────────────────
-      const CSZ = 130;                    // QR white-card square size
+      const CSZ = 126;                    // QR white-card square size
       const QCX = CX - CSZ/2;            // QR card left X
-      const QCY = 134;                    // QR card top Y (pushed up since logo is bigger)
+      const QCY = 138;                    // QR card top Y (properly spaced)
 
       // shadow
       doc.save().fillColor('#CEC8C2')
