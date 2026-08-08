@@ -557,471 +557,339 @@ router.get('/qr-table/:number', authenticateToken, requireRole('admin'), async (
 });
 
 // Ø¥Ù†Ø´Ø§Ø¡ Ù…Ù„Ù PDF Ù„Ø¨Ø·Ø§Ù‚Ø§Øª Ø±Ù…ÙˆØ² QR Ù„Ù„Ø·Ø§ÙˆÙ„Ø§Øª Ù…Ø¹ Ø§Ù„ØªØµÙ…ÙŠÙ… Ø§Ù„Ù…Ø®ØµØµ
+// إنشاء ملف PDF لبطاقات رموز QR للطاولات
 router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
-    const start   = parseInt(req.query.start) || 1;
-    const end     = parseInt(req.query.end)   || 1;
-    const baseUrl       = req.query.baseUrl       || process.env.BASE_URL || 'https://www.ozel.cafe';
-    const welcomeText   = req.query.welcomeText   || 'Welcome!';
-    const thankYouText  = req.query.thankYouText  || 'Thank you for choosing Ã–zel.';
-    const enjoyText     = req.query.enjoyText     || 'Enjoy your time with us.';
-    const showTableNum  = req.query.showTableNum  !== 'false';
+    const start        = parseInt(req.query.start)  || 1;
+    const end          = parseInt(req.query.end)    || 1;
+    const baseUrl      = req.query.baseUrl      || process.env.BASE_URL || 'https://www.ozel.cafe';
+    const welcomeText  = req.query.welcomeText  || 'Welcome!';
+    const thankYouText = req.query.thankYouText || 'Thank you for choosing Ozel.';
+    const enjoyText    = req.query.enjoyText    || 'Enjoy your time with us.';
+    const showTableNum = req.query.showTableNum !== 'false';
 
-    if (start < 1 || end < 1 || start > end) {
+    if (start < 1 || end < 1 || start > end)
       return res.status(400).json({ error: 'Invalid range' });
-    }
 
-    const fs    = require('fs');
-    const path  = require('path');
+    const fs   = require('fs');
+    const path = require('path');
     const axios = require('axios');
     const PDFDocument = require('pdfkit');
     const QRCode      = require('qrcode');
 
-    // â”€â”€ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø®Ø·ÙˆØ· Ø§Ù„Ø«Ø§Ø¨ØªØ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Font download ────────────────────────────────────────────────────
     const fontsDir = path.join(__dirname, '../fonts');
     if (!fs.existsSync(fontsDir)) fs.mkdirSync(fontsDir, { recursive: true });
-
-    const fontUrls = {
-      'CormorantGaramond-Bold':    'https://fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_hg9KnTOj9k7Ifo.ttf',
-      'CormorantGaramond-Regular': 'https://fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_v86KnTOj9k7Ifo.ttf',
-      'AlexBrush-Regular':         'https://fonts.gstatic.com/s/alexbrush/v23/SZc83FzrJKuqFbwMKk6EhUXz6BlNiCY.ttf',
-      'Montserrat-Medium':         'https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtZ6Hw5aX9-obK4.ttf',
-      'Tajawal-Bold':              'https://fonts.gstatic.com/s/tajawal/v12/Iura6YBj_oCad4k1nzGNDw.ttf',
-      'Tajawal-Regular':           'https://fonts.gstatic.com/s/tajawal/v12/Iura6YBj_oCad4k1nzGBCw.ttf'
+    const FONTS = {
+      CG_Reg:  'https://fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_v86KnTOj9k7Ifo.ttf',
+      CG_Bold: 'https://fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_hg9KnTOj9k7Ifo.ttf',
+      Alex:    'https://fonts.gstatic.com/s/alexbrush/v23/SZc83FzrJKuqFbwMKk6EhUXz6BlNiCY.ttf',
+      Mont:    'https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtZ6Hw5aX9-obK4.ttf',
+      TajR:    'https://fonts.gstatic.com/s/tajawal/v12/Iura6YBj_oCad4k1nzGBCw.ttf',
     };
-    for (const [name, url] of Object.entries(fontUrls)) {
-      const fp = path.join(fontsDir, `${name}.ttf`);
+    for (const [k, url] of Object.entries(FONTS)) {
+      const fp = path.join(fontsDir, `${k}.ttf`);
       if (!fs.existsSync(fp)) {
         try {
-          const r = await axios({ method: 'get', url, responseType: 'stream' });
+          const r = await axios({ method:'get', url, responseType:'stream' });
           const w = fs.createWriteStream(fp);
           r.data.pipe(w);
-          await new Promise((res, rej) => { w.on('finish', res); w.on('error', rej); });
-        } catch (e) { console.error('[PDF Font]', name, e.message); }
+          await new Promise((ok, fail) => { w.on('finish', ok); w.on('error', fail); });
+        } catch(e) { console.warn('[font]', k, e.message); }
       }
     }
 
-    // â”€â”€ Ø¥Ø¹Ø¯Ø§Ø¯ Ù…Ø³ØªÙ†Ø¯ PDF  A6 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // Ø­Ø¬Ù… A6 Ø¨Ø§Ù„Ù†Ù‚Ø§Ø·: 297.64 Ã— 419.53  (Ø¹Ø±Ø¶ Ã— Ø§Ø±ØªÙØ§Ø¹)
-    const PW = 297.64;
-    const PH = 419.53;
-
-    const doc = new PDFDocument({ size: [PW, PH], margins: { top: 0, bottom: 0, left: 0, right: 0 } });
+    // ─── PDF document (A6: 297.64 x 419.53 pt) ───────────────────────────
+    const PW = 297.64, PH = 419.53;
+    const doc = new PDFDocument({ size:[PW,PH], margins:{top:0,bottom:0,left:0,right:0} });
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="OZEL-Table-Cards-${start}-to-${end}.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="OZEL-Tables-${start}-to-${end}.pdf"`);
     doc.pipe(res);
 
-    // â”€â”€ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø·ÙˆØ· â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    const F = (name, fallback) => {
-      const fp = path.join(fontsDir, `${name}.ttf`);
-      if (fs.existsSync(fp)) { doc.registerFont(name, fp); return name; }
-      return fallback;
-    };
-    const fSerif  = F('CormorantGaramond-Regular', 'Times-Roman');
-    const fSerifB = F('CormorantGaramond-Bold',    'Times-Bold');
-    const fScript = F('AlexBrush-Regular',         'Times-Italic');
-    const fSans   = F('Montserrat-Medium',          'Helvetica');
-    const fArReg  = F('Tajawal-Regular',            'Helvetica');
-    const fArBold = F('Tajawal-Bold',               'Helvetica-Bold');
+    // ─── Register fonts ───────────────────────────────────────────────────
+    const reg = (k, fb) => { const fp = path.join(fontsDir, `${k}.ttf`); if(fs.existsSync(fp)){doc.registerFont(k,fp);return k;} return fb; };
+    const fReg  = reg('CG_Reg',  'Times-Roman');
+    const fBold = reg('CG_Bold', 'Times-Bold');
+    const fScr  = reg('Alex',    'Times-Italic');
+    const fSans = reg('Mont',    'Helvetica');
+    const fAr   = reg('TajR',    'Helvetica');
+    const hasAr = t => /[\u0600-\u06FF]/.test(t);
 
-    const hasArabic = t => /[\u0600-\u06FF]/.test(t);
+    // ─── Colors ───────────────────────────────────────────────────────────
+    const BG    = '#F4F0EB';
+    const GREEN = '#3F4E46';
+    const RED   = '#4E1B1B';
+    const DARK  = '#2C2520';
+    const LEAF  = '#8FA090';
+    const WD1   = '#7B4F2E';
+    const WD2   = '#A67C52';
 
-    // â”€â”€ Ø£Ù„ÙˆØ§Ù† â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    const bgColor   = '#F4F0EB';
-    const dkGreen   = '#3F4E46';
-    const burgundy  = '#4E1B1B';
-    const textDark  = '#2C2520';
-    const leafColor = '#8FA090';
-    const woodDark  = '#5C3A1E';
-    const woodLight = '#8B5E3C';
+    // ─── Logo ─────────────────────────────────────────────────────────────
+    const LOGO = path.join(__dirname, '../frontend/imgs/Ozel-Logo--02.png');
+    const hasLogo = fs.existsSync(LOGO);
 
-    // â”€â”€ Ù…Ø³Ø§Ø± Ø§Ù„Ù„ÙˆØ¬Ùˆ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    const logoPath = path.join(__dirname, '../frontend/imgs/Ozel-Logo--02.png');
+    // ─── Page geometry ────────────────────────────────────────────────────
+    // Arch-shaped card: semi-circle top, straight sides, flat bottom
+    //   CX   = horizontal center of page
+    //   AR   = arch radius  →  card left = CX-AR = 5, card right = CX+AR = 292.64
+    //   ACY  = Y-coordinate of arch center (top of straight sides)
+    //          arch peak at Y = ACY - AR ≈ 6 (near page top)
+    //   CBOT = card flat bottom Y
+    const CX   = PW / 2;          // 148.82
+    const AR   = CX - 5;          // 143.82  (5 pt margin each side)
+    const ACY  = AR + 6;          // 149.82  (arch peak at Y≈6)
+    const CBOT = 400;             // card bottom Y (wooden base below)
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    //  Ø¯Ø§Ù„Ø©: Ø±Ø³Ù… Ø§Ù„ÙƒØ§Ø±Øª ÙƒØ§Ù…Ù„Ø§Ù‹ Ù„Ø·Ø§ÙˆÙ„Ø© Ù…Ø¹ÙŠÙ‘Ù†Ø©
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    const drawCard = (tableNum) => {
+    // ─── drawCard ─────────────────────────────────────────────────────────
+    const drawCard = (tbl) => {
 
-      // Ø§Ù„Ø«ÙˆØ§Ø¨Øª Ø§Ù„Ù‡Ù†Ø¯Ø³ÙŠØ© Ù„Ù„Ø´ÙƒÙ„ Ø§Ù„Ù‚ÙˆØ³ÙŠ
-      // Ø§Ù„Ù‚ÙˆØ³ ÙŠØ¨Ø¯Ø£ Ù…Ù† Ø£Ø³ÙÙ„ Ø¨Ø­Ø§ÙØ© Ù…Ø³ØªÙ‚ÙŠÙ…Ø© Ø¹Ù†Ø¯ Y=408 Ø«Ù… ÙŠØ±ØªÙØ¹ Ø¨Ø´ÙƒÙ„ Ù…Ø³ØªÙ‚ÙŠÙ… Ø­ØªÙ‰ Y=155
-      // Ø«Ù… ÙŠÙ†Ø­Ù†ÙŠ ÙÙŠ Ù‚ÙˆØ³ Ø¯Ø§Ø¦Ø±ÙŠ ÙˆÙŠÙ†ØªÙ‡ÙŠ Ø¹Ù†Ø¯ Ø§Ù„Ù‚Ù…Ø©
-      const arcCenterY = 140;   // Ù…Ø±ÙƒØ² Ø§Ù„Ù‚ÙˆØ³ Ø§Ù„Ø¹Ù„ÙˆÙŠ
-      const arcR       = 130;   // Ù†ØµÙ Ù‚Ø·Ø± Ø§Ù„Ù‚ÙˆØ³
-      const arcCenterX = PW / 2;
-      const cardLeft   = arcCenterX - arcR;   // = 18.82
-      const cardRight  = arcCenterX + arcR;   // = 278.82
-      const cardBottom = 408;                 // Ø§Ù„Ø­Ø¯ Ø§Ù„Ø³ÙÙ„ÙŠ Ù„Ù„ÙƒØ§Ø±Øª (ÙÙˆÙ‚ Ø§Ù„Ù‚Ø§Ø¹Ø¯Ø© Ø§Ù„Ø®Ø´Ø¨ÙŠØ©)
-
-      // â”€â”€ 1. Ø®Ù„ÙÙŠØ© Ø§Ù„ÙƒØ§Ø±Øª Ø§Ù„Ù‚ÙˆØ³ÙŠØ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      doc.save()
-         .moveTo(cardLeft, cardBottom)
-         .lineTo(cardLeft, arcCenterY)
-         .arc(arcCenterX, arcCenterY, arcR, Math.PI, 0, false)
-         .lineTo(cardRight, cardBottom)
-         .closePath()
-         .fill(bgColor)
-         .restore();
-
-      // Ø§Ù„Ø¥Ø·Ø§Ø± Ø§Ù„Ù…ØªÙ‚Ø·Ø¹ (Ø­ÙˆØ§Ù Ø§Ù„Ù‚Øµ)
-      doc.save()
-         .moveTo(cardLeft, cardBottom)
-         .lineTo(cardLeft, arcCenterY)
-         .arc(arcCenterX, arcCenterY, arcR, Math.PI, 0, false)
-         .lineTo(cardRight, cardBottom)
-         .lineTo(cardLeft, cardBottom)
-         .strokeColor('#AAAAAA')
-         .lineWidth(0.5)
-         .dash(3, { space: 3 })
-         .stroke()
-         .restore();
-
-      // â”€â”€ 2. Ø§Ù„ÙØ±ÙˆØ¹ Ø§Ù„Ù†Ø¨Ø§ØªÙŠØ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      // Ø¯Ø§Ù„Ø© Ø±Ø³Ù… ÙˆØ±Ù‚Ø© Ù†Ø¨Ø§ØªÙŠØ© Ù…Ù† Ù†Ù‚Ø·ØªÙŠÙ†
-      const leaf = (x1, y1, x2, y2, bulge = 0.4) => {
-        const dx = x2 - x1, dy = y2 - y1;
-        const nx = -dy * bulge, ny = dx * bulge;
-        doc.moveTo(x1, y1)
-           .bezierCurveTo(x1 + dx*0.3 + nx, y1 + dy*0.3 + ny, x1 + dx*0.7 + nx, y1 + dy*0.7 + ny, x2, y2)
-           .bezierCurveTo(x1 + dx*0.7 - nx, y1 + dy*0.7 - ny, x1 + dx*0.3 - nx, y1 + dy*0.3 - ny, x1, y1)
-           .closePath()
-           .fill();
+      // ── Leaf helper (filled oval) ──────────────────────────────────────
+      const leaf = (x1,y1, x2,y2, b=0.42) => {
+        const dx=x2-x1, dy=y2-y1, nx=-dy*b, ny=dx*b;
+        doc.moveTo(x1,y1)
+           .bezierCurveTo(x1+dx*.3+nx, y1+dy*.3+ny, x1+dx*.7+nx, y1+dy*.7+ny, x2,y2)
+           .bezierCurveTo(x1+dx*.7-nx, y1+dy*.7-ny, x1+dx*.3-nx, y1+dy*.3-ny, x1,y1)
+           .closePath().fill();
       };
 
-      // â† ÙØ±ÙˆØ¹ Ø§Ù„Ø²Ø§ÙˆÙŠØ© Ø§Ù„Ø¹Ù„ÙˆÙŠØ© Ø§Ù„ÙŠÙ…Ù†Ù‰
-      doc.save().fillColor(leafColor).fillOpacity(0.7);
-      // Ø³Ø§Ù‚ Ø±Ø¦ÙŠØ³ÙŠ
-      doc.strokeColor(leafColor).lineWidth(1).fillOpacity(0.0);
-      doc.moveTo(240, 40).bezierCurveTo(260, 55, 268, 85, 255, 110).stroke();
-      doc.moveTo(255, 80).bezierCurveTo(270, 70, 278, 60, 272, 50).stroke();
-      doc.moveTo(250, 100).bezierCurveTo(268, 95, 276, 85, 271, 72).stroke();
-      // Ø§Ù„Ø£ÙˆØ±Ø§Ù‚
-      doc.fillOpacity(0.6);
-      leaf(248, 42,  264, 30,  0.45);
-      leaf(257, 56,  275, 48,  0.45);
-      leaf(260, 72,  280, 63,  0.45);
-      leaf(258, 88,  277, 82,  0.45);
-      leaf(252, 105, 270, 102, 0.40);
+      // ① CARD SHAPE ─────────────────────────────────────────────────────
+      // Path: bottom-left → up left side → arch over top → down right side → bottom-right → close
+      const archShape = () =>
+        doc.moveTo(CX-AR, CBOT)
+           .lineTo(CX-AR, ACY)
+           .arc(CX, ACY, AR, Math.PI, 0, false)
+           .lineTo(CX+AR, CBOT)
+           .closePath();
+
+      doc.save(); archShape(); doc.fill(BG); doc.restore();
+      doc.save(); archShape();
+      doc.strokeColor('#C0B8B0').lineWidth(0.5);
+      // Note: PDFKit dash is set via .dash()
+      doc.dash(3, { space: 2 }).stroke().undash();
       doc.restore();
 
-      // â† ÙØ±ÙˆØ¹ Ø§Ù„Ø²Ø§ÙˆÙŠØ© Ø§Ù„Ø³ÙÙ„ÙŠØ© Ø§Ù„ÙŠØ³Ø±Ù‰
-      doc.save().fillColor(leafColor).fillOpacity(0.7);
-      doc.strokeColor(leafColor).lineWidth(1).fillOpacity(0.0);
-      doc.moveTo(55, 370).bezierCurveTo(38, 355, 30, 325, 42, 300).stroke();
-      doc.moveTo(42, 325).bezierCurveTo(28, 332, 20, 345, 26, 358).stroke();
-      doc.moveTo(47, 344).bezierCurveTo(30, 347, 22, 360, 27, 372).stroke();
-      doc.fillOpacity(0.6);
-      leaf(53, 368,  38, 378, 0.45);
-      leaf(46, 352,  28, 358, 0.45);
-      leaf(43, 336,  24, 338, 0.45);
-      leaf(43, 318,  25, 316, 0.45);
-      leaf(44, 300,  28, 296, 0.40);
+      // ② BOTANICAL BRANCHES ────────────────────────────────────────────
+      // Top-right (within arch area, verified against arch boundary)
+      doc.save();
+      doc.fillColor(LEAF).fillOpacity(0.65);
+      doc.strokeColor(LEAF).lineWidth(1.1);
+      // Stems
+      doc.save().fillOpacity(0).moveTo(198,26).bezierCurveTo(214,38,222,58,214,80).stroke().restore();
+      doc.save().fillOpacity(0).moveTo(214,56).bezierCurveTo(228,46,234,36,228,24).stroke().restore();
+      doc.save().fillOpacity(0).moveTo(212,70).bezierCurveTo(228,62,232,50,226,38).stroke().restore();
+      // Leaves
+      leaf(198,26, 204,18, 0.45);
+      leaf(205,40, 218,32, 0.45);
+      leaf(210,54, 224,47, 0.43);
+      leaf(210,68, 224,62, 0.40);
+      leaf(208,80, 220,77, 0.38);
       doc.restore();
 
-      // â”€â”€ 3. Ù„ÙˆØ¬Ùˆ + Ø§Ø³Ù… Ø§Ù„ÙƒØ§ÙÙŠÙ‡ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      const midX = PW / 2;
+      // Bottom-left (in rectangular portion of card, Y>ACY)
+      doc.save();
+      doc.fillColor(LEAF).fillOpacity(0.65);
+      doc.strokeColor(LEAF).lineWidth(1.1);
+      doc.save().fillOpacity(0).moveTo(58,376).bezierCurveTo(42,360,34,336,44,312).stroke().restore();
+      doc.save().fillOpacity(0).moveTo(44,336).bezierCurveTo(30,344,22,356,28,368).stroke().restore();
+      doc.save().fillOpacity(0).moveTo(50,354).bezierCurveTo(34,358,26,370,30,382).stroke().restore();
+      leaf(57,376, 42,385, 0.45);
+      leaf(50,360, 35,367, 0.45);
+      leaf(45,343, 30,346, 0.42);
+      leaf(44,327, 29,325, 0.42);
+      leaf(45,311, 31,308, 0.38);
+      doc.restore();
 
-      // Ø¯Ø§Ø¦Ø±Ø© Ø§Ù„Ù„ÙˆØ¬Ùˆ
-      if (fs.existsSync(logoPath)) {
-        doc.image(logoPath, midX - 18, 28, { width: 36 });
-      } else {
-        // Ø¨Ø¯ÙŠÙ„ Ù…Ø±Ø³ÙˆÙ… ÙŠØ¯ÙˆÙŠØ§Ù‹
-        doc.save()
-           .strokeColor(burgundy).lineWidth(1.2)
-           .circle(midX, 46, 16).stroke()
-           .restore();
+      // ③ LOGO + OZEL + HIDDEN GEM ──────────────────────────────────────
+      if (hasLogo) doc.image(LOGO, CX-17, 16, { width:34 });
+      else {
+        doc.save().strokeColor(RED).lineWidth(1.2).circle(CX,33,15).stroke().restore();
       }
 
-      // Ã¶zel Ø¨Ø§Ù„Ø®Ø· Ø§Ù„Ù€ Serif Ø§Ù„ÙƒØ¨ÙŠØ±
-      doc.fillColor(burgundy)
-         .font(fSerifB)
-         .fontSize(38)
-         .text('Ã¶zel', 0, 68, { align: 'center', width: PW, characterSpacing: 1 });
+      doc.fillColor(RED).font(fBold).fontSize(36)
+         .text('ozel', 0, 55, { align:'center', width:PW, characterSpacing:2 });
 
-      // Hidden Gem ØµØºÙŠØ±Ø©
-      doc.fillColor(textDark)
-         .font(fSans)
-         .fontSize(6.5)
-         .text('Hidden Gem', 0, 108, { align: 'center', width: PW, characterSpacing: 1.5 });
+      doc.fillColor(DARK).font(fSans).fontSize(6.5)
+         .text('H I D D E N   G E M', 0, 97, { align:'center', width:PW, characterSpacing:1 });
 
-      // Ø®Ø· ÙØ§ØµÙ„ Ø±ÙÙŠØ¹
-      doc.save()
-         .strokeColor(textDark).lineWidth(0.4)
-         .moveTo(midX - 55, 120).lineTo(midX + 55, 120)
-         .stroke()
+      doc.save().strokeColor(DARK).lineWidth(0.35)
+         .moveTo(CX-48,108).lineTo(CX+48,108).stroke().restore();
+
+      // ④ SCAN TEXT ─────────────────────────────────────────────────────
+      doc.fillColor(DARK).font(fReg).fontSize(17)
+         .text('Scan the QR Code', 0, 113, { align:'center', width:PW });
+
+      // — TO VIEW OUR MENU —
+      const MY = 135;
+      doc.save().strokeColor(DARK).lineWidth(0.35)
+         .moveTo(CX-AR+12, MY+4).lineTo(CX-46, MY+4).stroke().restore();
+      doc.fillColor(DARK).font(fSans).fontSize(6.5)
+         .text('TO VIEW OUR MENU', 0, MY, { align:'center', width:PW, characterSpacing:1.5 });
+      doc.save().strokeColor(DARK).lineWidth(0.35)
+         .moveTo(CX+46, MY+4).lineTo(CX+AR-12, MY+4).stroke().restore();
+
+      // Diamond decoration
+      doc.save().fillColor(DARK)
+         .moveTo(CX,MY+14).lineTo(CX-3,MY+18).lineTo(CX,MY+22).lineTo(CX+3,MY+18).closePath().fill()
          .restore();
 
-      // â”€â”€ 4. Ø¹Ù†ÙˆØ§Ù† Scan the QR Code â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      doc.fillColor(textDark)
-         .font(fSerif)
-         .fontSize(18)
-         .text('Scan the QR Code', 0, 126, { align: 'center', width: PW });
+      // ⑤ QR CARD ───────────────────────────────────────────────────────
+      const CSZ = 126;                    // QR white-card square size
+      const QCX = CX - CSZ/2;            // QR card left X = 85.82
+      const QCY = 158;                    // QR card top Y
+      // At Y=158 the card is in straight-sided portion (Y > ACY=149.82), full width OK.
 
-      // Ø®Ø·ÙˆØ· TO VIEW OUR MENU Ù…Ø¹ Ø³Ø·Ø±ÙŠÙ† Ø¹Ù„Ù‰ Ø§Ù„Ø¬Ø§Ù†Ø¨ÙŠÙ†
-      const menuY = 148;
-      doc.save()
-         .strokeColor(textDark).lineWidth(0.4)
-         .moveTo(cardLeft + 8, menuY + 4).lineTo(midX - 52, menuY + 4)
-         .stroke()
-         .restore();
-      doc.fillColor(textDark).font(fSans).fontSize(6.5)
-         .text('TO VIEW OUR MENU', 0, menuY, { align: 'center', width: PW, characterSpacing: 1.2 });
-      doc.save()
-         .strokeColor(textDark).lineWidth(0.4)
-         .moveTo(midX + 52, menuY + 4).lineTo(cardRight - 8, menuY + 4)
-         .stroke()
-         .restore();
+      // shadow
+      doc.save().fillColor('#CEC8C2')
+         .roundedRect(QCX+3, QCY+3, CSZ, CSZ, 10).fill().restore();
+      // white card
+      doc.save().fillColor('#FFFFFF')
+         .roundedRect(QCX, QCY, CSZ, CSZ, 10).fill().restore();
 
-      // Ù†Ù‚Ø·Ø© Ø²Ø®Ø±ÙÙŠØ© ØµØºÙŠØ±Ø© ÙÙŠ Ø§Ù„Ù…Ù†ØªØµÙ Ø£Ø³ÙÙ„ Ø§Ù„Ø³Ø·Ø±
-      doc.save()
-         .fillColor(textDark)
-         .circle(midX, menuY + 12, 1.5)
-         .fill()
-         .restore();
+      // QR modules
+      const qrUrl = `${baseUrl}/cart.html?table=${tbl}`;
+      const qrObj = QRCode.create(qrUrl, { errorCorrectionLevel:'H' });
+      const N     = qrObj.modules.size;
+      const PAD   = 11;
+      const QSZ   = CSZ - 2*PAD;         // usable QR area
+      const D     = QSZ / N;             // module size
+      const MX    = QCX + PAD + QSZ/2;  // QR center X
+      const MY2   = QCY + PAD + QSZ/2;  // QR center Y
+      const CRAD  = 4.6 * D;            // center logo radius
 
-      // â”€â”€ 5. ÙƒØ§Ø±Øª QR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      const qrUrl = `${baseUrl}/cart.html?table=${tableNum}`;
-      const qr = QRCode.create(qrUrl, { errorCorrectionLevel: 'H' });
-      const N  = qr.modules.size;
-
-      const cardSz = 138;
-      const cardX  = midX - cardSz / 2;
-      const cardY  = 163;
-
-      // Ø¸Ù„ Ù†Ø§Ø¹Ù…
-      doc.save()
-         .fillColor('#D9D3CA')
-         .roundedRect(cardX + 3, cardY + 3, cardSz, cardSz, 12)
-         .fill()
-         .restore();
-
-      // Ø®Ù„ÙÙŠØ© Ø¨ÙŠØ¶Ø§Ø¡
-      doc.save()
-         .fillColor('#FFFFFF')
-         .roundedRect(cardX, cardY, cardSz, cardSz, 12)
-         .fill()
-         .restore();
-
-      // Ø­Ø³Ø§Ø¨ Ù†Ù‚Ø§Ø· QR
-      const qrPad  = 12;
-      const qrSz   = cardSz - qrPad * 2;
-      const d      = qrSz / N;
-      const qx     = cardX + qrPad;
-      const qy     = cardY + qrPad;
-      const cx     = qx + qrSz / 2;
-      const cy     = qy + qrSz / 2;
-      const cRad   = 4.8 * d;   // Ù…Ù†Ø·Ù‚Ø© Ø§Ù„Ù„ÙˆØ¬Ùˆ Ø§Ù„Ù…Ø±ÙƒØ²ÙŠØ©
-
-      // Ù†Ù‚Ø§Ø· QR Ø§Ù„Ø¯Ø§Ø¦Ø±ÙŠØ©
       for (let r = 0; r < N; r++) {
         for (let c = 0; c < N; c++) {
-          if (r < 7 && c < 7)       continue;
-          if (r < 7 && c >= N - 7)  continue;
-          if (r >= N - 7 && c < 7)  continue;
-          const mx = qx + c * d + d / 2;
-          const my = qy + r * d + d / 2;
-          const dist = Math.sqrt((mx - cx) ** 2 + (my - cy) ** 2);
-          if (dist < cRad) continue;
-          if (qr.modules.get(r, c)) {
-            doc.save()
-               .fillColor(dkGreen)
-               .circle(mx, my, d * 0.42)
-               .fill()
-               .restore();
+          // Skip 3 finder-pattern zones (top-left, top-right, bottom-left)
+          if (r<7 && c<7)     continue;
+          if (r<7 && c>=N-7)  continue;
+          if (r>=N-7 && c<7)  continue;
+          const mx = QCX + PAD + c*D + D/2;
+          const my = QCY + PAD + r*D + D/2;
+          // Skip center logo zone
+          if (Math.sqrt((mx-MX)**2 + (my-MY2)**2) < CRAD) continue;
+          if (qrObj.modules.get(r, c)) {
+            doc.save().fillColor(GREEN).circle(mx, my, D*0.42).fill().restore();
           }
         }
       }
 
-      // Finder Patterns Ø§Ù„Ù…Ø®ØµØµØ©
-      const finders = [
-        { fx: qx, fy: qy },
-        { fx: qx + (N - 7) * d, fy: qy },
-        { fx: qx, fy: qy + (N - 7) * d }
-      ];
-      finders.forEach(({ fx, fy }) => {
+      // Custom finder patterns: outer=GREEN, middle=WHITE, inner=RED
+      [[QCX+PAD, QCY+PAD], [QCX+PAD+(N-7)*D, QCY+PAD], [QCX+PAD, QCY+PAD+(N-7)*D]].forEach(([fx,fy]) => {
         doc.save()
-           .fillColor(dkGreen)
-           .roundedRect(fx, fy, 7*d, 7*d, 1.6*d).fill()
-           .fillColor('#FFFFFF')
-           .roundedRect(fx + 0.9*d, fy + 0.9*d, 5.2*d, 5.2*d, 1.1*d).fill()
-           .fillColor(burgundy)
-           .roundedRect(fx + 2*d, fy + 2*d, 3*d, 3*d, 0.7*d).fill()
+           .fillColor(GREEN).roundedRect(fx, fy, 7*D, 7*D, 1.5*D).fill()
+           .fillColor('#FFFFFF').roundedRect(fx+0.9*D, fy+0.9*D, 5.2*D, 5.2*D, 1.1*D).fill()
+           .fillColor(RED).roundedRect(fx+2*D, fy+2*D, 3*D, 3*D, 0.7*D).fill()
            .restore();
       });
 
-      // Ø¯Ø§Ø¦Ø±Ø© Ø§Ù„Ù„ÙˆØ¬Ùˆ Ø§Ù„Ù…Ø±ÙƒØ²ÙŠØ©
-      doc.save()
-         .fillColor('#FFFFFF')
-         .strokeColor(dkGreen).lineWidth(1)
-         .circle(cx, cy, cRad - 0.5)
-         .fillAndStroke()
+      // Center logo circle
+      doc.save().fillColor('#FFFFFF').strokeColor(GREEN).lineWidth(1)
+         .circle(MX, MY2, CRAD).fillAndStroke().restore();
+      if (hasLogo) { const ls=CRAD*1.4; doc.image(LOGO, MX-ls/2, MY2-ls/2, {width:ls}); }
+
+      // ⑥ SIDE ICONS (left & right of QR card, Y in straight portion) ───
+      const IROW = QCY + CSZ/2;   // = 158 + 63 = 221  (in straight portion, full width)
+
+      // LEFT: food cloche
+      const LX = QCX - 34;        // = 85.82 - 34 = 51.82  (> card left=5) ✓
+      doc.save().strokeColor(GREEN).lineWidth(1.2)
+         .moveTo(LX-13, IROW+8).lineTo(LX+13, IROW+8).stroke()       // plate base
+         .moveTo(LX-11, IROW+8)
+         .bezierCurveTo(LX-11, IROW-2, LX+11, IROW-2, LX+11, IROW+8).stroke() // dome
+         .save().fillColor(GREEN).circle(LX, IROW-5, 2.5).fill().restore()     // knob
          .restore();
+      doc.fillColor(DARK).font(fSans).fontSize(5)
+         .text('EXPLORE', LX-16, IROW+11, {width:32, align:'center', characterSpacing:0.4})
+         .text('OUR MENU', LX-16, IROW+17, {width:32, align:'center', characterSpacing:0.4});
 
-      if (fs.existsSync(logoPath)) {
-        const lSz = cRad * 1.5;
-        doc.image(logoPath, cx - lSz/2, cy - lSz/2, { width: lSz });
-      }
+      // RIGHT: phone + lightning
+      const RX = QCX + CSZ + 34;  // = 85.82 + 126 + 34 = 245.82  (< card right=292.64) ✓
+      doc.save().strokeColor(GREEN).lineWidth(1.2)
+         .roundedRect(RX-6, IROW-10, 11, 17, 2).stroke()
+         .save().fillColor(GREEN).circle(RX-0.5, IROW+4.5, 1.2).fill().restore()
+         .restore();
+      doc.save().strokeColor(RED).lineWidth(1)
+         .moveTo(RX+7, IROW-6).lineTo(RX+4, IROW+1)
+         .lineTo(RX+7, IROW+1).lineTo(RX+3, IROW+8).stroke().restore();
+      doc.fillColor(DARK).font(fSans).fontSize(5)
+         .text('FAST',   RX-14, IROW+11, {width:28, align:'center', characterSpacing:0.4})
+         .text('& EASY', RX-14, IROW+17, {width:28, align:'center', characterSpacing:0.4});
 
-      // â”€â”€ 6. Ø§Ù„Ø£ÙŠÙ‚ÙˆÙ†Ø§Øª Ø§Ù„Ø¬Ø§Ù†Ø¨ÙŠØ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      const iconMidY = cardY + cardSz / 2;
+      // ⑦ OZEL.CAFE PILL BUTTON ─────────────────────────────────────────
+      const PLW=88, PLH=16, PLX=CX-44, PLY=QCY+CSZ+10;
+      doc.save().fillColor(GREEN).roundedRect(PLX, PLY, PLW, PLH, PLH/2).fill().restore();
 
-      // â† ÙŠØ³Ø§Ø±: ØºØ·Ø§Ø¡ ØªÙ‚Ø¯ÙŠÙ… Ø§Ù„Ø·Ø¹Ø§Ù…
-      const LX = cardX - 35;
-      doc.save()
-         .strokeColor(dkGreen).lineWidth(1.2);
-      // Ù‚Ø§Ø¹Ø¯Ø© Ø§Ù„ØµØ­Ù†
-      doc.moveTo(LX - 12, iconMidY + 8).lineTo(LX + 12, iconMidY + 8).stroke();
-      // Ù‚Ø¨Ø© Ø§Ù„ØºØ·Ø§Ø¡
-      doc.moveTo(LX - 10, iconMidY + 8)
-         .bezierCurveTo(LX - 10, iconMidY, LX + 10, iconMidY, LX + 10, iconMidY + 8)
-         .stroke();
-      // Ø§Ù„Ù…Ù‚Ø¨Ø¶
-      doc.circle(LX, iconMidY - 2, 2).stroke();
+      // Globe icon
+      const GX=PLX+14, GY=PLY+PLH/2;
+      doc.save().strokeColor('#FFFFFF').lineWidth(0.9).circle(GX,GY,5).stroke()
+         .moveTo(GX-5,GY).lineTo(GX+5,GY).stroke().restore();
+      doc.save().strokeColor('#FFFFFF').lineWidth(0.7);
+      doc.moveTo(GX-4.5,GY-2.5).bezierCurveTo(GX,GY-3.5,GX,GY-3.5,GX+4.5,GY-2.5).stroke();
+      doc.moveTo(GX-4.5,GY+2.5).bezierCurveTo(GX,GY+3.5,GX,GY+3.5,GX+4.5,GY+2.5).stroke();
       doc.restore();
-      doc.fillColor(textDark).font(fSans).fontSize(5)
-         .text('EXPLORE', LX - 18, iconMidY + 11, { width: 36, align: 'center', characterSpacing: 0.5 })
-         .text('OUR MENU', LX - 18, iconMidY + 17, { width: 36, align: 'center', characterSpacing: 0.5 });
+      doc.fillColor('#FFFFFF').font(fSans).fontSize(8)
+         .text('ozel.cafe', PLX+24, PLY+4.2, {width:PLW-26, align:'center'});
 
-      // â† ÙŠÙ…ÙŠÙ†: Ù‡Ø§ØªÙ + Ø¨Ø±Ù‚
-      const RX = cardX + cardSz + 35;
-      doc.save()
-         .strokeColor(dkGreen).lineWidth(1.2)
-         .roundedRect(RX - 7, iconMidY - 10, 12, 18, 2).stroke()
-         .circle(RX - 1, iconMidY + 5, 1.2).fill(dkGreen)
-         .restore();
-      // Ø§Ù„Ø¨Ø±Ù‚
-      doc.save()
-         .strokeColor(burgundy).lineWidth(1)
-         .moveTo(RX + 8,  iconMidY - 6)
-         .lineTo(RX + 4,  iconMidY + 0)
-         .lineTo(RX + 8,  iconMidY + 0)
-         .lineTo(RX + 4,  iconMidY + 7)
-         .stroke()
-         .restore();
-      doc.fillColor(textDark).font(fSans).fontSize(5)
-         .text('FAST',  RX - 16, iconMidY + 11, { width: 32, align: 'center', characterSpacing: 0.5 })
-         .text('& EASY', RX - 16, iconMidY + 17, { width: 32, align: 'center', characterSpacing: 0.5 });
+      // Mouse cursor arrow
+      const CuX=PLX+PLW+3, CuY=PLY+PLH-4;
+      doc.save().fillColor('#DEDEDE').strokeColor('#555').lineWidth(0.4)
+         .moveTo(CuX,CuY).lineTo(CuX-3,CuY+9).lineTo(CuX,CuY+6.5)
+         .lineTo(CuX+3.5,CuY+10).lineTo(CuX+5,CuY+8.5).lineTo(CuX+1.5,CuY+5)
+         .lineTo(CuX+4,CuY+2.5).closePath().fillAndStroke().restore();
 
-      // â”€â”€ 7. Ø²Ø± ozel.cafe â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      const pillW  = 90;
-      const pillH  = 17;
-      const pillX  = midX - pillW / 2;
-      const pillY  = cardY + cardSz + 12;
+      // ⑧ WELCOME + THANK YOU ───────────────────────────────────────────
+      const WY = PLY + PLH + 8;
+      doc.fillColor(RED).font(fScr).fontSize(24)
+         .text(welcomeText, 0, WY, {align:'center', width:PW});
 
-      doc.save()
-         .fillColor(dkGreen)
-         .roundedRect(pillX, pillY, pillW, pillH, pillH / 2)
-         .fill()
-         .restore();
+      doc.save().strokeColor(DARK).lineWidth(0.3).opacity(0.3)
+         .moveTo(CX-55, WY+29).lineTo(CX+55, WY+29).stroke().restore();
 
-      // Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø§Ù„ÙƒØ±Ø© Ø§Ù„Ø£Ø±Ø¶ÙŠØ©
-      const gX = pillX + 15, gY = pillY + pillH / 2;
-      doc.save()
-         .strokeColor('#FFFFFF').lineWidth(0.85)
-         .circle(gX, gY, 5).stroke()
-         .moveTo(gX - 5, gY).lineTo(gX + 5, gY).stroke()
-         .moveTo(gX, gY - 5).lineTo(gX, gY + 5).stroke()
-         .restore();
-      // Ø®Ø·ÙˆØ· Ø®Ø· Ø§Ù„Ø¹Ø±Ø¶ Ø§Ù„Ù…Ù†Ø­Ù†ÙŠØ©
-      doc.save().strokeColor('#FFFFFF').lineWidth(0.6);
-      doc.moveTo(gX - 4.5, gY - 2.5).bezierCurveTo(gX, gY - 3.5, gX, gY - 3.5, gX + 4.5, gY - 2.5).stroke();
-      doc.moveTo(gX - 4.5, gY + 2.5).bezierCurveTo(gX, gY + 3.5, gX, gY + 3.5, gX + 4.5, gY + 2.5).stroke();
-      doc.restore();
+      const tyF = hasAr(thankYouText) ? fAr : fReg;
+      const ejF = hasAr(enjoyText)    ? fAr : fReg;
+      doc.fillColor(DARK).font(tyF).fontSize(8)
+         .text(thankYouText, 0, WY+33, {align:'center', width:PW});
+      doc.fillColor(DARK).font(ejF).fontSize(8)
+         .text(enjoyText, 0, WY+44, {align:'center', width:PW});
 
-      // Ø§Ù„Ù†Øµ
-      doc.fillColor('#FFFFFF')
-         .font(fSans).fontSize(7.5)
-         .text('ozel.cafe', pillX + 26, pillY + 4.5, { width: pillW - 28, align: 'center' });
-
-      // Ù…Ø¤Ø´Ø± Ø§Ù„Ù…Ø§ÙˆØ³ Ø¨Ø¬Ø§Ù†Ø¨ Ø§Ù„Ø²Ø±
-      const curX = pillX + pillW + 4, curY = pillY + pillH - 2;
-      doc.save()
-         .fillColor('#FFFFFF').strokeColor('#333333').lineWidth(0.5)
-         .moveTo(curX, curY)
-         .lineTo(curX - 4, curY + 10)
-         .lineTo(curX - 1, curY + 7)
-         .lineTo(curX + 3, curY + 11)
-         .lineTo(curX + 5, curY + 9)
-         .lineTo(curX + 1, curY + 5)
-         .lineTo(curX + 4, curY + 2)
-         .closePath()
-         .fillAndStroke()
-         .restore();
-
-      // â”€â”€ 8. Ù†Øµ Ø§Ù„ØªØ±Ø­ÙŠØ¨ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      const welcomeY = pillY + pillH + 10;
-      doc.fillColor(burgundy)
-         .font(fScript)
-         .fontSize(26)
-         .text(welcomeText, 0, welcomeY, { align: 'center', width: PW });
-
-      // Ø®Ø· ÙØ§ØµÙ„ Ø®ÙÙŠÙ
-      doc.save()
-         .strokeColor(textDark).lineWidth(0.3).opacity(0.4)
-         .moveTo(midX - 60, welcomeY + 30).lineTo(midX + 60, welcomeY + 30)
-         .stroke()
-         .restore();
-
-      // Ø¬Ù…Ù„Ø© Ø§Ù„Ø´ÙƒØ±
-      const tyF = hasArabic(thankYouText) ? fArReg : fSerif;
-      doc.fillColor(textDark).font(tyF).fontSize(8)
-         .text(thankYouText, 0, welcomeY + 34, { align: 'center', width: PW });
-
-      // Ø¬Ù…Ù„Ø© Ø§Ù„Ø§Ø³ØªÙ…ØªØ§Ø¹
-      const ejF = hasArabic(enjoyText) ? fArReg : fSerif;
-      doc.fillColor(textDark).font(ejF).fontSize(8)
-         .text(enjoyText, 0, welcomeY + 45, { align: 'center', width: PW });
-
-      // â”€â”€ 9. Ø§Ù„Ù‚Ø§Ø¹Ø¯Ø© Ø§Ù„Ø®Ø´Ø¨ÙŠØ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      const baseTop = cardBottom;  // = 408
-      const baseH   = PH - baseTop; // Ø§Ù„Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ù…ØªØ¨Ù‚ÙŠØ©
-
-      // Ø§Ù„Ø´ÙƒÙ„ Ø§Ù„Ù…Ù‚ÙˆØ³ Ù„Ù„Ù‚Ø§Ø¹Ø¯Ø© Ø§Ù„Ø®Ø´Ø¨ÙŠØ© (ÙŠØ´Ø¨Ù‡ Ø§Ù„Ù‚Ø§Ø¹Ø¯Ø© ÙÙŠ Ø§Ù„ØµÙˆØ±Ø©)
-      const baseW = 70, baseHgt = baseH - 4;
-      const bx = midX - baseW / 2;
-      const by = baseTop;
-
-      // Ø§Ù„Ø¬Ø²Ø¡ Ø§Ù„Ø¹Ù„ÙˆÙŠ Ù…Ù† Ø§Ù„Ù‚Ø§Ø¹Ø¯Ø© (Ù…Ø³ØªØ·ÙŠÙ„ Ù…Ù†Ø­Ù†ÙŠ Ø§Ù„Ø­ÙˆØ§Ù)
-      doc.save()
-         .fillColor(woodLight)
-         .roundedRect(bx, by, baseW, baseHgt, 3)
-         .fill()
-         .restore();
-
-      // Ø®Ø´Ø¨ Ø¯Ø§ÙƒÙ† (Ø­Ø¨ÙŠØ¨Ø§Øª)
-      doc.save().strokeColor(woodDark).lineWidth(0.5).opacity(0.3);
-      for (let i = 0; i < 5; i++) {
-        doc.moveTo(bx + 6 + i * 11, by + 2).lineTo(bx + 8 + i * 11, by + baseHgt - 2).stroke();
-      }
+      // Small decorative sprig
+      const SPY = WY+57;
+      doc.save().strokeColor(LEAF).lineWidth(0.8).fillColor(LEAF).fillOpacity(0.6);
+      doc.moveTo(CX,SPY).lineTo(CX-18,SPY+9).stroke();
+      doc.moveTo(CX,SPY).lineTo(CX+18,SPY+9).stroke();
+      leaf(CX-9,SPY+4, CX-18,SPY+9, 0.4);
+      leaf(CX+9,SPY+4, CX+18,SPY+9, 0.4);
+      leaf(CX-4,SPY+1, CX-1,SPY-5, 0.5);
+      leaf(CX+4,SPY+1, CX+1,SPY-5, 0.5);
       doc.restore();
 
-      // Ø§Ù„Ù„ÙˆØ¬Ùˆ Ø§Ù„ØµØºÙŠØ± ÙÙŠ ÙˆØ³Ø· Ø§Ù„Ù‚Ø§Ø¹Ø¯Ø©
-      if (fs.existsSync(logoPath)) {
-        const lbSz = 10;
-        doc.image(logoPath, midX - lbSz/2, by + (baseHgt - lbSz)/2, { width: lbSz });
-      }
+      // ⑨ WOODEN BASE ───────────────────────────────────────────────────
+      const BW=70, BH=PH-CBOT-2;
+      const BX=CX-35, BY=CBOT+2;
+      doc.save().fillColor(WD2).roundedRect(BX,BY,BW,BH,3).fill().restore();
+      doc.save().strokeColor(WD1).lineWidth(0.6).opacity(0.35);
+      for(let i=0;i<6;i++) { const wx=BX+5+i*10; doc.moveTo(wx,BY+2).lineTo(wx+2,BY+BH-2).stroke(); }
+      doc.restore();
+      if (hasLogo) { const ls=9; doc.image(LOGO, CX-ls/2, BY+(BH-ls)/2, {width:ls}); }
 
-      // Ø±Ù‚Ù… Ø§Ù„Ø·Ø§ÙˆÙ„Ø©
       if (showTableNum) {
-        doc.fillColor(burgundy).font(fSerifB).fontSize(8)
-           .text(`Table ${tableNum}`, bx, by + baseHgt + 1, { width: baseW, align: 'center' });
+        doc.fillColor(RED).font(fBold).fontSize(7)
+           .text(`Table ${tbl}`, BX, BY+BH+1, {width:BW, align:'center'});
       }
     };
 
-    // â”€â”€ ØªÙˆÙ„ÙŠØ¯ ØµÙØ­Ø© Ù„ÙƒÙ„ Ø·Ø§ÙˆÙ„Ø© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    for (let tableNum = start; tableNum <= end; tableNum++) {
-      if (tableNum > start) {
-        doc.addPage({ size: [PW, PH], margins: { top: 0, bottom: 0, left: 0, right: 0 } });
-      }
-      drawCard(tableNum);
+    // ── Generate pages ─────────────────────────────────────────────────────
+    for (let t = start; t <= end; t++) {
+      if (t > start) doc.addPage({size:[PW,PH], margins:{top:0,bottom:0,left:0,right:0}});
+      drawCard(t);
     }
-
     doc.end();
+
   } catch (err) {
-    console.error('[Admin PDF Generate Error]', err);
+    console.error('[QR PDF Error]', err);
     res.status(500).json({ error: err.message });
   }
 });
+
 // Ø¬Ù„Ø¨ ØªÙ‚Ø§Ø±ÙŠØ± Ù…ØªØ²Ø§Ù…Ù†Ø© Ù…Ù† Ù†Ø¸Ø§Ù… Ù†Ù‚Ø§Ø· Ø§Ù„Ø¨ÙŠØ¹ (POS)
 router.get('/reports/:type', authenticateToken, requireRole('admin'), async (req, res) => {
   const { type } = req.params;
