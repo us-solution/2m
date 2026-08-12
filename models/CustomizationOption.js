@@ -18,7 +18,10 @@ const customizationSchema = new mongoose.Schema({
     nameAr: { type: String, required: true },       // الاسم بالعربية
     price: { type: Number, default: 0 },            // السعر الإضافي
     sortOrder: { type: Number, default: 0 }         // ترتيب العرض
-  }]
+  }],
+  logo1: { type: String, default: '' },
+  logo2: { type: String, default: '' },
+  heroBg: { type: String, default: '' }
 }, { timestamps: true, collection: 'customizationoptions' });
 
 module.exports = mongoose.models.CustomizationOption || mongoose.model('CustomizationOption', customizationSchema);

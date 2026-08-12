@@ -1,824 +1,1293 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
-<meta charset="UTF-8"/>
-<script src="api-override.js?v=3">
+  <meta charset="UTF-8" />
+  <script src="api-override.js?v=3">
 
 
-</script>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>لوحة التحكم — OZEL CAFE</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js">
+  </script>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>لوحة التحكم — OZEL CAFE</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@400;700&family=Montserrat:wght@300;400;600&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js">
 
 
-</script>
-<style>
-:root {
-  --burgundy:      #241E1A;
-  --burgundy2:     #322822;
-  --burgundy-glow: rgba(74, 21, 23, 0.10);
-  --accent-emerald:       #4A1517;
-  --accent-emerald-light: #6E2225;
-  --accent-emerald-glow:  rgba(74, 21, 23, 0.12);
-  --gold:          #4A1517;
-  --gold2:         #380E10;
-  --gold-glow:     rgba(74, 21, 23, 0.15);
-  --bg:            #FDFBF7;
-  --bg2:           #FFFFFF;
-  --bg3:           #F5F2EC;
-  --bg4:           #EAE5DA;
-  --line:          rgba(74, 21, 23, 0.22);
-  --text:          #1e1b18;
-  --muted:         rgba(30, 27, 24, 0.68);
-  --white:         #ffffff;
-  --green:         #2ECC71;
-  --red:           #E74C3C;
-  --orange:        #E67E22;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:rtl;}
-header{background:var(--bg2);border-bottom:1px solid var(--line);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:100;}
-.hlogo{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--gold);letter-spacing:.3em;}
-.hbtn{background:transparent;border:1px solid var(--line);color:var(--muted);padding:.4rem .9rem;font-family:'Tajawal',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s;}
-.hbtn:hover{border-color:var(--gold);color:var(--gold);}
-.layout{display:grid;grid-template-columns:200px 1fr;padding-top:64px;}
-nav{background:var(--bg2);border-right:1px solid var(--line);min-height:calc(100vh - 64px);padding:1.5rem 0;}
-.nav-item{display:block;padding:.75rem 1.5rem;color:var(--muted);cursor:pointer;transition:all .2s;font-size:.9rem;border-left:2px solid transparent;}
-.nav-item:hover{color:var(--gold);}
-.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:var(--gold-glow);}
-.page{display:none;padding:2rem;}
-.page.active{display:block;}
-.page-title{font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--text);margin-bottom:.5rem;font-weight:400;}
-.page-sub{color:var(--muted);font-size:.85rem;margin-bottom:2rem;}
+  </script>
+  <style>
+    :root {
+      --burgundy: #241E1A;
+      --burgundy2: #322822;
+      --burgundy-glow: rgba(74, 21, 23, 0.10);
+      --accent-emerald: #4A1517;
+      --accent-emerald-light: #6E2225;
+      --accent-emerald-glow: rgba(74, 21, 23, 0.12);
+      --gold: #4A1517;
+      --gold2: #380E10;
+      --gold-glow: rgba(74, 21, 23, 0.15);
+      --bg: #FDFBF7;
+      --bg2: #FFFFFF;
+      --bg3: #F5F2EC;
+      --bg4: #EAE5DA;
+      --line: rgba(74, 21, 23, 0.22);
+      --text: #1e1b18;
+      --muted: rgba(30, 27, 24, 0.68);
+      --white: #ffffff;
+      --green: #2ECC71;
+      --red: #E74C3C;
+      --orange: #E67E22;
+    }
 
-/* Stats */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;margin-bottom:2rem;}
-.stat-card{background:var(--bg2);border:1px solid var(--line);padding:1.5rem;border-radius:4px;}
-.stat-n{font-family:'Montserrat',sans-serif;font-size:2.2rem;color:var(--gold);font-weight:700;display:block;}
-.stat-l{font-size:.75rem;color:var(--muted);letter-spacing:.1em;}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-/* Tables */
-table{width:100%;border-collapse:collapse;}
-th{font-size:.65rem;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;font-family:'Montserrat',sans-serif;padding:.8rem 1rem;border-bottom:1px solid var(--line);text-align:right;font-weight:400;}
-td{padding:.9rem 1rem;border-bottom:1px solid var(--line);font-size:.9rem;vertical-align:middle;color:var(--text);}
-tr:hover td{background:var(--bg3);}
-.tbl-price{font-family:'Montserrat',sans-serif;color:var(--gold);font-size:1.1rem;font-weight:700;}
-.badge{padding:.2rem .6rem;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;font-family:'Montserrat',sans-serif;border-radius:1px;}
-.badge-featured{background:rgba(156,46,46,.1);color:var(--gold);}
-.badge-hidden{background:rgba(192,57,43,.1);color:var(--red);}
-.badge-admin{background:rgba(156,46,46,.1);color:var(--gold);}
-.badge-cashier{background:rgba(39,174,96,.1);color:var(--green);}
-.badge-customer{background:rgba(110,102,89,.1);color:var(--muted);}
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      direction: rtl;
+    }
 
-/* Editable cell */
-.editable{cursor:pointer;border-bottom:1px dashed var(--muted);display:inline-block;}
-.editable:hover{border-color:var(--gold);color:var(--gold);}
-.edit-input{background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.2rem .4rem;font-family:'Tajawal',sans-serif;font-size:.9rem;width:80px;border-radius:2px;}
-.edit-input:focus{border-color:var(--gold);outline:none;}
-/* override narrow width when inside admin-form */
-.admin-form .edit-input { width: 100%; min-width: unset; }
+    header {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--line);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
 
-/* Toggle */
-.toggle{position:relative;width:38px;height:20px;cursor:pointer;}
-.toggle input{display:none;}
-.toggle-slider{position:absolute;inset:0;background:var(--bg4);border:1px solid var(--line);transition:.2s;}
-.toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:2px;top:2px;background:var(--muted);transition:.2s;}
-input:checked + .toggle-slider{background:var(--gold-glow);border-color:var(--gold);}
-input:checked + .toggle-slider::before{transform:translateX(18px);background:var(--gold);}
+    .hlogo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      color: var(--gold);
+      letter-spacing: .3em;
+    }
 
-/* Status Buttons */
-.btn-toggle-status {
-  padding: 0.3rem 0.6rem;
-  font-size: 0.8rem;
-  border-radius: 4px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  font-family: 'Tajawal', sans-serif;
-  transition: all 0.2s;
-}
-.btn-toggle-status.active-available {
-  background: rgba(39, 174, 96, 0.1);
-  color: #27ae60;
-  border-color: rgba(39, 174, 96, 0.2);
-}
-.btn-toggle-status.inactive-available {
-  background: rgba(192, 57, 43, 0.1);
-  color: #c0392b;
-  border-color: rgba(192, 57, 43, 0.2);
-}
-.btn-toggle-status.active-featured {
-  background: rgba(194, 159, 67, 0.15);
-  color: var(--gold);
-  border-color: rgba(194, 159, 67, 0.3);
-}
-.btn-toggle-status.inactive-featured {
-  background: rgba(110, 102, 89, 0.1);
-  color: var(--muted);
-  border-color: rgba(110, 102, 89, 0.2);
-}
+    .hbtn {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: .4rem .9rem;
+      font-family: 'Tajawal', sans-serif;
+      font-size: .8rem;
+      cursor: pointer;
+      transition: all .2s;
+    }
 
-.action-btn2{background:transparent;border:1px solid var(--line);color:var(--muted);padding:.3rem .7rem;font-family:'Tajawal',sans-serif;font-size:.78rem;cursor:pointer;transition:all .2s;border-radius:2px;}
-.action-btn2:hover{border-color:var(--gold);color:var(--gold);}
-.search-bar{display:flex;gap:.8rem;margin-bottom:1.5rem;}
-.search-bar input{flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--text);padding:.7rem 1rem;font-family:'Tajawal',sans-serif;font-size:.9rem;outline:none;border-radius:4px;}
-.search-bar input:focus{border-color:var(--gold);}
-.img-thumb{width:40px;height:40px;object-fit:cover;border:1px solid var(--line);border-radius:4px;}
-.points-badge{color:var(--gold);font-family:'Montserrat',sans-serif;font-size:1.1rem;font-weight:700;}
+    .hbtn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
 
-/* Custom Modal */
-.c-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(44,32,30,0.4);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(5px);
-}
-.c-modal-content {
-  background: var(--bg2);
-  border: 1px solid var(--line);
-  padding: 2rem;
-  width: 100%;
-  max-width: 400px;
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  text-align: center;
-}
-.c-modal-content h2 {
-  font-family: 'Cormorant Garamond', serif;
-  color: var(--gold);
-  margin-bottom: 1rem;
-}
-.c-modal-content p {
-  color: var(--text);
-  font-size: 0.95rem;
-  margin-bottom: 2rem;
-}
-.c-modal-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-}
+    .layout {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      padding-top: 64px;
+    }
 
-@media (max-width: 768px) {
-  .layout {
-    grid-template-columns: 1fr;
-  }
-  nav {
-    min-height: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--line);
-    padding: 0.5rem 0;
-    position: sticky;
-    top: 60px;
-    z-index: 50;
-    background: var(--bg2);
-  }
-  .nav-item {
-    display: none;
-  }
-  #mobile-nav-select {
-    display: block !important;
-    width: calc(100% - 2rem);
-    margin: 0.5rem 1rem;
-    padding: 0.7rem 1rem;
-    background: var(--bg3);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    font-family: 'Tajawal', sans-serif;
-    font-size: 1rem;
-    color: var(--text);
-    cursor: pointer;
-    appearance: auto;
-  }
-  .page {
-    padding: 1rem;
-  }
-  .stats-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  table {
-    display: block;
-    overflow-x: auto;
-  }
-  header {
-    padding: 0.75rem 1rem;
-    flex-direction: row;
-    gap: 0.5rem;
-    align-items: center;
-    justify-content: space-between;
-  }
-  header > div:first-child {
-    flex: 1;
-  }
-  header > div:last-child {
-    display: flex;
-    gap: 0.4rem;
-  }
-}
-.toast-container{position:fixed;bottom:20px;left:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
-.toast{background:var(--bg2);border:1px solid var(--line);padding:12px 20px;border-radius:8px;box-shadow:0 8px 25px rgba(0,0,0,0.12);font-family:'Tajawal',sans-serif;font-size:.9rem;color:var(--text);animation:slideIn .3s ease;max-width:350px;}
-.toast.success{border-right:3px solid var(--green);}
-.toast.error{border-right:3px solid var(--red);}
-@keyframes slideIn{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
-td, th { white-space: nowrap; }
+    nav {
+      background: var(--bg2);
+      border-right: 1px solid var(--line);
+      min-height: calc(100vh - 64px);
+      padding: 1.5rem 0;
+    }
 
-/* Responsive Admin Forms */
-.admin-form {
-  background: var(--bg2);
-  padding: 1.2rem;
-  border: 1px solid var(--line);
-  margin-bottom: 1.5rem;
-  border-radius: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: flex-end;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-.admin-form .form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-.admin-form .form-group label {
-  font-size: 0.78rem;
-  color: var(--text) !important;
-  font-weight: 600;
-  opacity: 0.75;
-  text-align: right;
-  letter-spacing: 0.01em;
-  display: block;
-}
-.admin-form .edit-input {
-  width: 100% !important;
-  min-width: 100px;
-  padding: 0.5rem 0.7rem !important;
-  height: 40px;
-  background: var(--bg3);
-  border: 1px solid var(--line);
-  color: var(--text);
-  border-radius: 6px;
-  outline: none;
-  font-family: 'Tajawal', sans-serif;
-  font-size: 0.9rem;
-  transition: border-color 0.2s;
-}
-.admin-form .edit-input:focus {
-  border-color: var(--gold);
-  background: var(--bg2);
-}
-.admin-form select.edit-input {
-  cursor: pointer;
-  appearance: auto;
-}
-.admin-form button.hbtn {
-  height: 40px;
-  align-self: flex-end;
-  background: var(--gold);
-  color: var(--white);
-  border-color: var(--gold);
-  padding: 0 1.4rem;
-  font-weight: 700;
-  font-size: 0.9rem;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-.admin-form button.hbtn:hover {
-  background: var(--gold2);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(84,26,26,0.25);
-}
+    .nav-item {
+      display: block;
+      padding: .75rem 1.5rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .2s;
+      font-size: .9rem;
+      border-left: 2px solid transparent;
+    }
 
-@media (max-width: 768px) {
-  .admin-form {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 1rem;
-    gap: 0.8rem;
-  }
-  .admin-form .form-group {
-    width: 100%;
-    min-width: unset !important;
-    flex: none !important;
-  }
-  .admin-form .edit-input {
-    width: 100% !important;
-    min-width: unset !important;
-    box-sizing: border-box;
-  }
-  .admin-form button.hbtn {
-    width: 100%;
-    margin-top: 0.25rem;
-    justify-content: center;
-  }
-}
-</style>
+    .nav-item:hover {
+      color: var(--gold);
+    }
+
+    .nav-item.active {
+      color: var(--gold);
+      border-left-color: var(--gold);
+      background: var(--gold-glow);
+    }
+
+    .page {
+      display: none;
+      padding: 2rem;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .page-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      color: var(--text);
+      margin-bottom: .5rem;
+      font-weight: 400;
+    }
+
+    .page-sub {
+      color: var(--muted);
+      font-size: .85rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      padding: 1.5rem;
+      border-radius: 4px;
+    }
+
+    .stat-n {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2.2rem;
+      color: var(--gold);
+      font-weight: 700;
+      display: block;
+    }
+
+    .stat-l {
+      font-size: .75rem;
+      color: var(--muted);
+      letter-spacing: .1em;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      font-size: .65rem;
+      letter-spacing: .25em;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-family: 'Montserrat', sans-serif;
+      padding: .8rem 1rem;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      font-weight: 400;
+    }
+
+    td {
+      padding: .9rem 1rem;
+      border-bottom: 1px solid var(--line);
+      font-size: .9rem;
+      vertical-align: middle;
+      color: var(--text);
+    }
+
+    tr:hover td {
+      background: var(--bg3);
+    }
+
+    .tbl-price {
+      font-family: 'Montserrat', sans-serif;
+      color: var(--gold);
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .badge {
+      padding: .2rem .6rem;
+      font-size: .65rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      font-family: 'Montserrat', sans-serif;
+      border-radius: 1px;
+    }
+
+    .badge-featured {
+      background: rgba(156, 46, 46, .1);
+      color: var(--gold);
+    }
+
+    .badge-hidden {
+      background: rgba(192, 57, 43, .1);
+      color: var(--red);
+    }
+
+    .badge-admin {
+      background: rgba(156, 46, 46, .1);
+      color: var(--gold);
+    }
+
+    .badge-cashier {
+      background: rgba(39, 174, 96, .1);
+      color: var(--green);
+    }
+
+    .badge-customer {
+      background: rgba(110, 102, 89, .1);
+      color: var(--muted);
+    }
+
+    /* Editable cell */
+    .editable {
+      cursor: pointer;
+      border-bottom: 1px dashed var(--muted);
+      display: inline-block;
+    }
+
+    .editable:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .edit-input {
+      background: var(--bg3);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: .2rem .4rem;
+      font-family: 'Tajawal', sans-serif;
+      font-size: .9rem;
+      width: 80px;
+      border-radius: 2px;
+    }
+
+    .edit-input:focus {
+      border-color: var(--gold);
+      outline: none;
+    }
+
+    /* override narrow width when inside admin-form */
+    .admin-form .edit-input {
+      width: 100%;
+      min-width: unset;
+    }
+
+    /* Toggle */
+    .toggle {
+      position: relative;
+      width: 38px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .toggle input {
+      display: none;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--bg4);
+      border: 1px solid var(--line);
+      transition: .2s;
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      left: 2px;
+      top: 2px;
+      background: var(--muted);
+      transition: .2s;
+    }
+
+    input:checked+.toggle-slider {
+      background: var(--gold-glow);
+      border-color: var(--gold);
+    }
+
+    input:checked+.toggle-slider::before {
+      transform: translateX(18px);
+      background: var(--gold);
+    }
+
+    /* Status Buttons */
+    .btn-toggle-status {
+      padding: 0.3rem 0.6rem;
+      font-size: 0.8rem;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      font-family: 'Tajawal', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .btn-toggle-status.active-available {
+      background: rgba(39, 174, 96, 0.1);
+      color: #27ae60;
+      border-color: rgba(39, 174, 96, 0.2);
+    }
+
+    .btn-toggle-status.inactive-available {
+      background: rgba(192, 57, 43, 0.1);
+      color: #c0392b;
+      border-color: rgba(192, 57, 43, 0.2);
+    }
+
+    .btn-toggle-status.active-featured {
+      background: rgba(194, 159, 67, 0.15);
+      color: var(--gold);
+      border-color: rgba(194, 159, 67, 0.3);
+    }
+
+    .btn-toggle-status.inactive-featured {
+      background: rgba(110, 102, 89, 0.1);
+      color: var(--muted);
+      border-color: rgba(110, 102, 89, 0.2);
+    }
+
+    .action-btn2 {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: .3rem .7rem;
+      font-family: 'Tajawal', sans-serif;
+      font-size: .78rem;
+      cursor: pointer;
+      transition: all .2s;
+      border-radius: 2px;
+    }
+
+    .action-btn2:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .search-bar {
+      display: flex;
+      gap: .8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-bar input {
+      flex: 1;
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: .7rem 1rem;
+      font-family: 'Tajawal', sans-serif;
+      font-size: .9rem;
+      outline: none;
+      border-radius: 4px;
+    }
+
+    .search-bar input:focus {
+      border-color: var(--gold);
+    }
+
+    .img-thumb {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+    }
+
+    .points-badge {
+      color: var(--gold);
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    /* Custom Modal */
+    .c-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(44, 32, 30, 0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+    }
+
+    .c-modal-content {
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      padding: 2rem;
+      width: 100%;
+      max-width: 400px;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .c-modal-content h2 {
+      font-family: 'Cormorant Garamond', serif;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+
+    .c-modal-content p {
+      color: var(--text);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
+
+    .c-modal-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+
+    @media (max-width: 768px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      nav {
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+        padding: 0.5rem 0;
+        position: sticky;
+        top: 60px;
+        z-index: 50;
+        background: var(--bg2);
+      }
+
+      .nav-item {
+        display: none;
+      }
+
+      #mobile-nav-select {
+        display: block !important;
+        width: calc(100% - 2rem);
+        margin: 0.5rem 1rem;
+        padding: 0.7rem 1rem;
+        background: var(--bg3);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        font-family: 'Tajawal', sans-serif;
+        font-size: 1rem;
+        color: var(--text);
+        cursor: pointer;
+        appearance: auto;
+      }
+
+      .page {
+        padding: 1rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+
+      header {
+        padding: 0.75rem 1rem;
+        flex-direction: row;
+        gap: 0.5rem;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      header>div:first-child {
+        flex: 1;
+      }
+
+      header>div:last-child {
+        display: flex;
+        gap: 0.4rem;
+      }
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+      font-family: 'Tajawal', sans-serif;
+      font-size: .9rem;
+      color: var(--text);
+      animation: slideIn .3s ease;
+      max-width: 350px;
+    }
+
+    .toast.success {
+      border-right: 3px solid var(--green);
+    }
+
+    .toast.error {
+      border-right: 3px solid var(--red);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100px);
+        opacity: 0
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1
+      }
+    }
+
+    td,
+    th {
+      white-space: nowrap;
+    }
+
+    /* Responsive Admin Forms */
+    .admin-form {
+      background: var(--bg2);
+      padding: 1.2rem;
+      border: 1px solid var(--line);
+      margin-bottom: 1.5rem;
+      border-radius: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-end;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .admin-form .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .admin-form .form-group label {
+      font-size: 0.78rem;
+      color: var(--text) !important;
+      font-weight: 600;
+      opacity: 0.75;
+      text-align: right;
+      letter-spacing: 0.01em;
+      display: block;
+    }
+
+    .admin-form .edit-input {
+      width: 100% !important;
+      min-width: 100px;
+      padding: 0.5rem 0.7rem !important;
+      height: 40px;
+      background: var(--bg3);
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 6px;
+      outline: none;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 0.9rem;
+      transition: border-color 0.2s;
+    }
+
+    .admin-form .edit-input:focus {
+      border-color: var(--gold);
+      background: var(--bg2);
+    }
+
+    .admin-form select.edit-input {
+      cursor: pointer;
+      appearance: auto;
+    }
+
+    .admin-form button.hbtn {
+      height: 40px;
+      align-self: flex-end;
+      background: var(--gold);
+      color: var(--white);
+      border-color: var(--gold);
+      padding: 0 1.4rem;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .admin-form button.hbtn:hover {
+      background: var(--gold2);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(84, 26, 26, 0.25);
+    }
+
+    @media (max-width: 768px) {
+      .admin-form {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 1rem;
+        gap: 0.8rem;
+      }
+
+      .admin-form .form-group {
+        width: 100%;
+        min-width: unset !important;
+        flex: none !important;
+      }
+
+      .admin-form .edit-input {
+        width: 100% !important;
+        min-width: unset !important;
+        box-sizing: border-box;
+      }
+
+      .admin-form button.hbtn {
+        width: 100%;
+        margin-top: 0.25rem;
+        justify-content: center;
+      }
+    }
+  </style>
   <script>
     window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
-  
 
 
-</script>
+
+  </script>
   <script defer src="/_vercel/speed-insights/script.js">
 
 
-</script>
+  </script>
 </head>
+
 <body>
-<div class="toast-container" id="toastContainer"></div>
-<header>
-  <div style="display:flex;align-items:center;gap:.6rem;">
-    <img src="imgs/Ozel-Logo--01.png" alt="شعار OZEL CAFE" style="height:50px; width:auto; object-fit:contain;" />
-    <span style="font-size:.7rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase">لوحة التحكم — </span>
-    <span class="hlogo">OZEL</span>
-  </div>
-  <div style="display:flex;gap:.8rem">
-    <button class="hbtn" onclick="logout()">تسجيل خروج</button>
-  </div>
-</header>
-<div class="layout">
-  <nav>
-    <select id="mobile-nav-select" class="mobile-nav" onchange="showPage(this.value, this)" style="display: none;">
-      <option value="dashboard">📊 لوحة التحكم</option>
-      <option value="menu">🍽 إدارة القائمة</option>
-      <option value="categories">📂 التصنيفات</option>
-      <option value="offers">🏷 العروض</option>
-      <option value="users">👥 المستخدمين</option>
-      <option value="tables">📱 رموز QR للطاولات</option>
-      <option value="customization">⚙ خيارات التخصيص</option>
-      <option value="vlog">📸 إدارة صور الموقع</option>
-    </select>
-    <div class="nav-item active" onclick="showPage('dashboard',this)">📊 لوحة التحكم</div>
-    <div class="nav-item" onclick="showPage('menu',this)">🍽 إدارة القائمة</div>
-    <div class="nav-item" onclick="showPage('categories',this)">📂 التصنيفات</div>
-    <div class="nav-item" onclick="showPage('offers',this)">🏷 العروض</div>
-    <div class="nav-item" onclick="showPage('users',this)">👥 المستخدمين</div>
-    <div class="nav-item" onclick="showPage('tables',this)">📱 رموز QR للطاولات</div>
-    <div class="nav-item" onclick="showPage('customization',this)">⚙ خيارات التخصيص</div>
-    <div class="nav-item" onclick="showPage('vlog',this)">📸 إدارة صور الموقع</div>
-
-  </nav>
-  <div style="overflow-y:auto;max-height:calc(100vh - 60px)">
-
-    <!-- ===== لوحة التحكم ===== -->
-    <div class="page active" id="page-dashboard">
-      <h1 class="page-title">لوحة التحكم</h1>
-      <p class="page-sub">نظرة عامة على أداء اليوم</p>
-      <div class="stats-grid" id="statsGrid"><p style="color:var(--muted)">جارٍ التحميل...</p></div>
-      <div id="cashierStatsArea" style="margin-top: 2rem;"></div>
+  <div class="toast-container" id="toastContainer"></div>
+  <header>
+    <div style="display:flex;align-items:center;gap:.6rem;">
+      <img src="imgs/Ozel-Logo--01.png" alt="شعار OZEL CAFE" style="height:50px; width:auto; object-fit:contain;" />
+      <span style="font-size:.7rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase">لوحة التحكم —
+      </span>
+      <span class="hlogo">OZEL</span>
     </div>
-
-    <!-- ===== إدارة القائمة ===== -->
-    <div class="page" id="page-menu">
-      <h1 class="page-title">إدارة القائمة</h1>
-      <p class="page-sub">انقر على السعر أو الاسم للتعديل مباشرة</p>
-      
-      <div class="admin-form">
-        <div class="form-group" style="flex: 1; min-width: 120px;">
-          <label for="nd-name">الاسم بالإنجليزية (EN)</label>
-          <input type="text" id="nd-name" placeholder="الاسم (EN)" class="edit-input">
-        </div>
-        <div class="form-group" style="flex: 1; min-width: 120px;">
-          <label for="nd-name-ar">الاسم بالعربية (AR)</label>
-          <input type="text" id="nd-name-ar" placeholder="الاسم (AR)" class="edit-input">
-        </div>
-        <div class="form-group" style="flex: 0.6; min-width: 80px;">
-          <label for="nd-price">السعر (ج.م)</label>
-          <input type="number" id="nd-price" placeholder="السعر" class="edit-input" step="0.01">
-        </div>
-        <div class="form-group" style="flex: 1.2; min-width: 150px;">
-          <label for="nd-cat">التصنيف (Category)</label>
-          <select id="nd-cat" class="edit-input">
-            <option value="">اختر التصنيف...</option>
-          </select>
-        </div>
-        <div class="form-group" style="flex: 1.2; min-width: 150px;">
-          <label for="nd-img">صورة المشروب</label>
-          <input type="file" id="nd-img" class="edit-input" style="padding:.2rem" accept="image/*">
-        </div>
-        <button class="hbtn" onclick="addDrink()">+ إضافة عنصر</button>
-      </div>
-
-      <div class="search-bar" style="position:relative;">
-        <input id="menu-search" type="text" placeholder="🔍 ابحث عن عنصر..." oninput="filterMenuTable()" style="flex:1; padding-right:2.5rem;"/>
-        <span onclick="document.getElementById('menu-search').value='';filterMenuTable()" style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--muted); font-size:1.1rem;">×</span>
-      </div>
-      <table><thead><tr>
-        <th>الصورة</th><th>الاسم</th><th>التصنيف</th><th>السعر</th><th>الإضافات</th><th>متاح</th><th>مميز</th><th>إجراء</th>
-      </tr></thead>
-      <tbody id="menuTable"></tbody></table>
+    <div style="display:flex;gap:.8rem">
+      <button class="hbtn" onclick="logout()">تسجيل خروج</button>
     </div>
+  </header>
+  <div class="layout">
+    <nav>
+      <select id="mobile-nav-select" class="mobile-nav" onchange="showPage(this.value, this)" style="display: none;">
+        <option value="dashboard">📊 لوحة التحكم</option>
+        <option value="menu">🍽 إدارة القائمة</option>
+        <option value="categories">📂 التصنيفات</option>
+        <option value="offers">🏷 العروض</option>
+        <option value="users">👥 المستخدمين</option>
+        <option value="tables">📱 رموز QR للطاولات</option>
+        <option value="customization">⚙ خيارات التخصيص</option>
+        <option value="vlog">📸 إدارة صور الموقع</option>
+      </select>
+      <div class="nav-item active" onclick="showPage('dashboard',this)">📊 لوحة التحكم</div>
+      <div class="nav-item" onclick="showPage('menu',this)">🍽 إدارة القائمة</div>
+      <div class="nav-item" onclick="showPage('categories',this)">📂 التصنيفات</div>
+      <div class="nav-item" onclick="showPage('offers',this)">🏷 العروض</div>
+      <div class="nav-item" onclick="showPage('users',this)">👥 المستخدمين</div>
+      <div class="nav-item" onclick="showPage('tables',this)">📱 رموز QR للطاولات</div>
+      <div class="nav-item" onclick="showPage('customization',this)">⚙ خيارات التخصيص</div>
+      <div class="nav-item" onclick="showPage('vlog',this)">📸 إدارة صور الموقع</div>
 
+    </nav>
+    <div style="overflow-y:auto;max-height:calc(100vh - 60px)">
 
-
-    <!-- ===== المستخدمين ===== -->
-    <div class="page" id="page-users">
-      <h1 class="page-title">المستخدمين</h1>
-      <p class="page-sub">إدارة حسابات العملاء والموظفين</p>
-      
-      <div class="admin-form">
-        <div class="form-group" style="flex: 1; min-width: 120px;">
-          <label for="nu-name">الاسم</label>
-          <input type="text" id="nu-name" placeholder="الاسم" class="edit-input">
+      <!-- ===== لوحة التحكم ===== -->
+      <div class="page active" id="page-dashboard">
+        <h1 class="page-title">لوحة التحكم</h1>
+        <p class="page-sub">نظرة عامة على أداء اليوم</p>
+        <div class="stats-grid" id="statsGrid">
+          <p style="color:var(--muted)">جارٍ التحميل...</p>
         </div>
-        <div class="form-group" style="flex: 1; min-width: 120px;">
-          <label for="nu-phone">الهاتف</label>
-          <input type="tel" id="nu-phone" placeholder="الهاتف" class="edit-input">
-        </div>
-        <div class="form-group" style="flex: 1.2; min-width: 150px;">
-          <label for="nu-email">البريد الإلكتروني (اختياري)</label>
-          <input type="email" id="nu-email" placeholder="البريد الإلكتروني" class="edit-input">
-        </div>
-        <div class="form-group" style="flex: 1; min-width: 120px;">
-          <label for="nu-pass">كلمة المرور</label>
-          <input type="password" id="nu-pass" placeholder="كلمة المرور" class="edit-input">
-        </div>
-        <div class="form-group" style="flex: 0.8; min-width: 100px;">
-          <label for="nu-role">الصلاحية</label>
-          <select id="nu-role" class="edit-input">
-            <option value="customer">عميل</option>
-            <option value="partner">شريك</option>
-            <option value="admin">مدير</option>
-          </select>
-        </div>
-        <button class="hbtn" onclick="addUser()">حفظ</button>
+        <div id="cashierStatsArea" style="margin-top: 2rem;"></div>
       </div>
 
-      <table><thead><tr>
-        <th>الاسم</th><th>الهاتف</th><th>الدور</th><th>النقاط</th><th>الإنفاق</th><th>حالة العميل</th><th>إجراء</th>
-      </tr></thead>
-      <tbody id="usersTable"></tbody></table>
-    </div>
+      <!-- ===== إدارة القائمة ===== -->
+      <div class="page" id="page-menu">
+        <h1 class="page-title">إدارة القائمة</h1>
+        <p class="page-sub">انقر على السعر أو الاسم للتعديل مباشرة</p>
 
-    <!-- ===== التصنيفات ===== -->
-    <div class="page" id="page-categories">
-      <h1 class="page-title">التصنيفات</h1>
-      <p class="page-sub">إدارة تصنيفات المشروبات (إضافة / ترتيب / حذف)</p>
-
-      <div class="admin-form">
-        <div class="form-group" style="flex: 1; min-width: 130px;">
-          <label for="nc-name">الاسم بالإنجليزية (EN)</label>
-          <input type="text" id="nc-name" placeholder="الاسم (EN)" class="edit-input">
-        </div>
-        <div class="form-group" style="flex: 1; min-width: 130px;">
-          <label for="nc-name-ar">الاسم بالعربية (AR)</label>
-          <input type="text" id="nc-name-ar" placeholder="الاسم (AR)" class="edit-input">
-        </div>
-        <div class="form-group" style="flex: 0.6; min-width: 80px;">
-          <label for="nc-order">ترتيب الفرز</label>
-          <input type="number" id="nc-order" placeholder="ترتيب الفرز" class="edit-input" value="0">
-        </div>
-        <button class="hbtn" onclick="addCategory()">+ إضافة تصنيف</button>
-      </div>
-
-      <table><thead><tr>
-        <th>الاسم (EN)</th><th>الاسم (AR)</th><th>ترتيب الفرز</th><th>إجراء</th>
-      </tr></thead>
-      <tbody id="categoriesTable"></tbody></table>
-    </div>
-
-    <!-- ===== العروض ===== -->
-    <div class="page" id="page-offers">
-      <h1 class="page-title">إدارة العروض اليومية</h1>
-      <p class="page-sub">أضف عروضاً وخصومات على المشروبات</p>
-
-      <!-- Add Offer Form -->
-      <div class="admin-form">
-        <div class="form-group" style="flex: 1.2; min-width: 150px;">
-          <label for="no-drink">المشروب</label>
-          <select id="no-drink" class="edit-input">
-            <option value="">اختر مشروب...</option>
-          </select>
-        </div>
-        <div class="form-group" style="flex: 0.6; min-width: 80px;">
-          <label for="no-discount">نسبة الخصم %</label>
-          <input type="number" id="no-discount" placeholder="الخصم %" class="edit-input">
-        </div>
-        <div class="form-group" style="flex: 1.2; min-width: 180px;">
-          <label for="no-expiry">تاريخ انتهاء العرض</label>
-          <input type="datetime-local" id="no-expiry" class="edit-input" style="padding:.2rem">
-        </div>
-        <button class="hbtn" onclick="addOffer()">+ إضافة عرض</button>
-      </div>
-
-      <table><thead><tr>
-        <th>المشروب</th><th>السعر الأصلي</th><th>الخصم</th><th>السعر النهائي</th><th>ينتهي</th><th>إجراء</th>
-      </tr></thead>
-      <tbody id="offersTable"></tbody></table>
-    </div>
-
-    <!-- ===== رموز QR للطاولات ===== -->
-    <div class="page" id="page-tables">
-      <h1 class="page-title">رموز QR للطاولات</h1>
-      <p class="page-sub">إنشاء رموز QR للطاولات — يقوم العملاء بمسحها للطلب من طاولتهم</p>
-      
-      <div style="background:var(--bg2); padding: 1.5rem; border: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-        <label style="font-size:.85rem;color:var(--muted)">رقم الطاولة:</label>
-        <input type="number" id="tqr-number" value="1" min="1" style="width:80px; padding:.5rem; background:var(--bg3); border:1px solid var(--line); color:var(--text); border-radius:4px; font-family:'Tajawal',sans-serif; font-size:1rem; text-align:center;">
-        <button class="hbtn" onclick="generateTableQR()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.5rem 1.2rem; font-weight:700;">إنشاء QR</button>
-      </div>
-
-      <div id="tqr-result" style="display:none; background:var(--bg2); padding: 2rem; border: 1px solid var(--line); text-align:center;">
-        <div style="font-size:1.2rem; font-family:'Cormorant Garamond',serif; color:var(--text); margin-bottom:.5rem;">طاولة <span id="tqr-table-num">1</span></div>
-        <img id="tqr-img" src="" alt="رمز QR" style="width:250px; height:250px; border:8px solid var(--white); box-shadow:0 4px 20px rgba(0,0,0,.1); margin:1rem auto; display:block; border-radius:4px;">
-        <div style="font-size:.8rem; color:var(--muted); margin-bottom:1rem;">امسح الرمز لفتح سلة الطلب مع تعبئة رقم الطاولة تلقائياً</div>
-        <div style="display:flex; gap:.6rem; justify-content:center; flex-wrap:wrap;">
-          <button class="hbtn" onclick="downloadTableQR()" style="border-color:var(--gold); color:var(--gold); padding:.5rem 1.2rem;">تحميل PNG</button>
-          <button class="hbtn" onclick="printTableQR()" style="border-color:var(--accent-emerald); color:var(--accent-emerald); padding:.5rem 1.2rem;">طباعة</button>
-          <button class="hbtn" onclick="generateTableQR()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.5rem 1.2rem; font-weight:700;">+ إنشاء آخر</button>
-        </div>
-      </div>
-
-      <!-- ===== توليد ملف بطاقات الطاولات للطباعة (PDF) ===== -->
-      <div style="background:var(--bg2); padding: 1.5rem; border: 1px solid var(--line); margin-top: 1.5rem;">
-        <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text); font-size:1.3rem; border-bottom: 1px solid var(--line); padding-bottom:.5rem;">🖨️ طباعة بطاقات الطاولات بتصميم مقوس مخصص (PDF)</h3>
-        <p style="font-size:0.8rem; color:var(--muted); margin-bottom:1.5rem;">توليد ملف PDF جاهز للطباعة والقص على شكل حامل الطاولة القوسي (Arch Stand) لعدة طاولات دفعة واحدة بدقة عالية.</p>
-        
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-          <div class="form-group" style="margin-bottom:0;">
-            <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">من طاولة:</label>
-            <input type="number" id="tqr-range-start" value="1" min="1" class="edit-input" style="width:100%; box-sizing:border-box;">
+        <div class="admin-form">
+          <div class="form-group" style="flex: 1; min-width: 120px;">
+            <label for="nd-name">الاسم بالإنجليزية (EN)</label>
+            <input type="text" id="nd-name" placeholder="الاسم (EN)" class="edit-input">
           </div>
-          <div class="form-group" style="margin-bottom:0;">
-            <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">إلى طاولة:</label>
-            <input type="number" id="tqr-range-end" value="10" min="1" class="edit-input" style="width:100%; box-sizing:border-box;">
+          <div class="form-group" style="flex: 1; min-width: 120px;">
+            <label for="nd-name-ar">الاسم بالعربية (AR)</label>
+            <input type="text" id="nd-name-ar" placeholder="الاسم (AR)" class="edit-input">
           </div>
-          <div class="form-group" style="margin-bottom:0;">
-            <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">رابط الموقع الأساسي (Base URL):</label>
-            <input type="text" id="tqr-base-url" placeholder="https://www.ozel.cafe" class="edit-input" style="width:100%; box-sizing:border-box;">
+          <div class="form-group" style="flex: 0.6; min-width: 80px;">
+            <label for="nd-price">السعر (ج.م)</label>
+            <input type="number" id="nd-price" placeholder="السعر" class="edit-input" step="0.01">
           </div>
+          <div class="form-group" style="flex: 1.2; min-width: 150px;">
+            <label for="nd-cat">التصنيف (Category)</label>
+            <select id="nd-cat" class="edit-input">
+              <option value="">اختر التصنيف...</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex: 1.2; min-width: 150px;">
+            <label for="nd-img">صورة المشروب</label>
+            <input type="file" id="nd-img" class="edit-input" style="padding:.2rem" accept="image/*">
+          </div>
+          <button class="hbtn" onclick="addDrink()">+ إضافة عنصر</button>
         </div>
 
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-          <div class="form-group" style="margin-bottom:0;">
-            <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">رسالة الترحيب (Welcome):</label>
-            <input type="text" id="tqr-welcome" value="Welcome!" class="edit-input" style="width:100%; box-sizing:border-box;">
-          </div>
-          <div class="form-group" style="margin-bottom:0;">
-            <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">رسالة الشكر (بما في ذلك اللغة العربية):</label>
-            <input type="text" id="tqr-thankyou" value="Thank you for choosing Özel." class="edit-input" style="width:100%; box-sizing:border-box;">
-          </div>
-          <div class="form-group" style="margin-bottom:0;">
-            <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">رسالة الاستمتاع بالوقت:</label>
-            <input type="text" id="tqr-enjoy" value="Enjoy your time with us." class="edit-input" style="width:100%; box-sizing:border-box;">
-          </div>
-        </div>
-
-        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1.5rem;">
-          <input type="checkbox" id="tqr-show-num" checked style="width:auto; cursor:pointer;">
-          <label for="tqr-show-num" style="margin-bottom:0; cursor:pointer; font-size:.85rem; color:var(--text);">إظهار رقم الطاولة أسفل الكارت (Table 1, Table 2, ...)</label>
-        </div>
-
-        <button class="hbtn" onclick="downloadTablesPDF()" style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.6rem 2rem; font-weight:700;">💾 تحميل ملف الـ PDF الجاهز</button>
-      </div>
-    </div>
-
-    <!-- ===== خيارات التخصيص (السكر والإضافات) ===== -->
-    <div class="page" id="page-customization">
-      <h1 class="page-title">⚙ خيارات التخصيص</h1>
-      <p class="page-sub">إدارة مستويات السكر والإضافات المتاحة للمشروبات</p>
-
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem;">
-        <!-- مستويات السكر -->
-        <div style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line);">
-          <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">مستويات السكر</h3>
-          <div id="sugarLevelsList"></div>
-          <button class="hbtn" onclick="addSugarRow()" style="margin-top:.8rem; color:var(--green); border-color:var(--green);">+ إضافة مستوى سكر</button>
-        </div>
-
-        <!-- الإضافات -->
-        <div style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line);">
-          <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">الإضافات</h3>
-          <div id="extrasList"></div>
-          <button class="hbtn" onclick="addExtraRow()" style="margin-top:.8rem; color:var(--green); border-color:var(--green);">+ إضافة إضافة</button>
-        </div>
-      </div>
-
-      <button class="hbtn" onclick="saveCustomization()" style="margin-top:1.5rem; background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.6rem 2rem; font-weight:700;">💾 حفظ التغييرات</button>
-    </div>
-
-    <!-- ===== إدارة الصور (Vlog & الشركاء) ===== -->
-    <div class="page" id="page-vlog">
-      <h1 class="page-title">📸 إدارة صور الموقع والشركاء</h1>
-      <p class="page-sub">مراجعة وقبول أو حذف صور ألبوم المكان وصور الملفات الشخصية للشركاء</p>
-
-      <!-- تبويبات التنقل -->
-      <div style="display: flex; gap: 1rem; border-bottom: 1.5px solid var(--line); margin-bottom: 1.5rem; padding-bottom: 0.5rem;">
-        <button class="hbtn" id="tab-vlog-album" onclick="switchVlogTab('album')" style="background: var(--gold); color: #fff; height: 36px; padding: 0 1rem; font-size: 0.85rem;">ألبوم المكان (Vlog & Album)</button>
-        <button class="hbtn" id="tab-vlog-partners" onclick="switchVlogTab('partners')" style="background: transparent; color: var(--muted); border-color: var(--line); height: 36px; padding: 0 1rem; font-size: 0.85rem;">صور ومعارض الشركاء</button>
-      </div>
-
-      <!-- قسم ألبوم المكان -->
-      <div id="vlog-album-section">
         <div class="search-bar" style="position:relative;">
-          <input id="vlog-admin-search" type="text" placeholder="🔍 ابحث بالاسم أو الوصف..." oninput="filterAdminVlogTable()" style="flex:1; padding-right:2.5rem;"/>
-          <span onclick="document.getElementById('vlog-admin-search').value='';filterAdminVlogTable()" style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--muted); font-size:1.1rem;">×</span>
+          <input id="menu-search" type="text" placeholder="🔍 ابحث عن عنصر..." oninput="filterMenuTable()"
+            style="flex:1; padding-right:2.5rem;" />
+          <span onclick="document.getElementById('menu-search').value='';filterMenuTable()"
+            style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--muted); font-size:1.1rem;">×</span>
         </div>
-        
         <table>
           <thead>
             <tr>
               <th>الصورة</th>
-              <th>الناشر</th>
-              <th>الوصف</th>
-              <th>الإعجابات</th>
-              <th>الحالة</th>
-              <th>تحديد كفائز</th>
+              <th>الاسم</th>
+              <th>التصنيف</th>
+              <th>السعر</th>
+              <th>الإضافات</th>
+              <th>متاح</th>
+              <th>مميز</th>
               <th>إجراء</th>
             </tr>
           </thead>
-          <tbody id="vlogAdminTable">
-            <tr><td colspan="7" style="text-align:center; color:var(--muted);">جاري التحميل...</td></tr>
-          </tbody>
+          <tbody id="menuTable"></tbody>
         </table>
       </div>
 
-      <!-- قسم صور ومعارض الشركاء -->
-      <div id="vlog-partners-section" style="display: none;">
-        <div id="vlogPartnersContainer" style="display: flex; flex-direction: column; gap: 1.5rem;">
-          <p style="text-align:center; color:var(--muted); font-family:'Tajawal', sans-serif;">جاري تحميل بيانات صور الشركاء...</p>
+
+
+      <!-- ===== المستخدمين ===== -->
+      <div class="page" id="page-users">
+        <h1 class="page-title">المستخدمين</h1>
+        <p class="page-sub">إدارة حسابات العملاء والموظفين</p>
+
+        <div class="admin-form">
+          <div class="form-group" style="flex: 1; min-width: 120px;">
+            <label for="nu-name">الاسم</label>
+            <input type="text" id="nu-name" placeholder="الاسم" class="edit-input">
+          </div>
+          <div class="form-group" style="flex: 1; min-width: 120px;">
+            <label for="nu-phone">الهاتف</label>
+            <input type="tel" id="nu-phone" placeholder="الهاتف" class="edit-input">
+          </div>
+          <div class="form-group" style="flex: 1.2; min-width: 150px;">
+            <label for="nu-email">البريد الإلكتروني (اختياري)</label>
+            <input type="email" id="nu-email" placeholder="البريد الإلكتروني" class="edit-input">
+          </div>
+          <div class="form-group" style="flex: 1; min-width: 120px;">
+            <label for="nu-pass">كلمة المرور</label>
+            <input type="password" id="nu-pass" placeholder="كلمة المرور" class="edit-input">
+          </div>
+          <div class="form-group" style="flex: 0.8; min-width: 100px;">
+            <label for="nu-role">الصلاحية</label>
+            <select id="nu-role" class="edit-input">
+              <option value="customer">عميل</option>
+              <option value="partner">شريك</option>
+              <option value="admin">مدير</option>
+            </select>
+          </div>
+          <button class="hbtn" onclick="addUser()">حفظ</button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>الهاتف</th>
+              <th>الدور</th>
+              <th>النقاط</th>
+              <th>الإنفاق</th>
+              <th>حالة العميل</th>
+              <th>إجراء</th>
+            </tr>
+          </thead>
+          <tbody id="usersTable"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== التصنيفات ===== -->
+      <div class="page" id="page-categories">
+        <h1 class="page-title">التصنيفات</h1>
+        <p class="page-sub">إدارة تصنيفات المشروبات (إضافة / ترتيب / حذف)</p>
+
+        <div class="admin-form">
+          <div class="form-group" style="flex: 1; min-width: 130px;">
+            <label for="nc-name">الاسم بالإنجليزية (EN)</label>
+            <input type="text" id="nc-name" placeholder="الاسم (EN)" class="edit-input">
+          </div>
+          <div class="form-group" style="flex: 1; min-width: 130px;">
+            <label for="nc-name-ar">الاسم بالعربية (AR)</label>
+            <input type="text" id="nc-name-ar" placeholder="الاسم (AR)" class="edit-input">
+          </div>
+          <div class="form-group" style="flex: 0.6; min-width: 80px;">
+            <label for="nc-order">ترتيب الفرز</label>
+            <input type="number" id="nc-order" placeholder="ترتيب الفرز" class="edit-input" value="0">
+          </div>
+          <button class="hbtn" onclick="addCategory()">+ إضافة تصنيف</button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>الاسم (EN)</th>
+              <th>الاسم (AR)</th>
+              <th>ترتيب الفرز</th>
+              <th>إجراء</th>
+            </tr>
+          </thead>
+          <tbody id="categoriesTable"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== العروض ===== -->
+      <div class="page" id="page-offers">
+        <h1 class="page-title">إدارة العروض اليومية</h1>
+        <p class="page-sub">أضف عروضاً وخصومات على المشروبات</p>
+
+        <!-- Add Offer Form -->
+        <div class="admin-form">
+          <div class="form-group" style="flex: 1.2; min-width: 150px;">
+            <label for="no-drink">المشروب</label>
+            <select id="no-drink" class="edit-input">
+              <option value="">اختر مشروب...</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex: 0.6; min-width: 80px;">
+            <label for="no-discount">نسبة الخصم %</label>
+            <input type="number" id="no-discount" placeholder="الخصم %" class="edit-input">
+          </div>
+          <div class="form-group" style="flex: 1.2; min-width: 180px;">
+            <label for="no-expiry">تاريخ انتهاء العرض</label>
+            <input type="datetime-local" id="no-expiry" class="edit-input" style="padding:.2rem">
+          </div>
+          <button class="hbtn" onclick="addOffer()">+ إضافة عرض</button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>المشروب</th>
+              <th>السعر الأصلي</th>
+              <th>الخصم</th>
+              <th>السعر النهائي</th>
+              <th>ينتهي</th>
+              <th>إجراء</th>
+            </tr>
+          </thead>
+          <tbody id="offersTable"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== رموز QR للطاولات ===== -->
+      <div class="page" id="page-tables">
+        <h1 class="page-title">رموز QR للطاولات</h1>
+        <p class="page-sub">إنشاء رموز QR للطاولات — يقوم العملاء بمسحها للطلب من طاولتهم</p>
+
+        <div
+          style="background:var(--bg2); padding: 1.5rem; border: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+          <label style="font-size:.85rem;color:var(--muted)">رقم الطاولة:</label>
+          <input type="number" id="tqr-number" value="1" min="1"
+            style="width:80px; padding:.5rem; background:var(--bg3); border:1px solid var(--line); color:var(--text); border-radius:4px; font-family:'Tajawal',sans-serif; font-size:1rem; text-align:center;">
+          <button class="hbtn" onclick="generateTableQR()"
+            style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.5rem 1.2rem; font-weight:700;">إنشاء
+            QR</button>
+        </div>
+
+        <div id="tqr-result"
+          style="display:none; background:var(--bg2); padding: 2rem; border: 1px solid var(--line); text-align:center;">
+          <div
+            style="font-size:1.2rem; font-family:'Cormorant Garamond',serif; color:var(--text); margin-bottom:.5rem;">
+            طاولة <span id="tqr-table-num">1</span></div>
+          <img id="tqr-img" src="" alt="رمز QR"
+            style="width:250px; height:250px; border:8px solid var(--white); box-shadow:0 4px 20px rgba(0,0,0,.1); margin:1rem auto; display:block; border-radius:4px;">
+          <div style="font-size:.8rem; color:var(--muted); margin-bottom:1rem;">امسح الرمز لفتح سلة الطلب مع تعبئة رقم
+            الطاولة تلقائياً</div>
+          <div style="display:flex; gap:.6rem; justify-content:center; flex-wrap:wrap;">
+            <button class="hbtn" onclick="downloadTableQR()"
+              style="border-color:var(--gold); color:var(--gold); padding:.5rem 1.2rem;">تحميل PNG</button>
+            <button class="hbtn" onclick="printTableQR()"
+              style="border-color:var(--accent-emerald); color:var(--accent-emerald); padding:.5rem 1.2rem;">طباعة</button>
+            <button class="hbtn" onclick="generateTableQR()"
+              style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.5rem 1.2rem; font-weight:700;">+
+              إنشاء آخر</button>
+          </div>
+        </div>
+
+        <!-- ===== توليد ملف بطاقات الطاولات للطباعة (PDF) ===== -->
+        <div style="background:var(--bg2); padding: 1.5rem; border: 1px solid var(--line); margin-top: 1.5rem;">
+          <h3
+            style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text); font-size:1.3rem; border-bottom: 1px solid var(--line); padding-bottom:.5rem;">
+            🖨️ طباعة بطاقات الطاولات بتصميم مقوس مخصص (PDF)</h3>
+          <p style="font-size:0.8rem; color:var(--muted); margin-bottom:1.5rem;">توليد ملف PDF جاهز للطباعة والقص على
+            شكل حامل الطاولة القوسي (Arch Stand) لعدة طاولات دفعة واحدة بدقة عالية.</p>
+
+          <div
+            style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">من طاولة:</label>
+              <input type="number" id="tqr-range-start" value="1" min="1" class="edit-input"
+                style="width:100%; box-sizing:border-box;">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">إلى طاولة:</label>
+              <input type="number" id="tqr-range-end" value="10" min="1" class="edit-input"
+                style="width:100%; box-sizing:border-box;">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">رابط الموقع الأساسي
+                (Base URL):</label>
+              <input type="text" id="tqr-base-url" placeholder="https://www.ozel.cafe" class="edit-input"
+                style="width:100%; box-sizing:border-box;">
+            </div>
+          </div>
+
+          <div
+            style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">رسالة الترحيب
+                (Welcome):</label>
+              <input type="text" id="tqr-welcome" value="Welcome!" class="edit-input"
+                style="width:100%; box-sizing:border-box;">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">رسالة الشكر (بما في
+                ذلك اللغة العربية):</label>
+              <input type="text" id="tqr-thankyou" value="Thank you for choosing Özel." class="edit-input"
+                style="width:100%; box-sizing:border-box;">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">رسالة الاستمتاع
+                بالوقت:</label>
+              <input type="text" id="tqr-enjoy" value="Enjoy your time with us." class="edit-input"
+                style="width:100%; box-sizing:border-box;">
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1.5rem;">
+            <input type="checkbox" id="tqr-show-num" checked style="width:auto; cursor:pointer;">
+            <label for="tqr-show-num"
+              style="margin-bottom:0; cursor:pointer; font-size:.85rem; color:var(--text);">إظهار رقم الطاولة أسفل
+              الكارت (Table 1, Table 2, ...)</label>
+          </div>
+
+          <button class="hbtn" onclick="downloadTablesPDF()"
+            style="background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.6rem 2rem; font-weight:700;">💾
+            تحميل ملف الـ PDF الجاهز</button>
         </div>
       </div>
+
+      <!-- ===== خيارات التخصيص (السكر والإضافات) ===== -->
+      <div class="page" id="page-customization">
+        <h1 class="page-title">⚙ خيارات التخصيص</h1>
+        <p class="page-sub">إدارة مستويات السكر والإضافات المتاحة للمشروبات</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem;">
+          <!-- مستويات السكر -->
+          <div style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line);">
+            <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">مستويات السكر</h3>
+            <div id="sugarLevelsList"></div>
+            <button class="hbtn" onclick="addSugarRow()"
+              style="margin-top:.8rem; color:var(--green); border-color:var(--green);">+ إضافة مستوى سكر</button>
+          </div>
+
+          <!-- الإضافات -->
+          <div style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line);">
+            <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">الإضافات</h3>
+            <div id="extrasList"></div>
+            <button class="hbtn" onclick="addExtraRow()"
+              style="margin-top:.8rem; color:var(--green); border-color:var(--green);">+ إضافة إضافة</button>
+          </div>
+        </div>
+
+        <!-- تخصيص الهوية واللوجو والخلفية للموقع -->
+        <div style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-top:2rem;">
+          <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">🎨 تخصيص الهوية البصرية واللوجو والخلفية للموقع</h3>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem;">
+            <!-- اللوجو الفاتح -->
+            <div style="background:var(--bg3); padding:1rem; border:1px solid var(--line);">
+              <label style="display:block; font-size:.8rem; color:var(--gold); font-weight:700; margin-bottom:.5rem;">اللوجو الفاتح (للهيدر والفوتر والـ Drawer)</label>
+              <input type="file" id="logo1-file" accept="image/*" style="width:100%; background:var(--bg2); border:1px solid var(--line); color:var(--text); padding:.4rem; font-size:.8rem; outline:none;" />
+              <div id="logo1-preview" style="margin-top:.8rem; text-align:center; min-height:80px; display:flex; align-items:center; justify-content:center; border:1px dashed var(--line); background:var(--bg2);">
+                <span style="font-size:.7rem; color:var(--muted);">لا يوجد معاينة</span>
+              </div>
+            </div>
+            <!-- اللوجو الداكن -->
+            <div style="background:var(--bg3); padding:1rem; border:1px solid var(--line);">
+              <label style="display:block; font-size:.8rem; color:var(--gold); font-weight:700; margin-bottom:.5rem;">اللوجو الداكن / الذهبي (للودر وعن الكافيه)</label>
+              <input type="file" id="logo2-file" accept="image/*" style="width:100%; background:var(--bg2); border:1px solid var(--line); color:var(--text); padding:.4rem; font-size:.8rem; outline:none;" />
+              <div id="logo2-preview" style="margin-top:.8rem; text-align:center; min-height:80px; display:flex; align-items:center; justify-content:center; border:1px dashed var(--line); background:var(--bg2);">
+                <span style="font-size:.7rem; color:var(--muted);">لا يوجد معاينة</span>
+              </div>
+            </div>
+            <!-- صورة الخلفية الرئيسية -->
+            <div style="background:var(--bg3); padding:1rem; border:1px solid var(--line);">
+              <label style="display:block; font-size:.8rem; color:var(--gold); font-weight:700; margin-bottom:.5rem;">صورة الخلفية الرئيسية (Hero Background)</label>
+              <input type="file" id="heroBg-file" accept="image/*" style="width:100%; background:var(--bg2); border:1px solid var(--line); color:var(--text); padding:.4rem; font-size:.8rem; outline:none;" />
+              <div id="heroBg-preview" style="margin-top:.8rem; text-align:center; min-height:80px; display:flex; align-items:center; justify-content:center; border:1px dashed var(--line); background:var(--bg2);">
+                <span style="font-size:.7rem; color:var(--muted);">لا يوجد معاينة</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="hbtn" onclick="saveCustomization()"
+          style="margin-top:1.5rem; background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.6rem 2rem; font-weight:700;">💾
+          حفظ التغييرات</button>
+      </div>
+
+      <!-- ===== إدارة الصور (Vlog & الشركاء) ===== -->
+      <div class="page" id="page-vlog">
+        <h1 class="page-title">📸 إدارة صور الموقع والشركاء</h1>
+        <p class="page-sub">مراجعة وقبول أو حذف صور ألبوم المكان وصور الملفات الشخصية للشركاء</p>
+
+        <!-- تبويبات التنقل -->
+        <div
+          style="display: flex; gap: 1rem; border-bottom: 1.5px solid var(--line); margin-bottom: 1.5rem; padding-bottom: 0.5rem;">
+          <button class="hbtn" id="tab-vlog-album" onclick="switchVlogTab('album')"
+            style="background: var(--gold); color: #fff; height: 36px; padding: 0 1rem; font-size: 0.85rem;">ألبوم
+            المكان (Vlog & Album)</button>
+          <button class="hbtn" id="tab-vlog-partners" onclick="switchVlogTab('partners')"
+            style="background: transparent; color: var(--muted); border-color: var(--line); height: 36px; padding: 0 1rem; font-size: 0.85rem;">صور
+            ومعارض الشركاء</button>
+        </div>
+
+        <!-- قسم ألبوم المكان -->
+        <div id="vlog-album-section">
+          <div class="search-bar" style="position:relative;">
+            <input id="vlog-admin-search" type="text" placeholder="🔍 ابحث بالاسم أو الوصف..."
+              oninput="filterAdminVlogTable()" style="flex:1; padding-right:2.5rem;" />
+            <span onclick="document.getElementById('vlog-admin-search').value='';filterAdminVlogTable()"
+              style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--muted); font-size:1.1rem;">×</span>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>الصورة</th>
+                <th>الناشر</th>
+                <th>الوصف</th>
+                <th>الإعجابات</th>
+                <th>الحالة</th>
+                <th>تحديد كفائز</th>
+                <th>إجراء</th>
+              </tr>
+            </thead>
+            <tbody id="vlogAdminTable">
+              <tr>
+                <td colspan="7" style="text-align:center; color:var(--muted);">جاري التحميل...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- قسم صور ومعارض الشركاء -->
+        <div id="vlog-partners-section" style="display: none;">
+          <div id="vlogPartnersContainer" style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <p style="text-align:center; color:var(--muted); font-family:'Tajawal', sans-serif;">جاري تحميل بيانات صور
+              الشركاء...</p>
+          </div>
+        </div>
+      </div>
+
     </div>
-
   </div>
-</div>
 
-<script>
-const user  = JSON.parse(localStorage.getItem('ozel_user') || 'null');
-if (!user || (user.role !== 'admin' && user.role !== 'partner' && !user.isPartner)) { location.href = 'login.html?from=admin.html'; }
+  <script>
+    const user = JSON.parse(localStorage.getItem('ozel_user') || 'null');
+    if (!user || (user.role !== 'admin' && user.role !== 'partner' && !user.isPartner)) { location.href = 'login.html?from=admin.html'; }
 
-let menuData = [], usersData = [], ordersData = [], categoriesData = [];
+    let menuData = [], usersData = [], ordersData = [], categoriesData = [];
 
-// الحصول على ترويسة المصادقة للطلبات
-function getAuthH() {
-  const token = localStorage.getItem('ozel_token');
-  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
-}
-
-// عرض الصفحة المحددة وتحميل بياناتها
-function showPage(name, el) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  if (el && el.classList && el.classList.contains('nav-item')) el.classList.add('active');
-  
-  const sel = document.getElementById('mobile-nav-select');
-  if (sel) sel.value = name;
-
-  if (name === 'dashboard') loadStats();
-  if (name === 'menu') loadMenu();
-  if (name === 'categories') loadCategories();
-  if (name === 'offers') loadOffers();
-  if (name === 'users') loadUsers();
-  if (name === 'tables') {
-    document.getElementById('tqr-result').style.display = 'none';
-    document.getElementById('tqr-base-url').value = window.location.origin;
-  }
-  if (name === 'customization') loadCustomization();
-  if (name === 'vlog') loadAdminVlog();
-}
-
-// ????? ??????? ?????????
-let _lastTableQR = null;
-
-// ????? ??? QR ??????
-async function generateTableQR() {
-  const num = parseInt(document.getElementById('tqr-number').value) || 1;
-  if (num < 1) { alert('رقم طاولة غير صالح'); return; }
-  try {
-    const res = await fetch('/api/admin/qr-table/' + num, { headers: getAuthH() });
-    const data = await res.json();
-    if (data.success) {
-      _lastTableQR = data;
-      document.getElementById('tqr-table-num').textContent = num;
-      document.getElementById('tqr-img').src = data.qrCodeUrl;
-      document.getElementById('tqr-result').style.display = 'block';
-    } else {
-      alert(data.error || 'فشل في إنشاء QR');
+    // الحصول على ترويسة المصادقة للطلبات
+    function getAuthH() {
+      const token = localStorage.getItem('ozel_token');
+      return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
     }
-  } catch(e) {
-    alert('خطأ في الاتصال');
-  }
-}
 
-// ????? ??? QR ??????? ?????
-function downloadTableQR() {
-  if (!_lastTableQR) return;
-  const a = document.createElement('a');
-  a.href = _lastTableQR.qrCodeUrl;
-  a.download = 'OZEL-Table-' + _lastTableQR.table + '.png';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
+    // عرض الصفحة المحددة وتحميل بياناتها
+    function showPage(name, el) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('page-' + name).classList.add('active');
+      if (el && el.classList && el.classList.contains('nav-item')) el.classList.add('active');
 
-// تحميل ملف بطاقات الطاولات PDF مخصص للطباعة
-function downloadTablesPDF() {
-  const start = parseInt(document.getElementById('tqr-range-start').value) || 1;
-  const end = parseInt(document.getElementById('tqr-range-end').value) || 1;
-  const baseUrl = encodeURIComponent(document.getElementById('tqr-base-url').value.trim() || window.location.origin);
-  const welcomeText = encodeURIComponent(document.getElementById('tqr-welcome').value.trim());
-  const thankYouText = encodeURIComponent(document.getElementById('tqr-thankyou').value.trim());
-  const enjoyText = encodeURIComponent(document.getElementById('tqr-enjoy').value.trim());
-  const showTableNum = document.getElementById('tqr-show-num').checked;
+      const sel = document.getElementById('mobile-nav-select');
+      if (sel) sel.value = name;
 
-  if (start < 1 || end < 1 || start > end) {
-    alert('الرجاء إدخال نطاق طاولات صحيح (البداية يجب أن تكون أقل من أو تساوي النهاية)');
-    return;
-  }
-
-  const token = localStorage.getItem('ozel_token');
-  const pdfUrl = `/api/admin/qr-tables-pdf?start=${start}&end=${end}&baseUrl=${baseUrl}&welcomeText=${welcomeText}&thankYouText=${thankYouText}&enjoyText=${enjoyText}&showTableNum=${showTableNum}&token=${token}`;
-  
-  window.open(pdfUrl, '_blank');
-}
-
-// ????? ??? QR ???????
-// طباعة رمز QR الخاص بالطاولة بتصميم فاخر
-function printTableQR() {
-  if (!_lastTableQR) return;
-  const win = window.open('', '_blank');
-  win.document.write('<!DOCTYPE html>' +
-    '<html><head><title>طاولة ' + _lastTableQR.table + ' - QR Code</title>' +
-    '<base href="' + window.location.origin + '/">' +
-    '<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Tajawal:wght@500;700&family=Outfit:wght@600;700&display=swap" rel="stylesheet">' +
-    '<style>' +
-    '  body { background: #FDFBF7; color: #241E1A; font-family: "Tajawal", "Outfit", sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
-    '  .card-frame { border: 3px solid #541a1a; padding: 2.5rem 2rem; width: 420px; background: #FFFFFF; text-align: center; border-radius: 16px; box-shadow: 0 10px 40px rgba(84, 26, 26, 0.08); position: relative; box-sizing: border-box; }' +
-    '  .card-frame::before { content: ""; position: absolute; top: 6px; left: 6px; right: 6px; bottom: 6px; border: 1px dashed rgba(84, 26, 26, 0.3); border-radius: 12px; pointer-events: none; }' +
-    '  .logo { height: 65px; width: auto; margin-bottom: 0.8rem; object-fit: contain; }' +
-    '  .brand-name { font-family: "Cormorant Garamond", serif; font-size: 2rem; font-weight: 700; letter-spacing: 0.15em; color: #541a1a; margin: 0 0 0.4rem 0; text-transform: uppercase; }' +
-    '  .divider { width: 50px; height: 2px; background: #541a1a; margin: 0.8rem auto; }' +
-    '  .table-title { font-family: "Cormorant Garamond", "Tajawal", serif; font-size: 1.5rem; font-weight: 700; color: #241E1A; margin-bottom: 0.1rem; }' +
-    '  .table-number { font-size: 3.2rem; font-weight: 700; color: #541a1a; font-family: "Outfit", sans-serif; margin: 0 0 1rem 0; line-height: 1; }' +
-    '  .qr-container { margin: 1rem auto; padding: 10px; background: #FFFFFF; border: 1px solid rgba(84, 26, 26, 0.15); display: inline-block; border-radius: 8px; }' +
-    '  .qr-image { width: 230px; height: 230px; display: block; }' +
-    '  .instruction-ar { font-size: 1.05rem; font-weight: 700; color: #541a1a; margin-bottom: 0.2rem; }' +
-    '  .instruction-en { font-size: 0.78rem; letter-spacing: 0.08em; color: #241E1A; text-transform: uppercase; margin-bottom: 1.2rem; font-weight: 600; }' +
-    '  .site-url { font-size: 0.8rem; color: rgba(36, 30, 26, 0.6); font-family: "Outfit", sans-serif; letter-spacing: 0.05em; word-break: break-all; }' +
-    '  @media print { body { background: none; } .card-frame { box-shadow: none; border: 3px solid #541a1a; margin: auto; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); } }' +
-    '</style></head><body>' +
-    '  <div class="card-frame">' +
-    '    <img class="logo" src="imgs/Ozel-Logo--02.png" onerror="this.src=\'imgs/Ozel-Logo--01.png\'; this.onerror=null;" />' +
-    '    <h2 class="brand-name">OZEL CAFE</h2>' +
-    '    <div class="divider"></div>' +
-    '    <div class="table-title">طاولة / Table</div>' +
-    '    <h1 class="table-number">' + _lastTableQR.table + '</h1>' +
-    '    <div class="qr-container">' +
-    '      <img class="qr-image" src="' + _lastTableQR.qrCodeUrl + '" />' +
-    '    </div>' +
-    '    <div class="instruction-ar">عالم من المذاق الفاخر بانتظارك</div>' +
-    '    <div class="instruction-ar" style="font-size: 0.9rem; font-weight: 500; color: #241E1A; margin-bottom: 0.2rem;">امسح الرمز لطلب مشروبك مباشرة</div>' +
-    '    <div class="instruction-en">Scan QR Code to order directly</div>' +
-    '    <div class="site-url">' + _lastTableQR.url.replace("https://", "").replace("http://", "") + '</div>' +
-    '  </div>' +
-    '</body></html>');
-  win.document.close();
-  win.focus();
-
-  // Wait for both the logo and QR images to load before printing
-  const images = win.document.querySelectorAll('img');
-  let loadedCount = 0;
-  const totalImages = images.length;
-
-  if (totalImages === 0) {
-    win.print();
-  } else {
-    images.forEach(img => {
-      if (img.complete) {
-        onImageLoaded();
-      } else {
-        img.addEventListener('load', onImageLoaded);
-        img.addEventListener('error', onImageLoaded);
+      if (name === 'dashboard') loadStats();
+      if (name === 'menu') loadMenu();
+      if (name === 'categories') loadCategories();
+      if (name === 'offers') loadOffers();
+      if (name === 'users') loadUsers();
+      if (name === 'tables') {
+        document.getElementById('tqr-result').style.display = 'none';
+        document.getElementById('tqr-base-url').value = window.location.origin;
       }
-    });
-  }
-
-  function onImageLoaded() {
-    loadedCount++;
-    if (loadedCount === totalImages) {
-      setTimeout(function() {
-        win.print();
-      }, 300);
+      if (name === 'customization') loadCustomization();
+      if (name === 'vlog') loadAdminVlog();
     }
-  }
-}
 
-// ????? ???????? ???? ??????
-async function loadStats() {
-  try {
-    const res = await fetch('/api/admin/stats', { headers: getAuthH() });
-    if (!res.ok) throw new Error('Failed to load stats');
-    const s = await res.json();
-  
-  document.getElementById('statsGrid').innerHTML = `
+    // ????? ??????? ?????????
+    let _lastTableQR = null;
+
+    // ????? ??? QR ??????
+    async function generateTableQR() {
+      const num = parseInt(document.getElementById('tqr-number').value) || 1;
+      if (num < 1) { alert('رقم طاولة غير صالح'); return; }
+      try {
+        const res = await fetch('/api/admin/qr-table/' + num, { headers: getAuthH() });
+        const data = await res.json();
+        if (data.success) {
+          _lastTableQR = data;
+          document.getElementById('tqr-table-num').textContent = num;
+          document.getElementById('tqr-img').src = data.qrCodeUrl;
+          document.getElementById('tqr-result').style.display = 'block';
+        } else {
+          alert(data.error || 'فشل في إنشاء QR');
+        }
+      } catch (e) {
+        alert('خطأ في الاتصال');
+      }
+    }
+
+    // ????? ??? QR ??????? ?????
+    function downloadTableQR() {
+      if (!_lastTableQR) return;
+      const a = document.createElement('a');
+      a.href = _lastTableQR.qrCodeUrl;
+      a.download = 'OZEL-Table-' + _lastTableQR.table + '.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // تحميل ملف بطاقات الطاولات PDF مخصص للطباعة
+    function downloadTablesPDF() {
+      const start = parseInt(document.getElementById('tqr-range-start').value) || 1;
+      const end = parseInt(document.getElementById('tqr-range-end').value) || 1;
+      const baseUrl = encodeURIComponent(document.getElementById('tqr-base-url').value.trim() || window.location.origin);
+      const welcomeText = encodeURIComponent(document.getElementById('tqr-welcome').value.trim());
+      const thankYouText = encodeURIComponent(document.getElementById('tqr-thankyou').value.trim());
+      const enjoyText = encodeURIComponent(document.getElementById('tqr-enjoy').value.trim());
+      const showTableNum = document.getElementById('tqr-show-num').checked;
+
+      if (start < 1 || end < 1 || start > end) {
+        alert('الرجاء إدخال نطاق طاولات صحيح (البداية يجب أن تكون أقل من أو تساوي النهاية)');
+        return;
+      }
+
+      const token = localStorage.getItem('ozel_token');
+      const pdfUrl = `/api/admin/qr-tables-pdf?start=${start}&end=${end}&baseUrl=${baseUrl}&welcomeText=${welcomeText}&thankYouText=${thankYouText}&enjoyText=${enjoyText}&showTableNum=${showTableNum}&token=${token}`;
+
+      window.open(pdfUrl, '_blank');
+    }
+
+    // ????? ??? QR ???????
+    // طباعة رمز QR الخاص بالطاولة بتصميم فاخر
+    function printTableQR() {
+      if (!_lastTableQR) return;
+      const win = window.open('', '_blank');
+      win.document.write('<!DOCTYPE html>' +
+        '<html><head><title>طاولة ' + _lastTableQR.table + ' - QR Code</title>' +
+        '<base href="' + window.location.origin + '/">' +
+        '<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Tajawal:wght@500;700&family=Outfit:wght@600;700&display=swap" rel="stylesheet">' +
+        '<style>' +
+        '  body { background: #FDFBF7; color: #241E1A; font-family: "Tajawal", "Outfit", sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
+        '  .card-frame { border: 3px solid #541a1a; padding: 2.5rem 2rem; width: 420px; background: #FFFFFF; text-align: center; border-radius: 16px; box-shadow: 0 10px 40px rgba(84, 26, 26, 0.08); position: relative; box-sizing: border-box; }' +
+        '  .card-frame::before { content: ""; position: absolute; top: 6px; left: 6px; right: 6px; bottom: 6px; border: 1px dashed rgba(84, 26, 26, 0.3); border-radius: 12px; pointer-events: none; }' +
+        '  .logo { height: 65px; width: auto; margin-bottom: 0.8rem; object-fit: contain; }' +
+        '  .brand-name { font-family: "Cormorant Garamond", serif; font-size: 2rem; font-weight: 700; letter-spacing: 0.15em; color: #541a1a; margin: 0 0 0.4rem 0; text-transform: uppercase; }' +
+        '  .divider { width: 50px; height: 2px; background: #541a1a; margin: 0.8rem auto; }' +
+        '  .table-title { font-family: "Cormorant Garamond", "Tajawal", serif; font-size: 1.5rem; font-weight: 700; color: #241E1A; margin-bottom: 0.1rem; }' +
+        '  .table-number { font-size: 3.2rem; font-weight: 700; color: #541a1a; font-family: "Outfit", sans-serif; margin: 0 0 1rem 0; line-height: 1; }' +
+        '  .qr-container { margin: 1rem auto; padding: 10px; background: #FFFFFF; border: 1px solid rgba(84, 26, 26, 0.15); display: inline-block; border-radius: 8px; }' +
+        '  .qr-image { width: 230px; height: 230px; display: block; }' +
+        '  .instruction-ar { font-size: 1.05rem; font-weight: 700; color: #541a1a; margin-bottom: 0.2rem; }' +
+        '  .instruction-en { font-size: 0.78rem; letter-spacing: 0.08em; color: #241E1A; text-transform: uppercase; margin-bottom: 1.2rem; font-weight: 600; }' +
+        '  .site-url { font-size: 0.8rem; color: rgba(36, 30, 26, 0.6); font-family: "Outfit", sans-serif; letter-spacing: 0.05em; word-break: break-all; }' +
+        '  @media print { body { background: none; } .card-frame { box-shadow: none; border: 3px solid #541a1a; margin: auto; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); } }' +
+        '</style></head><body>' +
+        '  <div class="card-frame">' +
+        '    <img class="logo" src="imgs/Ozel-Logo--02.png" onerror="this.src=\'imgs/Ozel-Logo--01.png\'; this.onerror=null;" />' +
+        '    <h2 class="brand-name">OZEL CAFE</h2>' +
+        '    <div class="divider"></div>' +
+        '    <div class="table-title">طاولة / Table</div>' +
+        '    <h1 class="table-number">' + _lastTableQR.table + '</h1>' +
+        '    <div class="qr-container">' +
+        '      <img class="qr-image" src="' + _lastTableQR.qrCodeUrl + '" />' +
+        '    </div>' +
+        '    <div class="instruction-ar">عالم من المذاق الفاخر بانتظارك</div>' +
+        '    <div class="instruction-ar" style="font-size: 0.9rem; font-weight: 500; color: #241E1A; margin-bottom: 0.2rem;">امسح الرمز لطلب مشروبك مباشرة</div>' +
+        '    <div class="instruction-en">Scan QR Code to order directly</div>' +
+        '    <div class="site-url">' + _lastTableQR.url.replace("https://", "").replace("http://", "") + '</div>' +
+        '  </div>' +
+        '</body></html>');
+      win.document.close();
+      win.focus();
+
+      // Wait for both the logo and QR images to load before printing
+      const images = win.document.querySelectorAll('img');
+      let loadedCount = 0;
+      const totalImages = images.length;
+
+      if (totalImages === 0) {
+        win.print();
+      } else {
+        images.forEach(img => {
+          if (img.complete) {
+            onImageLoaded();
+          } else {
+            img.addEventListener('load', onImageLoaded);
+            img.addEventListener('error', onImageLoaded);
+          }
+        });
+      }
+
+      function onImageLoaded() {
+        loadedCount++;
+        if (loadedCount === totalImages) {
+          setTimeout(function () {
+            win.print();
+          }, 300);
+        }
+      }
+    }
+
+    // ????? ???????? ???? ??????
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/admin/stats', { headers: getAuthH() });
+        if (!res.ok) throw new Error('Failed to load stats');
+        const s = await res.json();
+
+        document.getElementById('statsGrid').innerHTML = `
     <div class="stat-card"><span class="stat-n">${s.today_orders}</span><span class="stat-l">📋 طلبات اليوم</span></div>
     <div class="stat-card"><span class="stat-n">${Math.round(s.today_revenue)}</span><span class="stat-l">💰 إيرادات اليوم (ج.م)</span></div>
     <div class="stat-card"><span class="stat-n">${Math.round(s.monthly_revenue || 0)}</span><span class="stat-l">💰 الإيرادات الشهرية (ج.م)</span></div>
@@ -827,9 +1296,9 @@ async function loadStats() {
     <div class="stat-card"><span class="stat-n">${Math.round(s.total_revenue)}</span><span class="stat-l">💰 إجمالي الإيرادات</span></div>
   `;
 
-  let cashierHTML = '';
-  if (s.cashier_stats && s.cashier_stats.length > 0) {
-    cashierHTML = `
+        let cashierHTML = '';
+        if (s.cashier_stats && s.cashier_stats.length > 0) {
+          cashierHTML = `
       <h2 style="font-family:'Cormorant Garamond',serif; color:var(--gold); margin-bottom:1rem; font-size:1.5rem;">مبيعات الكاشير اليوم</h2>
       <table><thead><tr>
         <th>اسم الكاشير</th><th>عدد الطلبات</th><th>إجمالي المبيعات</th>
@@ -843,50 +1312,50 @@ async function loadStats() {
         `).join('')}
       </tbody></table>
     `;
-  } else {
-    cashierHTML = `<p style="color:var(--muted)">لا توجد مبيعات مسجلة للكاشير اليوم</p>`;
-  }
-  
-  const area = document.getElementById('cashierStatsArea');
-  if (area) area.innerHTML = cashierHTML;
-  } catch (err) {
-    document.getElementById('statsGrid').innerHTML = `<p style="color:var(--muted);text-align:center;padding:2rem;">فشل تحميل الإحصائيات — ${err.message}</p>`;
-  }
-}
+        } else {
+          cashierHTML = `<p style="color:var(--muted)">لا توجد مبيعات مسجلة للكاشير اليوم</p>`;
+        }
 
-// ????? ????? ?????????
-async function loadMenu() {
-  const res = await fetch('/api/admin/drinks', { headers: getAuthH() });
-  menuData = await res.json();
-  renderMenuTable(menuData);
-
-  // Also populate the category dropdown
-  try {
-    const catRes = await fetch('/api/admin/categories', { headers: getAuthH() });
-    categoriesData = await catRes.json();
-    const sel = document.getElementById('nd-cat');
-    if (sel && Array.isArray(categoriesData)) {
-      sel.innerHTML = '<option value="">اختر التصنيف...</option>' +
-        categoriesData.map(c => `<option value="${c._id}">${c.name_ar || c.name}</option>`).join('');
+        const area = document.getElementById('cashierStatsArea');
+        if (area) area.innerHTML = cashierHTML;
+      } catch (err) {
+        document.getElementById('statsGrid').innerHTML = `<p style="color:var(--muted);text-align:center;padding:2rem;">فشل تحميل الإحصائيات — ${err.message}</p>`;
+      }
     }
-  } catch(e) {
-    console.error('Failed to load categories for dropdown:', e);
-  }
-}
 
-// ??? ???? ???????
-function renderMenuTable(data) {
-  document.getElementById('menuTable').innerHTML = data.map(d => `
+    // ????? ????? ?????????
+    async function loadMenu() {
+      const res = await fetch('/api/admin/drinks', { headers: getAuthH() });
+      menuData = await res.json();
+      renderMenuTable(menuData);
+
+      // Also populate the category dropdown
+      try {
+        const catRes = await fetch('/api/admin/categories', { headers: getAuthH() });
+        categoriesData = await catRes.json();
+        const sel = document.getElementById('nd-cat');
+        if (sel && Array.isArray(categoriesData)) {
+          sel.innerHTML = '<option value="">اختر التصنيف...</option>' +
+            categoriesData.map(c => `<option value="${c._id}">${c.name_ar || c.name}</option>`).join('');
+        }
+      } catch (e) {
+        console.error('Failed to load categories for dropdown:', e);
+      }
+    }
+
+    // ??? ???? ???????
+    function renderMenuTable(data) {
+      document.getElementById('menuTable').innerHTML = data.map(d => `
     <tr id="row-${d.id}">
       <td>
         <div style="display:flex; flex-direction:column; align-items:center; gap:0.2rem;">
           <img src="${d.image_emoji}" class="img-thumb" onerror="this.style.display='none'"/>
-          <span class="editable" onclick="editField('${d.id}','image_emoji','${(d.image_emoji||'').replace(/'/g,"\\'")}',this)" style="font-size:.7rem; color:var(--muted)">تعديل</span>
+          <span class="editable" onclick="editField('${d.id}','image_emoji','${(d.image_emoji || '').replace(/'/g, "\\'")}',this)" style="font-size:.7rem; color:var(--muted)">تعديل</span>
         </div>
       </td>
       <td>
-        <span class="editable" onclick="editField('${d.id}','name','${(d.name||'').replace(/'/g,"\\'")}',this)">${d.name || ''}</span><br/>
-        <small style="color:var(--muted); cursor:pointer;" class="editable" onclick="editField('${d.id}','name_ar','${(d.name_ar||'').replace(/'/g,"\\'")}',this)">${d.name_ar || 'أضف اسماً بالعربية'}</small>
+        <span class="editable" onclick="editField('${d.id}','name','${(d.name || '').replace(/'/g, "\\'")}',this)">${d.name || ''}</span><br/>
+        <small style="color:var(--muted); cursor:pointer;" class="editable" onclick="editField('${d.id}','name_ar','${(d.name_ar || '').replace(/'/g, "\\'")}',this)">${d.name_ar || 'أضف اسماً بالعربية'}</small>
       </td>
       <td style="color:var(--muted);font-size:.8rem">${d.cat_name}</td>
       <td><span class="editable tbl-price" onclick="editPrice('${d.id}',${d.price},this)">${d.price} ج.م</span></td>
@@ -910,138 +1379,138 @@ function renderMenuTable(data) {
       </td>
     </tr>
   `).join('');
-}
-
-// ????? ???? ??????? ??? ?????
-function filterMenuTable() {
-  const q = document.getElementById('menu-search').value.toLowerCase();
-  renderMenuTable(menuData.filter(d => d.name.toLowerCase().includes(q) || (d.name_ar||'').includes(q)));
-}
-
-// ????? ??? ??????? ?????? ?? ??????
-function editPrice(id, current, el) {
-  const inp = document.createElement('input');
-  inp.className = 'edit-input'; inp.type = 'number'; inp.value = current;
-  inp.onblur = async () => {
-    const val = parseFloat(inp.value);
-    if (!isNaN(val) && val > 0) {
-      await patchDrink(id, { price: val });
-      el.textContent = val + ' ج.م';
     }
-    inp.replaceWith(el);
-  };
-  inp.onkeydown = e => { if(e.key==='Enter') inp.blur(); if(e.key==='Escape') inp.replaceWith(el); };
-  el.replaceWith(inp); inp.focus(); inp.select();
-}
 
-// ????? ??? ??? ?????? ?????? ?? ??????
-function editField(id, field, current, el) {
-  const inp = document.createElement('input');
-  inp.className = 'edit-input'; inp.type = 'text'; inp.value = current; inp.style.width = '150px';
-  inp.onblur = async () => {
-    const val = inp.value.trim();
-    if (val) { await patchDrink(id, { [field]: val }); el.textContent = val; }
-    inp.replaceWith(el);
-  };
-  inp.onkeydown = e => { if(e.key==='Enter') inp.blur(); if(e.key==='Escape') inp.replaceWith(el); };
-  el.replaceWith(inp); inp.focus(); inp.select();
-}
-
-// ????? ????? ????? ??? ??????
-async function patchDrink(id, data) {
-  await fetch(`/api/admin/drinks/${id}`, { method:'PATCH', headers: getAuthH(), body: JSON.stringify(data) });
-}
-
-// ????? ???? ??????? (????/????)
-async function toggleDrinkStatus(id, field, currentVal) {
-  const newVal = currentVal ? 0 : 1;
-  await fetch(`/api/admin/drinks/${id}`, { 
-    method: 'PATCH', 
-    headers: getAuthH(), 
-    body: JSON.stringify({ [field]: newVal }) 
-  });
-  loadMenu(); // Reload to update UI
-}
-
-// ????? ????? ???? ??? ???????
-async function addDrink() {
-  const name = document.getElementById('nd-name').value.trim();
-  const name_ar = document.getElementById('nd-name-ar').value.trim();
-  const price = parseFloat(document.getElementById('nd-price').value);
-  const category_id = document.getElementById('nd-cat').value;
-  
-  const imgFile = document.getElementById('nd-img').files[0];
-  let image_emoji = '';
-
-  if (imgFile) {
-    image_emoji = await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.readAsDataURL(imgFile);
-    });
-  }
-  
-  if(!name || isNaN(price) || !category_id) { showModal('تنبيه', 'يرجى ملء الاسم والسعر والتصنيف'); return; }
-  
-  try {
-    const res = await fetch('/api/admin/drinks', { method:'POST', headers: getAuthH(), body: JSON.stringify({name, name_ar, price, category_id, image_emoji}) });
-    const data = await res.json();
-    if(data.success) {
-      document.getElementById('nd-name').value = '';
-      document.getElementById('nd-name-ar').value = '';
-      document.getElementById('nd-price').value = '';
-      document.getElementById('nd-cat').value = '';
-      document.getElementById('nd-img').value = '';
-      loadMenu();
-      showModal('نجاح', 'تمت الإضافة بنجاح');
-    } else { showModal('خطأ', data.error); }
-  } catch(e) { showModal('خطأ', 'خطأ في الإضافة'); }
-}
-
-// ??? ????? ?? ???????
-async function deleteDrink(id) {
-  if(!await showModal('تأكيد', 'هل أنت متأكد من حذف هذا العنصر؟', true)) return;
-  const res = await fetch(`/api/admin/drinks/${id}`, { method:'DELETE', headers: getAuthH() });
-  const data = await res.json();
-  if(data.success) loadMenu();
-  else alert('خطأ في الحذف');
-}
-
-// ????? ????? ??????
-async function loadOffers() {
-  try {
-    const res = await fetch('/api/admin/offers', { headers: getAuthH() });
-    const offers = await res.json();
-    
-    const resD = await fetch('/api/admin/drinks', { headers: getAuthH() });
-    if (!resD.ok) {
-      showModal('خطأ', 'فشل تحميل المشروبات. تحقق من صلاحية الجلسة.');
-      return;
+    // ????? ???? ??????? ??? ?????
+    function filterMenuTable() {
+      const q = document.getElementById('menu-search').value.toLowerCase();
+      renderMenuTable(menuData.filter(d => d.name.toLowerCase().includes(q) || (d.name_ar || '').includes(q)));
     }
-    menuData = await resD.json();
-    
-    const select = document.getElementById('no-drink');
-    if (select) {
-      if (Array.isArray(menuData)) {
-        select.innerHTML = '<option value="">اختر مشروب...</option>' + menuData.map(d => `
+
+    // ????? ??? ??????? ?????? ?? ??????
+    function editPrice(id, current, el) {
+      const inp = document.createElement('input');
+      inp.className = 'edit-input'; inp.type = 'number'; inp.value = current;
+      inp.onblur = async () => {
+        const val = parseFloat(inp.value);
+        if (!isNaN(val) && val > 0) {
+          await patchDrink(id, { price: val });
+          el.textContent = val + ' ج.م';
+        }
+        inp.replaceWith(el);
+      };
+      inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') inp.replaceWith(el); };
+      el.replaceWith(inp); inp.focus(); inp.select();
+    }
+
+    // ????? ??? ??? ?????? ?????? ?? ??????
+    function editField(id, field, current, el) {
+      const inp = document.createElement('input');
+      inp.className = 'edit-input'; inp.type = 'text'; inp.value = current; inp.style.width = '150px';
+      inp.onblur = async () => {
+        const val = inp.value.trim();
+        if (val) { await patchDrink(id, { [field]: val }); el.textContent = val; }
+        inp.replaceWith(el);
+      };
+      inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') inp.replaceWith(el); };
+      el.replaceWith(inp); inp.focus(); inp.select();
+    }
+
+    // ????? ????? ????? ??? ??????
+    async function patchDrink(id, data) {
+      await fetch(`/api/admin/drinks/${id}`, { method: 'PATCH', headers: getAuthH(), body: JSON.stringify(data) });
+    }
+
+    // ????? ???? ??????? (????/????)
+    async function toggleDrinkStatus(id, field, currentVal) {
+      const newVal = currentVal ? 0 : 1;
+      await fetch(`/api/admin/drinks/${id}`, {
+        method: 'PATCH',
+        headers: getAuthH(),
+        body: JSON.stringify({ [field]: newVal })
+      });
+      loadMenu(); // Reload to update UI
+    }
+
+    // ????? ????? ???? ??? ???????
+    async function addDrink() {
+      const name = document.getElementById('nd-name').value.trim();
+      const name_ar = document.getElementById('nd-name-ar').value.trim();
+      const price = parseFloat(document.getElementById('nd-price').value);
+      const category_id = document.getElementById('nd-cat').value;
+
+      const imgFile = document.getElementById('nd-img').files[0];
+      let image_emoji = '';
+
+      if (imgFile) {
+        image_emoji = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.readAsDataURL(imgFile);
+        });
+      }
+
+      if (!name || isNaN(price) || !category_id) { showModal('تنبيه', 'يرجى ملء الاسم والسعر والتصنيف'); return; }
+
+      try {
+        const res = await fetch('/api/admin/drinks', { method: 'POST', headers: getAuthH(), body: JSON.stringify({ name, name_ar, price, category_id, image_emoji }) });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('nd-name').value = '';
+          document.getElementById('nd-name-ar').value = '';
+          document.getElementById('nd-price').value = '';
+          document.getElementById('nd-cat').value = '';
+          document.getElementById('nd-img').value = '';
+          loadMenu();
+          showModal('نجاح', 'تمت الإضافة بنجاح');
+        } else { showModal('خطأ', data.error); }
+      } catch (e) { showModal('خطأ', 'خطأ في الإضافة'); }
+    }
+
+    // ??? ????? ?? ???????
+    async function deleteDrink(id) {
+      if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذا العنصر؟', true)) return;
+      const res = await fetch(`/api/admin/drinks/${id}`, { method: 'DELETE', headers: getAuthH() });
+      const data = await res.json();
+      if (data.success) loadMenu();
+      else alert('خطأ في الحذف');
+    }
+
+    // ????? ????? ??????
+    async function loadOffers() {
+      try {
+        const res = await fetch('/api/admin/offers', { headers: getAuthH() });
+        const offers = await res.json();
+
+        const resD = await fetch('/api/admin/drinks', { headers: getAuthH() });
+        if (!resD.ok) {
+          showModal('خطأ', 'فشل تحميل المشروبات. تحقق من صلاحية الجلسة.');
+          return;
+        }
+        menuData = await resD.json();
+
+        const select = document.getElementById('no-drink');
+        if (select) {
+          if (Array.isArray(menuData)) {
+            select.innerHTML = '<option value="">اختر مشروب...</option>' + menuData.map(d => `
           <option value="${d.id}">${d.name_ar || d.name}</option>
         `).join('');
-      } else {
-        select.innerHTML = '<option value="">خطأ في تحميل المشروبات</option>';
-      }
-    }
+          } else {
+            select.innerHTML = '<option value="">خطأ في تحميل المشروبات</option>';
+          }
+        }
 
-    const table = document.getElementById('offersTable');
-    if (table) {
-      if (Array.isArray(offers)) {
-        table.innerHTML = offers.map(o => {
-          const originalPrice = o.price;
-          const discount = o.discount_percent;
-          const finalPrice = originalPrice * (1 - discount / 100);
-          const expiry = o.expires_at ? new Date(o.expires_at) : null;
-          const expiryStr = expiry ? expiry.toLocaleDateString('ar-EG', { year:'numeric', month:'short', day:'numeric' }) : 'أبداً';
-          const isExpired = expiry && expiry < new Date();
-          return `
+        const table = document.getElementById('offersTable');
+        if (table) {
+          if (Array.isArray(offers)) {
+            table.innerHTML = offers.map(o => {
+              const originalPrice = o.price;
+              const discount = o.discount_percent;
+              const finalPrice = originalPrice * (1 - discount / 100);
+              const expiry = o.expires_at ? new Date(o.expires_at) : null;
+              const expiryStr = expiry ? expiry.toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' }) : 'أبداً';
+              const isExpired = expiry && expiry < new Date();
+              return `
             <tr>
               <td>${o.name_ar || o.name}</td>
               <td>${originalPrice} ج.م</td>
@@ -1053,158 +1522,158 @@ async function loadOffers() {
               </td>
             </tr>
           `;
-        }).join('');
-      } else {
-        console.error('Offers is not an array:', offers);
-        table.innerHTML = `<tr><td colspan="6" style="color:var(--red); text-align:center;">فشل تحميل العروض: ${offers.error || 'استجابة غير متوقعة'}</td></tr>`;
+            }).join('');
+          } else {
+            console.error('Offers is not an array:', offers);
+            table.innerHTML = `<tr><td colspan="6" style="color:var(--red); text-align:center;">فشل تحميل العروض: ${offers.error || 'استجابة غير متوقعة'}</td></tr>`;
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        showModal('خطأ', 'حدث خطأ أثناء تحميل صفحة العروض: ' + e.message);
       }
     }
-  } catch (e) {
-    console.error(e);
-    showModal('خطأ', 'حدث خطأ أثناء تحميل صفحة العروض: ' + e.message);
-  }
-}
 
-// ????? ??? ????
-async function addOffer() {
-  const drink_id = document.getElementById('no-drink').value;
-  const discount_percent = parseInt(document.getElementById('no-discount').value);
-  const expires_at = document.getElementById('no-expiry').value;
-  
-  if (!drink_id || !discount_percent) {
-    showModal('تنبيه', 'يرجى اختيار المشروب ونسبة الخصم');
-    return;
-  }
-  
-  try {
-    const res = await fetch('/api/admin/offers', {
-      method: 'POST',
-      headers: getAuthH(),
-      body: JSON.stringify({ drink_id, discount_percent, expires_at })
-    });
-    const data = await res.json();
-    if (data.success) {
-      document.getElementById('no-discount').value = '';
-      document.getElementById('no-expiry').value = '';
-      loadOffers();
-      showModal('نجاح', 'تمت الإضافة بنجاح');
-    } else {
-      showModal('خطأ', data.error);
+    // ????? ??? ????
+    async function addOffer() {
+      const drink_id = document.getElementById('no-drink').value;
+      const discount_percent = parseInt(document.getElementById('no-discount').value);
+      const expires_at = document.getElementById('no-expiry').value;
+
+      if (!drink_id || !discount_percent) {
+        showModal('تنبيه', 'يرجى اختيار المشروب ونسبة الخصم');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/admin/offers', {
+          method: 'POST',
+          headers: getAuthH(),
+          body: JSON.stringify({ drink_id, discount_percent, expires_at })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('no-discount').value = '';
+          document.getElementById('no-expiry').value = '';
+          loadOffers();
+          showModal('نجاح', 'تمت الإضافة بنجاح');
+        } else {
+          showModal('خطأ', data.error);
+        }
+      } catch (e) {
+        showModal('خطأ', 'خطأ في الإضافة');
+      }
     }
-  } catch(e) {
-    showModal('خطأ', 'خطأ في الإضافة');
-  }
-}
 
-// ??? ???
-async function deleteOffer(id) {
-  if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذا العرض؟', true)) return;
-  const res = await fetch(`/api/admin/offers/${id}`, { method: 'DELETE', headers: getAuthH() });
-  const data = await res.json();
-  if (data.success) loadOffers();
-  else showModal('خطأ', 'خطأ في الحذف');
-}
+    // ??? ???
+    async function deleteOffer(id) {
+      if (!await showModal('تأكيد', 'هل أنت متأكد من حذف هذا العرض؟', true)) return;
+      const res = await fetch(`/api/admin/offers/${id}`, { method: 'DELETE', headers: getAuthH() });
+      const data = await res.json();
+      if (data.success) loadOffers();
+      else showModal('خطأ', 'خطأ في الحذف');
+    }
 
-// ── CATEGORY MANAGEMENT ─────────────────────
-// ????? ?????????
-async function loadCategories() {
-  const res = await fetch('/api/admin/categories', { headers: getAuthH() });
-  categoriesData = await res.json();
-  document.getElementById('categoriesTable').innerHTML = (Array.isArray(categoriesData) ? categoriesData : []).map(c => `
+    // ── CATEGORY MANAGEMENT ─────────────────────
+    // ????? ?????????
+    async function loadCategories() {
+      const res = await fetch('/api/admin/categories', { headers: getAuthH() });
+      categoriesData = await res.json();
+      document.getElementById('categoriesTable').innerHTML = (Array.isArray(categoriesData) ? categoriesData : []).map(c => `
     <tr>
-      <td><span class="editable" onclick="editCatField('${c._id}','name','${(c.name||'').replace(/'/g,"\\'")}',this)">${c.name}</span></td>
-      <td><span class="editable" onclick="editCatField('${c._id}','name_ar','${(c.name_ar||'').replace(/'/g,"\\'")}',this)">${c.name_ar || '-'}</span></td>
+      <td><span class="editable" onclick="editCatField('${c._id}','name','${(c.name || '').replace(/'/g, "\\'")}',this)">${c.name}</span></td>
+      <td><span class="editable" onclick="editCatField('${c._id}','name_ar','${(c.name_ar || '').replace(/'/g, "\\'")}',this)">${c.name_ar || '-'}</span></td>
       <td><span class="editable" onclick="editCatSort('${c._id}',${c.sort_order || 0},this)">${c.sort_order || 0}</span></td>
       <td>
         <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteCategory('${c._id}')">حذف</button>
       </td>
     </tr>
   `).join('');
-}
-
-// ????? ??? ??? ??????
-async function editCatField(id, field, current, el) {
-  const inp = document.createElement('input');
-  inp.className = 'edit-input'; inp.type = 'text'; inp.value = current; inp.style.width = '140px';
-  inp.onblur = async () => {
-    const val = inp.value.trim();
-    if (val && val !== current) {
-      await fetch('/api/admin/categories/' + id, { method:'PATCH', headers: getAuthH(), body: JSON.stringify({ [field]: val }) });
-      el.textContent = val;
     }
-    inp.replaceWith(el);
-  };
-  inp.onkeydown = e => { if(e.key==='Enter') inp.blur(); if(e.key==='Escape') inp.replaceWith(el); };
-  el.replaceWith(inp); inp.focus(); inp.select();
-}
 
-// ????? ????? ??? ???????
-async function editCatSort(id, current, el) {
-  const inp = document.createElement('input');
-  inp.className = 'edit-input'; inp.type = 'number'; inp.value = current; inp.style.width = '70px';
-  inp.onblur = async () => {
-    const val = parseInt(inp.value);
-    if (!isNaN(val) && val !== current) {
-      await fetch('/api/admin/categories/' + id, { method:'PATCH', headers: getAuthH(), body: JSON.stringify({ sort_order: val }) });
-      el.textContent = val;
-    } else { el.textContent = current; }
-    inp.replaceWith(el);
-  };
-  inp.onkeydown = e => { if(e.key==='Enter') inp.blur(); if(e.key==='Escape') inp.replaceWith(el); };
-  el.replaceWith(inp); inp.focus(); inp.select();
-}
+    // ????? ??? ??? ??????
+    async function editCatField(id, field, current, el) {
+      const inp = document.createElement('input');
+      inp.className = 'edit-input'; inp.type = 'text'; inp.value = current; inp.style.width = '140px';
+      inp.onblur = async () => {
+        const val = inp.value.trim();
+        if (val && val !== current) {
+          await fetch('/api/admin/categories/' + id, { method: 'PATCH', headers: getAuthH(), body: JSON.stringify({ [field]: val }) });
+          el.textContent = val;
+        }
+        inp.replaceWith(el);
+      };
+      inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') inp.replaceWith(el); };
+      el.replaceWith(inp); inp.focus(); inp.select();
+    }
 
-// ????? ????? ????
-async function addCategory() {
-  const name = document.getElementById('nc-name').value.trim();
-  const name_ar = document.getElementById('nc-name-ar').value.trim();
-  const sort_order = parseInt(document.getElementById('nc-order').value) || 0;
-  if (!name) { showModal('تنبيه', 'اسم التصنيف (EN) مطلوب'); return; }
-  try {
-    const res = await fetch('/api/admin/categories', { method:'POST', headers: getAuthH(), body: JSON.stringify({ name, name_ar, sort_order }) });
-    const data = await res.json();
-    if (data.success) {
-      document.getElementById('nc-name').value = '';
-      document.getElementById('nc-name-ar').value = '';
-      document.getElementById('nc-order').value = '0';
-      loadCategories();
-      showModal('نجاح', 'تمت إضافة التصنيف');
-    } else { showModal('خطأ', data.error); }
-  } catch(e) { showModal('خطأ', 'خطأ في إضافة التصنيف'); }
-}
+    // ????? ????? ??? ???????
+    async function editCatSort(id, current, el) {
+      const inp = document.createElement('input');
+      inp.className = 'edit-input'; inp.type = 'number'; inp.value = current; inp.style.width = '70px';
+      inp.onblur = async () => {
+        const val = parseInt(inp.value);
+        if (!isNaN(val) && val !== current) {
+          await fetch('/api/admin/categories/' + id, { method: 'PATCH', headers: getAuthH(), body: JSON.stringify({ sort_order: val }) });
+          el.textContent = val;
+        } else { el.textContent = current; }
+        inp.replaceWith(el);
+      };
+      inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') inp.replaceWith(el); };
+      el.replaceWith(inp); inp.focus(); inp.select();
+    }
 
-// ??? ?????
-async function deleteCategory(id) {
-  if (!await showModal('تأكيد', 'حذف هذا التصنيف؟ يجب إعادة تعيين المشروبات المرتبطة به أولاً.', true)) return;
-  const res = await fetch('/api/admin/categories/' + id, { method:'DELETE', headers: getAuthH() });
-  const data = await res.json();
-  if (data.success) { loadCategories(); showModal('نجاح', 'تم حذف التصنيف'); }
-  else showModal('خطأ', data.error || 'خطأ في الحذف');
-}
+    // ????? ????? ????
+    async function addCategory() {
+      const name = document.getElementById('nc-name').value.trim();
+      const name_ar = document.getElementById('nc-name-ar').value.trim();
+      const sort_order = parseInt(document.getElementById('nc-order').value) || 0;
+      if (!name) { showModal('تنبيه', 'اسم التصنيف (EN) مطلوب'); return; }
+      try {
+        const res = await fetch('/api/admin/categories', { method: 'POST', headers: getAuthH(), body: JSON.stringify({ name, name_ar, sort_order }) });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('nc-name').value = '';
+          document.getElementById('nc-name-ar').value = '';
+          document.getElementById('nc-order').value = '0';
+          loadCategories();
+          showModal('نجاح', 'تمت إضافة التصنيف');
+        } else { showModal('خطأ', data.error); }
+      } catch (e) { showModal('خطأ', 'خطأ في إضافة التصنيف'); }
+    }
 
-// ????? ????? ??????????
-async function loadUsers() {
-  const res = await fetch('/api/admin/users', { headers: getAuthH() });
-  usersData = await res.json();
-  document.getElementById('usersTable').innerHTML = usersData.map(u => `
+    // ??? ?????
+    async function deleteCategory(id) {
+      if (!await showModal('تأكيد', 'حذف هذا التصنيف؟ يجب إعادة تعيين المشروبات المرتبطة به أولاً.', true)) return;
+      const res = await fetch('/api/admin/categories/' + id, { method: 'DELETE', headers: getAuthH() });
+      const data = await res.json();
+      if (data.success) { loadCategories(); showModal('نجاح', 'تم حذف التصنيف'); }
+      else showModal('خطأ', data.error || 'خطأ في الحذف');
+    }
+
+    // ????? ????? ??????????
+    async function loadUsers() {
+      const res = await fetch('/api/admin/users', { headers: getAuthH() });
+      usersData = await res.json();
+      document.getElementById('usersTable').innerHTML = usersData.map(u => `
     <tr>
-      <td><span class="editable" onclick="editUserField('${u.id}','name','${(u.name||'').replace(/'/g,"\\'")}',this)">${u.name || ''}</span></td>
+      <td><span class="editable" onclick="editUserField('${u.id}','name','${(u.name || '').replace(/'/g, "\\'")}',this)">${u.name || ''}</span></td>
       <td style="font-size:.8rem;color:var(--muted)"><span class="editable" onclick="editUserField('${u.id}','phone','${u.phone || ''}',this)">${u.phone || ''}</span></td>
       <td>
         <select onchange="changeRole('${u.id}',this.value)" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.3rem;font-family:'Outfit',sans-serif;font-size:.8rem;">
-          <option value="customer" ${u.role==='customer'?'selected':''}>عميل</option>
-          <option value="partner" ${u.role==='partner'?'selected':''}>شريك</option>
-          <option value="admin" ${u.role==='admin'?'selected':''}>مدير</option>
+          <option value="customer" ${u.role === 'customer' ? 'selected' : ''}>عميل</option>
+          <option value="partner" ${u.role === 'partner' ? 'selected' : ''}>شريك</option>
+          <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>مدير</option>
         </select>
       </td>
       <td class="points-badge"><span class="editable" onclick="editUserPoints('${u.id}',${u.points || 0},this)">${u.points || 0}</span></td>
       <td style="color:var(--gold);font-size:.9rem">${Math.round(u.total_spent || 0)} ج.م</td>
       <td>
         <select onchange="changeCustomerStatus('${u.id}',this.value)" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.3rem;font-family:'Outfit',sans-serif;font-size:.8rem;">
-          <option value="standard" ${u.customerStatus==='standard'?'selected':''}>Standard</option>
-          <option value="gold" ${u.customerStatus==='gold'?'selected':''}>Gold</option>
-          <option value="student" ${u.customerStatus==='student'?'selected':''}>Student</option>
-          <option value="ozel_family" ${u.customerStatus==='ozel_family'?'selected':''}>OZEL FAMILY</option>
+          <option value="standard" ${u.customerStatus === 'standard' ? 'selected' : ''}>Standard</option>
+          <option value="gold" ${u.customerStatus === 'gold' ? 'selected' : ''}>Gold</option>
+          <option value="student" ${u.customerStatus === 'student' ? 'selected' : ''}>Student</option>
+          <option value="ozel_family" ${u.customerStatus === 'ozel_family' ? 'selected' : ''}>OZEL FAMILY</option>
         </select>
       </td>
       <td>
@@ -1213,269 +1682,303 @@ async function loadUsers() {
       </td>
     </tr>
   `).join('');
-}
-
-// إضافة مستخدم جديد
-async function addUser() {
-  const name = document.getElementById('nu-name').value.trim();
-  const phone = document.getElementById('nu-phone').value.trim();
-  const email = document.getElementById('nu-email').value.trim();
-  const password = document.getElementById('nu-pass').value;
-  const role = document.getElementById('nu-role').value;
-  if(!name || !password) { showModal('تنبيه', 'يرجى إدخال الاسم وكلمة المرور'); return; }
-  if(!phone && !email) { showModal('تنبيه', 'يرجى تقديم الهاتف أو البريد الإلكتروني على الأقل'); return; }
-  try {
-    const res = await fetch('/api/admin/users', { method:'POST', headers: getAuthH(), body: JSON.stringify({name, phone, email: email || undefined, password, role}) });
-    const data = await res.json();
-    if(data.success) {
-      document.getElementById('nu-name').value = '';
-      document.getElementById('nu-phone').value = '';
-      document.getElementById('nu-email').value = '';
-      document.getElementById('nu-pass').value = '';
-      loadUsers();
-      showModal('نجاح', 'تمت إضافة المستخدم');
-    } else { showModal('خطأ', data.error); }
-  } catch(e) { showModal('خطأ', 'خطأ في إضافة المستخدم'); }
-}
-
-// ????? ??? ?????? ??????
-function editUserField(id, field, current, el) {
-  const inp = document.createElement('input');
-  inp.className = 'edit-input'; inp.type = 'text'; inp.value = current; inp.style.width = '120px';
-  inp.onblur = async () => {
-    const val = inp.value.trim();
-    if (val && val !== current) { await patchUser(id, { [field]: val }); el.textContent = val; }
-    else { el.textContent = current; }
-    inp.replaceWith(el);
-  };
-  inp.onkeydown = e => { if(e.key==='Enter') inp.blur(); if(e.key==='Escape') inp.replaceWith(el); };
-  el.replaceWith(inp); inp.focus(); inp.select();
-}
-
-// ????? ???? ????????
-function editUserPoints(id, current, el) {
-  const inp = document.createElement('input');
-  inp.className = 'edit-input'; inp.type = 'number'; inp.value = current; inp.style.width = '70px';
-  inp.onblur = async () => {
-    const val = parseInt(inp.value);
-    if (!isNaN(val) && val >= 0 && val !== current) {
-      await patchUser(id, { points: val });
-      el.textContent = val;
-    } else { el.textContent = current; }
-    inp.replaceWith(el);
-  };
-  inp.onkeydown = e => { if(e.key==='Enter') inp.blur(); if(e.key==='Escape') inp.replaceWith(el); };
-  el.replaceWith(inp); inp.focus(); inp.select();
-}
-
-// ????? ???? ???? ????????
-async function editUserPassword(id) {
-  const newPass = await showModal('تغيير كلمة المرور', 'أدخل كلمة المرور الجديدة:', false, true);
-  if(newPass && newPass.trim().length >= 4) {
-    await patchUser(id, { password: newPass.trim() });
-    showModal('نجاح', 'تم تغيير كلمة المرور بنجاح');
-  } else if (newPass !== null) { 
-    showModal('تنبيه', 'كلمة المرور قصيرة جداً (أقل من 4 أحرف)'); 
-  }
-}
-
-// ????? ????? ?????? ??? ??????
-async function patchUser(id, data) {
-  await fetch(`/api/admin/users/${id}`, { method:'PATCH', headers: getAuthH(), body: JSON.stringify(data) });
-}
-
-// ??? ??????
-async function deleteUser(id) {
-  if(!await showModal('تأكيد', 'هل أنت متأكد من حذف المستخدم نهائياً؟', true)) return;
-  const res = await fetch(`/api/admin/users/${id}`, { method:'DELETE', headers: getAuthH() });
-  const data = await res.json();
-  if(data.success) loadUsers();
-  else showModal('خطأ', data.error || 'خطأ في الحذف');
-}
-
-// ????? ?????? ????????
-async function changeRole(id, role) {
-  await fetch(`/api/admin/users/${id}`, { method:'PATCH', headers: getAuthH(), body: JSON.stringify({ role }) });
-}
-
-// تغيير حالة العميل
-async function changeCustomerStatus(id, status) {
-  await fetch(`/api/admin/users/${id}`, { method:'PATCH', headers: getAuthH(), body: JSON.stringify({ customerStatus: status }) });
-}
-
-// تغيير حالة الشريك للعميل
-async function changePartnerStatus(id, isPartnerVal) {
-  const status = isPartnerVal === 'true';
-  await fetch(`/api/admin/users/${id}`, { method:'PATCH', headers: getAuthH(), body: JSON.stringify({ isPartner: status }) });
-  showToast('تم تحديث حالة الشريك', 'success');
-}
-
-// ????? ??????
-function logout() { localStorage.clear(); location.href = 'login.html'; }
-
-// ???????
-function showToast(msg, type) {
-  const c = document.getElementById('toastContainer');
-  if (!c) return;
-  const t = document.createElement('div');
-  t.className = 'toast ' + (type || 'success');
-  t.textContent = msg;
-  c.appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300); }, 2500);
-}
-
-// ??? ????? ?????? (????? / ????? / ????? ??)
-function showModal(title, text, isConfirm = false, isPrompt = false) {
-  if (title === 'نجاح' || title === 'Success') showToast(text, 'success');
-  if (title === 'خطأ' || title === 'Error') showToast(text, 'error');
-  return new Promise((resolve) => {
-    const modal = document.getElementById('custom-modal');
-    const titleEl = document.getElementById('cm-title');
-    const textEl = document.getElementById('cm-text');
-    const inputEl = document.getElementById('cm-input');
-    const okBtn = document.getElementById('cm-ok');
-    const cancelBtn = document.getElementById('cm-cancel');
-
-    titleEl.textContent = title;
-    textEl.textContent = text;
-    modal.style.display = 'flex';
-
-    if (isConfirm || isPrompt) {
-      cancelBtn.style.display = 'inline-block';
-    } else {
-      cancelBtn.style.display = 'none';
     }
 
-    if (isPrompt) {
-      inputEl.style.display = 'block';
-      inputEl.value = '';
-      setTimeout(() => inputEl.focus(), 10);
-    } else {
-      inputEl.style.display = 'none';
+    // إضافة مستخدم جديد
+    async function addUser() {
+      const name = document.getElementById('nu-name').value.trim();
+      const phone = document.getElementById('nu-phone').value.trim();
+      const email = document.getElementById('nu-email').value.trim();
+      const password = document.getElementById('nu-pass').value;
+      const role = document.getElementById('nu-role').value;
+      if (!name || !password) { showModal('تنبيه', 'يرجى إدخال الاسم وكلمة المرور'); return; }
+      if (!phone && !email) { showModal('تنبيه', 'يرجى تقديم الهاتف أو البريد الإلكتروني على الأقل'); return; }
+      try {
+        const res = await fetch('/api/admin/users', { method: 'POST', headers: getAuthH(), body: JSON.stringify({ name, phone, email: email || undefined, password, role }) });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('nu-name').value = '';
+          document.getElementById('nu-phone').value = '';
+          document.getElementById('nu-email').value = '';
+          document.getElementById('nu-pass').value = '';
+          loadUsers();
+          showModal('نجاح', 'تمت إضافة المستخدم');
+        } else { showModal('خطأ', data.error); }
+      } catch (e) { showModal('خطأ', 'خطأ في إضافة المستخدم'); }
     }
 
-    okBtn.onclick = () => {
-      modal.style.display = 'none';
-      if (isPrompt) resolve(inputEl.value);
-      else resolve(true);
-    };
-    cancelBtn.onclick = () => {
-      modal.style.display = 'none';
-      resolve(null);
-    };
-  });
-}
+    // ????? ??? ?????? ??????
+    function editUserField(id, field, current, el) {
+      const inp = document.createElement('input');
+      inp.className = 'edit-input'; inp.type = 'text'; inp.value = current; inp.style.width = '120px';
+      inp.onblur = async () => {
+        const val = inp.value.trim();
+        if (val && val !== current) { await patchUser(id, { [field]: val }); el.textContent = val; }
+        else { el.textContent = current; }
+        inp.replaceWith(el);
+      };
+      inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') inp.replaceWith(el); };
+      el.replaceWith(inp); inp.focus(); inp.select();
+    }
 
-// Load stats on start
-loadStats();
+    // ????? ???? ????????
+    function editUserPoints(id, current, el) {
+      const inp = document.createElement('input');
+      inp.className = 'edit-input'; inp.type = 'number'; inp.value = current; inp.style.width = '70px';
+      inp.onblur = async () => {
+        const val = parseInt(inp.value);
+        if (!isNaN(val) && val >= 0 && val !== current) {
+          await patchUser(id, { points: val });
+          el.textContent = val;
+        } else { el.textContent = current; }
+        inp.replaceWith(el);
+      };
+      inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') inp.replaceWith(el); };
+      el.replaceWith(inp); inp.focus(); inp.select();
+    }
 
-// ── Inventory Functions ──
-let allIngredients = [];
+    // ????? ???? ???? ????????
+    async function editUserPassword(id) {
+      const newPass = await showModal('تغيير كلمة المرور', 'أدخل كلمة المرور الجديدة:', false, true);
+      if (newPass && newPass.trim().length >= 4) {
+        await patchUser(id, { password: newPass.trim() });
+        showModal('نجاح', 'تم تغيير كلمة المرور بنجاح');
+      } else if (newPass !== null) {
+        showModal('تنبيه', 'كلمة المرور قصيرة جداً (أقل من 4 أحرف)');
+      }
+    }
 
-// ── Recipes Functions ──
-let currentRecipeId = null;
+    // ????? ????? ?????? ??? ??????
+    async function patchUser(id, data) {
+      await fetch(`/api/admin/users/${id}`, { method: 'PATCH', headers: getAuthH(), body: JSON.stringify(data) });
+    }
 
-// ===== دوال خيارات التخصيص (السكر والإضافات) =====
-let customizationData = null;
-let _extrasPickerDrinkId = null;
+    // ??? ??????
+    async function deleteUser(id) {
+      if (!await showModal('تأكيد', 'هل أنت متأكد من حذف المستخدم نهائياً؟', true)) return;
+      const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE', headers: getAuthH() });
+      const data = await res.json();
+      if (data.success) loadUsers();
+      else showModal('خطأ', data.error || 'خطأ في الحذف');
+    }
 
-// تحميل خيارات التخصيص من الخادم
-async function loadCustomization() {
-  try {
-    const res = await fetch('/api/customization', { headers: getAuthH() });
-    const data = await res.json();
-    customizationData = data;
-    renderSugarLevels(data.sugarLevels || []);
-    renderExtras(data.extras || []);
-  } catch(e) { console.error(e); }
-}
+    // ????? ?????? ????????
+    async function changeRole(id, role) {
+      await fetch(`/api/admin/users/${id}`, { method: 'PATCH', headers: getAuthH(), body: JSON.stringify({ role }) });
+    }
 
-// فتح منتقي الإضافات لمشروب معين
-async function openExtrasPicker(drinkId) {
-  _extrasPickerDrinkId = drinkId;
-  // تحميل خيارات التخصيص إذا لم تكن محملة
-  if (!customizationData) {
-    await loadCustomization();
-  }
-  const extrasList = (customizationData && customizationData.extras) || [];
-  // الحصول على الإضافات المحددة حالياً للمشروب
-  const drink = menuData.find(d => d.id === drinkId);
-  const selected = (drink && drink.availableExtras) || [];
+    // تغيير حالة العميل
+    async function changeCustomerStatus(id, status) {
+      await fetch(`/api/admin/users/${id}`, { method: 'PATCH', headers: getAuthH(), body: JSON.stringify({ customerStatus: status }) });
+    }
 
-  // بناء نافذة منبثقة
-  const container = document.getElementById('cm-input');
-  container.style.display = 'block';
-  container.type = 'text';
-  container.value = '';
+    // تغيير حالة الشريك للعميل
+    async function changePartnerStatus(id, isPartnerVal) {
+      const status = isPartnerVal === 'true';
+      await fetch(`/api/admin/users/${id}`, { method: 'PATCH', headers: getAuthH(), body: JSON.stringify({ isPartner: status }) });
+      showToast('تم تحديث حالة الشريك', 'success');
+    }
 
-  let html = '<div style="display:flex;flex-direction:column;gap:.6rem;text-align:right;">';
-  extrasList.forEach(e => {
-    const checked = selected.includes(e.key) ? 'checked' : '';
-    html += `<label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.9rem;">
+    // ????? ??????
+    function logout() { localStorage.clear(); location.href = 'login.html'; }
+
+    // ???????
+    function showToast(msg, type) {
+      const c = document.getElementById('toastContainer');
+      if (!c) return;
+      const t = document.createElement('div');
+      t.className = 'toast ' + (type || 'success');
+      t.textContent = msg;
+      c.appendChild(t);
+      setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300); }, 2500);
+    }
+
+    // ??? ????? ?????? (????? / ????? / ????? ??)
+    function showModal(title, text, isConfirm = false, isPrompt = false) {
+      if (title === 'نجاح' || title === 'Success') showToast(text, 'success');
+      if (title === 'خطأ' || title === 'Error') showToast(text, 'error');
+      return new Promise((resolve) => {
+        const modal = document.getElementById('custom-modal');
+        const titleEl = document.getElementById('cm-title');
+        const textEl = document.getElementById('cm-text');
+        const inputEl = document.getElementById('cm-input');
+        const okBtn = document.getElementById('cm-ok');
+        const cancelBtn = document.getElementById('cm-cancel');
+
+        titleEl.textContent = title;
+        textEl.textContent = text;
+        modal.style.display = 'flex';
+
+        if (isConfirm || isPrompt) {
+          cancelBtn.style.display = 'inline-block';
+        } else {
+          cancelBtn.style.display = 'none';
+        }
+
+        if (isPrompt) {
+          inputEl.style.display = 'block';
+          inputEl.value = '';
+          setTimeout(() => inputEl.focus(), 10);
+        } else {
+          inputEl.style.display = 'none';
+        }
+
+        okBtn.onclick = () => {
+          modal.style.display = 'none';
+          if (isPrompt) resolve(inputEl.value);
+          else resolve(true);
+        };
+        cancelBtn.onclick = () => {
+          modal.style.display = 'none';
+          resolve(null);
+        };
+      });
+    }
+
+    // Load stats on start
+    loadStats();
+
+    // ── Inventory Functions ──
+    let allIngredients = [];
+
+    // ── Recipes Functions ──
+    let currentRecipeId = null;
+
+    // ===== دوال خيارات التخصيص (السكر والإضافات) =====
+    let customizationData = null;
+    let _extrasPickerDrinkId = null;
+
+    // تحميل خيارات التخصيص من الخادم
+    async function loadCustomization() {
+      try {
+        const res = await fetch('/api/customization', { headers: getAuthH() });
+        const data = await res.json();
+        customizationData = data;
+        renderSugarLevels(data.sugarLevels || []);
+        renderExtras(data.extras || []);
+        
+        // عرض معاينة اللوجو والخلفية الموجودة حالياً
+        if (data.logo1) {
+          document.getElementById('logo1-preview').innerHTML = `<img src="${data.logo1}" style="max-height:80px; max-width:100%; object-fit:contain;" />`;
+        } else {
+          document.getElementById('logo1-preview').innerHTML = `<span style="font-size:.7rem; color:var(--muted);">لا يوجد معاينة</span>`;
+        }
+        if (data.logo2) {
+          document.getElementById('logo2-preview').innerHTML = `<img src="${data.logo2}" style="max-height:80px; max-width:100%; object-fit:contain;" />`;
+        } else {
+          document.getElementById('logo2-preview').innerHTML = `<span style="font-size:.7rem; color:var(--muted);">لا يوجد معاينة</span>`;
+        }
+        if (data.heroBg) {
+          document.getElementById('heroBg-preview').innerHTML = `<img src="${data.heroBg}" style="max-height:80px; max-width:100%; object-fit:contain;" />`;
+        } else {
+          document.getElementById('heroBg-preview').innerHTML = `<span style="font-size:.7rem; color:var(--muted);">لا يوجد معاينة</span>`;
+        }
+
+        // إعداد مستمعي التغيير لعرض المعاينة الفورية عند اختيار ملف جديد
+        ['logo1', 'logo2', 'heroBg'].forEach(id => {
+          const inp = document.getElementById(id + '-file');
+          if (inp) {
+            inp.onchange = function(e) {
+              const file = e.target.files[0];
+              if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                  document.getElementById(id + '-preview').innerHTML = `<img src="${evt.target.result}" style="max-height:80px; max-width:100%; object-fit:contain;" />`;
+                };
+                reader.readAsDataURL(file);
+              }
+            };
+          }
+        });
+      } catch (e) { console.error(e); }
+    }
+
+    // فتح منتقي الإضافات لمشروب معين
+    async function openExtrasPicker(drinkId) {
+      _extrasPickerDrinkId = drinkId;
+      // تحميل خيارات التخصيص إذا لم تكن محملة
+      if (!customizationData) {
+        await loadCustomization();
+      }
+      const extrasList = (customizationData && customizationData.extras) || [];
+      // الحصول على الإضافات المحددة حالياً للمشروب
+      const drink = menuData.find(d => d.id === drinkId);
+      const selected = (drink && drink.availableExtras) || [];
+
+      // بناء نافذة منبثقة
+      const container = document.getElementById('cm-input');
+      container.style.display = 'block';
+      container.type = 'text';
+      container.value = '';
+
+      let html = '<div style="display:flex;flex-direction:column;gap:.6rem;text-align:right;">';
+      extrasList.forEach(e => {
+        const checked = selected.includes(e.key) ? 'checked' : '';
+        html += `<label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.9rem;">
       <input type="checkbox" value="${e.key}" ${checked} onchange="onExtraToggle('${e.key}',this.checked)">
-      <span>${e.nameAr} (${e.nameEn}) ${e.price > 0 ? '+'+e.price+' ج.م' : ''}</span>
+      <span>${e.nameAr} (${e.nameEn}) ${e.price > 0 ? '+' + e.price + ' ج.م' : ''}</span>
     </label>`;
-  });
-  html += '</div>';
-  
-  const titleEl = document.getElementById('cm-title');
-  const textEl = document.getElementById('cm-text');
-  titleEl.textContent = 'اختر الإضافات المتاحة';
-  textEl.innerHTML = html;
-  container.style.display = 'none';
-  
-  document.getElementById('cm-cancel').style.display = 'inline-block';
-  document.getElementById('cm-cancel').onclick = () => { document.getElementById('custom-modal').style.display = 'none'; };
-  document.getElementById('cm-ok').textContent = 'حفظ';
-  document.getElementById('cm-ok').onclick = async () => {
-    await saveDrinkExtras(drinkId);
-    document.getElementById('custom-modal').style.display = 'none';
-  };
-  document.getElementById('custom-modal').style.display = 'flex';
-}
+      });
+      html += '</div>';
 
-// تبديل الإضافات المحددة
-function onExtraToggle(key, checked) {
-  const drink = menuData.find(d => d.id === _extrasPickerDrinkId);
-  if (!drink) return;
-  if (!drink.availableExtras) drink.availableExtras = [];
-  if (checked) {
-    if (!drink.availableExtras.includes(key)) drink.availableExtras.push(key);
-  } else {
-    drink.availableExtras = drink.availableExtras.filter(k => k !== key);
-  }
-}
+      const titleEl = document.getElementById('cm-title');
+      const textEl = document.getElementById('cm-text');
+      titleEl.textContent = 'اختر الإضافات المتاحة';
+      textEl.innerHTML = html;
+      container.style.display = 'none';
 
-// حفظ الإضافات للمشروب
-async function saveDrinkExtras(drinkId) {
-  const drink = menuData.find(d => d.id === drinkId);
-  if (!drink) return;
-  try {
-    const res = await fetch('/api/admin/drinks/' + drinkId, {
-      method: 'PATCH',
-      headers: getAuthH(),
-      body: JSON.stringify({ availableExtras: drink.availableExtras || [] })
-    });
-    const data = await res.json();
-    if (data.success) {
-      showToast('تم حفظ الإضافات للمشروب ✅', 'success');
-      loadMenu();
-    } else {
-      showToast('خطأ: ' + (data.error || ''), 'error');
+      document.getElementById('cm-cancel').style.display = 'inline-block';
+      document.getElementById('cm-cancel').onclick = () => { document.getElementById('custom-modal').style.display = 'none'; };
+      document.getElementById('cm-ok').textContent = 'حفظ';
+      document.getElementById('cm-ok').onclick = async () => {
+        await saveDrinkExtras(drinkId);
+        document.getElementById('custom-modal').style.display = 'none';
+      };
+      document.getElementById('custom-modal').style.display = 'flex';
     }
-  } catch(e) {
-    showToast('خطأ في الاتصال', 'error');
-  }
-}
 
-// عرض مستويات السكر
-function renderSugarLevels(levels) {
-  const container = document.getElementById('sugarLevelsList');
-  if (!levels.length) {
-    container.innerHTML = '<p style="color:var(--muted);">لا توجد مستويات سكر مضافة بعد</p>';
-    return;
-  }
-  container.innerHTML = levels.map((l, i) => `
+    // تبديل الإضافات المحددة
+    function onExtraToggle(key, checked) {
+      const drink = menuData.find(d => d.id === _extrasPickerDrinkId);
+      if (!drink) return;
+      if (!drink.availableExtras) drink.availableExtras = [];
+      if (checked) {
+        if (!drink.availableExtras.includes(key)) drink.availableExtras.push(key);
+      } else {
+        drink.availableExtras = drink.availableExtras.filter(k => k !== key);
+      }
+    }
+
+    // حفظ الإضافات للمشروب
+    async function saveDrinkExtras(drinkId) {
+      const drink = menuData.find(d => d.id === drinkId);
+      if (!drink) return;
+      try {
+        const res = await fetch('/api/admin/drinks/' + drinkId, {
+          method: 'PATCH',
+          headers: getAuthH(),
+          body: JSON.stringify({ availableExtras: drink.availableExtras || [] })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('تم حفظ الإضافات للمشروب ✅', 'success');
+          loadMenu();
+        } else {
+          showToast('خطأ: ' + (data.error || ''), 'error');
+        }
+      } catch (e) {
+        showToast('خطأ في الاتصال', 'error');
+      }
+    }
+
+    // عرض مستويات السكر
+    function renderSugarLevels(levels) {
+      const container = document.getElementById('sugarLevelsList');
+      if (!levels.length) {
+        container.innerHTML = '<p style="color:var(--muted);">لا توجد مستويات سكر مضافة بعد</p>';
+        return;
+      }
+      container.innerHTML = levels.map((l, i) => `
     <div style="display:flex; gap:.5rem; align-items:center; margin-bottom:.5rem; padding:.5rem; background:var(--bg3); border:1px solid var(--line); border-radius:4px;">
       <input type="text" value="${l.key}" placeholder="المعرّف" class="edit-input" style="width:80px;" onchange="editSugarField(${i},'key',this.value)">
       <input type="text" value="${l.nameEn}" placeholder="الاسم (EN)" class="edit-input" style="flex:1;" onchange="editSugarField(${i},'nameEn',this.value)">
@@ -1483,38 +1986,38 @@ function renderSugarLevels(levels) {
       <button class="hbtn" onclick="removeSugarLevel(${i})" style="color:var(--red); border-color:rgba(192,57,43,.3); padding:.2rem .5rem;">✕</button>
     </div>
   `).join('');
-}
+    }
 
-// تعديل حقل سكر
-function editSugarField(idx, field, val) {
-  if (customizationData && customizationData.sugarLevels[idx]) {
-    customizationData.sugarLevels[idx][field] = val;
-  }
-}
+    // تعديل حقل سكر
+    function editSugarField(idx, field, val) {
+      if (customizationData && customizationData.sugarLevels[idx]) {
+        customizationData.sugarLevels[idx][field] = val;
+      }
+    }
 
-// إضافة مستوى سكر جديد
-function addSugarRow() {
-  if (!customizationData) customizationData = { sugarLevels: [], extras: [] };
-  if (!customizationData.sugarLevels) customizationData.sugarLevels = [];
-  customizationData.sugarLevels.push({ key: 'New', nameEn: 'New Sugar', nameAr: 'سكر جديد', sortOrder: customizationData.sugarLevels.length });
-  renderSugarLevels(customizationData.sugarLevels);
-}
+    // إضافة مستوى سكر جديد
+    function addSugarRow() {
+      if (!customizationData) customizationData = { sugarLevels: [], extras: [] };
+      if (!customizationData.sugarLevels) customizationData.sugarLevels = [];
+      customizationData.sugarLevels.push({ key: 'New', nameEn: 'New Sugar', nameAr: 'سكر جديد', sortOrder: customizationData.sugarLevels.length });
+      renderSugarLevels(customizationData.sugarLevels);
+    }
 
-// حذف مستوى سكر
-function removeSugarLevel(idx) {
-  if (!customizationData || !customizationData.sugarLevels) return;
-  customizationData.sugarLevels.splice(idx, 1);
-  renderSugarLevels(customizationData.sugarLevels);
-}
+    // حذف مستوى سكر
+    function removeSugarLevel(idx) {
+      if (!customizationData || !customizationData.sugarLevels) return;
+      customizationData.sugarLevels.splice(idx, 1);
+      renderSugarLevels(customizationData.sugarLevels);
+    }
 
-// عرض الإضافات
-function renderExtras(extrasList) {
-  const container = document.getElementById('extrasList');
-  if (!extrasList.length) {
-    container.innerHTML = '<p style="color:var(--muted);">لا توجد إضافات مضافة بعد</p>';
-    return;
-  }
-  container.innerHTML = extrasList.map((e, i) => `
+    // عرض الإضافات
+    function renderExtras(extrasList) {
+      const container = document.getElementById('extrasList');
+      if (!extrasList.length) {
+        container.innerHTML = '<p style="color:var(--muted);">لا توجد إضافات مضافة بعد</p>';
+        return;
+      }
+      container.innerHTML = extrasList.map((e, i) => `
     <div style="display:flex; gap:.5rem; align-items:center; margin-bottom:.5rem; padding:.5rem; background:var(--bg3); border:1px solid var(--line); border-radius:4px;">
       <input type="text" value="${e.key}" placeholder="المعرّف" class="edit-input" style="width:80px;" onchange="editExtraField(${i},'key',this.value)">
       <input type="text" value="${e.nameEn}" placeholder="الاسم (EN)" class="edit-input" style="flex:1;" onchange="editExtraField(${i},'nameEn',this.value)">
@@ -1524,125 +2027,197 @@ function renderExtras(extrasList) {
       <button class="hbtn" onclick="removeExtra(${i})" style="color:var(--red); border-color:rgba(192,57,43,.3); padding:.2rem .5rem;">✕</button>
     </div>
   `).join('');
-}
-
-// تعديل حقل إضافة
-function editExtraField(idx, field, val) {
-  if (customizationData && customizationData.extras[idx]) {
-    customizationData.extras[idx][field] = val;
-  }
-}
-
-// إضافة إضافة جديدة
-function addExtraRow() {
-  if (!customizationData) customizationData = { sugarLevels: [], extras: [] };
-  if (!customizationData.extras) customizationData.extras = [];
-  customizationData.extras.push({ key: 'New', nameEn: 'New Extra', nameAr: 'إضافة جديدة', price: 0, sortOrder: customizationData.extras.length });
-  renderExtras(customizationData.extras);
-}
-
-// حذف إضافة
-function removeExtra(idx) {
-  if (!customizationData || !customizationData.extras) return;
-  customizationData.extras.splice(idx, 1);
-  renderExtras(customizationData.extras);
-}
-
-// حفظ خيارات التخصيص
-async function saveCustomization() {
-  if (!customizationData) return;
-  try {
-    const res = await fetch('/api/customization', {
-      method: 'PUT',
-      headers: getAuthH(),
-      body: JSON.stringify({
-        sugarLevels: customizationData.sugarLevels.map((s, i) => ({ ...s, sortOrder: i })),
-        extras: customizationData.extras.map((e, i) => ({ ...e, sortOrder: i }))
-      })
-    });
-    const data = await res.json();
-    if (data.success) {
-      showToast('تم حفظ خيارات التخصيص بنجاح ✅', 'success');
-    } else {
-      showToast('خطأ في الحفظ: ' + (data.error || 'غير معروف'), 'error');
-    }
-  } catch(e) {
-    showToast('خطأ في الاتصال بالخادم', 'error');
-  }
-}
-
-let vlogAdminData = [];
-let selectedVlogPostIdForWinner = null;
-
-// تبديل تبويب إدارة الصور
-window.switchVlogTab = function(tab) {
-  const btnAlbum = document.getElementById('tab-vlog-album');
-  const btnPartners = document.getElementById('tab-vlog-partners');
-  const secAlbum = document.getElementById('vlog-album-section');
-  const secPartners = document.getElementById('vlog-partners-section');
-  
-  if (tab === 'album') {
-    btnAlbum.style.background = 'var(--gold)';
-    btnAlbum.style.color = '#fff';
-    btnPartners.style.background = 'transparent';
-    btnPartners.style.color = 'var(--muted)';
-    btnPartners.style.borderColor = 'var(--line)';
-    
-    secAlbum.style.display = 'block';
-    secPartners.style.display = 'none';
-    loadAdminVlog();
-  } else {
-    btnPartners.style.background = 'var(--gold)';
-    btnPartners.style.color = '#fff';
-    btnAlbum.style.background = 'transparent';
-    btnAlbum.style.color = 'var(--muted)';
-    btnAlbum.style.borderColor = 'var(--line)';
-    
-    secAlbum.style.display = 'none';
-    secPartners.style.display = 'block';
-    loadAdminPartnersImages();
-  }
-};
-
-async function loadAdminVlog() {
-  try {
-    const res = await fetch('/api/vlog/admin-all', { headers: getAuthH() });
-    if (!res.ok) throw new Error('Failed to load vlog posts');
-    vlogAdminData = await res.json();
-    renderAdminVlogTable(vlogAdminData);
-  } catch(err) {
-    document.getElementById('vlogAdminTable').innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--red);">فشل تحميل المنشورات: ${err.message}</td></tr>`;
-  }
-}
-
-function renderAdminVlogTable(data) {
-  const tbody = document.getElementById('vlogAdminTable');
-  if (!tbody) return;
-
-  if (data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--muted);">لا توجد صور مرفوعة بعد</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = data.map(p => {
-    let statusText = 'قيد الانتظار';
-    let statusClass = 'badge badge-hidden';
-    if (p.isApproved) {
-      statusText = p.isWinner ? '🏆 فائز بالمسابقة' : 'نشط (مقبول)';
-      statusClass = p.isWinner ? 'badge badge-featured' : 'badge badge-cashier';
     }
 
-    const winnerBtnHtml = !p.isApproved
-      ? `<span style="color:var(--muted); font-size:0.8rem;">بانتظار القبول</span>`
-      : (p.isWinner 
-        ? `<span style="color:var(--green); font-size:0.8rem; font-weight:bold;">تم الفوز</span>`
-        : `<button class="hbtn" onclick="openVlogWinnerModal('${p._id}')" style="font-size:0.75rem; color:var(--green); border-color:rgba(39,174,96,0.5)">اختر كفائز 🏆</button>`);
+    // تعديل حقل إضافة
+    function editExtraField(idx, field, val) {
+      if (customizationData && customizationData.extras[idx]) {
+        customizationData.extras[idx][field] = val;
+      }
+    }
 
-    const approveBtnHtml = p.isApproved
-      ? ''
-      : `<button class="hbtn" onclick="approveVlogPost('${p._id}')" style="font-size:0.75rem; color:var(--green); border-color:rgba(39,174,96,0.5); margin-left: 0.5rem; display: inline-block; height: 28px; line-height: 26px; padding: 0 0.5rem;">قبول ✅</button>`;
+    // إضافة إضافة جديدة
+    function addExtraRow() {
+      if (!customizationData) customizationData = { sugarLevels: [], extras: [] };
+      if (!customizationData.extras) customizationData.extras = [];
+      customizationData.extras.push({ key: 'New', nameEn: 'New Extra', nameAr: 'إضافة جديدة', price: 0, sortOrder: customizationData.extras.length });
+      renderExtras(customizationData.extras);
+    }
 
-    return `
+    // حذف إضافة
+    function removeExtra(idx) {
+      if (!customizationData || !customizationData.extras) return;
+      customizationData.extras.splice(idx, 1);
+      renderExtras(customizationData.extras);
+    }
+
+    // ضغط الصور المرفوعة لتفادي تجاوز حجم Payload في الطلبات
+    function compressImageHelper(file, maxWidth = 800, maxHeight = 800, quality = 0.65) {
+      return new Promise((resolve) => {
+        if (!file || !file.type || !file.type.startsWith('image/')) {
+          resolve(null);
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+
+            if (width > maxWidth || height > maxHeight) {
+              if (width > height) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+              } else {
+                width = Math.round((width * maxHeight) / height);
+                height = maxHeight;
+              }
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = () => resolve(e.target.result);
+          img.src = e.target.result;
+        };
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // حفظ خيارات التخصيص
+    async function saveCustomization() {
+      if (!customizationData) return;
+      try {
+        const logo1Input = document.getElementById('logo1-file');
+        const logo2Input = document.getElementById('logo2-file');
+        const heroBgInput = document.getElementById('heroBg-file');
+
+        let logo1Base64 = undefined;
+        let logo2Base64 = undefined;
+        let heroBgBase64 = undefined;
+
+        if ((logo1Input && logo1Input.files[0]) || (logo2Input && logo2Input.files[0]) || (heroBgInput && heroBgInput.files[0])) {
+          showToast('جاري ضغط ومعالجة الصور المرفوعة...', 'info');
+        }
+
+        if (logo1Input && logo1Input.files[0]) {
+          logo1Base64 = await compressImageHelper(logo1Input.files[0], 400, 400, 0.85);
+        }
+        if (logo2Input && logo2Input.files[0]) {
+          logo2Base64 = await compressImageHelper(logo2Input.files[0], 400, 400, 0.85);
+        }
+        if (heroBgInput && heroBgInput.files[0]) {
+          heroBgBase64 = await compressImageHelper(heroBgInput.files[0], 1200, 1200, 0.70);
+        }
+
+        const payload = {
+          sugarLevels: customizationData.sugarLevels.map((s, i) => ({ ...s, sortOrder: i })),
+          extras: customizationData.extras.map((e, i) => ({ ...e, sortOrder: i }))
+        };
+
+        if (logo1Base64) payload.logo1 = logo1Base64;
+        if (logo2Base64) payload.logo2 = logo2Base64;
+        if (heroBgBase64) payload.heroBg = heroBgBase64;
+
+        const res = await fetch('/api/customization', {
+          method: 'PUT',
+          headers: getAuthH(),
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('تم حفظ خيارات التخصيص والهوية البصرية بنجاح ✅', 'success');
+          customizationData = data.data;
+          if (logo1Input) logo1Input.value = '';
+          if (logo2Input) logo2Input.value = '';
+          if (heroBgInput) heroBgInput.value = '';
+        } else {
+          showToast('خطأ في الحفظ: ' + (data.error || 'غير معروف'), 'error');
+        }
+      } catch (e) {
+        console.error(e);
+        showToast('خطأ في الاتصال بالخادم', 'error');
+      }
+    }
+
+    let vlogAdminData = [];
+    let selectedVlogPostIdForWinner = null;
+
+    // تبديل تبويب إدارة الصور
+    window.switchVlogTab = function (tab) {
+      const btnAlbum = document.getElementById('tab-vlog-album');
+      const btnPartners = document.getElementById('tab-vlog-partners');
+      const secAlbum = document.getElementById('vlog-album-section');
+      const secPartners = document.getElementById('vlog-partners-section');
+
+      if (tab === 'album') {
+        btnAlbum.style.background = 'var(--gold)';
+        btnAlbum.style.color = '#fff';
+        btnPartners.style.background = 'transparent';
+        btnPartners.style.color = 'var(--muted)';
+        btnPartners.style.borderColor = 'var(--line)';
+
+        secAlbum.style.display = 'block';
+        secPartners.style.display = 'none';
+        loadAdminVlog();
+      } else {
+        btnPartners.style.background = 'var(--gold)';
+        btnPartners.style.color = '#fff';
+        btnAlbum.style.background = 'transparent';
+        btnAlbum.style.color = 'var(--muted)';
+        btnAlbum.style.borderColor = 'var(--line)';
+
+        secAlbum.style.display = 'none';
+        secPartners.style.display = 'block';
+        loadAdminPartnersImages();
+      }
+    };
+
+    async function loadAdminVlog() {
+      try {
+        const res = await fetch('/api/vlog/admin-all', { headers: getAuthH() });
+        if (!res.ok) throw new Error('Failed to load vlog posts');
+        vlogAdminData = await res.json();
+        renderAdminVlogTable(vlogAdminData);
+      } catch (err) {
+        document.getElementById('vlogAdminTable').innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--red);">فشل تحميل المنشورات: ${err.message}</td></tr>`;
+      }
+    }
+
+    function renderAdminVlogTable(data) {
+      const tbody = document.getElementById('vlogAdminTable');
+      if (!tbody) return;
+
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--muted);">لا توجد صور مرفوعة بعد</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.map(p => {
+        let statusText = 'قيد الانتظار';
+        let statusClass = 'badge badge-hidden';
+        if (p.isApproved) {
+          statusText = p.isWinner ? '🏆 فائز بالمسابقة' : 'نشط (مقبول)';
+          statusClass = p.isWinner ? 'badge badge-featured' : 'badge badge-cashier';
+        }
+
+        const winnerBtnHtml = !p.isApproved
+          ? `<span style="color:var(--muted); font-size:0.8rem;">بانتظار القبول</span>`
+          : (p.isWinner
+            ? `<span style="color:var(--green); font-size:0.8rem; font-weight:bold;">تم الفوز</span>`
+            : `<button class="hbtn" onclick="openVlogWinnerModal('${p._id}')" style="font-size:0.75rem; color:var(--green); border-color:rgba(39,174,96,0.5)">اختر كفائز 🏆</button>`);
+
+        const approveBtnHtml = p.isApproved
+          ? ''
+          : `<button class="hbtn" onclick="approveVlogPost('${p._id}')" style="font-size:0.75rem; color:var(--green); border-color:rgba(39,174,96,0.5); margin-left: 0.5rem; display: inline-block; height: 28px; line-height: 26px; padding: 0 0.5rem;">قبول ✅</button>`;
+
+        return `
       <tr id="vlog-row-${p._id}">
         <td>
           <a href="${p.image}" target="_blank">
@@ -1662,138 +2237,138 @@ function renderAdminVlogTable(data) {
         </td>
       </tr>
     `;
-  }).join('');
-}
-
-window.approveVlogPost = async function(id) {
-  try {
-    const res = await fetch(`/api/vlog/${id}/approve`, {
-      method: 'PATCH',
-      headers: getAuthH()
-    });
-    const data = await res.json();
-    if (res.ok && data.success) {
-      showToast('تم قبول الصورة ونشرها في ألبوم المكان بنجاح ✅', 'success');
-      loadAdminVlog();
-    } else {
-      showToast(data.error || 'فشل قبول الصورة', 'error');
+      }).join('');
     }
-  } catch(e) {
-    showToast('خطأ في الاتصال بالخادم', 'error');
-  }
-};
 
-function filterAdminVlogTable() {
-  const q = document.getElementById('vlog-admin-search').value.toLowerCase();
-  const filtered = vlogAdminData.filter(p => 
-    p.userName.toLowerCase().includes(q) || 
-    (p.caption || '').toLowerCase().includes(q)
-  );
-  renderAdminVlogTable(filtered);
-}
+    window.approveVlogPost = async function (id) {
+      try {
+        const res = await fetch(`/api/vlog/${id}/approve`, {
+          method: 'PATCH',
+          headers: getAuthH()
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('تم قبول الصورة ونشرها في ألبوم المكان بنجاح ✅', 'success');
+          loadAdminVlog();
+        } else {
+          showToast(data.error || 'فشل قبول الصورة', 'error');
+        }
+      } catch (e) {
+        showToast('خطأ في الاتصال بالخادم', 'error');
+      }
+    };
 
-window.openVlogWinnerModal = function(id) {
-  selectedVlogPostIdForWinner = id;
-  const modal = document.getElementById('vlogWinnerModal');
-  if (modal) modal.style.display = 'flex';
-};
-
-window.closeVlogWinnerModal = function() {
-  selectedVlogPostIdForWinner = null;
-  const modal = document.getElementById('vlogWinnerModal');
-  if (modal) modal.style.display = 'none';
-};
-
-window.submitVlogWinner = async function() {
-  if (!selectedVlogPostIdForWinner) return;
-  const prize = document.getElementById('vlogWinnerPrizeInput').value.trim();
-  const btn = document.querySelector('#vlogWinnerModal .c-modal-actions button');
-  const origText = btn.textContent;
-  
-  btn.disabled = true;
-  btn.textContent = 'جاري التأكيد...';
-
-  try {
-    const res = await fetch(`/api/vlog/${selectedVlogPostIdForWinner}/winner`, {
-      method: 'PATCH',
-      headers: getAuthH(),
-      body: JSON.stringify({ prize })
-    });
-    const data = await res.json();
-    if (res.ok && data.success) {
-      showToast('تم تحديد الفائز بالمسابقة بنجاح! 🏆 وتم منح العميل أوردر هدية في حسابه.', 'success');
-      closeVlogWinnerModal();
-      loadAdminVlog();
-    } else {
-      showToast(data.error || 'فشل تحديد الفائز', 'error');
+    function filterAdminVlogTable() {
+      const q = document.getElementById('vlog-admin-search').value.toLowerCase();
+      const filtered = vlogAdminData.filter(p =>
+        p.userName.toLowerCase().includes(q) ||
+        (p.caption || '').toLowerCase().includes(q)
+      );
+      renderAdminVlogTable(filtered);
     }
-  } catch(e) {
-    showToast('خطأ في الاتصال بالخادم', 'error');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = origText;
-  }
-};
 
-window.deleteVlogPost = async function(id) {
-  if (!confirm('هل أنت متأكد من حذف هذه الصورة نهائياً من الألبوم؟')) return;
-  try {
-    const res = await fetch(`/api/vlog/${id}`, {
-      method: 'DELETE',
-      headers: getAuthH()
-    });
-    const data = await res.json();
-    if (res.ok && data.success) {
-      showToast('تم حذف الصورة بنجاح 🗑️', 'success');
-      loadAdminVlog();
-    } else {
-      showToast(data.error || 'فشل حذف الصورة', 'error');
+    window.openVlogWinnerModal = function (id) {
+      selectedVlogPostIdForWinner = id;
+      const modal = document.getElementById('vlogWinnerModal');
+      if (modal) modal.style.display = 'flex';
+    };
+
+    window.closeVlogWinnerModal = function () {
+      selectedVlogPostIdForWinner = null;
+      const modal = document.getElementById('vlogWinnerModal');
+      if (modal) modal.style.display = 'none';
+    };
+
+    window.submitVlogWinner = async function () {
+      if (!selectedVlogPostIdForWinner) return;
+      const prize = document.getElementById('vlogWinnerPrizeInput').value.trim();
+      const btn = document.querySelector('#vlogWinnerModal .c-modal-actions button');
+      const origText = btn.textContent;
+
+      btn.disabled = true;
+      btn.textContent = 'جاري التأكيد...';
+
+      try {
+        const res = await fetch(`/api/vlog/${selectedVlogPostIdForWinner}/winner`, {
+          method: 'PATCH',
+          headers: getAuthH(),
+          body: JSON.stringify({ prize })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('تم تحديد الفائز بالمسابقة بنجاح! 🏆 وتم منح العميل أوردر هدية في حسابه.', 'success');
+          closeVlogWinnerModal();
+          loadAdminVlog();
+        } else {
+          showToast(data.error || 'فشل تحديد الفائز', 'error');
+        }
+      } catch (e) {
+        showToast('خطأ في الاتصال بالخادم', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = origText;
+      }
+    };
+
+    window.deleteVlogPost = async function (id) {
+      if (!confirm('هل أنت متأكد من حذف هذه الصورة نهائياً من الألبوم؟')) return;
+      try {
+        const res = await fetch(`/api/vlog/${id}`, {
+          method: 'DELETE',
+          headers: getAuthH()
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('تم حذف الصورة بنجاح 🗑️', 'success');
+          loadAdminVlog();
+        } else {
+          showToast(data.error || 'فشل حذف الصورة', 'error');
+        }
+      } catch (e) {
+        showToast('خطأ في الاتصال بالخادم', 'error');
+      }
+    };
+
+    // ── دوال إدارة صور الشركاء ──
+    let partnersImagesData = [];
+
+    async function loadAdminPartnersImages() {
+      try {
+        const res = await fetch('/api/admin/partners-images', { headers: getAuthH() });
+        if (!res.ok) throw new Error('Failed to load partners images');
+        partnersImagesData = await res.json();
+        renderAdminPartnersImages(partnersImagesData);
+      } catch (err) {
+        document.getElementById('vlogPartnersContainer').innerHTML = `<p style="text-align:center; color:var(--red);">فشل تحميل صور الشركاء: ${err.message}</p>`;
+      }
     }
-  } catch(e) {
-    showToast('خطأ في الاتصال بالخادم', 'error');
-  }
-};
 
-// ── دوال إدارة صور الشركاء ──
-let partnersImagesData = [];
+    function renderAdminPartnersImages(data) {
+      const container = document.getElementById('vlogPartnersContainer');
+      if (!container) return;
 
-async function loadAdminPartnersImages() {
-  try {
-    const res = await fetch('/api/admin/partners-images', { headers: getAuthH() });
-    if (!res.ok) throw new Error('Failed to load partners images');
-    partnersImagesData = await res.json();
-    renderAdminPartnersImages(partnersImagesData);
-  } catch(err) {
-    document.getElementById('vlogPartnersContainer').innerHTML = `<p style="text-align:center; color:var(--red);">فشل تحميل صور الشركاء: ${err.message}</p>`;
-  }
-}
+      if (data.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:var(--muted);">لا يوجد شركاء مضافون حالياً</p>`;
+        return;
+      }
 
-function renderAdminPartnersImages(data) {
-  const container = document.getElementById('vlogPartnersContainer');
-  if (!container) return;
-
-  if (data.length === 0) {
-    container.innerHTML = `<p style="text-align:center; color:var(--muted);">لا يوجد شركاء مضافون حالياً</p>`;
-    return;
-  }
-
-  container.innerHTML = data.map(p => {
-    // اللوجو
-    let logoHtml = '';
-    if (p.partnerLogo) {
-      logoHtml += `
+      container.innerHTML = data.map(p => {
+        // اللوجو
+        let logoHtml = '';
+        if (p.partnerLogo) {
+          logoHtml += `
         <div style="text-align:center; position:relative; background:var(--bg3); border:1px solid var(--line); border-radius:8px; padding:0.5rem; width:120px;">
           <div style="font-size:0.75rem; color:var(--muted); margin-bottom:0.25rem;">اللوجو المعتمد</div>
           <img src="${p.partnerLogo}" style="width:70px; height:70px; object-fit:contain; border-radius:4px; margin-bottom:0.4rem;" />
           <button class="action-btn2" style="color:var(--red); font-size:0.75rem; width:100%; border-color:rgba(192,57,43,0.3); height:24px; padding:0;" onclick="deletePartnerImage('${p._id}', 'logo', false, '')">حذف 🗑️</button>
         </div>
       `;
-    } else {
-      logoHtml += `<div style="text-align:center; color:var(--muted); font-size:0.8rem; padding:1.5rem; border:1px dashed var(--line); border-radius:8px; width:120px; display:flex; align-items:center; justify-content:center;">لا يوجد لوجو</div>`;
-    }
+        } else {
+          logoHtml += `<div style="text-align:center; color:var(--muted); font-size:0.8rem; padding:1.5rem; border:1px dashed var(--line); border-radius:8px; width:120px; display:flex; align-items:center; justify-content:center;">لا يوجد لوجو</div>`;
+        }
 
-    if (p.pendingPartnerLogo) {
-      logoHtml += `
+        if (p.pendingPartnerLogo) {
+          logoHtml += `
         <div style="text-align:center; position:relative; background:rgba(230,126,34,0.05); border:2px solid var(--orange); border-radius:8px; padding:0.5rem; width:120px;">
           <div style="font-size:0.75rem; color:var(--orange); font-weight:bold; margin-bottom:0.25rem;">لوجو جديد ⏳</div>
           <img src="${p.pendingPartnerLogo}" style="width:70px; height:70px; object-fit:contain; border-radius:4px; margin-bottom:0.4rem;" />
@@ -1803,24 +2378,24 @@ function renderAdminPartnersImages(data) {
           </div>
         </div>
       `;
-    }
+        }
 
-    // الصورة الرئيسية (Cover)
-    let mainImageHtml = '';
-    if (p.partnerMainImage) {
-      mainImageHtml += `
+        // الصورة الرئيسية (Cover)
+        let mainImageHtml = '';
+        if (p.partnerMainImage) {
+          mainImageHtml += `
         <div style="position:relative; background:var(--bg3); border:1px solid var(--line); border-radius:8px; padding:0.5rem; width:180px;">
           <div style="font-size:0.75rem; color:var(--muted); margin-bottom:0.25rem;">المعتمدة للغلاف</div>
           <img src="${p.partnerMainImage}" style="width:100%; height:90px; object-fit:cover; border-radius:4px; margin-bottom:0.4rem;" />
           <button class="action-btn2" style="color:var(--red); font-size:0.75rem; width:100%; border-color:rgba(192,57,43,0.3); height:24px; padding:0;" onclick="deletePartnerImage('${p._id}', 'mainImage', false, '')">حذف 🗑️</button>
         </div>
       `;
-    } else {
-      mainImageHtml += `<div style="text-align:center; color:var(--muted); font-size:0.8rem; padding:2rem 1rem; border:1px dashed var(--line); border-radius:8px; width:180px; display:flex; align-items:center; justify-content:center;">لا توجد غلاف</div>`;
-    }
+        } else {
+          mainImageHtml += `<div style="text-align:center; color:var(--muted); font-size:0.8rem; padding:2rem 1rem; border:1px dashed var(--line); border-radius:8px; width:180px; display:flex; align-items:center; justify-content:center;">لا توجد غلاف</div>`;
+        }
 
-    if (p.pendingPartnerMainImage) {
-      mainImageHtml += `
+        if (p.pendingPartnerMainImage) {
+          mainImageHtml += `
         <div style="position:relative; background:rgba(230,126,34,0.05); border:2px solid var(--orange); border-radius:8px; padding:0.5rem; width:180px;">
           <div style="font-size:0.75rem; color:var(--orange); font-weight:bold; margin-bottom:0.25rem;">غلاف جديد ⏳</div>
           <img src="${p.pendingPartnerMainImage}" style="width:100%; height:90px; object-fit:cover; border-radius:4px; margin-bottom:0.4rem;" />
@@ -1830,15 +2405,15 @@ function renderAdminPartnersImages(data) {
           </div>
         </div>
       `;
-    }
+        }
 
-    // معرض الصور المعتمد
-    let galleryHtml = '';
-    const approvedGallery = p.partnerGallery || [];
-    if (approvedGallery.length === 0) {
-      galleryHtml += `<div style="font-size:0.8rem; color:var(--muted); padding:1rem 0;">لا توجد صور معتمدة في المعرض</div>`;
-    } else {
-      galleryHtml += `
+        // معرض الصور المعتمد
+        let galleryHtml = '';
+        const approvedGallery = p.partnerGallery || [];
+        if (approvedGallery.length === 0) {
+          galleryHtml += `<div style="font-size:0.8rem; color:var(--muted); padding:1rem 0;">لا توجد صور معتمدة في المعرض</div>`;
+        } else {
+          galleryHtml += `
         <div style="display:flex; flex-direction:column; gap:0.3rem; margin-top:0.4rem;">
           <div style="font-size:0.75rem; color:var(--muted);">المعرض المعتمد:</div>
           <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
@@ -1851,13 +2426,13 @@ function renderAdminPartnersImages(data) {
           </div>
         </div>
       `;
-    }
+        }
 
-    // معرض الصور قيد الانتظار
-    let pendingGalleryHtml = '';
-    const pendingGallery = p.pendingPartnerGallery || [];
-    if (pendingGallery.length > 0) {
-      pendingGalleryHtml += `
+        // معرض الصور قيد الانتظار
+        let pendingGalleryHtml = '';
+        const pendingGallery = p.pendingPartnerGallery || [];
+        if (pendingGallery.length > 0) {
+          pendingGalleryHtml += `
         <div style="display:flex; flex-direction:column; gap:0.3rem; margin-top:0.8rem; background:rgba(230,126,34,0.03); border:1px dashed var(--orange); border-radius:8px; padding:0.8rem;">
           <div style="font-size:0.78rem; color:var(--orange); font-weight:bold;">📸 صور جديدة بالمعرض تنتظر الموافقة (${pendingGallery.length} صور):</div>
           <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.4rem;">
@@ -1873,9 +2448,9 @@ function renderAdminPartnersImages(data) {
           </div>
         </div>
       `;
-    }
+        }
 
-    return `
+        return `
       <div style="background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:1.5rem; box-shadow:0 4px 12px rgba(0,0,0,0.02); display:flex; flex-direction:column; gap:1.2rem;">
         <div style="border-bottom:1px solid var(--line); padding-bottom:0.5rem; display:flex; justify-content:space-between; align-items:center;">
           <h3 style="color:var(--gold); font-family:'Tajawal',sans-serif; font-size:1.15rem;">🤝 ${p.name}</h3>
@@ -1907,77 +2482,81 @@ function renderAdminPartnersImages(data) {
         </div>
       </div>
     `;
-  }).join('');
-}
-
-window.approvePartnerImage = async function(partnerId, type, imageUrl) {
-  try {
-    const res = await fetch(`/api/admin/partners/${partnerId}/approve-image`, {
-      method: 'POST',
-      headers: getAuthH(),
-      body: JSON.stringify({ type, imageUrl })
-    });
-    const data = await res.json();
-    if (res.ok && data.success) {
-      showToast('تم قبول الصورة وتحديث الملف الشخصي بنجاح ✅', 'success');
-      loadAdminPartnersImages();
-    } else {
-      showToast(data.error || 'فشل قبول الصورة', 'error');
+      }).join('');
     }
-  } catch(e) {
-    showToast('خطأ في الاتصال بالخادم', 'error');
-  }
-};
 
-window.deletePartnerImage = async function(partnerId, type, isPending, imageUrl) {
-  if (!confirm(isPending ? 'هل أنت متأكد من رفض وحذف هذه الصورة المعلقة؟' : 'هل أنت متأكد من حذف هذه الصورة المعتمدة نهائياً؟')) return;
-  try {
-    const res = await fetch(`/api/admin/partners/${partnerId}/delete-image`, {
-      method: 'POST',
-      headers: getAuthH(),
-      body: JSON.stringify({ type, isPending, imageUrl })
-    });
-    const data = await res.json();
-    if (res.ok && data.success) {
-      showToast('تم حذف/رفض الصورة بنجاح 🗑️', 'success');
-      loadAdminPartnersImages();
-    } else {
-      showToast(data.error || 'فشل حذف الصورة', 'error');
-    }
-  } catch(e) {
-    showToast('خطأ في الاتصال بالخادم', 'error');
-  }
-};
+    window.approvePartnerImage = async function (partnerId, type, imageUrl) {
+      try {
+        const res = await fetch(`/api/admin/partners/${partnerId}/approve-image`, {
+          method: 'POST',
+          headers: getAuthH(),
+          body: JSON.stringify({ type, imageUrl })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('تم قبول الصورة وتحديث الملف الشخصي بنجاح ✅', 'success');
+          loadAdminPartnersImages();
+        } else {
+          showToast(data.error || 'فشل قبول الصورة', 'error');
+        }
+      } catch (e) {
+        showToast('خطأ في الاتصال بالخادم', 'error');
+      }
+    };
+
+    window.deletePartnerImage = async function (partnerId, type, isPending, imageUrl) {
+      if (!confirm(isPending ? 'هل أنت متأكد من رفض وحذف هذه الصورة المعلقة؟' : 'هل أنت متأكد من حذف هذه الصورة المعتمدة نهائياً؟')) return;
+      try {
+        const res = await fetch(`/api/admin/partners/${partnerId}/delete-image`, {
+          method: 'POST',
+          headers: getAuthH(),
+          body: JSON.stringify({ type, isPending, imageUrl })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('تم حذف/رفض الصورة بنجاح 🗑️', 'success');
+          loadAdminPartnersImages();
+        } else {
+          showToast(data.error || 'فشل حذف الصورة', 'error');
+        }
+      } catch (e) {
+        showToast('خطأ في الاتصال بالخادم', 'error');
+      }
+    };
 
 
 
 
-</script>
+  </script>
 
-<div id="custom-modal" class="c-modal">
-  <div class="c-modal-content">
-    <h2 id="cm-title">تنبيه</h2>
-    <p id="cm-text"></p>
-    <input type="text" id="cm-input" class="edit-input" style="width:100%; display:none; margin-bottom:1.5rem; text-align:center;">
-    <div class="c-modal-actions">
-      <button id="cm-cancel" class="hbtn">إلغاء</button>
-      <button id="cm-ok" class="hbtn" style="color:var(--gold); border-color:var(--gold);">موافق</button>
+  <div id="custom-modal" class="c-modal">
+    <div class="c-modal-content">
+      <h2 id="cm-title">تنبيه</h2>
+      <p id="cm-text"></p>
+      <input type="text" id="cm-input" class="edit-input"
+        style="width:100%; display:none; margin-bottom:1.5rem; text-align:center;">
+      <div class="c-modal-actions">
+        <button id="cm-cancel" class="hbtn">إلغاء</button>
+        <button id="cm-ok" class="hbtn" style="color:var(--gold); border-color:var(--gold);">موافق</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- نافذة تحديد الجائزة للفائز بالمسابقة -->
-<div class="c-modal" id="vlogWinnerModal">
-  <div class="c-modal-content">
-    <h2>🏆 تحديد الجائزة للعميل الفائز</h2>
-    <p>أدخل اسم الهدية أو المشروب المجاني المقدم للعميل (سيتم منح العميل كوبون أوردر هدية في حسابه تلقائياً):</p>
-    <input type="text" id="vlogWinnerPrizeInput" placeholder="مثال: مشروب مجاني من اختيارك 🎁" class="edit-input" style="width:100%; padding:0.6rem; margin-bottom:1.5rem; text-align:center;" value="أوردر مجاني هدية 🎁"/>
-    <div class="c-modal-actions">
-      <button class="hbtn" onclick="submitVlogWinner()" style="background:var(--green); color:#fff; border-color:var(--green);">تأكيد الفوز ✦</button>
-      <button class="hbtn" onclick="closeVlogWinnerModal()">إلغاء</button>
+  <!-- نافذة تحديد الجائزة للفائز بالمسابقة -->
+  <div class="c-modal" id="vlogWinnerModal">
+    <div class="c-modal-content">
+      <h2>🏆 تحديد الجائزة للعميل الفائز</h2>
+      <p>أدخل اسم الهدية أو المشروب المجاني المقدم للعميل (سيتم منح العميل كوبون أوردر هدية في حسابه تلقائياً):</p>
+      <input type="text" id="vlogWinnerPrizeInput" placeholder="مثال: مشروب مجاني من اختيارك 🎁" class="edit-input"
+        style="width:100%; padding:0.6rem; margin-bottom:1.5rem; text-align:center;" value="أوردر مجاني هدية 🎁" />
+      <div class="c-modal-actions">
+        <button class="hbtn" onclick="submitVlogWinner()"
+          style="background:var(--green); color:#fff; border-color:var(--green);">تأكيد الفوز ✦</button>
+        <button class="hbtn" onclick="closeVlogWinnerModal()">إلغاء</button>
+      </div>
     </div>
   </div>
-</div>
 
 </body>
+
 </html>

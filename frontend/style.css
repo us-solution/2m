@@ -1639,6 +1639,7 @@ footer {
   max-width: 1000px;
   margin: 0 auto;
   background: transparent !important;
+  min-height: 450px; /* يمنع انهيار ارتفاع الصفحة عند التبديل السريع */
 }
 .lmi-currency {
   font-size: 0.7rem;
@@ -1652,6 +1653,19 @@ footer {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
+  will-change: opacity, transform;
+  animation: menuFadeIn 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@keyframes menuFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .lmi-top {
   display: flex;
