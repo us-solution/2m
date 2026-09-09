@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const PointsLog = require('../models/PointsLog');
 const { authenticateToken } = require('../middlewares/auth');
+const { syncCustomerToCashier, normalizePhone } = require('../services/cashierSync');
 require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'ozel_cafe_secret_2026';
@@ -13,16 +14,17 @@ const JWT_SECRET = process.env.JWT_SECRET || 'ozel_cafe_secret_2026';
 // تسجيل مستخدم جديد (يتطلب الاسم وكلمة المرور ورقم الهاتف أو البريد)
 router.post('/register', async (req, res) => {
   const { name, phone, email, password, subscriptionTier } = req.body;
+  const cleanPhone = phone ? normalizePhone(phone) : null;
 
   // التحقق من وجود الاسم وكلمة المرور ورقم الهاتف أو البريد الإلكتروني
-  if (!name || !password || (!phone && !email)) {
+  if (!name || !password || (!cleanPhone && !email)) {
     return res.status(400).json({ error: 'Name, password, and at least a Phone number or Email are required' });
   }
 
   try {
     // التحقق من عدم تسجيل رقم الهاتف مسبقاً
-    if (phone) {
-      const existingPhone = await User.findOne({ phone });
+    if (cleanPhone) {
+      const existingPhone = await User.findOne({ phone: cleanPhone });
       if (existingPhone) {
         return res.status(409).json({ error: 'Phone number already registered' });
       }
@@ -30,7 +32,7 @@ router.post('/register', async (req, res) => {
 
     // التحقق من عدم تسجيل البريد الإلكتروني مسبقاً
     if (email) {
-      const existingEmail = await User.findOne({ email });
+      const existingEmail = await User.findOne({ email: email.trim().toLowerCase() });
       if (existingEmail) {
         return res.status(409).json({ error: 'Email already registered' });
       }
@@ -45,12 +47,19 @@ router.post('/register', async (req, res) => {
     const chosenTier = validTiers.includes(tier.toLowerCase()) ? tier.toLowerCase() : 'none';
 
     const user = await User.create({
-      name,
-      phone: phone || `email_${Date.now()}`,
-      email: email || null,
+      name: name.trim(),
+      phone: cleanPhone || `email_${Date.now()}`,
+      email: email ? email.trim().toLowerCase() : null,
       password: hashedPassword,
       role: 'customer',
       subscriptionTier: chosenTier
+    });
+
+    // مزامنة العميل فورياً نحو سيستم الكاشير عبر الجسر في الخلفية (Background Job غير مانع للتصفح)
+    setImmediate(() => {
+      syncCustomerToCashier(user).catch(syncErr => {
+        console.error('[Register Bridge Sync Error]', syncErr.message);
+      });
     });
 
     // إنشاء رمز JWT صالح لمدة 30 يوماً

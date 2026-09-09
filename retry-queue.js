@@ -1,5 +1,6 @@
 const QueueOrder = require('./models/QueueOrder');
 const axios = require('axios');
+const { processCustomerQueue } = require('./services/cashierSync');
 
 const CASHIER_API_URL = () => process.env.CASHIER_API_URL;
 const CASHIER_API_KEY = () => process.env.CASHIER_API_KEY;
@@ -40,6 +41,14 @@ async function processQueue() {
   if (isProcessing) return;
   isProcessing = true;
   try {
+    // 1. معالجة طابور إعادة إرسال العملاء نحو الكاشير
+    try {
+      await processCustomerQueue();
+    } catch (custErr) {
+      console.error('[RetryQueue] خطأ في معالجة طابور العملاء:', custErr.message);
+    }
+
+    // 2. معالجة طابور الطلبات
     const entries = await QueueOrder.find({ 
       status: 'pending',
       nextAttemptAt: { $lte: new Date() }

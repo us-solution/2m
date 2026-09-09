@@ -35,6 +35,7 @@ const retryQueue = require('./retry-queue');
 require('./models/ExpenseCategory');
 require('./models/CustomizationOption');
 require('./models/QueueOrder');
+require('./models/QueueCustomer');
 require('./models/VlogPost');
 require('./models/SystemLicense');
 

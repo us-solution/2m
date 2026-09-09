@@ -2708,6 +2708,67 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   z-index: 5;
 }
 
+/* نظام الـ 3 قطع (FIFO): القطعة الأقدم التالية للحذف */
+.ttt-cell.expiring-piece {
+  animation: expiringPulse 1.4s infinite ease-in-out;
+  opacity: 0.55 !important;
+  border: 2px dashed rgba(220, 53, 69, 0.7) !important;
+  position: relative;
+}
+
+.ttt-cell.expiring-piece::before {
+  content: '⚠️';
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 0.65rem;
+  opacity: 0.8;
+}
+
+@keyframes expiringPulse {
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(0.96);
+    box-shadow: 0 0 0 rgba(220, 53, 69, 0);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.02);
+    box-shadow: 0 0 8px rgba(220, 53, 69, 0.35);
+  }
+}
+
+/* حركة حذف القطعة بسلاسة (FIFO Exit Animation) */
+.ttt-cell.removing {
+  animation: pieceFadeOut 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes pieceFadeOut {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+}
+
+/* شارة توضيح قاعدة الـ 3 قطع ومنع التعادل */
+.ttt-rule-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  background: rgba(192, 159, 74, 0.12);
+  border: 1px solid rgba(192, 159, 74, 0.3);
+  color: var(--gold);
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
 @keyframes glowPulse {
   0%, 100% { box-shadow: 0 0 5px #c09f4a; transform: scale(1); }
   50% { box-shadow: 0 0 20px #c09f4a; transform: scale(1.05); }

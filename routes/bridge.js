@@ -53,6 +53,68 @@ function verifyBridgeSignature(req, res, next) {
   next();
 }
 
+// خريطة طرق الدفع لتحويل مسميات الكاشير إلى قيم الـ enum في Order model
+function paymentMethodMap(method) {
+  if (!method) return 'cash';
+  const m = String(method).toLowerCase().trim();
+  if (m === 'cash' || m === 'نقدي' || m === 'نقد') return 'cash';
+  if (m === 'visa' || m === 'card' || m === 'بطاقة' || m === 'فيزا') return 'card';
+  if (m === 'wallet' || m === 'محفظة' || m === 'vodafone' || m === 'instapay') return 'wallet';
+  if (m === 'split' || m === 'مقسم') return 'split';
+  return 'cash';
+}
+
+// إعادة ضبط وتصفير بيانات المزامنة (Reset and Rebind)
+router.post('/reset-and-rebind', verifyBridgeKey, async (req, res) => {
+  const { confirm, device_id, new_bridge_key } = req.body || {};
+  if (!confirm) {
+    return res.status(400).json({ error: 'Confirmation required (confirm: true)' });
+  }
+
+  try {
+    console.log(`[Bridge] Reset & Rebind requested by device: ${device_id || 'unknown'}`);
+
+    // 1. حذف جميع الطلبات التي تمت مزامنتها من الكاشير
+    const deletedOrders = await Order.deleteMany({ posSynced: true });
+
+    // 2. حذف أحداث المزامنة
+    const deletedEvents = await SyncEvent.deleteMany({});
+
+    // 3. حذف لقطات التقارير المزامنة
+    const deletedReports = await ReportSnapshot.deleteMany({});
+
+    // 4. تسجيل حدث إعادة الضبط
+    const resetEventId = uuidv4();
+    await SyncEvent.create({
+      eventId: resetEventId,
+      eventType: 'SYSTEM_RESET',
+      payload: {
+        resetAt: new Date().toISOString(),
+        device_id: device_id || 'unknown',
+        new_bridge_key_provided: Boolean(new_bridge_key),
+        deletedOrdersCount: deletedOrders.deletedCount,
+        deletedEventsCount: deletedEvents.deletedCount,
+        deletedReportsCount: deletedReports.deletedCount
+      },
+      status: 'acked',
+      acknowledgedAt: new Date()
+    });
+
+    console.log(`[Bridge] Reset complete: ${deletedOrders.deletedCount} orders, ${deletedEvents.deletedCount} events cleared.`);
+
+    res.json({
+      success: true,
+      message: 'Server data cleared and ready for new sync',
+      deletedOrders: deletedOrders.deletedCount,
+      deletedEvents: deletedEvents.deletedCount,
+      resetEventId
+    });
+  } catch (err) {
+    console.error('[Bridge] reset-and-rebind error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // استقبال بيانات التقرير من نظام نقاط البيع وحفظها في MongoDB
 router.post('/report', verifyBridgeKey, async (req, res) => {
   const { type, data, snapshotDate } = req.body;
@@ -104,19 +166,91 @@ router.post('/ack', verifyBridgeKey, async (req, res) => {
   }
 });
 
-// Synchronize local invoice to cloud with Idempotency Key check
+// Synchronize local invoice to cloud — UNIFIED endpoint with Idempotency + Order creation + Loyalty Points
 router.post('/invoices/sync', verifyBridgeKey, async (req, res) => {
-  const { invoice_number, idempotency_key, total, payment_method } = req.body || {};
-  if (!idempotency_key) {
-    return res.status(400).json({ error: 'idempotency_key is required' });
+  const { invoice_number, idempotency_key, total, payment_method, items, customer_phone, customer_name, customer_id, created_at, status } = req.body || {};
+
+  // Require at least one deduplication key
+  if (!idempotency_key && !invoice_number) {
+    return res.status(400).json({ error: 'idempotency_key or invoice_number is required' });
   }
+
   try {
-    const existing = await SyncEvent.findOne({ 'payload.idempotency_key': idempotency_key });
-    if (existing) {
-      return res.json({ success: true, message: 'Already synced (Idempotent OK)', eventId: existing.eventId });
+    // Dual idempotency check: check BOTH idempotency_key and invoice_number to prevent any duplicate
+    if (idempotency_key) {
+      const existingByKey = await SyncEvent.findOne({ 'payload.idempotency_key': idempotency_key });
+      if (existingByKey) {
+        return res.json({ success: true, message: 'Already synced (Idempotent — by key)', eventId: existingByKey.eventId });
+      }
+    }
+    if (invoice_number) {
+      const existingByInvoice = await SyncEvent.findOne({ 'payload.invoice_number': invoice_number });
+      if (existingByInvoice) {
+        return res.json({ success: true, message: 'Already synced (Idempotent — by invoice_number)', eventId: existingByInvoice.eventId });
+      }
+      // Also check Order collection as a safety net
+      const existingOrder = await Order.findOne({ 'syncMeta.lastEventId': invoice_number });
+      if (existingOrder) {
+        return res.json({ success: true, message: 'Already synced (Order exists)', eventId: invoice_number });
+      }
     }
 
+    // -- Loyalty Points Calculation --
+    let user = null;
+    let pointsEarned = 0;
+    const invoiceTotal = Number(total) || 0;
+
+    if (customer_phone && customer_phone !== '0000000000') {
+      user = await User.findOne({ phone: customer_phone });
+      if (user && invoiceTotal > 0) {
+        pointsEarned = Math.floor(invoiceTotal / 10);
+        user.points = (user.points || 0) + pointsEarned;
+        user.total_spent = (user.total_spent || 0) + invoiceTotal;
+        await user.save();
+
+        // Log points
+        const PointsLog = require('../models/PointsLog');
+        await PointsLog.create({
+          userId: user._id,
+          points: pointsEarned,
+          type: 'earn',
+          notes: `نقاط مكتسبة من فاتورة الكاشير المزامنة #${invoice_number || idempotency_key}`
+        });
+      }
+    }
+
+    // -- Create Order in MongoDB --
+    const orderItems = Array.isArray(items) ? items.map(i => ({
+      name: i.product_name || i.name || 'منتج',
+      quantity: i.quantity || 1,
+      price: i.price || 0,
+      sugar: 'Normal',
+      extras: []
+    })) : [];
+
     const eventId = uuidv4();
+
+    await Order.create({
+      userId: user ? user._id : null,
+      table_number: 'سفري/محلي',
+      items: orderItems,
+      total_price: invoiceTotal,
+      points_earned: pointsEarned,
+      status: status || 'paid',
+      notes: `تمت المزامنة من الكاشير. طريقة الدفع: ${payment_method || 'cash'}`,
+      customerPhone: customer_phone || null,
+      posSynced: true,
+      qrCodeToken: `pos-sync-${invoice_number || idempotency_key}-${eventId}`,
+      paymentMethod: paymentMethodMap(payment_method),
+      syncMeta: {
+        lastEventId: invoice_number || idempotency_key,
+        lastEventType: 'invoice.sync',
+        lastSyncedAt: new Date(),
+        syncStatus: 'acked'
+      }
+    });
+
+    // -- Record SyncEvent --
     await SyncEvent.create({
       eventId,
       eventType: 'INVOICE_SYNCED',
@@ -125,8 +259,9 @@ router.post('/invoices/sync', verifyBridgeKey, async (req, res) => {
       acknowledgedAt: new Date()
     });
 
-    res.json({ success: true, message: 'Invoice synced successfully', eventId });
+    res.json({ success: true, message: 'Invoice synced successfully', eventId, points_earned: pointsEarned });
   } catch (err) {
+    console.error('[Bridge] invoices/sync error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -256,23 +391,48 @@ router.get('/cashier-report', authenticateToken, requireRole('admin'), async (re
 
 // ── نقاط الاتصال الجديدة لربط تطبيق الكاشير المكتبي بالسايت ──
 
-// 1. جلب العملاء السحابيين من MongoDB
+// 1. جلب كافة العملاء والمستخدمين المسجلين من MongoDB للسيرفر المحلي للكاشير مع دعم التصفح (Pagination)
 router.get('/customers', verifyBridgeKey, async (req, res) => {
   try {
-    const customers = await User.find({ role: 'customer' }).sort({ createdAt: -1 });
-    const serialized = customers.map(u => ({
-      id: u._id,
-      name: u.name,
-      phone: u.phone && u.phone.startsWith('email_') ? '' : (u.phone || ''),
-      email: u.email,
-      role: u.role,
-      points: u.points,
-      total_spent: parseFloat(u.total_spent || 0),
-      address: u.address || '',
-      notes: u.notes || '',
-      date_joined: u.createdAt ? u.createdAt.toISOString() : new Date().toISOString(),
-      customerStatus: u.customerStatus || 'standard'
-    }));
+    const page = parseInt(req.query.page, 10) || 0;
+    const limit = parseInt(req.query.limit, 10) || 0;
+
+    const filter = {
+      email: { $nin: ['admin@ozel.cafe', 'cashier@ozel.cafe'] },
+      phone: { $nin: ['0000000000', '01000000000', '01000000001'] }
+    };
+
+    let query = User.find(filter).sort({ createdAt: -1 });
+    if (page > 0 && limit > 0) {
+      query = query.skip((page - 1) * limit).limit(limit);
+    }
+
+    const customers = await query;
+
+    const serialized = customers.map(u => {
+      let resolvedPhone = u.phone && !u.phone.startsWith('email_') ? u.phone.trim() : '';
+      let resolvedEmail = (u.email || '').trim();
+
+      // معالجة الحالات التي يتم فيها إدخال رقم الهاتف في حقل البريد
+      if (!resolvedPhone && resolvedEmail && /^\+?[0-9]{10,14}$/.test(resolvedEmail)) {
+        resolvedPhone = resolvedEmail;
+        resolvedEmail = '';
+      }
+
+      return {
+        id: String(u._id),
+        name: u.name || 'عميل مسجل',
+        phone: resolvedPhone,
+        email: resolvedEmail,
+        role: u.role || 'customer',
+        points: parseInt(u.points || 0),
+        total_spent: parseFloat(u.total_spent || 0),
+        address: u.address || '',
+        notes: u.notes || '',
+        date_joined: u.createdAt ? u.createdAt.toISOString() : new Date().toISOString(),
+        customerStatus: u.customerStatus || 'standard'
+      };
+    });
     res.json(serialized);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -596,16 +756,22 @@ router.get('/customers/:phone/top-items', verifyBridgeKey, async (req, res) => {
 });
 
 
-// 7. استقبال الفاتورة المحلية للمزامنة وتحديث نقاط العميل سحابياً
+// 7. LEGACY: Redirect old sync-invoice calls to the unified /invoices/sync endpoint
 router.post('/sync-invoice', verifyBridgeKey, async (req, res) => {
+  // Forward to the unified handler
   const { invoice_number, customer_phone, customer_name, total, items, created_at, payment_method, status } = req.body;
-  console.log('[Bridge] Sync invoice request received:', invoice_number);
+  console.log('[Bridge] Legacy sync-invoice redirecting to unified /invoices/sync for:', invoice_number);
+
   try {
-    // التحقق من تكرار حفظ هذه الفاتورة
+    // Check if already synced (dual check)
     const existingOrder = await Order.findOne({ 'syncMeta.lastEventId': invoice_number });
     if (existingOrder) {
-      console.log('[Bridge] Invoice already synced:', invoice_number);
-      return res.status(409).json({ error: 'Invoice already synced' });
+      console.log('[Bridge] Invoice already synced (legacy check):', invoice_number);
+      return res.json({ success: true, message: 'Already synced', points_earned: 0 });
+    }
+    const existingEvent = await SyncEvent.findOne({ 'payload.invoice_number': invoice_number });
+    if (existingEvent) {
+      return res.json({ success: true, message: 'Already synced (event exists)', points_earned: 0 });
     }
 
     let user = null;
@@ -614,13 +780,11 @@ router.post('/sync-invoice', verifyBridgeKey, async (req, res) => {
     if (customer_phone) {
       user = await User.findOne({ phone: customer_phone });
       if (user) {
-        // احتساب نقاط الولاء (كل 10 جنيهات تعادل 1 نقطة)
         pointsEarned = Math.floor(total / 10);
         user.points = (user.points || 0) + pointsEarned;
         user.total_spent = (user.total_spent || 0) + total;
         await user.save();
 
-        // تسجيل لوج النقاط
         const PointsLog = require('../models/PointsLog');
         await PointsLog.create({
           userId: user._id,
@@ -631,12 +795,12 @@ router.post('/sync-invoice', verifyBridgeKey, async (req, res) => {
       }
     }
 
-    // حفظ الفاتورة كـ Order في MongoDB
+    const eventId = uuidv4();
     await Order.create({
       userId: user ? user._id : null,
       table_number: 'سفري/محلي',
-      items: items.map(i => ({
-        name: i.product_name,
+      items: (items || []).map(i => ({
+        name: i.product_name || i.name,
         quantity: i.quantity,
         price: i.price,
         sugar: 'Normal',
@@ -648,7 +812,7 @@ router.post('/sync-invoice', verifyBridgeKey, async (req, res) => {
       notes: `تمت المزامنة من الكاشير محلياً. طريقة الدفع: ${payment_method || 'cash'}`,
       customerPhone: customer_phone || null,
       posSynced: true,
-      qrCodeToken: `pos-sync-${invoice_number}-${uuidv4()}`,
+      qrCodeToken: `pos-sync-${invoice_number}-${eventId}`,
       paymentMethod: paymentMethodMap(payment_method),
       syncMeta: {
         lastEventId: invoice_number,
@@ -656,6 +820,14 @@ router.post('/sync-invoice', verifyBridgeKey, async (req, res) => {
         lastSyncedAt: new Date(),
         syncStatus: 'acked'
       }
+    });
+
+    await SyncEvent.create({
+      eventId,
+      eventType: 'INVOICE_SYNCED',
+      payload: req.body,
+      status: 'acked',
+      acknowledgedAt: new Date()
     });
 
     res.json({ success: true, points_earned: pointsEarned });
@@ -699,6 +871,55 @@ router.patch('/orders/:id/status', verifyBridgeKey, async (req, res) => {
     
     res.json({ success: true, orderId: String(order._id), status: order.status });
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 9. Server Reset & Rebind — Clear all synced data when switching to a new POS instance
+router.post('/reset-and-rebind', verifyBridgeKey, async (req, res) => {
+  const { confirm, new_bridge_key, device_id } = req.body || {};
+
+  if (!confirm) {
+    return res.status(400).json({ error: 'يجب تأكيد عملية التصفير بإرسال confirm: true' });
+  }
+
+  try {
+    // 1. Delete all POS-synced orders
+    const deletedOrders = await Order.deleteMany({ posSynced: true });
+    console.log(`[Bridge Reset] Deleted ${deletedOrders.deletedCount} POS-synced orders.`);
+
+    // 2. Delete all sync events
+    const deletedEvents = await SyncEvent.deleteMany({});
+    console.log(`[Bridge Reset] Deleted ${deletedEvents.deletedCount} sync events.`);
+
+    // 3. Delete all report snapshots
+    const deletedSnapshots = await ReportSnapshot.deleteMany({});
+    console.log(`[Bridge Reset] Deleted ${deletedSnapshots.deletedCount} report snapshots.`);
+
+    // 4. Record the reset event
+    await SyncEvent.create({
+      eventId: uuidv4(),
+      eventType: 'SYSTEM_RESET',
+      payload: {
+        reset_by_device: device_id || 'unknown',
+        new_bridge_key: new_bridge_key ? '***' : null,
+        reset_at: new Date().toISOString()
+      },
+      status: 'acked',
+      acknowledgedAt: new Date()
+    });
+
+    res.json({
+      success: true,
+      message: 'تم تصفير بيانات السيرفر بنجاح. جاهز لاستقبال بيانات النظام الجديد.',
+      deleted: {
+        orders: deletedOrders.deletedCount,
+        sync_events: deletedEvents.deletedCount,
+        report_snapshots: deletedSnapshots.deletedCount
+      }
+    });
+  } catch (err) {
+    console.error('[Bridge Reset] Error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });

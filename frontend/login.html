@@ -376,6 +376,9 @@ function translateError(msg){
   return a? msg : msg;
 }
 
+let loginAbortController = null;
+let registerAbortController = null;
+
 // ===== تنفيذ عملية تسجيل الدخول =====
 async function doLogin(){
   const a=currentLang==='ar';
@@ -385,9 +388,20 @@ async function doLogin(){
   const id=document.getElementById('l-id').value.trim();
   const pw=document.getElementById('l-pass').value;
   if(!id||!pw){err.textContent=a?'يرجى إدخال الهاتف/البريد وكلمة المرور':'Please enter identifier and password';return;}
+  
+  if (loginAbortController) {
+    loginAbortController.abort();
+  }
+  loginAbortController = new AbortController();
+
   btn.disabled=true; btn.textContent=a?'جارٍ تسجيل الدخول...':'Logging in...';
   try{
-    const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier:id,password:pw})});
+    const r=await fetch('/api/auth/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({identifier:id,password:pw}),
+      signal: loginAbortController.signal
+    });
     const d=await r.json();
     if(!r.ok){console.error('[Login 500]', d);err.textContent=translateError(d.error||d.message);btn.disabled=false;btn.textContent=a?'تسجيل الدخول':'Login';return;}
     if(!d.token||!d.user){err.textContent=a?'استجابة غير صالحة':'Invalid response';btn.disabled=false;btn.textContent=a?'تسجيل الدخول':'Login';return;}
@@ -397,8 +411,11 @@ async function doLogin(){
     else if(d.user.role==='cashier') location.href='cashier.html';
     else location.href=redirect;
   }catch(e){
+    if (e.name === 'AbortError') return;
     err.textContent=a?'فشل الاتصال بالخادم':'Connection failed';
     btn.disabled=false;btn.textContent=a?'تسجيل الدخول':'Login';
+  } finally {
+    loginAbortController = null;
   }
 }
 
@@ -413,9 +430,20 @@ async function doRegister(){
   const email=document.getElementById('r-email').value.trim();
   const pw=document.getElementById('r-pass').value;
   if(!name||!pw||(!phone&&!email)){err.textContent=a?'يرجى إكمال الاسم وكلمة المرور والهاتف أو البريد':'Please fill name, password, and phone or email';return;}
+
+  if (registerAbortController) {
+    registerAbortController.abort();
+  }
+  registerAbortController = new AbortController();
+
   btn.disabled=true; btn.textContent=a?'جارٍ إنشاء الحساب...':'Creating...';
   try{
-    const r=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,phone,email:email||undefined,password:pw})});
+    const r=await fetch('/api/auth/register',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,phone,email:email||undefined,password:pw}),
+      signal: registerAbortController.signal
+    });
     const d=await r.json();
     if(!r.ok){err.textContent=translateError(d.error||d.message);btn.disabled=false;btn.textContent=a?'إنشاء حساب':'Create Account';return;}
     if(!d.token||!d.user){err.textContent=a?'استجابة غير صالحة':'Invalid response';btn.disabled=false;btn.textContent=a?'إنشاء حساب':'Create Account';return;}
@@ -425,8 +453,11 @@ async function doRegister(){
     err.textContent=a?'تم إنشاء الحساب بنجاح! جاري التوجيه...':'Account created! Redirecting...';
     setTimeout(()=>{location.href=redirect;},800);
   }catch(e){
+    if (e.name === 'AbortError') return;
     err.textContent=a?'فشل الاتصال بالخادم':'Connection failed';
     btn.disabled=false;btn.textContent=a?'إنشاء حساب':'Create Account';
+  } finally {
+    registerAbortController = null;
   }
 }
 

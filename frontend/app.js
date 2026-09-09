@@ -64,10 +64,13 @@ let imposterGame = {
 };
 
 let tttBoard = Array(9).fill(null);
+let tttMovesO = []; // طابور حركات اللاعب O (3 قطع كحد أقصى)
+let tttMovesX = []; // طابور حركات اللاعب X (3 قطع كحد أقصى)
 let tttCurrentPlayer = 'O'; 
 let tttActive = true;
 let tttWinner = null;
 let tttMode = 'local'; 
+let tttAITimer = null; 
 
 // ===== حالة المصادقة والمستخدم =====
 const CUSER = JSON.parse(localStorage.getItem('ozel_user') || 'null');
@@ -1974,7 +1977,7 @@ window.resetImposterGame = function() {
   renderImposterSetup();
 };
 
-// ===== منطق لعبة إكس-أو (Tic-Tac-Coffee) =====
+// ===== منطق لعبة إكس-أو (Tic-Tac-Coffee) بنظام الـ 3 قطع (FIFO) لمنع التعادل نهائياً =====
 
 const winPatterns = [
   [0, 1, 2], [3, 4, 5], [6, 7, 8], 
@@ -1984,12 +1987,33 @@ const winPatterns = [
 
 // ===== تعيين وضع اللعبة (لاعب ضد لاعب أو ضد الذكاء الاصطناعي) =====
 window.setTTTMode = function(mode) {
+  if (tttAITimer) {
+    clearTimeout(tttAITimer);
+    tttAITimer = null;
+  }
   tttMode = mode;
   document.querySelectorAll('.ttt-mode-btn').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById('ttt-btn-' + mode);
   if (btn) btn.classList.add('active');
   resetTTT();
 };
+
+// ===== تمييز القطعة الأقدم للّاعب الحالي (القطعة التالية للحذف) =====
+function updateNextToExpire() {
+  document.querySelectorAll('.ttt-cell').forEach(c => c.classList.remove('expiring-piece'));
+  if (!tttActive || tttWinner) return;
+
+  // تنبيه اللاعب الحالي إذا كان لديه 3 قطع بالفعل
+  if (tttCurrentPlayer === 'O' && tttMovesO.length === 3) {
+    const oldestIdx = tttMovesO[0];
+    const cell = document.querySelector(`.ttt-cell[data-idx="${oldestIdx}"]`);
+    if (cell) cell.classList.add('expiring-piece');
+  } else if (tttCurrentPlayer === 'X' && tttMovesX.length === 3) {
+    const oldestIdx = tttMovesX[0];
+    const cell = document.querySelector(`.ttt-cell[data-idx="${oldestIdx}"]`);
+    if (cell) cell.classList.add('expiring-piece');
+  }
+}
 
 // ===== لعب حركة في إكس-أو =====
 window.playTTT = function(idx) {
@@ -2004,27 +2028,60 @@ window.playTTT = function(idx) {
   updateTTTStatus();
 
   if (tttMode === 'ai' && tttCurrentPlayer === 'X' && tttActive) {
-    setTimeout(makeAIMove, 500);
+    if (tttAITimer) clearTimeout(tttAITimer);
+    tttAITimer = setTimeout(makeAIMove, 450);
   }
 };
 
-// ===== تنفيذ الحركة على اللوحة =====
+// ===== تنفيذ الحركة على اللوحة بنظام FIFO (إزاحة أقدم قطعة عند الحركة 4) =====
 function makeTTTMove(idx, player) {
+  // تطبيق نظام الـ 3 قطع لكل لاعب (FIFO)
+  if (player === 'O') {
+    if (tttMovesO.length >= 3) {
+      const oldestIdx = tttMovesO.shift();
+      tttBoard[oldestIdx] = null;
+      const oldCell = document.querySelector(`.ttt-cell[data-idx="${oldestIdx}"]`);
+      if (oldCell) {
+        oldCell.classList.remove('expiring-piece');
+        oldCell.classList.add('removing');
+        setTimeout(() => {
+          oldCell.innerHTML = '';
+          oldCell.className = 'ttt-cell';
+        }, 260);
+      }
+    }
+    tttMovesO.push(idx);
+  } else {
+    if (tttMovesX.length >= 3) {
+      const oldestIdx = tttMovesX.shift();
+      tttBoard[oldestIdx] = null;
+      const oldCell = document.querySelector(`.ttt-cell[data-idx="${oldestIdx}"]`);
+      if (oldCell) {
+        oldCell.classList.remove('expiring-piece');
+        oldCell.classList.add('removing');
+        setTimeout(() => {
+          oldCell.innerHTML = '';
+          oldCell.className = 'ttt-cell';
+        }, 260);
+      }
+    }
+    tttMovesX.push(idx);
+  }
+
   tttBoard[idx] = player;
   const cell = document.querySelector(`.ttt-cell[data-idx="${idx}"]`);
   if (cell) {
     cell.innerHTML = player;
-    cell.classList.add('taken');
-    cell.classList.add('player-' + player.toLowerCase());
+    cell.className = `ttt-cell taken player-${player.toLowerCase()}`;
     
     cell.animate([
-      { transform: 'scale(0.8)', opacity: 0.5 },
+      { transform: 'scale(0.7)', opacity: 0.4 },
       { transform: 'scale(1)', opacity: 1 }
     ], { duration: 250, easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)' });
   }
 }
 
-// ===== تحديث حالة اللعبة والنص =====
+// ===== تحديث حالة اللعبة والنص وعلامات التحذير =====
 function updateTTTStatus() {
   const statusEl = document.getElementById('ttt-status');
   if (!statusEl) return;
@@ -2037,30 +2094,34 @@ function updateTTTStatus() {
       boardEl.classList.add(tttCurrentPlayer === 'O' ? 'turn-o' : 'turn-x');
     }
   }
+
+  // تحديث إشارة القطعة الأقدم
+  updateNextToExpire();
   
   if (tttWinner) {
-    if (tttWinner === 'draw') {
-      statusEl.innerHTML = isAr ? 'تعادل! العبوا مجدداً' : "It's a draw! Play again";
-      statusEl.style.color = 'var(--muted)';
-    } else if (tttMode === 'ai') {
+    if (tttMode === 'ai') {
       if (tttWinner === 'X') {
         statusEl.innerHTML = isAr ? 'الذكاء الاصطناعي فاز!' : 'AI Wins!';
         statusEl.style.color = 'var(--red)';
       } else {
-        statusEl.innerHTML = isAr ? 'أنت الفائز!' : 'You Win!';
+        statusEl.innerHTML = isAr ? 'أنت الفائز! 🎉' : 'You Win! 🎉';
         statusEl.style.color = 'var(--green)';
       }
     } else {
       let winnerName = tttWinner === 'O' 
         ? (isAr ? 'اللاعب O' : 'Player O') 
         : (isAr ? 'اللاعب X' : 'Player X');
-      statusEl.innerHTML = isAr ? `الفائز هو: ${winnerName}!` : `Winner is: ${winnerName}!`;
+      statusEl.innerHTML = isAr ? `الفائز هو: ${winnerName}! 🏆` : `Winner is: ${winnerName}! 🏆`;
       statusEl.style.color = 'var(--green)';
     }
   } else {
+    const oCount = tttMovesO.length;
+    const xCount = tttMovesX.length;
+    
     if (tttMode === 'ai') {
       if (tttCurrentPlayer === 'O') {
-        statusEl.innerHTML = isAr ? 'دورك (O)' : 'Your Turn (O)';
+        const warn = oCount === 3 ? (isAr ? ' (حركتك ستحذف أقدم قطعة ⚠️)' : ' (Next move removes oldest ⚠️)') : ` (${oCount}/3)`;
+        statusEl.innerHTML = (isAr ? 'دورك (O)' : 'Your Turn (O)') + warn;
         statusEl.style.color = 'var(--accent-emerald)';
       } else {
         statusEl.innerHTML = isAr ? 'الذكاء الاصطناعي يُفكر...' : 'AI is thinking...';
@@ -2068,17 +2129,19 @@ function updateTTTStatus() {
       }
     } else {
       if (tttCurrentPlayer === 'O') {
-        statusEl.innerHTML = isAr ? 'دور اللاعب الأول (اللاعب O)' : "Player O's Turn";
+        const warn = oCount === 3 ? (isAr ? ' ⚠️' : ' ⚠️') : ` (${oCount}/3)`;
+        statusEl.innerHTML = (isAr ? 'دور اللاعب الأول (O)' : "Player O's Turn") + warn;
         statusEl.style.color = 'var(--accent-emerald)';
       } else {
-        statusEl.innerHTML = isAr ? 'دور اللاعب الثاني (اللاعب X)' : "Player X's Turn";
-        statusEl.style.color = 'var(--gold)';
+        const warn = xCount === 3 ? (isAr ? ' ⚠️' : ' ⚠️') : ` (${xCount}/3)`;
+        statusEl.innerHTML = (isAr ? 'دور اللاعب الثاني (X)' : "Player X's Turn") + warn;
+        statusEl.style.color = 'var(--burgundy2)';
       }
     }
   }
 }
 
-// ===== التحقق من وجود فائز في إكس-أو =====
+// ===== التحقق من وجود فائز في إكس-أو (لا تعادل نهائياً) =====
 function checkTTTWinner() {
   let roundWon = false;
   let winningPattern = null;
@@ -2107,46 +2170,13 @@ function checkTTTWinner() {
     return true;
   }
   
-  if (!tttBoard.includes(null)) {
-    tttWinner = 'draw';
-    tttActive = false;
-    updateTTTStatus();
-    return true;
-  }
+  // لا يوجد تعادل في نظام الـ 3 قطع لأن اللوحة لا تمتلئ بالكامل
   return false;
 }
 
-// ===== الحصول على الخلايا الفارغة =====
+// ===== الحصول على الخلايا الفارغة على اللوحة =====
 function getEmptyCells() {
   return tttBoard.reduce((acc, cell, i) => cell === null ? acc.concat(i) : acc, []);
-}
-
-// ===== خوارزمية Minimax للذكاء الاصطناعي =====
-function minimax(board, depth, isMaximizing) {
-  const scores = { X: 10, O: -10, draw: 0 };
-  const available = board.reduce((acc, cell, i) => cell === null ? acc.concat(i) : acc, []);
-
-  if (checkBoardWinner(board) === 'X') return scores.X - depth;
-  if (checkBoardWinner(board) === 'O') return scores.O + depth;
-  if (available.length === 0) return scores.draw;
-
-  if (isMaximizing) {
-    let best = -Infinity;
-    for (const i of available) {
-      board[i] = 'X';
-      best = Math.max(best, minimax(board, depth + 1, false));
-      board[i] = null;
-    }
-    return best;
-  } else {
-    let best = Infinity;
-    for (const i of available) {
-      board[i] = 'O';
-      best = Math.min(best, minimax(board, depth + 1, true));
-      board[i] = null;
-    }
-    return best;
-  }
 }
 
 // ===== التحقق من الفائز على لوحة معينة =====
@@ -2157,39 +2187,153 @@ function checkBoardWinner(board) {
   return null;
 }
 
-// ===== حساب أفضل حركة للذكاء الاصطناعي =====
+// ===== دالة التقييم التقديري الاستراتيجي للذكاء الاصطناعي (Heuristic) =====
+function evaluateBoardHeuristic(board, movesX, movesO) {
+  let score = 0;
+  
+  // فحص الخطوط المفتوحة والثنائية
+  for (const [a, b, c] of winPatterns) {
+    const line = [board[a], board[b], board[c]];
+    const countX = line.filter(v => v === 'X').length;
+    const countO = line.filter(v => v === 'O').length;
+    
+    if (countX === 2 && countO === 0) score += 12;
+    if (countO === 2 && countX === 0) score -= 14; // تفضيل قوي للدفاع ومنع فوز الخصم
+  }
+  
+  // ميزة المربع الأوسط (مركز اللوحة)
+  if (board[4] === 'X') score += 4;
+  if (board[4] === 'O') score -= 4;
+
+  // مكافأة أمان القطع: القطع الأحدث لها قيمة أكبر لأنها تعيش أطول
+  movesX.forEach((pos, idx) => { score += (idx + 1) * 2; });
+  movesO.forEach((pos, idx) => { score -= (idx + 1) * 2; });
+
+  return score;
+}
+
+// ===== خوارزمية Minimax الذكية المتوافقة مع نظام FIFO وعمق محدد =====
+function minimax(board, movesX, movesO, depth, isMaximizing, alpha, beta, maxDepth = 5) {
+  const winner = checkBoardWinner(board);
+  if (winner === 'X') return 100 - depth;
+  if (winner === 'O') return -100 + depth;
+  
+  if (depth >= maxDepth) {
+    return evaluateBoardHeuristic(board, movesX, movesO);
+  }
+
+  const available = board.reduce((acc, cell, i) => cell === null ? acc.concat(i) : acc, []);
+  if (available.length === 0) return 0;
+
+  if (isMaximizing) {
+    let maxEval = -Infinity;
+    for (const i of available) {
+      const nextBoard = [...board];
+      const nextX = [...movesX];
+      if (nextX.length === 3) {
+        const removed = nextX.shift();
+        nextBoard[removed] = null;
+      }
+      nextX.push(i);
+      nextBoard[i] = 'X';
+
+      const evalScore = minimax(nextBoard, nextX, movesO, depth + 1, false, alpha, beta, maxDepth);
+      maxEval = Math.max(maxEval, evalScore);
+      alpha = Math.max(alpha, evalScore);
+      if (beta <= alpha) break; // Alpha-Beta Pruning
+    }
+    return maxEval;
+  } else {
+    let minEval = Infinity;
+    for (const i of available) {
+      const nextBoard = [...board];
+      const nextO = [...movesO];
+      if (nextO.length === 3) {
+        const removed = nextO.shift();
+        nextBoard[removed] = null;
+      }
+      nextO.push(i);
+      nextBoard[i] = 'O';
+
+      const evalScore = minimax(nextBoard, movesX, nextO, depth + 1, true, alpha, beta, maxDepth);
+      minEval = Math.min(minEval, evalScore);
+      beta = Math.min(beta, evalScore);
+      if (beta <= alpha) break; // Alpha-Beta Pruning
+    }
+    return minEval;
+  }
+}
+
+// ===== حساب أفضل حركة للذكاء الاصطناعي مع نظام FIFO =====
 function getBestMove() {
   let bestScore = -Infinity;
   let bestMove = null;
   const available = getEmptyCells();
-  const board = [...tttBoard];
+  if (available.length === 0) return null;
 
+  // فحص الفوز الفوري في خطوة واحدة أولاً
   for (const i of available) {
-    board[i] = 'X';
-    const score = minimax(board, 0, false);
-    board[i] = null;
+    const simBoard = [...tttBoard];
+    const simX = [...tttMovesX];
+    if (simX.length === 3) {
+      const rm = simX.shift();
+      simBoard[rm] = null;
+    }
+    simBoard[i] = 'X';
+    if (checkBoardWinner(simBoard) === 'X') return i;
+  }
+
+  // فحص الصد الفوري لخصمك إذا كان سيفوز في خطوته القادمة
+  for (const i of available) {
+    const simBoard = [...tttBoard];
+    simBoard[i] = 'O';
+    if (checkBoardWinner(simBoard) === 'O') return i;
+  }
+
+  // تشغيل خوارزمية Minimax المحمية بعمق محدد
+  for (const i of available) {
+    const simBoard = [...tttBoard];
+    const simX = [...tttMovesX];
+    if (simX.length === 3) {
+      const rm = simX.shift();
+      simBoard[rm] = null;
+    }
+    simX.push(i);
+    simBoard[i] = 'X';
+
+    const score = minimax(simBoard, simX, [...tttMovesO], 0, false, -Infinity, Infinity, 5);
     if (score > bestScore) {
       bestScore = score;
       bestMove = i;
     }
   }
-  return bestMove;
+
+  return bestMove !== null ? bestMove : available[Math.floor(Math.random() * available.length)];
 }
 
 // ===== تنفيذ حركة الذكاء الاصطناعي =====
 function makeAIMove() {
   if (!tttActive || tttCurrentPlayer !== 'X') return;
   const move = getBestMove();
-  if (move === null) { checkTTTWinner(); return; }
+  if (move === null) return;
+  
   makeTTTMove(move, 'X');
   if (checkTTTWinner()) return;
+  
   tttCurrentPlayer = 'O';
   updateTTTStatus();
 }
 
-// ===== إعادة تعيين لعبة إكس-أو =====
+// ===== إعادة تعيين لعبة إكس-أو وتصفير الطوابير =====
 window.resetTTT = function() {
+  if (tttAITimer) {
+    clearTimeout(tttAITimer);
+    tttAITimer = null;
+  }
+  
   tttBoard = Array(9).fill(null);
+  tttMovesO = [];
+  tttMovesX = [];
   tttCurrentPlayer = 'O';
   tttActive = true;
   tttWinner = null;
