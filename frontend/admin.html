@@ -704,6 +704,7 @@
         <option value="tables">📱 رموز QR للطاولات</option>
         <option value="customization">⚙ خيارات التخصيص</option>
         <option value="vlog">📸 إدارة صور الموقع</option>
+        <option value="pos-devices">🖥️ أجهزة الكاشير والمزامنة</option>
       </select>
       <div class="nav-item active" onclick="showPage('dashboard',this)">📊 لوحة التحكم</div>
       <div class="nav-item" onclick="showPage('menu',this)">🍽 إدارة القائمة</div>
@@ -713,6 +714,7 @@
       <div class="nav-item" onclick="showPage('tables',this)">📱 رموز QR للطاولات</div>
       <div class="nav-item" onclick="showPage('customization',this)">⚙ خيارات التخصيص</div>
       <div class="nav-item" onclick="showPage('vlog',this)">📸 إدارة صور الموقع</div>
+      <div class="nav-item" onclick="showPage('pos-devices',this)">🖥️ أجهزة الكاشير والمزامنة</div>
 
     </nav>
     <div style="overflow-y:auto;max-height:calc(100vh - 60px)">
@@ -1116,6 +1118,90 @@
         </div>
       </div>
 
+      <!-- ===== إدارة أجهزة الكاشير والمزامنة (POS Devices: Master / Slave) ===== -->
+      <div class="page" id="page-pos-devices">
+        <h1 class="page-title">🖥️ أجهزة الكاشير والربط السحابي (POS Devices)</h1>
+        <p class="page-sub">إدارة أجهزة نقاط البيع وتعيين الجهاز الرئيسي (Master) والأجهزة الفرعية (Slave) مع حماية وتنزيل بيانات العملاء</p>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="posDevicesStats">
+          <div class="stat-card">
+            <span class="stat-n" id="stat-total-devices">0</span>
+            <span class="stat-l">🖥️ إجمالي الأجهزة المسجلة</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-n" id="stat-online-devices" style="color:var(--green)">0</span>
+            <span class="stat-l">🟢 الأجهزة النشطة (Online)</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-n" id="stat-master-name" style="font-size:1.15rem; margin-top:0.4rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">—</span>
+            <span class="stat-l">👑 الجهاز الرئيسي (Master)</span>
+          </div>
+        </div>
+
+        <!-- System Linking & Customer Protection Card -->
+        <div style="background:var(--bg2); border:1px solid var(--line); border-radius:8px; padding:1.5rem; margin-bottom:2rem;">
+          <h3 style="font-size:1.1rem; color:var(--gold); margin-bottom:.5rem; display:flex; align-items:center; gap:.5rem;">
+            <span>🛡️ معلومات الربط السحابي وحماية بيانات العملاء</span>
+          </h3>
+          <p style="font-size:0.85rem; color:var(--muted); margin-bottom:1.2rem; line-height:1.6;">
+            الجهاز الرئيسي (Master) هو الوحيد الذي يرفع الفواتير تلقائياً للسيرفر لمنع التكرار، بينما تستقبل الأجهزة الفرعية (Slave) البيانات. نظام المزامنة الجديد يمنع حذف أي عملاء محليين إطلاقاً (Additive-Only Merge).
+          </p>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1rem; margin-bottom:1.2rem;">
+            <div style="background:var(--bg3); padding:1rem; border:1px solid var(--line); border-radius:6px;">
+              <span style="display:block; font-size:0.75rem; color:var(--muted); font-weight:700; margin-bottom:0.3rem;">رابط السيرفر السحابي (Cloud URL):</span>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <input type="text" id="pos-cloud-url" readonly class="edit-input" style="width:100%; font-family:monospace; direction:ltr; text-align:left;" />
+                <button class="hbtn" onclick="copyText('pos-cloud-url')">نسخ</button>
+              </div>
+            </div>
+
+            <div style="background:var(--bg3); padding:1rem; border:1px solid var(--line); border-radius:6px;">
+              <span style="display:block; font-size:0.75rem; color:var(--muted); font-weight:700; margin-bottom:0.3rem;">مفتاح الجسر السحابي (Bridge Key):</span>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <input type="text" id="pos-bridge-key" value="ozel_cafe_bridge_secret_2026_xyz" readonly class="edit-input" style="width:100%; font-family:monospace; direction:ltr; text-align:left;" />
+                <button class="hbtn" onclick="copyText('pos-bridge-key')">نسخ</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-wrap:wrap; gap:0.8rem; align-items:center; border-top:1px dashed var(--line); padding-top:1rem;">
+            <button class="hbtn" onclick="downloadSafeCustomersBackup()" style="background:var(--gold); color:var(--bg); font-weight:700; border-color:var(--gold);">
+              📥 تنزيل وتصدير نسخة احتياطية آمنة للعملاء (Safe Backup JSON)
+            </button>
+            <button class="hbtn" onclick="loadPosDevices()">
+              🔄 تحديث قائمة الأجهزة
+            </button>
+            <span style="font-size:0.8rem; color:var(--muted);">يمنع فقدان بيانات العملاء نهائياً ويوفر نسخة آمنة فورية</span>
+          </div>
+        </div>
+
+        <!-- Devices Table -->
+        <h2 style="font-size:1.2rem; color:var(--text); margin-bottom:1rem;">قائمة أجهزة نقاط البيع المسجلة</h2>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>اسم الجهاز</th>
+                <th>معرّف الجهاز (Device ID)</th>
+                <th>عنوان IP والمنفذ</th>
+                <th>إصدار النظام</th>
+                <th>الحالة</th>
+                <th>الدور (Role)</th>
+                <th>آخر اتصال</th>
+                <th>الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="posDevicesTableBody">
+              <tr>
+                <td colspan="8" style="text-align:center; color:var(--muted);">جاري تحميل الأجهزة...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -1152,6 +1238,11 @@
       }
       if (name === 'customization') loadCustomization();
       if (name === 'vlog') loadAdminVlog();
+      if (name === 'pos-devices') {
+        const urlInput = document.getElementById('pos-cloud-url');
+        if (urlInput) urlInput.value = window.location.origin;
+        loadPosDevices();
+      }
     }
 
     // ????? ??????? ?????????
@@ -2522,10 +2613,177 @@
       } catch (e) {
         showToast('خطأ في الاتصال بالخادم', 'error');
       }
-    };
+    // ===== إدارة أجهزة الكاشير (POS Devices & Safe Sync) =====
+    let _posDevicesData = [];
 
+    async function loadPosDevices() {
+      const tbody = document.getElementById('posDevicesTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--muted); padding:2rem;">جاري تحميل الأجهزة...</td></tr>';
 
+      const urlInput = document.getElementById('pos-cloud-url');
+      if (urlInput) urlInput.value = window.location.origin;
 
+      try {
+        const res = await fetch('/api/admin/pos-devices', { headers: getAuthH() });
+        if (!res.ok) throw new Error('فشل جلب بيانات الأجهزة');
+        const data = await res.json();
+        const devices = data.devices || [];
+        _posDevicesData = devices;
+
+        // Update stats
+        const totalEl = document.getElementById('stat-total-devices');
+        if (totalEl) totalEl.textContent = devices.length;
+        const onlineEl = document.getElementById('stat-online-devices');
+        if (onlineEl) onlineEl.textContent = devices.filter(d => d.status === 'online').length;
+        const master = devices.find(d => d.isMaster);
+        const masterEl = document.getElementById('stat-master-name');
+        if (masterEl) masterEl.textContent = master ? `${master.deviceName} (👑)` : 'لم يتم تعيين رئيسي';
+
+        if (devices.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="8" style="text-align:center; color:var(--muted); padding:2.5rem;">
+                <div style="font-size:1.5rem; margin-bottom:0.5rem;">📱</div>
+                <div style="font-weight:700;">لا توجد أجهزة كاشير مسجلة بعد على السيرفر.</div>
+                <div style="font-size:0.8rem; margin-top:0.3rem;">قم بربط جهاز الكاشير بإدخال رابط هذا السيرفر ومفتاح الجسر في شاشة إعدادات الكاشير وسيظهر هنا فوراً.</div>
+              </td>
+            </tr>`;
+          return;
+        }
+
+        tbody.innerHTML = devices.map(d => {
+          const isOnline = d.status === 'online';
+          const isMaster = Boolean(d.isMaster);
+          const timeAgo = d.lastSeen ? new Date(d.lastSeen).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'numeric' }) : '—';
+
+          return `
+            <tr style="${isMaster ? 'background:rgba(194, 159, 67, 0.05);' : ''}">
+              <td style="font-weight:700; color:var(--text);">
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                  <span>${isMaster ? '👑' : '📱'}</span>
+                  <span>${escapeHtml(d.deviceName)}</span>
+                </div>
+              </td>
+              <td>
+                <span style="font-family:monospace; font-size:0.8rem; background:var(--bg3); padding:0.2rem 0.5rem; border-radius:4px; border:1px solid var(--line);">
+                  ${escapeHtml(d.deviceId)}
+                </span>
+              </td>
+              <td style="font-family:monospace; direction:ltr; text-align:right;">
+                ${escapeHtml(d.ipAddress || '—')}${d.localPort ? ':' + d.localPort : ''}
+              </td>
+              <td style="font-size:0.8rem; color:var(--muted);">${escapeHtml(d.systemVersion || 'v2.1.0')}</td>
+              <td>
+                <span class="badge ${isOnline ? 'badge-cashier' : 'badge-customer'}" style="display:inline-flex; align-items:center; gap:0.3rem;">
+                  <span style="width:8px; height:8px; border-radius:50%; background:${isOnline ? '#27ae60' : '#7f8c8d'};"></span>
+                  ${isOnline ? 'متصل الآن' : 'غير متصل'}
+                </span>
+              </td>
+              <td>
+                <span class="badge ${isMaster ? 'badge-admin' : 'badge-partner'}" style="font-weight:700; font-size:0.82rem;">
+                  ${isMaster ? '👑 رئيسي (Master)' : '📱 فرعي (Slave)'}
+                </span>
+              </td>
+              <td style="font-size:0.8rem; color:var(--muted); direction:ltr; text-align:right;">${timeAgo}</td>
+              <td>
+                <div style="display:flex; gap:0.4rem; align-items:center;">
+                  <button class="hbtn" onclick="togglePosDeviceMaster('${escapeHtml(d.deviceId)}', ${!isMaster})" 
+                    style="${isMaster ? 'background:transparent; color:var(--muted);' : 'background:var(--gold); color:var(--bg); font-weight:700; border-color:var(--gold);'} font-size:0.75rem; padding:0.25rem 0.6rem;">
+                    ${isMaster ? 'تعيين كفرعي' : '👑 تعيين كرئيسي'}
+                  </button>
+                  <button class="hbtn" onclick="deletePosDevice('${escapeHtml(d.deviceId)}')" 
+                    style="border-color:rgba(192, 57, 43, 0.4); color:#c0392b; font-size:0.75rem; padding:0.25rem 0.5rem;" title="حذف الجهاز">
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#c0392b; padding:2rem;">خطأ في تحميل الأجهزة: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function togglePosDeviceMaster(deviceId, makeMaster) {
+      const confirmMsg = makeMaster 
+        ? 'هل تريد تعيين هذا الجهاز كجهاز رئيسي (Master)؟ سيتولى هذا الجهاز وحده رفع الفواتير إلى السحابة.'
+        : 'هل تريد تحويل هذا الجهاز إلى جهاز فرعي (Slave)؟ لن يقوم برفع الفواتير مباشرة إلى السحابة.';
+      if (!confirm(confirmMsg)) return;
+
+      try {
+        const res = await fetch(`/api/admin/pos-devices/${deviceId}`, {
+          method: 'PATCH',
+          headers: getAuthH(),
+          body: JSON.stringify({ isMaster: makeMaster })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'فشل تحديث الجهاز');
+        showToast(data.message || 'تم تحديث دور الجهاز بنجاح', 'success');
+        loadPosDevices();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function deletePosDevice(deviceId) {
+      if (!confirm('هل أنت متأكد من حذف هذا الجهاز من قائمة السيرفر؟')) return;
+      try {
+        const res = await fetch(`/api/admin/pos-devices/${deviceId}`, {
+          method: 'DELETE',
+          headers: getAuthH()
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'فشل حذف الجهاز');
+        showToast('تم حذف الجهاز بنجاح', 'success');
+        loadPosDevices();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // تنزيل وتصدير نسخة احتياطية آمنة للعملاء
+    async function downloadSafeCustomersBackup() {
+      try {
+        showToast('جاري استخراج وتجهيز نسخة احتياطية آمنة للعملاء...', 'info');
+        const token = localStorage.getItem('ozel_token');
+        const res = await fetch('/api/admin/customers/safe-export', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!res.ok) throw new Error('فشل استخراج بيانات العملاء');
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ozel-customers-safe-backup-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+        showToast('✅ تم تنزيل النسخة الاحتياطية بنجاح — تم تأمين بيانات العملاء', 'success');
+      } catch (err) {
+        showToast('فشل تنزيل النسخة الاحتياطية: ' + err.message, 'error');
+      }
+    }
+
+    function copyText(elementId) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      el.select();
+      navigator.clipboard.writeText(el.value).then(() => {
+        showToast('تم النسخ إلى الحافظة بنجاح 📋', 'success');
+      }).catch(() => {
+        document.execCommand('copy');
+        showToast('تم النسخ 📋', 'success');
+      });
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
 
   </script>
 

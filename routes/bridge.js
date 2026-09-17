@@ -8,6 +8,7 @@ const User = require('../models/User');
 const Drink = require('../models/Drink');
 const Category = require('../models/Category');
 const SystemLicense = require('../models/SystemLicense');
+const PosDevice = require('../models/PosDevice');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const retryQueue = require('../retry-queue');
@@ -537,6 +538,136 @@ router.delete('/customers/:id', verifyBridgeKey, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+// ── نقاط إدارة وربط أجهزة نقاط البيع (POS Devices: Master / Slave) ──
+
+// 2.4.1. تسجيل جهاز كاشير أو إرسال نبض الحياة (Register / Heartbeat)
+router.post('/devices/register', verifyBridgeKey, async (req, res) => {
+  const { device_id, device_name, is_master, ip_address, local_port, version } = req.body || {};
+  if (!device_id) {
+    return res.status(400).json({ error: 'device_id is required' });
+  }
+
+  try {
+    let device = await PosDevice.findOne({ deviceId: device_id });
+
+    if (device) {
+      device.lastSeen = new Date();
+      device.status = 'online';
+      if (ip_address) device.ipAddress = ip_address;
+      if (local_port) device.localPort = Number(local_port);
+      if (version) device.systemVersion = version;
+      if (device_name && device.deviceName === 'جهاز كاشير') device.deviceName = device_name;
+      if (typeof is_master === 'boolean' && !device.notes?.includes('LOCKED_ROLE')) {
+        device.isMaster = is_master;
+      }
+      await device.save();
+    } else {
+      const count = await PosDevice.countDocuments();
+      const shouldBeMaster = count === 0 ? true : Boolean(is_master);
+
+      device = await PosDevice.create({
+        deviceId: device_id,
+        deviceName: device_name || `كاشير ${count + 1}`,
+        isMaster: shouldBeMaster,
+        ipAddress: ip_address || '',
+        localPort: Number(local_port) || 5050,
+        systemVersion: version || 'OZEL CAFE POS v2.1.0',
+        status: 'online',
+        lastSeen: new Date()
+      });
+    }
+
+    res.json({
+      success: true,
+      device: {
+        id: device._id,
+        deviceId: device.deviceId,
+        deviceName: device.deviceName,
+        isMaster: device.isMaster,
+        role: device.isMaster ? 'master' : 'slave',
+        status: device.status,
+        lastSeen: device.lastSeen
+      }
+    });
+  } catch (err) {
+    console.error('[Bridge Devices Register Error]:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 2.4.2. جلب جميع أجهزة الكاشير المسجلة
+router.get('/devices', verifyBridgeKey, async (req, res) => {
+  try {
+    const devices = await PosDevice.find().sort({ isMaster: -1, lastSeen: -1 });
+    const now = Date.now();
+    const threshold = 3 * 60 * 1000;
+
+    const serialized = devices.map(d => ({
+      id: d._id,
+      deviceId: d.deviceId,
+      deviceName: d.deviceName,
+      isMaster: Boolean(d.isMaster),
+      role: d.isMaster ? 'master' : 'slave',
+      ipAddress: d.ipAddress,
+      localPort: d.localPort,
+      systemVersion: d.systemVersion,
+      status: (now - new Date(d.lastSeen).getTime() < threshold) ? 'online' : 'offline',
+      lastSeen: d.lastSeen,
+      notes: d.notes || ''
+    }));
+
+    res.json(serialized);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 2.4.3. تحديث دور الجهاز (تعيين كجهاز رئيسي أو فرعي) أو اسمه
+router.patch('/devices/:deviceId', verifyBridgeKey, async (req, res) => {
+  const { deviceId } = req.params;
+  const { is_master, isMaster, device_name, deviceName, notes } = req.body || {};
+
+  try {
+    const device = await PosDevice.findOne({ deviceId });
+    if (!device) return res.status(404).json({ error: 'Device not found' });
+
+    const newMasterVal = is_master !== undefined ? is_master : isMaster;
+    if (newMasterVal !== undefined) {
+      device.isMaster = Boolean(newMasterVal);
+      if (device.isMaster) {
+        await PosDevice.updateMany(
+          { deviceId: { $ne: deviceId }, isMaster: true },
+          { $set: { isMaster: false } }
+        );
+      }
+    }
+
+    const newName = device_name || deviceName;
+    if (newName) device.deviceName = newName;
+    if (notes !== undefined) device.notes = notes;
+
+    await device.save();
+    res.json({
+      success: true,
+      message: `تم تحديث الجهاز بنجاح — الدور: ${device.isMaster ? 'رئيسي (Master)' : 'فرعي (Slave)'}`,
+      device
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 2.4.4. حذف جهاز كاشير مسجل
+router.delete('/devices/:deviceId', verifyBridgeKey, async (req, res) => {
+  try {
+    const device = await PosDevice.findOneAndDelete({ deviceId: req.params.deviceId });
+    if (!device) return res.status(404).json({ error: 'Device not found' });
+    res.json({ success: true, message: 'Device removed successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

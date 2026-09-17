@@ -8,6 +8,7 @@ const Category = require('../models/Category');
 const Drink = require('../models/Drink');
 const Offer = require('../models/Offer');
 const ReportSnapshot = require('../models/ReportSnapshot');
+const PosDevice = require('../models/PosDevice');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 const Pusher = require('pusher');
 
@@ -1033,6 +1034,113 @@ router.post('/partners/:id/delete-image', authenticateToken, requireRole('admin'
 
     await u.save();
     res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ===== إدارة أجهزة الكاشير والمزامنة (POS Devices: Master / Slave) =====
+
+// 1. جلب قائمة الأجهزة المسجلة
+router.get('/pos-devices', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const devices = await PosDevice.find().sort({ isMaster: -1, lastSeen: -1 });
+    const now = Date.now();
+    const threshold = 3 * 60 * 1000;
+
+    const list = devices.map(d => ({
+      id: d._id,
+      deviceId: d.deviceId,
+      deviceName: d.deviceName,
+      isMaster: Boolean(d.isMaster),
+      role: d.isMaster ? 'master' : 'slave',
+      ipAddress: d.ipAddress,
+      localPort: d.localPort,
+      systemVersion: d.systemVersion,
+      status: (now - new Date(d.lastSeen).getTime() < threshold) ? 'online' : 'offline',
+      lastSeen: d.lastSeen,
+      notes: d.notes || ''
+    }));
+
+    res.json({
+      success: true,
+      devices: list,
+      total: list.length,
+      masterCount: list.filter(d => d.isMaster).length,
+      onlineCount: list.filter(d => d.status === 'online').length
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 2. تحديث دور الجهاز (رئيسي Master أو فرعي Slave)
+router.patch('/pos-devices/:deviceId', authenticateToken, requireRole('admin'), async (req, res) => {
+  const { deviceId } = req.params;
+  const { is_master, isMaster, device_name, deviceName, notes } = req.body || {};
+
+  try {
+    const device = await PosDevice.findOne({ deviceId });
+    if (!device) return res.status(404).json({ error: 'الجهاز غير موجود' });
+
+    const newMasterVal = is_master !== undefined ? is_master : isMaster;
+    if (newMasterVal !== undefined) {
+      device.isMaster = Boolean(newMasterVal);
+      // إذا تم تعيين هذا الجهاز كـ Master، يتم تحويل باقي الأجهزة تلقائياً إلى Slave
+      if (device.isMaster) {
+        await PosDevice.updateMany(
+          { deviceId: { $ne: deviceId }, isMaster: true },
+          { $set: { isMaster: false } }
+        );
+      }
+    }
+
+    const newName = device_name || deviceName;
+    if (newName) device.deviceName = newName;
+    if (notes !== undefined) device.notes = notes;
+
+    await device.save();
+    res.json({
+      success: true,
+      message: `تم تحديث الجهاز بنجاح — أصبح: ${device.isMaster ? '👑 جهاز رئيسي (Master)' : '📱 جهاز فرعي (Slave)'}`,
+      device
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 3. حذف جهاز كاشير
+router.delete('/pos-devices/:deviceId', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const device = await PosDevice.findOneAndDelete({ deviceId: req.params.deviceId });
+    if (!device) return res.status(404).json({ error: 'الجهاز غير موجود' });
+    res.json({ success: true, message: 'تم حذف الجهاز بنجاح' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 4. تصدير وتنزيل نسخة احتياطية آمنة للعملاء (Customer Safe Export) لمنع أي فقدان نهائياً
+router.get('/customers/safe-export', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const users = await User.find({ role: 'customer' }).sort({ createdAt: -1 });
+    const exportData = users.map(u => ({
+      id: String(u._id),
+      name: u.name || '',
+      phone: u.phone && !u.phone.startsWith('email_') ? u.phone : '',
+      email: u.email || '',
+      points: u.points || 0,
+      total_spent: u.total_spent || 0,
+      customerStatus: u.customerStatus || 'standard',
+      address: u.address || '',
+      notes: u.notes || '',
+      createdAt: u.createdAt
+    }));
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="customers-backup-${new Date().toISOString().split('T')[0]}.json"`);
+    res.json(exportData);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

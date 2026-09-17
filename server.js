@@ -38,6 +38,7 @@ require('./models/QueueOrder');
 require('./models/QueueCustomer');
 require('./models/VlogPost');
 require('./models/SystemLicense');
+require('./models/PosDevice');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
