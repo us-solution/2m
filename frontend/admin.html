@@ -3,19 +3,13 @@
 
 <head>
   <meta charset="UTF-8" />
-  <script src="api-override.js?v=3">
-
-
-  </script>
+  <script src="api-override.js?v=3"></script>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>لوحة التحكم — OZEL CAFE</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@400;700&family=Montserrat:wght@300;400;600&display=swap"
     rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js">
-
-
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <style>
     :root {
       --burgundy: #241E1A;
@@ -668,16 +662,7 @@
       }
     }
   </style>
-  <script>
-    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
-
-
-
-  </script>
-  <script defer src="/_vercel/speed-insights/script.js">
-
-
-  </script>
+  <!-- Vercel Speed Insights removed — only works on Vercel hosting -->
 </head>
 
 <body>
@@ -1217,6 +1202,13 @@
       return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
     }
 
+    // طلب fetch مع timeout لمنع التعليق
+    function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+    }
+
     // عرض الصفحة المحددة وتحميل بياناتها
     function showPage(name, el) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1416,21 +1408,27 @@
 
     // ????? ????? ?????????
     async function loadMenu() {
-      const res = await fetch('/api/admin/drinks', { headers: getAuthH() });
-      menuData = await res.json();
-      renderMenuTable(menuData);
-
-      // Also populate the category dropdown
       try {
-        const catRes = await fetch('/api/admin/categories', { headers: getAuthH() });
-        categoriesData = await catRes.json();
-        const sel = document.getElementById('nd-cat');
-        if (sel && Array.isArray(categoriesData)) {
-          sel.innerHTML = '<option value="">اختر التصنيف...</option>' +
-            categoriesData.map(c => `<option value="${c._id}">${c.name_ar || c.name}</option>`).join('');
+        const res = await fetchWithTimeout('/api/admin/drinks', { headers: getAuthH() });
+        if (!res.ok) throw new Error('Failed to load menu');
+        menuData = await res.json();
+        renderMenuTable(menuData);
+
+        // Also populate the category dropdown
+        try {
+          const catRes = await fetchWithTimeout('/api/admin/categories', { headers: getAuthH() });
+          categoriesData = await catRes.json();
+          const sel = document.getElementById('nd-cat');
+          if (sel && Array.isArray(categoriesData)) {
+            sel.innerHTML = '<option value="">اختر التصنيف...</option>' +
+              categoriesData.map(c => `<option value="${c._id}">${c.name_ar || c.name}</option>`).join('');
+          }
+        } catch (e) {
+          console.error('Failed to load categories for dropdown:', e);
         }
-      } catch (e) {
-        console.error('Failed to load categories for dropdown:', e);
+      } catch (err) {
+        console.error('Failed to load menu:', err);
+        document.getElementById('menuTable').innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--muted); padding:2rem;">فشل تحميل القائمة — ${err.message}</td></tr>`;
       }
     }
 
@@ -2613,6 +2611,8 @@
       } catch (e) {
         showToast('خطأ في الاتصال بالخادم', 'error');
       }
+    };
+
     // ===== إدارة أجهزة الكاشير (POS Devices & Safe Sync) =====
     let _posDevicesData = [];
 

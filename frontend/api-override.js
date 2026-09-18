@@ -5,18 +5,25 @@
 (function() {
   // الكشف عن حالة الخادم الخلفي
   var hostname = window.location.hostname;
+  var currentPort = window.location.port;
+
+  // إذا تم فتح المنيو مباشرة على بورت الكاشير (5050) أو بورت الموقع (5000)، تبقى مسارات API نسبية على نفس السيرفر
+  if (currentPort === '5050' || currentPort === '5000') {
+    return;
+  }
+
   var isLocalIP = (hostname === 'localhost' || hostname === '127.0.0.1' || 
                    hostname.startsWith('192.168.') || hostname.startsWith('10.') || 
                    hostname.startsWith('172.') || hostname.endsWith('.local')) && 
-                  window.location.port !== '5000';
+                  currentPort !== '5000' && currentPort !== '5050';
   var isFileProtocol = window.location.protocol === 'file:';
   
-  // إذا كان تشغيل محلي غير خادم التطبيق (منفذ آخر) أو ملف مباشر، نوجه الطلبات إلى الخادم المحلي
+  // إذا كان تشغيل محلي من منفذ خارجي أو ملف مباشر، نوجه الطلبات إلى المنفذ النشط
   var BACKEND_URL = '';
   if (isLocalIP) {
-    BACKEND_URL = 'http://' + hostname + ':5000';
+    BACKEND_URL = 'http://' + hostname + ':5050';
   } else if (isFileProtocol) {
-    BACKEND_URL = 'http://127.0.0.1:5000';
+    BACKEND_URL = 'http://127.0.0.1:5050';
   }
   
   if (BACKEND_URL) {

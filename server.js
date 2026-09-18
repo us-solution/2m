@@ -153,18 +153,18 @@ app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'a
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'login.html')));
 
 // ============================
-// معالج الأخطاء العام (Global error handler)
-// ============================
-app.use((err, req, res, next) => {
-  console.error('[Unhandled Error]', err);
-  res.status(500).json({ error: 'Internal server error' });
-});
-
-// ============================
 // مسار Catch-all لإرجاع index.html
 // ============================
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+});
+
+// ============================
+// معالج الأخطاء العام (Global error handler) — يجب أن يكون آخر middleware
+// ============================
+app.use((err, req, res, next) => {
+  console.error('[Unhandled Error]', err);
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 // ============================
