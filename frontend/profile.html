@@ -83,7 +83,7 @@
     <div class="drawer-content">
       <div class="drawer-header">
         <a href="index.html" onclick="toggleMobileMenu()"><img src="imgs/Ozel-Logo--01.png" alt="OZEL Logo" class="drawer-logo" /></a>
-        <button class="drawer-close" onclick="toggleMobileMenu()">✕</button>
+        <button class="drawer-close" onclick="toggleMobileMenu()">&times;</button>
       </div>
       <div class="drawer-links">
         <a href="index.html#about" onclick="toggleMobileMenu()" data-en="Story" data-ar="حكايتنا">Story</a>
@@ -120,7 +120,7 @@
               <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
                 <div>
                   <span style="font-family: 'Tajawal', sans-serif; font-size: 0.65rem; letter-spacing: 0.25rem; text-transform: uppercase; color: rgba(255,255,255,0.7); display: block; margin-bottom: 0.2rem;">OZEL CAFE MEMBER</span>
-                  <span style="font-family: 'Playfair Display', 'Tajawal', serif; font-size: 1rem; font-style: italic; color: #fff; letter-spacing: 0.05em;" id="profileVipClubTitle">VIP Club ✦</span>
+                  <span style="font-family: 'Playfair Display', 'Tajawal', serif; font-size: 1rem; font-style: italic; color: #fff; letter-spacing: 0.05em;" id="profileVipClubTitle">VIP Club</span>
                 </div>
                 <div class="vip-card-badge" id="profileTierBadge">STANDARD</div>
               </div>
@@ -154,8 +154,8 @@
 
           <!-- PARTNER PROFILE EDIT -->
           <div id="partnerEditSection" style="display: none; background: var(--bg2); padding: 1.25rem 1.5rem; border-radius: var(--rad-lg); border: 1px solid var(--line); box-shadow: 0 4px 15px rgba(0,0,0,0.01); margin-bottom: 1.25rem;">
-            <h4 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;" data-en="Partner Details & Showcase" data-ar="بيانات وإعدادات ملف الشريك ✦">
-              بيانات وإعدادات ملف الشريك ✦
+            <h4 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;" data-en="Partner Details & Showcase" data-ar="بيانات وإعدادات ملف الشريك">
+              بيانات وإعدادات ملف الشريك
             </h4>
             <div style="display: flex; flex-direction: column; gap: 0.8rem;">
               <!-- الشعار -->
@@ -197,7 +197,7 @@
                 <div id="partnerGalleryPreview" style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.6rem;"></div>
               </div>
               
-              <button class="btn-gold" style="width:100%; justify-content:center; padding:0.6rem; margin-top:0.5rem;" onclick="savePartnerProfile()" data-en="Save Partner Info ✦" data-ar="حفظ بيانات الشريك ✦">حفظ بيانات الشريك ✦</button>
+              <button class="btn-gold" style="width:100%; justify-content:center; padding:0.6rem; margin-top:0.5rem;" onclick="savePartnerProfile()" data-en="Save Partner Info" data-ar="حفظ بيانات الشريك">حفظ بيانات الشريك</button>
               <p id="partner-save-msg" style="font-size:0.8rem; text-align:center; margin-top:0.4rem; font-family: 'Tajawal', sans-serif;"></p>
               <p id="partner-pending-notice" style="display:none; font-size:0.8rem; text-align:center; margin-top:0.4rem; color:#e67e22; font-family: 'Tajawal', sans-serif; font-weight:bold;"></p>
             </div>
@@ -213,7 +213,7 @@
                 style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
               <input id="new-pass" type="password" data-placeholder-en="New Password" data-placeholder-ar="كلمة المرور الجديدة" placeholder="New Password"
                 style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
-              <button class="btn-gold" style="width:100%; justify-content:center; padding:0.6rem;" onclick="changePassword()" data-en="Save Changes ✦" data-ar="حفظ التغييرات ✦">Save Changes ✦</button>
+              <button class="btn-gold" style="width:100%; justify-content:center; padding:0.6rem;" onclick="changePassword()" data-en="Save Changes" data-ar="حفظ التغييرات">Save Changes</button>
               <p id="cp-msg" style="font-size:0.8rem; text-align:center; margin-top:0.4rem; font-family: 'Tajawal', sans-serif;"></p>
             </div>
           </div>
@@ -240,7 +240,7 @@
   <footer id="footer">
     <img src="imgs/Ozel-Logo--01.png" alt="OZEL Logo" class="footer-logo-img" />
     <div class="footer-logo">OZEL <span>CAFE</span></div>
-    <p class="footer-tag" data-en="Hidden Gem ✦ An unforgettable experience" data-ar="الجوهرة الخفية ✦ تجربة لا تنسى">Hidden Gem ✦ An unforgettable experience</p>
+    <p class="footer-tag" data-en="Hidden Gem — An unforgettable experience" data-ar="الجوهرة الخفية — تجربة لا تنسى">Hidden Gem — An unforgettable experience</p>
     <p class="footer-copy" data-en="© 2025 OZEL CAFE — All rights reserved" data-ar="© 2025 أوزيل كافيه — جميع الحقوق محفوظة">© 2025 OZEL CAFE — All rights reserved</p>
   </footer>
 

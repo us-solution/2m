@@ -247,7 +247,7 @@
   <div class="drawer-content">
       <div class="drawer-header">
         <a href="index.html"><img src="imgs/Ozel-Logo--01.png" alt="OZEL Logo" class="drawer-logo" /></a>
-        <button class="drawer-close" onclick="toggleMobileMenu()">✕</button>
+        <button class="drawer-close" onclick="toggleMobileMenu()">&times;</button>
       </div>
     <div class="drawer-links">
         <a href="index.html#about" onclick="toggleMobileMenu()" data-en="Story" data-ar="حكايتنا">Story</a>
@@ -273,7 +273,7 @@
       <div id="drawer-user-area"></div>
       
       <!-- ===== زر الطلب الآن في القائمة الجانبية ===== -->
-      <button class="drawer-cta" onclick="toggleMobileMenu(); location.href='index.html#menu'" data-en="Order Now ✦" data-ar="اطلب الآن ✦">Order Now ✦</button>
+      <button class="drawer-cta" onclick="toggleMobileMenu(); location.href='index.html#menu'" data-en="Order Now " data-ar="اطلب الآن ">Order Now </button>
     </div>
   </div>
 </div>
@@ -330,7 +330,7 @@
       <div class="free-order-coupon-box" id="freeOrderBox" style="display: none;">
         <input type="checkbox" id="useFreeOrderCheck" class="foc-checkbox" onchange="handleFreeOrderCheckToggle(this)"/>
         <div style="flex:1;">
-          <label for="useFreeOrderCheck" class="foc-label" id="focLabelText">🎁 استخدم كوبون الأوردر الهدية المتاح!</label>
+          <label for="useFreeOrderCheck" class="foc-label" id="focLabelText">استخدم كوبون الأوردر الهدية المتاح!</label>
           <span class="foc-sub" id="focSubText">سيصبح إجمالي هذا الأوردر 0 ج.م ويُخصم كوبون واحد من حسابك.</span>
         </div>
       </div>
@@ -342,7 +342,7 @@
       </div>
 
       <!-- ===== زر تأكيد الطلب ===== -->
-      <button class="btn-gold" id="confirmOrderBtn" style="width:100%; justify-content:center; margin-top:1.5rem" onclick="submitOrder()" data-en="Confirm Order ✦" data-ar="تأكيد الطلب ✦">Confirm Order ✦</button>
+      <button class="btn-gold" id="confirmOrderBtn" style="width:100%; justify-content:center; margin-top:1.5rem" onclick="submitOrder()" data-en="Confirm Order " data-ar="تأكيد الطلب ">Confirm Order </button>
     </div>
   </div>
 </div>
@@ -351,18 +351,18 @@
 <div class="modal-overlay" id="thankYouModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); backdrop-filter:blur(12px); justify-content:center; align-items:center; z-index:9999; padding:1.5rem;">
   <div class="modal-panel" style="max-width:420px; width:100%; background:#1a1208; border:1.5px solid #4A1517; border-radius:20px; padding:2.5rem 2rem; text-align:center; box-shadow:0 16px 50px rgba(0,0,0,0.7), 0 0 30px rgba(74, 21, 23,0.15); position:relative; animation:fadeIn 0.4s ease;">
     <!-- زرار الإغلاق -->
-    <button onclick="closeThankYou()" title="إغلاق" style="position:absolute; top:14px; right:14px; width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#ffffff; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.7)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">✕</button>
+    <button onclick="closeThankYou()" title="إغلاق" style="position:absolute; top:14px; right:14px; width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#ffffff; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.7)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">&times;</button>
 
     <div style="margin-bottom:1.2rem;">
       <img src="imgs/Ozel-Logo--01.png" alt="OZEL CAFE" style="height:55px; opacity:0.9;"/>
     </div>
-    <div style="font-size:2.8rem; margin-bottom:0.4rem;">✨</div>
+    <div style="font-size:2.8rem; margin-bottom:0.4rem;"></div>
     <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.9rem; color:#4A1517; margin-bottom:0.3rem;" data-en="Thank You!" data-ar="شكراً لك!">Thank You!</h3>
     <p style="font-size:0.8rem; color:rgba(255,255,255,0.55); margin-bottom:1.2rem;"><span data-en="Order ID:" data-ar="رقم الطلب:">Order ID:</span> <strong id="tyOrderId" style="color:#4A1517">#--</strong></p>
 
     <!-- ===== حالة استلام الطلب ===== -->
     <div id="orderStatusBox" style="margin: 1.2rem 0; padding: 1rem 1.2rem; border-radius: 14px; background: rgba(245,158,11,0.18); border: 1.5px solid rgba(245,158,11,0.5); font-weight: 800; font-size: 1rem; line-height: 1.6; font-family: 'Tajawal', sans-serif; color: #ffffff; display:flex; align-items:center; justify-content:center; gap:0.5rem;">
-      <span>🟡</span><span data-text>لم يتم استلام وتأكيد الطلب بعد</span>
+      <span></span><span data-text>لم يتم استلام وتأكيد الطلب بعد</span>
     </div>
     <!-- ===== end status ===== -->
 
@@ -385,7 +385,7 @@
       btn.style.color = 'var(--gold)';
     } else {
       tracker.style.display = 'none';
-      btn.innerHTML = isAr ? '👁️ إظهار تتبع الحالة' : '👁️ Show Tracker';
+      btn.innerHTML = isAr ? 'إظهار تتبع الحالة' : 'Show Tracker';
       btn.style.background = 'var(--gold)';
       btn.style.color = '#000';
     }
@@ -564,8 +564,8 @@
             box.style.display = 'flex';
             const isAr = currentLang === 'ar';
             document.getElementById('focLabelText').textContent = isAr 
-              ? `🎁 استخدم كوبون الأوردر الهدية المتاح! (المتوفر: ${currentFreeOrdersCount})` 
-              : `🎁 Use your free order coupon! (Available: ${currentFreeOrdersCount})`;
+              ? `استخدم كوبون الأوردر الهدية المتاح! (المتوفر: ${currentFreeOrdersCount})` 
+              : `Use your free order coupon! (Available: ${currentFreeOrdersCount})`;
             document.getElementById('focSubText').textContent = isAr 
               ? 'سيصبح إجمالي هذا الأوردر 0 ج.م ويُخصم كوبون واحد من حسابك.' 
               : 'This order total will become 0 EGP and 1 coupon will be deducted.';
@@ -632,7 +632,7 @@
         </div>
         <div style="display:flex; align-items:center;">
           <div class="ci-price">${lineTotal} ${currencyLabel}</div>
-          <button class="ci-remove-btn" onclick="removeFromCart(${idx})">✕</button>
+          <button class="ci-remove-btn" onclick="removeFromCart(${idx})">&times;</button>
         </div>
       `;
       list.appendChild(el);
@@ -739,7 +739,7 @@
 
         const msg = isTakeaway
           ? (isAr ? 'تم تسليم طلبك للكاشير، سيتم الاتصال بك لتأكيد الطلب' : 'Your order has been sent to the cashier. They will call you to confirm.')
-          : (isAr ? 'تم إرسال طلبك إلى الكاشير. استمتع بمشروباتك في أزيل ☕' : 'Your order has been sent to the cashier. Enjoy your drinks at OZEL ☕');
+          : (isAr ? 'تم إرسال طلبك إلى الكاشير. استمتع بمشروباتك في أزيل ' : 'Your order has been sent to the cashier. Enjoy your drinks at OZEL ');
         showThankYou(data.order_id, msg);
       } else {
         alert(data.error || (isAr ? 'فشل إرسال الطلب' : 'Failed to send order'));
@@ -828,20 +828,20 @@
         const textEl = boxEl.querySelector('[data-text]');
 
         if (status === 'confirmed' || status === 'preparing' || status === 'ready' || status === 'received' || status === 'accepted' || status === 'completed') {
-          if (iconEl) iconEl.textContent = '✅';
+          if (iconEl) iconEl.textContent = '';
           if (textEl) textEl.textContent = isAr ? 'تم استلام وتأكيد الطلب بنجاح' : 'Order Received & Confirmed';
           boxEl.style.background = 'rgba(16,185,129,0.2)';
           boxEl.style.border = '1.5px solid rgba(16,185,129,0.6)';
           boxEl.style.color = '#ffffff';
         } else if (status === 'cancelled' || status === 'rejected') {
-          if (iconEl) iconEl.textContent = '❌';
+          if (iconEl) iconEl.textContent = '×';
           if (textEl) textEl.textContent = isAr ? 'لم يتم استلام وتأكيد الطلب' : 'Order Was Not Accepted';
           boxEl.style.background = 'rgba(239,68,68,0.2)';
           boxEl.style.border = '1.5px solid rgba(239,68,68,0.6)';
           boxEl.style.color = '#ffffff';
           clearInterval(trackTimer);
         } else {
-          if (iconEl) iconEl.textContent = '🟡';
+          if (iconEl) iconEl.textContent = '';
           if (textEl) textEl.textContent = isAr ? 'لم يتم استلام وتأكيد الطلب بعد' : 'Order Has Not Been Confirmed Yet';
           boxEl.style.background = 'rgba(245,158,11,0.18)';
           boxEl.style.border = '1.5px solid rgba(245,158,11,0.5)';
@@ -895,7 +895,7 @@
       const activeOrderId = localStorage.getItem('ozel_active_order_id');
       const activeOrderTime = parseInt(localStorage.getItem('ozel_active_order_time') || '0', 10);
       if (activeOrderId && (Date.now() - activeOrderTime < 2 * 60 * 60 * 1000)) {
-        showThankYou(activeOrderId, currentLang === 'ar' ? 'تتبع الطلب الحالي ✦' : 'Tracking current order ✦');
+        showThankYou(activeOrderId, currentLang === 'ar' ? 'تتبع الطلب الحالي ' : 'Tracking current order ');
       }
     } catch(e) {}
   })();

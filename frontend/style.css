@@ -1278,7 +1278,7 @@ body[dir="rtl"] .puzzle-label {
   transform: translateY(0);
 }
 .chip.active::after {
-  content: '✦';
+  content: '';
   position: absolute;
   top: 4px;
   right: 6px;
@@ -2214,7 +2214,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
   overflow: hidden;
 }
 .truth-card::after {
-  content: '✦';
+  content: '';
   position: absolute;
   bottom: 10px;
   right: 15px;
@@ -2717,7 +2717,7 @@ body[dir="rtl"] .lounge-game-card p { font-family: 'Tajawal', sans-serif; }
 }
 
 .ttt-cell.expiring-piece::before {
-  content: '⚠️';
+  content: '!';
   position: absolute;
   top: 2px;
   right: 4px;

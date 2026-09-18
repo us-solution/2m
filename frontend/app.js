@@ -281,7 +281,7 @@ function renderNavUser() {
   if (CUSER) {
     const initial = CUSER.name.charAt(0).toUpperCase();
     const ptsLabel = isAr ? 'نقاط' : 'pts';
-    const profileText = isAr ? 'حسابي ✦' : 'My Profile ✦';
+    const profileText = isAr ? 'حسابي' : 'My Profile';
     html = `
       <div style="display: flex; align-items: center; gap: 0.8rem;">
         <div class="nav-user-logged" onclick="openProfileModal()" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
@@ -523,10 +523,10 @@ window.openProfileModal = async function() {
   if (cardEl && badgeEl && discountEl) {
     // تكوين حالة العميل: الحالة → [classCSS, لون الخلفية, اللقب, نسبة الخصم]
     const STATUS_MAP = {
-      standard:    ['card-standard', 'linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 50%, #E2E8F0 100%)', 'STANDARD GUEST 👤', null],
-      gold:        ['card-gold',     'linear-gradient(135deg, #3D2D00 0%, #7A5A00 35%, #B8860B 70%, #D4AF37 100%)', 'GOLD MEMBER ⭐', '10%'],
-      student:     ['card-cyan',     'linear-gradient(135deg, #032B45 0%, #0284C7 50%, #38BDF8 100%)', 'STUDENT MEMBER 🎓', '15%'],
-      ozel_family: ['card-ozel',     'linear-gradient(135deg, #2B0B0C 0%, #4A1517 45%, #6E2225 75%, #8C5523 100%)', 'OZEL FAMILY 👑', '20%']
+      standard:    ['card-standard', 'linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 50%, #E2E8F0 100%)', 'STANDARD GUEST', null],
+      gold:        ['card-gold',     'linear-gradient(135deg, #3D2D00 0%, #7A5A00 35%, #B8860B 70%, #D4AF37 100%)', 'GOLD MEMBER', '10%'],
+      student:     ['card-cyan',     'linear-gradient(135deg, #032B45 0%, #0284C7 50%, #38BDF8 100%)', 'STUDENT MEMBER', '15%'],
+      ozel_family: ['card-ozel',     'linear-gradient(135deg, #2B0B0C 0%, #4A1517 45%, #6E2225 75%, #8C5523 100%)', 'OZEL FAMILY', '20%']
     };
     const status = userDetails.customerStatus || 'standard';
     const [cssClass, bgColor, title, discountPct] = STATUS_MAP[status] || STATUS_MAP.standard;
@@ -696,7 +696,7 @@ function renderMenu(drinks) {
   
   const egpLabel = isAr ? 'ج.م' : 'EGP';
   const detailsLabel = isAr ? 'التفاصيل' : 'Details';
-  const addLabel = isAr ? 'إضافة ✦' : 'Add ✦';
+  const addLabel = isAr ? 'إضافة' : 'Add';
 
   drinks.forEach((d, i) => {
     const offer = window.allOffers ? window.allOffers.find(o => String(o.drink_id) === String(d.id)) : null;
@@ -998,7 +998,7 @@ window.handleContact = function(e) {
   const phone = document.getElementById('contact-phone').value.trim();
   const msg = document.getElementById('contact-msg').value.trim();
   
-  const text = `✦ *New Contact — OZEL CAFE* ✦\n\n✦ *Name:* ${name}\n✦ *Phone Number:* ${phone}\n\n✦ *Message:*\n${msg}\n\n— *Sent from website*`;
+  const text = ` *New Contact — OZEL CAFE* \n\n *Name:* ${name}\n *Phone Number:* ${phone}\n\n *Message:*\n${msg}\n\n— *Sent from website*`;
   const encodedText = encodeURIComponent(text);
   const whatsappUrl = `https://wa.me/201060161839?text=${encodedText}`;
   
@@ -1019,7 +1019,7 @@ async function renderOffersCards() {
       const titleLabel = isAr ? 'عروض خاصة' : 'Special Offers';
       const subLabel = isAr ? 'لفترة محدودة' : 'Limited Time';
       const offLabel = isAr ? 'خصم' : 'OFF';
-      const addText = isAr ? 'إضافة للطلب ✦' : 'Add to Order ✦';
+      const addText = isAr ? 'إضافة للطلب' : 'Add to Order';
       const egpLabel = isAr ? 'ج.م' : 'EGP';
       
       let html = `
@@ -1196,14 +1196,14 @@ const imposterTexts = {
     minPlayersAlert: "Please add at least 3 players to start",
     addPlayerPlaceholder: "New player name...",
     addButton: "Add +",
-    startGameButton: "✦ Start Game ✦",
+    startGameButton: "Start Game",
     resetButton: "Reset Game",
     cancelButton: "Cancel Game",
     playAgainButton: "Play Again",
     passPhoneTitle: "Role Distribution",
     passPhoneDesc: "Click your card to see your secret word. Hide it before passing to the next player.",
     clickToSee: "Click to see word",
-    seen: "Seen ✓",
+    seen: "Seen",
     confirmIdentity: "Are you {name}?",
     shieldScreen: "Ensure no one else is looking at the screen!",
     showSecretBtn: "Yes, show secret word",
@@ -1252,14 +1252,14 @@ const imposterTexts = {
     minPlayersAlert: "الرجاء إضافة 3 لاعبين على الأقل للبدء",
     addPlayerPlaceholder: "اسم لاعب جديد...",
     addButton: "إضافة +",
-    startGameButton: "✦ ابدأ اللعبة ✦",
+    startGameButton: "ابدأ اللعبة",
     resetButton: "إعادة تعيين",
     cancelButton: "إلغاء اللعبة",
     playAgainButton: "العب مجدداً",
     passPhoneTitle: "توزيع الأدوار سراً",
     passPhoneDesc: "اضغط على بطاقتك لمعرفة كلمتك السرية، ثم أغلقها قبل تمرير الهاتف للاعب التالي.",
     clickToSee: "اضغط لرؤية الكلمة",
-    seen: "تمت الرؤية ✓",
+    seen: "تمت الرؤية",
     confirmIdentity: "هل أنت {name}؟",
     shieldScreen: "تأكد من عدم وجود أي شخص بجانبك يرى الشاشة حالياً!",
     showSecretBtn: "نعم، اعرض الكلمة السرية",
@@ -1361,7 +1361,7 @@ window.renderImposterSetup = function() {
         ${loungePlayers.map((p, idx) => `
           <div class="glass-player-chip">
             <span>${p}</span>
-            <button class="glass-chip-remove" onclick="removeImposterSetupPlayer(${idx})">✕</button>
+            <button class="glass-chip-remove" onclick="removeImposterSetupPlayer(${idx})">&times;</button>
           </div>
         `).join('')}
       </div>
@@ -1386,7 +1386,7 @@ window.renderImposterSetup = function() {
       <div class="glass-input-row">
         <input type="text" id="imposter-player-input" class="glass-input" placeholder="${t.addPlayerPlaceholder}" maxlength="12" onkeydown="if(event.key==='Enter') addImposterSetupPlayer()" />
         <button class="glass-btn-gold" onclick="addImposterSetupPlayer()">
-          <span class="btn-icon">✦</span> ${t.addButton}
+           ${t.addButton}
         </button>
       </div>
     </div>
@@ -1494,12 +1494,12 @@ window.renderImposterGameplay = function() {
               <div class="glass-flip-card ${isFlipped ? 'flipped' : ''}" onclick="${isFlipped ? '' : `revealImposterCard(${idx})`}">
                 <div class="glass-flip-card-inner">
                   <div class="glass-flip-card-front">
-                    <span class="card-icon">❓</span>
+                    <span class="card-icon">?</span>
                     <span class="card-name">${p.name}</span>
                     <span class="card-status">${statusText}</span>
                   </div>
                   <div class="glass-flip-card-back">
-                    <span class="card-icon">👁️</span>
+                    <span class="card-icon"></span>
                     <span class="card-name">${p.name}</span>
                     <span class="card-status">${t.seen}</span>
                   </div>
@@ -1548,7 +1548,7 @@ window.renderImposterGameplay = function() {
           ${turnMsg}
         </div>
         <button class="glass-btn-gold" onclick="nextDescribeTurn()">
-          ${t.doneBtn} <span class="btn-icon">✦</span>
+          ${t.doneBtn} 
         </button>
       </div>
       
@@ -1586,7 +1586,7 @@ window.renderImposterGameplay = function() {
           ${turnMsg}
         </div>
         <button class="glass-btn-gold" onclick="nextAskTurn()">
-          ${t.doneBtn} <span class="btn-icon">✦</span>
+          ${t.doneBtn} 
         </button>
       </div>
       
@@ -1622,7 +1622,7 @@ window.renderImposterGameplay = function() {
             ${passMessage}
           </div>
           <button class="glass-btn-gold" onclick="startVoterSelection()">
-            ${castBtnLabel} <span class="btn-icon">✦</span>
+            ${castBtnLabel} 
           </button>
         </div>
         
@@ -1644,7 +1644,7 @@ window.renderImposterGameplay = function() {
           ${suspects.map(s => `
             <button class="glass-suspect-btn" onclick="castSecretVote('${voter.name}', '${s.name}')">
               <span class="suspect-name">${s.name}</span>
-              <span class="suspect-icon">✦</span>
+              
             </button>
           `).join('')}
         </div>
@@ -1663,7 +1663,7 @@ window.renderImposterGameplay = function() {
       return `
         <div class="imposter-result-row">
           <span>${voter}</span>
-          <span style="color:var(--muted); font-size:0.85rem;">➔ ${suspect}</span>
+          <span style="color:var(--muted); font-size:0.85rem;">&rarr; ${suspect}</span>
         </div>
       `;
     }).join('');
@@ -1710,7 +1710,7 @@ window.renderImposterGameplay = function() {
       
       <div class="glass-action-area">
         <button class="glass-btn-massive" onclick="startNextRound()">
-          ${t.nextRoundBtn} <span class="btn-icon">✦</span>
+          ${t.nextRoundBtn} 
         </button>
       </div>
     `;
@@ -1732,7 +1732,7 @@ window.revealImposterCard = function(idx) {
       <div class="glass-modal-title">${confirmMsg}</div>
       <p class="glass-modal-desc">${t.shieldScreen}</p>
       <button class="glass-btn-gold" onclick="showSecretWord(${idx}, this)">
-        ${t.showSecretBtn} <span class="btn-icon">👁️</span>
+        ${t.showSecretBtn} 
       </button>
     </div>
   `;
@@ -1752,7 +1752,7 @@ window.showSecretWord = function(idx, btn) {
     <div class="glass-secret-word-display">${displayWord}</div>
     <p class="glass-modal-desc" style="font-size:0.85rem;">${t.rememberWord}</p>
     <button class="glass-btn-danger" onclick="hideSecretWord(${idx})">
-      ${t.hideSecretBtn} <span class="btn-icon">✕</span>
+      ${t.hideSecretBtn} 
     </button>
   `;
 };
@@ -1797,10 +1797,10 @@ window.castSecretVote = function(voterName, suspectName) {
   overlay.className = 'glass-overlay-wrap';
   overlay.innerHTML = `
     <div class="glass-modal-box">
-      <div class="success-icon-check">✓</div>
+      <div class="success-icon-check">OK</div>
       <div class="glass-modal-title glow-gold">${t.voteCasted}</div>
       <button class="glass-btn-gold" onclick="closeVoteSuccessOverlay()">
-        ${t.doneBtn} <span class="btn-icon">✦</span>
+        ${t.doneBtn} 
       </button>
     </div>
   `;
@@ -1941,7 +1941,7 @@ window.showImposterResults = function(winner) {
           return `
             <div class="glass-result-player-row">
               <span class="player-info">${p.name} <small>(${statusText})</small></span>
-              <span class="glass-role-tag ${roleClass}">${roleText} ➔ ${pWord}</span>
+              <span class="glass-role-tag ${roleClass}">${roleText} &rarr; ${pWord}</span>
             </div>
           `;
         }).join('')}
@@ -2104,14 +2104,14 @@ function updateTTTStatus() {
         statusEl.innerHTML = isAr ? 'الذكاء الاصطناعي فاز!' : 'AI Wins!';
         statusEl.style.color = 'var(--red)';
       } else {
-        statusEl.innerHTML = isAr ? 'أنت الفائز! 🎉' : 'You Win! 🎉';
+        statusEl.innerHTML = isAr ? 'أنت الفائز! ' : 'You Win! ';
         statusEl.style.color = 'var(--green)';
       }
     } else {
       let winnerName = tttWinner === 'O' 
         ? (isAr ? 'اللاعب O' : 'Player O') 
         : (isAr ? 'اللاعب X' : 'Player X');
-      statusEl.innerHTML = isAr ? `الفائز هو: ${winnerName}! 🏆` : `Winner is: ${winnerName}! 🏆`;
+      statusEl.innerHTML = isAr ? `الفائز هو: ${winnerName}! ` : `Winner is: ${winnerName}! `;
       statusEl.style.color = 'var(--green)';
     }
   } else {
@@ -2120,7 +2120,7 @@ function updateTTTStatus() {
     
     if (tttMode === 'ai') {
       if (tttCurrentPlayer === 'O') {
-        const warn = oCount === 3 ? (isAr ? ' (حركتك ستحذف أقدم قطعة ⚠️)' : ' (Next move removes oldest ⚠️)') : ` (${oCount}/3)`;
+        const warn = oCount === 3 ? (isAr ? ' (حركتك ستحذف أقدم قطعة )' : ' (Next move removes oldest )') : ` (${oCount}/3)`;
         statusEl.innerHTML = (isAr ? 'دورك (O)' : 'Your Turn (O)') + warn;
         statusEl.style.color = 'var(--accent-emerald)';
       } else {
@@ -2129,11 +2129,11 @@ function updateTTTStatus() {
       }
     } else {
       if (tttCurrentPlayer === 'O') {
-        const warn = oCount === 3 ? (isAr ? ' ⚠️' : ' ⚠️') : ` (${oCount}/3)`;
+        const warn = oCount === 3 ? (isAr ? ' ' : ' ') : ` (${oCount}/3)`;
         statusEl.innerHTML = (isAr ? 'دور اللاعب الأول (O)' : "Player O's Turn") + warn;
         statusEl.style.color = 'var(--accent-emerald)';
       } else {
-        const warn = xCount === 3 ? (isAr ? ' ⚠️' : ' ⚠️') : ` (${xCount}/3)`;
+        const warn = xCount === 3 ? (isAr ? ' ' : ' ') : ` (${xCount}/3)`;
         statusEl.innerHTML = (isAr ? 'دور اللاعب الثاني (X)' : "Player X's Turn") + warn;
         statusEl.style.color = 'var(--burgundy2)';
       }
@@ -2384,7 +2384,7 @@ window.addDeckToCart = function(drinkId) {
   updateCartUI();
   
   const displayName = isAr ? (drink.name_ar || drink.name) : drink.name;
-  alert(isAr ? `تم إضافة ${displayName} إلى السلة بنجاح ✦` : `Added ${displayName} to cart successfully ✦`);
+  alert(isAr ? `تم إضافة ${displayName} إلى السلة بنجاح ` : `Added ${displayName} to cart successfully `);
 };
 
 /* ========================================================
@@ -2464,7 +2464,7 @@ window.loadVlog = async function() {
   // أ. عرض لوحة الرفع حسب حالة المستخدم (بدون أي إيموجيز)
   if (CUSER) {
     const isMobile = window.innerWidth <= 600;
-    const postBtnText = isAr ? 'نشر الصورة في الألبوم ✦' : 'Post to Album ✦';
+    const postBtnText = isAr ? 'نشر الصورة في الألبوم ' : 'Post to Album ';
     const uploadTitle = isAr ? 'شارك صورتك وتنافس على الأوردر الهدية' : 'Share Your Photo & Compete';
     const captionPlaceholder = isAr ? 'اكتب وصفاً جميلاً لصورتك...' : 'Write a beautiful caption...';
     const selectText = isAr 
@@ -2484,7 +2484,7 @@ window.loadVlog = async function() {
       </div>
       <div class="image-preview-wrapper" id="vlogPreviewWrapper">
         <img id="vlogPreviewImg" src="" alt="Preview"/>
-        <button class="remove-preview-btn" onclick="clearVlogPreview()">✕</button>
+        <button class="remove-preview-btn" onclick="clearVlogPreview()">&times;</button>
       </div>
       <div class="form-group" style="margin-bottom: 1rem;">
         <textarea id="vlogCaption" placeholder="${captionPlaceholder}" style="width:100%; min-height:60px; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.8rem; border-radius:4px; font-family:'Tajawal',sans-serif; outline:none; font-size:0.9rem; resize:vertical;"></textarea>
@@ -2495,8 +2495,8 @@ window.loadVlog = async function() {
     `;
     setupVlogDragAndDrop();
   } else {
-    const loginPrompt = isAr ? 'سجل دخولك لتتمكن من مشاركة صورك والتنافس على الأوردر الهدية! ✦' : 'Log in to share your photos and compete for a free order! ✦';
-    const loginBtnText = isAr ? 'تسجيل الدخول / إنشاء حساب ✦' : 'Login / Register ✦';
+    const loginPrompt = isAr ? 'سجل دخولك لتتمكن من مشاركة صورك والتنافس على الأوردر الهدية! ' : 'Log in to share your photos and compete for a free order! ';
+    const loginBtnText = isAr ? 'تسجيل الدخول / إنشاء حساب ' : 'Login / Register ';
     uploadPanel.innerHTML = `
       <div class="login-redirect-card">
         <div class="lrc-icon" style="color: var(--gold); margin-bottom: 0.5rem;">
@@ -2738,7 +2738,7 @@ function setupVlogDragAndDrop() {
 window.toggleVlogLike = async function(postId, btn) {
   const isAr = currentLang === 'ar';
   if (!CUSER) {
-    alert(isAr ? 'يرجى تسجيل الدخول لتتمكن من التفاعل والإعجاب بالصور! ❤️' : 'Please log in to like photos and participate! ❤️');
+    alert(isAr ? 'يرجى تسجيل الدخول لتتمكن من التفاعل والإعجاب بالصور! ' : 'Please log in to like photos and participate! ');
     return;
   }
 
@@ -2798,7 +2798,7 @@ window.handleVlogUpload = async function() {
 
     const data = await res.json();
     if (res.ok && data.success) {
-      alert(isAr ? 'تم نشر صورتك بنجاح! شكراً لمشاركتك المتميزة ✦' : 'Your photo has been posted successfully! Thank you for sharing ✦');
+      alert(isAr ? 'تم نشر صورتك بنجاح! شكراً لمشاركتك المتميزة ' : 'Your photo has been posted successfully! Thank you for sharing ');
       clearVlogPreview();
       document.getElementById('vlogCaption').value = '';
       loadVlog();
@@ -2851,7 +2851,7 @@ window.loadPublicPartnerProfile = async function(pid) {
               <img src="${imgUrl}" alt="${partner.name}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'" />
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0.85rem; background: var(--bg2); border-top: 1px solid var(--line);">
-              <span style="font-size: 0.78rem; color: var(--muted); font-family: 'Tajawal', sans-serif;">📷 ${isAr ? `صورة ${idx+1}` : `Photo ${idx+1}`}</span>
+              <span style="font-size: 0.78rem; color: var(--muted); font-family: 'Tajawal', sans-serif;"> ${isAr ? `صورة ${idx+1}` : `Photo ${idx+1}`}</span>
               <div style="display: flex; gap: 0.5rem; align-items: center;">
                 <button class="partner-action-btn" onclick="event.stopPropagation(); window.togglePartnerImageFavorite('${safeImg}', this)" title="${isAr ? 'إضافة للمفضلة' : 'Favorite'}" style="background: var(--bg3); border: 1px solid var(--line); color: var(--gold); border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">
                   <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: ${heartFill}; stroke: var(--gold); stroke-width: 2;"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
@@ -2883,7 +2883,7 @@ window.loadPublicPartnerProfile = async function(pid) {
             </div>
             <div style="flex: 1; min-width: 180px;">
               <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(74, 21, 23,0.15); color: var(--gold); border: 1px solid var(--gold); padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.4rem;">
-                <span>✦</span> <span>${isAr ? 'شريك نجاح أوزيل' : 'OZEL SUCCESS PARTNER'}</span>
+                <span></span> <span>${isAr ? 'شريك نجاح أوزيل' : 'OZEL SUCCESS PARTNER'}</span>
               </div>
               <h2 class="partner-banner-title" style="font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; color: #fff; font-weight: 700; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">${partner.name}</h2>
             </div>
@@ -2893,7 +2893,7 @@ window.loadPublicPartnerProfile = async function(pid) {
         <!-- Brief Box -->
         ${partner.partnerBrief ? `
           <div class="partner-brief-box" style="background: var(--bg3); border-right: 4px solid var(--gold); padding: 1rem 1.25rem; border-radius: var(--rad); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); border-left: 1px solid var(--line); display: flex; align-items: flex-start; gap: 0.8rem;">
-            <span style="font-size: 1.4rem; color: var(--gold); line-height: 1;">💬</span>
+            <span style="font-size: 1.4rem; color: var(--gold); line-height: 1;"></span>
             <p style="font-size: 0.95rem; color: var(--text); font-weight: 600; margin: 0; line-height: 1.5;">${partner.partnerBrief}</p>
           </div>
         ` : ''}
@@ -2902,7 +2902,7 @@ window.loadPublicPartnerProfile = async function(pid) {
         ${partner.partnerBio ? `
           <div style="background: var(--bg2); padding: 1.2rem 1.5rem; border-radius: var(--rad-lg); border: 1px solid var(--line);">
             <h4 style="font-size: 0.9rem; color: var(--gold); font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
-              <span>📜</span> <span>${isAr ? 'عن الشريك' : 'About Partner'}</span>
+              <span></span> <span>${isAr ? 'عن الشريك' : 'About Partner'}</span>
             </h4>
             <p style="font-size: 0.9rem; color: var(--muted); margin: 0; line-height: 1.65; white-space: pre-line;">${partner.partnerBio}</p>
           </div>
@@ -2912,7 +2912,7 @@ window.loadPublicPartnerProfile = async function(pid) {
         <div>
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--line);">
             <h3 style="font-size: 1.15rem; color: var(--text); font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-              <span>🖼️</span> <span>${isAr ? 'معرض صور الشريك' : 'Partner Gallery'}</span>
+              <span></span> <span>${isAr ? 'معرض صور الشريك' : 'Partner Gallery'}</span>
             </h3>
             <span style="font-size: 0.8rem; color: var(--gold); font-weight: 700; background: var(--bg3); padding: 0.2rem 0.6rem; border-radius: 12px; border: 1px solid var(--line);">${gallery.length} ${isAr ? 'صور' : 'Photos'}</span>
           </div>
@@ -2984,7 +2984,7 @@ window.downloadImage = function(url, filename = 'ozel-partner-photo.jpg') {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    showToast(isAr ? 'جاري تحميل الصورة على جهازك 📥' : 'Downloading photo 📥', 'success');
+    showToast(isAr ? 'جاري تحميل الصورة على جهازك ' : 'Downloading photo ', 'success');
   } catch (e) {
     console.error('Download error', e);
   }
@@ -3035,7 +3035,7 @@ window.renderPartnerGalleryPreview = function() {
   html += approvedList.map((imgUrl, index) => `
     <div style="position:relative; width:75px; height:75px; border-radius:var(--rad); overflow:hidden; border:1px solid var(--line); background:var(--bg3);" title="${isAr?'صورة معتمدة':'Approved photo'}">
       <img src="${imgUrl}" style="width:100%; height:100%; object-fit:cover;" />
-      <button onclick="window.removePartnerGalleryImage(${index})" style="position:absolute; top:2px; right:2px; background:rgba(192,57,43,0.9); color:#fff; border:none; width:20px; height:20px; border-radius:50%; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+      <button onclick="window.removePartnerGalleryImage(${index})" style="position:absolute; top:2px; right:2px; background:rgba(192,57,43,0.9); color:#fff; border:none; width:20px; height:20px; border-radius:50%; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;">&times;</button>
     </div>
   `).join('');
   
@@ -3164,7 +3164,7 @@ window.savePartnerProfile = async function() {
     try { data = await res.json(); } catch (_) {}
 
     if (res.ok && data.success) {
-      msgEl.textContent = isAr ? 'تم حفظ بيانات الشريك بنجاح ✦' : 'Partner details saved successfully ✦';
+      msgEl.textContent = isAr ? 'تم حفظ بيانات الشريك بنجاح ' : 'Partner details saved successfully ';
       msgEl.style.color = 'var(--green)';
       
       const meRes = await fetch('/api/auth/me', { headers: getAuthHeaders() });
@@ -3243,9 +3243,9 @@ window.savePartnerProfile = async function() {
 
     bar.innerHTML = `
       <div id="gtb-content-wrap" style="display:flex; align-items:center; gap:0.75rem; flex:1; min-width:0;">
-        <div id="gtb-icon-wrap" style="font-size:1.5rem; flex-shrink:0; line-height:1;">🟡</div>
+        <div id="gtb-icon-wrap" style="font-size:1.5rem; flex-shrink:0; line-height:1;"></div>
         <div style="display:flex; flex-direction:column; min-width:0;">
-          <span id="gtb-status" style="font-size:0.9rem; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">${isAr ? 'لم يتم استلام وتأكيد الطلب بعد 🟡' : 'Order Not Received Yet 🟡'}</span>
+          <span id="gtb-status" style="font-size:0.9rem; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">${isAr ? 'لم يتم استلام وتأكيد الطلب بعد ' : 'Order Not Received Yet '}</span>
           <span style="font-size:0.72rem; color:#4A1517; font-weight:600; opacity:0.85;">${isAr ? 'OZEL CAFE' : 'OZEL CAFE'}</span>
         </div>
       </div>
@@ -3264,7 +3264,7 @@ window.savePartnerProfile = async function() {
         line-height: 1;
         flex-shrink: 0;
         transition: background 0.2s;
-      " onmouseover="this.style.background='rgba(239,68,68,0.7)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">✕</button>
+      " onmouseover="this.style.background='rgba(239,68,68,0.7)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">&times;</button>
     `;
 
     document.body.appendChild(bar);
@@ -3288,7 +3288,7 @@ window.savePartnerProfile = async function() {
 
     modal.innerHTML = `
       <div style="max-width:440px; width:100%; background:var(--bg2, #181818); border:1px solid var(--gold, #4A1517); border-radius:20px; padding:2.2rem 1.8rem; text-align:center; box-shadow:0 16px 50px rgba(0,0,0,0.6); position:relative;">
-        <button onclick="window.closeGlobalTrackerModal()" style="position:absolute; top:14px; right:16px; background:none; border:none; color:var(--muted, #888); font-size:1.4rem; cursor:pointer;">✕</button>
+        <button onclick="window.closeGlobalTrackerModal()" style="position:absolute; top:14px; right:16px; background:none; border:none; color:var(--muted, #888); font-size:1.4rem; cursor:pointer;">&times;</button>
         <div style="margin-bottom:1rem;">
           <img src="imgs/Ozel-Logo--01.png" alt="OZEL CAFE" style="height:55px; opacity:0.9;"/>
         </div>
@@ -3311,17 +3311,17 @@ window.savePartnerProfile = async function() {
           </div>
 
           <div id="gtm-step-1" style="position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:0.4rem;">
-            <div class="gtm-icon" style="width:42px; height:42px; border-radius:50%; background:var(--bg3, #222); border:2px solid var(--line, #333); display:flex; align-items:center; justify-content:center; font-size:1.1rem; transition:all 0.3s;">👨‍🍳</div>
+            <div class="gtm-icon" style="width:42px; height:42px; border-radius:50%; background:var(--bg3, #222); border:2px solid var(--line, #333); display:flex; align-items:center; justify-content:center; font-size:1.1rem; transition:all 0.3s;"></div>
             <span style="font-size:0.72rem; color:var(--muted, #888); font-weight:600;">${isAr ? 'تم القبول' : 'Accepted'}</span>
           </div>
 
           <div id="gtm-step-2" style="position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:0.4rem;">
-            <div class="gtm-icon" style="width:42px; height:42px; border-radius:50%; background:var(--bg3, #222); border:2px solid var(--line, #333); display:flex; align-items:center; justify-content:center; font-size:1.1rem; transition:all 0.3s;">☕</div>
+            <div class="gtm-icon" style="width:42px; height:42px; border-radius:50%; background:var(--bg3, #222); border:2px solid var(--line, #333); display:flex; align-items:center; justify-content:center; font-size:1.1rem; transition:all 0.3s;"></div>
             <span style="font-size:0.72rem; color:var(--muted, #888); font-weight:600;">${isAr ? 'قيد التحضير' : 'Preparing'}</span>
           </div>
 
           <div id="gtm-step-3" style="position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:0.4rem;">
-            <div class="gtm-icon" style="width:42px; height:42px; border-radius:50%; background:var(--bg3, #222); border:2px solid var(--line, #333); display:flex; align-items:center; justify-content:center; font-size:1.1rem; transition:all 0.3s;">🎉</div>
+            <div class="gtm-icon" style="width:42px; height:42px; border-radius:50%; background:var(--bg3, #222); border:2px solid var(--line, #333); display:flex; align-items:center; justify-content:center; font-size:1.1rem; transition:all 0.3s;"></div>
             <span style="font-size:0.72rem; color:var(--muted, #888); font-weight:600;">${isAr ? 'جاهز!' : 'Ready!'}</span>
           </div>
         </div>
@@ -3377,7 +3377,7 @@ window.savePartnerProfile = async function() {
       bar.style.padding = '0.75rem 1.25rem';
     } else {
       barContent.style.display = 'none';
-      toggleBtn.innerHTML = isAr ? '👁️ إظهار تتبع الحالة' : '👁️ Show Tracker';
+      toggleBtn.innerHTML = isAr ? 'إظهار تتبع الحالة' : 'Show Tracker';
       toggleBtn.style.background = 'var(--gold, #4A1517)';
       toggleBtn.style.color = '#000';
       bar.style.padding = '0.5rem 1rem';
@@ -3397,7 +3397,7 @@ window.savePartnerProfile = async function() {
       btn.style.color = 'var(--gold, #4A1517)';
     } else {
       stepper.style.display = 'none';
-      btn.innerHTML = isAr ? '👁️ إظهار تتبع الحالة' : '👁️ Show Tracker';
+      btn.innerHTML = isAr ? 'إظهار تتبع الحالة' : 'Show Tracker';
       btn.style.background = 'var(--gold, #4A1517)';
       btn.style.color = '#000';
     }
@@ -3419,9 +3419,9 @@ window.savePartnerProfile = async function() {
     const s = (status || 'pending').toLowerCase();
 
     if (s === 'confirmed' || s === 'preparing' || s === 'ready' || s === 'received' || s === 'accepted' || s === 'completed') {
-      if (gtbIcon) gtbIcon.textContent = '🟢';
+      if (gtbIcon) gtbIcon.textContent = '';
       if (gtbStatus) {
-        gtbStatus.textContent = isAr ? 'تم استلام وتأكيد الطلب بنجاح ✅' : 'Order Received & Confirmed ✅';
+        gtbStatus.textContent = isAr ? 'تم استلام وتأكيد الطلب بنجاح ' : 'Order Received & Confirmed ';
         gtbStatus.style.color = '#ffffff';
       }
       if (bar) {
@@ -3429,9 +3429,9 @@ window.savePartnerProfile = async function() {
         bar.style.background = 'linear-gradient(135deg, #065f46 0%, #047857 100%)';
       }
     } else if (s === 'cancelled' || s === 'rejected') {
-      if (gtbIcon) gtbIcon.textContent = '🔴';
+      if (gtbIcon) gtbIcon.textContent = '';
       if (gtbStatus) {
-        gtbStatus.textContent = isAr ? 'لم يتم استلام وتأكيد الطلب ❌' : 'Order Was Cancelled ❌';
+        gtbStatus.textContent = isAr ? 'لم يتم استلام وتأكيد الطلب ' : 'Order Was Cancelled ';
         gtbStatus.style.color = '#ffffff';
       }
       if (bar) {
@@ -3439,9 +3439,9 @@ window.savePartnerProfile = async function() {
         bar.style.background = 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%)';
       }
     } else {
-      if (gtbIcon) gtbIcon.textContent = '🟡';
+      if (gtbIcon) gtbIcon.textContent = '';
       if (gtbStatus) {
-        gtbStatus.textContent = isAr ? 'لم يتم استلام وتأكيد الطلب بعد 🟡' : 'Order Not Received Yet 🟡';
+        gtbStatus.textContent = isAr ? 'لم يتم استلام وتأكيد الطلب بعد ' : 'Order Not Received Yet ';
         gtbStatus.style.color = '#ffffff';
       }
       if (bar) {
