@@ -1,64 +1,64 @@
 <!DOCTYPE html>
-<!-- ===== أوزيل كافيه — صفحة الحساب الشخصي ===== -->
-<html lang="en" dir="ltr">
+<!-- ===== 2M CAFE — صفحة الحساب الشخصي وعضوية VIP ===== -->
+<html lang="ar" dir="rtl">
 
 <head>
   <meta charset="UTF-8" />
   <script src="api-override.js?v=3"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Your Profile — OZEL CAFE</title>
-  <meta name="description" content="Your profile page at OZEL CAFE. View your loyalty points, uploads, favorites, and account details." />
+  <title>حسابك الشخصي — 2M CAFE</title>
+  <meta name="description" content="صفحة العضوية وبطاقة الولاء الخاصة بك في 2M CAFE. تتبع نقاطك وعروضك الخاصة." />
+  <link rel="icon" type="image/png" href="imgs/favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@300;400;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700;800&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=102" />
+  <link rel="stylesheet" href="style.css?v=200" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+  <style>
+    .profile-wrap {
+      max-width: 600px;
+      margin: 120px auto 60px;
+      padding: 0 1.5rem;
+    }
+    .profile-card-container {
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      border-radius: var(--rad-lg);
+      padding: 2rem;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+  </style>
 </head>
 
 <body class="profile-page-mode">
 
-  <!-- ===== شاشة التحميل (Splash Screen) ===== -->
+  <!-- ===== 2M Cinematic Loader ===== -->
   <div id="loader">
-    <div class="loader-glass"></div>
-    <div class="loader-shimmer"></div>
-    <div class="loader-particles">
-      <span></span><span></span><span></span>
-      <span></span><span></span><span></span>
-      <span></span><span></span>
-    </div>
     <div class="loader-content">
       <div class="loader-logo-wrap">
-        <img src="imgs/Ozel-Logo--02.png" alt="OZEL Logo" class="loader-logo-cinematic" />
+        <img src="imgs/2m-logo.png" alt="2M CAFE Logo" class="loader-logo-cinematic" />
       </div>
-      <div class="loader-ozel-text">
-        <span>Ö</span><span>Z</span><span>E</span><span>L</span>
-      </div>
-      <div class="loader-ozel-line"></div>
-      <div class="loader-ozel-subtitle">Premium Cafe Experience</div>
-      <div class="loader-progress-container" style="display:none;">
-        <div class="loader-progress-track">
-          <div class="loader-progress-bar"></div>
-        </div>
-        <div class="loader-percent">0%</div>
-      </div>
+      <div class="loader-title">2M <span>CAFE</span></div>
+      <div class="loader-line"></div>
+      <div class="loader-subtitle" data-en="Exceptional Coffee & Moments" data-ar="قهوة استثنائية وأوقات لا تُنسى">قهوة استثنائية وأوقات لا تُنسى</div>
     </div>
   </div>
 
   <!-- ===== شريط التنقل العلوي ===== -->
   <nav id="nav" class="scrolled">
     <div class="nav-logo">
-      <a href="index.html"><img src="imgs/Ozel-Logo--01.png" alt="OZEL Logo" class="nav-logo-img" /></a>
+      <a href="index.html">
+        <img src="imgs/2m-logo.png" alt="2M CAFE" class="nav-logo-img" />
+      </a>
     </div>
     <div class="nav-links">
-      <a href="index.html#about" data-en="Story" data-ar="حكايتنا">Story</a>
-      <a href="index.html#lounge" data-en="Table Games" data-ar="ركن التسلية">Table Games</a>
-      <a href="index.html#menu" data-en="Menu" data-ar="المنيو">Menu</a>
-      <a href="index.html#vlog" data-en="Cafe Album" data-ar="ألبوم الصور">Cafe Album</a>
-      <a href="index.html#contact" data-en="Contact" data-ar="تواصل معنا">Contact</a>
+      <a href="index.html#about" data-en="Story" data-ar="حكايتنا">حكايتنا</a>
+      <a href="index.html#menu" data-en="Menu" data-ar="المنيو">المنيو</a>
+      <a href="index.html#contact" data-en="Contact" data-ar="تواصل معنا">تواصل معنا</a>
     </div>
-    <div class="nav-right-sec" style="display:flex;gap:1.5rem;align-items:center">
+    <div class="nav-right-sec" style="display:flex;gap:1.2rem;align-items:center">
       <div class="lang-switch-wrapper" onclick="toggleLanguage()" id="langToggleSwitch">
         <span class="lang-switch-text en-text">EN</span>
         <div class="lang-switch-pill">
@@ -67,207 +67,107 @@
         <span class="lang-switch-text ar-text">ع</span>
       </div>
       <div id="nav-user-area"></div>
-      <button class="nav-cta" onclick="location.href='index.html#menu'" data-en="Order Now" data-ar="اطلب الآن">Order Now</button>
+      <button class="nav-cta" onclick="location.href='index.html#menu'" data-en="Order Now" data-ar="اطلب الآن">اطلب الآن</button>
     </div>
-    <!-- ===== زر القائمة المتنقلة (للجوال فقط) ===== -->
     <button class="nav-hamburger" id="navHamburger" aria-label="Menu" onclick="toggleMobileMenu()">
-      <span></span>
-      <span></span>
-      <span></span>
+      <span></span><span></span><span></span>
     </button>
   </nav>
 
-  <!-- ===== القائمة الجانبية المتنقلة (Drawer) ===== -->
+  <!-- ===== القائمة الجانبية المتنقلة ===== -->
   <div class="mobile-drawer" id="mobileDrawer">
     <div class="drawer-overlay" onclick="toggleMobileMenu()"></div>
     <div class="drawer-content">
       <div class="drawer-header">
-        <a href="index.html" onclick="toggleMobileMenu()"><img src="imgs/Ozel-Logo--01.png" alt="OZEL Logo" class="drawer-logo" /></a>
+        <a href="index.html" onclick="toggleMobileMenu()"><img src="imgs/2m-logo.png" alt="2M CAFE" class="drawer-logo" /></a>
         <button class="drawer-close" onclick="toggleMobileMenu()">&times;</button>
       </div>
       <div class="drawer-links">
-        <a href="index.html#about" onclick="toggleMobileMenu()" data-en="Story" data-ar="حكايتنا">Story</a>
-        <a href="index.html#lounge" onclick="toggleMobileMenu()" data-en="Table Games" data-ar="ركن التسلية">Table Games</a>
-        <a href="index.html#menu" onclick="toggleMobileMenu()" data-en="Menu" data-ar="المنيو">Menu</a>
-        <a href="index.html#vlog" onclick="toggleMobileMenu()" data-en="Cafe Album" data-ar="ألبوم الصور">Cafe Album</a>
-        <a href="index.html#contact" onclick="toggleMobileMenu()" data-en="Contact" data-ar="تواصل معنا">Contact</a>
+        <a href="index.html#about" onclick="toggleMobileMenu()" data-en="Story" data-ar="حكايتنا">حكايتنا</a>
+        <a href="index.html#menu" onclick="toggleMobileMenu()" data-en="Menu" data-ar="المنيو">المنيو</a>
+        <a href="index.html#contact" onclick="toggleMobileMenu()" data-en="Contact" data-ar="تواصل معنا">تواصل معنا</a>
       </div>
       <div id="drawer-user-area" style="padding: 1.5rem 1rem; border-top: 1px solid var(--line);"></div>
     </div>
   </div>
 
-  <!-- ===== محتوى الملف الشخصي الرئيسي ===== -->
-  <div id="profileModal">
-    <div class="modal-panel">
-      <div class="modal-body" style="padding: 1.5rem 1.5rem 2rem 1.5rem;">
-        <div class="modal-name" style="text-align: center; margin-bottom: 1rem; font-family: 'Playfair Display', serif; font-size: 1.8rem;" data-en="Your Profile" data-ar="ملفك الشخصي">Your Profile</div>
+  <!-- ===== محتوى الملف الشخصي ===== -->
+  <main class="profile-wrap">
+    <div class="profile-card-container">
+      <div style="text-align: center; margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--gold);" data-en="2M VIP Membership" data-ar="عضوية 2M المميزة">عضوية 2M المميزة</h1>
+        <p style="color: var(--muted); font-size: 0.85rem;" data-en="Your digital loyalty card & perks" data-ar="بطاقتك الرقمية ومكافآت الولاء">بطاقتك الرقمية ومكافآت الولاء</p>
+      </div>
 
-        <!-- TABS BAR -->
-        <div class="profile-tabs">
-          <button class="profile-tab-btn active" onclick="switchProfileTab(this, 'card')" data-en="Membership" data-ar="العضوية">Membership</button>
-          <button class="profile-tab-btn" onclick="switchProfileTab(this, 'uploads')" data-en="My Photos" data-ar="صوري">My Photos</button>
-          <button class="profile-tab-btn" onclick="switchProfileTab(this, 'liked')" data-en="Favorites" data-ar="المفضلة">Favorites</button>
-        </div>
+      <!-- VIP LOYALTY CARD -->
+      <div class="vip-card" id="profileVipCard" data-tilt data-tilt-max="8" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.2" style="cursor: pointer; position: relative; border-radius: 16px; padding: 1.8rem; box-shadow: 0 16px 40px rgba(0,0,0,0.6); border: 1.5px solid rgba(245,158,11,0.3); overflow: hidden; margin-bottom: 2rem;">
+        <div style="position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: space-between; min-height: 180px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <span style="font-size: 0.7rem; letter-spacing: 0.2rem; text-transform: uppercase; color: var(--gold); display: block; font-weight: 700;">2M CAFE EXCLUSIVE</span>
+              <span style="font-size: 1.15rem; font-weight: 800; color: #fff;">VIP Club</span>
+            </div>
+            <div class="vip-card-badge" id="profileTierBadge" style="background: rgba(245,158,11,0.2); border: 1px solid var(--gold); color: var(--gold); font-size: 0.75rem; font-weight: 800; padding: 3px 10px; border-radius: 20px;">STANDARD</div>
+          </div>
 
-        <!-- TAB CONTENT: MEMBERSHIP -->
-        <div id="profile-tab-card" class="profile-tab-panel active">
-          <!-- PREMIUM VIP LOYALTY CARD -->
-          <div class="vip-card tier-none" id="profileVipCard" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.15" style="cursor: pointer;">
-            <div style="position: absolute; inset: 0; opacity: 0.08; background-image: url('data:image/svg+xml,%3Csvg viewBox=%270 0 200 200%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.9%27 numOctaves=%274%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23n)%27/%3E%3C/svg%3E'); pointer-events: none;"></div>
-            <div style="position: absolute; top: -50px; right: -50px; width: 140px; height: 140px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%); opacity: 0.3; filter: blur(20px); pointer-events: none;"></div>
-            
-            <div style="position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: space-between;">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
-                <div>
-                  <span style="font-family: 'Tajawal', sans-serif; font-size: 0.65rem; letter-spacing: 0.25rem; text-transform: uppercase; color: rgba(255,255,255,0.7); display: block; margin-bottom: 0.2rem;">OZEL CAFE MEMBER</span>
-                  <span style="font-family: 'Playfair Display', 'Tajawal', serif; font-size: 1rem; font-style: italic; color: #fff; letter-spacing: 0.05em;" id="profileVipClubTitle">VIP Club</span>
-                </div>
-                <div class="vip-card-badge" id="profileTierBadge">STANDARD</div>
-              </div>
-              
-              <div style="margin-bottom: 1.5rem;">
-                <span style="font-family: 'Outfit', sans-serif; font-size: 0.7rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.6); display: block; margin-bottom: 0.3rem; font-weight: 500;">YOUR CURRENT POINTS / BALANCE</span>
-                <div style="display: flex; align-items: baseline; gap: 0.4rem;">
-                  <span id="profilePoints" style="font-family: 'Montserrat', sans-serif; font-size: 2.8rem; font-weight: 700; color: #fff; line-height: 1;">0</span>
-                  <span style="font-family: 'Tajawal', sans-serif; font-size: 0.8rem; letter-spacing: 0.05em; font-weight: 700; color: rgba(255,255,255,0.8);">pts</span>
-                </div>
-                <div style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.85); font-weight: 600; margin-top: 0.4rem; font-family: 'Tajawal', sans-serif;" id="profileDiscountRate">
-                  Discount: 0%
-                </div>
-              </div>
-
-              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.8rem; font-size: 0.7rem; color: rgba(255,255,255,0.6); font-family: 'Tajawal', sans-serif;">
-                <span id="profileMemberName" style="text-transform: uppercase; font-weight: 700; color: var(--white); font-size: 0.75rem; font-family: 'Tajawal', sans-serif;">MEMBER</span>
-              </div>
+          <div style="margin: 1.2rem 0;">
+            <span style="font-size: 0.75rem; color: rgba(255,255,255,0.7); display: block; margin-bottom: 0.2rem;" data-en="Loyalty Balance" data-ar="رصيد نقاط الولاء">رصيد نقاط الولاء</span>
+            <div style="display: flex; align-items: baseline; gap: 0.5rem;">
+              <span id="profilePoints" style="font-size: 2.8rem; font-weight: 800; color: #fff; line-height: 1;">0</span>
+              <span style="font-size: 0.9rem; font-weight: 700; color: var(--gold);" data-en="pts" data-ar="نقطة">نقطة</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--gold); font-weight: 700; margin-top: 0.4rem;" id="profileDiscountRate">
+              نسبة الخصم: 0%
             </div>
           </div>
 
-          <!-- MOST ORDERED DRINKS -->
-          <div style="background: var(--bg2); padding: 1.25rem 1.5rem; border-radius: var(--rad-lg); border: 1px solid var(--line); box-shadow: 0 4px 15px rgba(0,0,0,0.01); margin-bottom: 1.25rem; margin-top: 1.5rem;">
-            <h4 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;" data-en="Most Ordered" data-ar="الأكثر طلباً">
-              Most Ordered
-            </h4>
-            <div id="topDrinksList" style="display: flex; flex-direction: column; gap: 0.6rem;">
-              <p style="color: var(--muted); font-size: 0.8rem; text-align: center; font-family: 'Tajawal', sans-serif;" data-en="No previous orders yet" data-ar="لا توجد طلبات سابقة بعد">No previous orders yet</p>
-            </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 0.8rem;">
+            <span id="profileMemberName" style="font-weight: 700; color: #fff; font-size: 0.9rem;">2M MEMBER</span>
+            <img src="imgs/2m-logo.png" alt="2M" style="height: 24px; opacity: 0.8;" />
           </div>
-
-          <!-- PARTNER PROFILE EDIT -->
-          <div id="partnerEditSection" style="display: none; background: var(--bg2); padding: 1.25rem 1.5rem; border-radius: var(--rad-lg); border: 1px solid var(--line); box-shadow: 0 4px 15px rgba(0,0,0,0.01); margin-bottom: 1.25rem;">
-            <h4 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;" data-en="Partner Details & Showcase" data-ar="بيانات وإعدادات ملف الشريك">
-              بيانات وإعدادات ملف الشريك
-            </h4>
-            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
-              <!-- الشعار -->
-              <div>
-                <label style="font-size: 0.75rem; color: var(--gold); font-family: 'Tajawal', sans-serif; display:block; margin-bottom:0.3rem;" data-en="Partner Logo" data-ar="شعار / لوجو الشريك:">شعار / لوجو الشريك:</label>
-                <input id="partner-logo-file" type="file" accept="image/*" style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.5rem .8rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
-              </div>
-
-              <!-- الصورة الرئيسية للصفحة الرئيسية -->
-              <div>
-                <label style="font-size: 0.75rem; color: var(--gold); font-family: 'Tajawal', sans-serif; display:block; margin-bottom:0.3rem;" data-en="Main Showcase Image (Home Page)" data-ar="الصورة الأساسية (للعرض في الصفحة الرئيسية):">الصورة الأساسية (للعرض في الصفحة الرئيسية):</label>
-                <input id="partner-main-image-file" type="file" accept="image/*" style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.5rem .8rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
-              </div>
-
-              <!-- البريف المختصر 140 حرف -->
-              <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem;">
-                  <label style="font-size: 0.75rem; color: var(--gold); font-family: 'Tajawal', sans-serif;" data-en="Home Page Brief (Max 140 chars)" data-ar="بريف الصفحة الرئيسية (تحت الصورة - أقصى حد 140 حرف):">بريف الصفحة الرئيسية (تحت الصورة - أقصى حد 140 حرف):</label>
-                  <span id="partner-brief-count" style="font-size:0.75rem; color:var(--muted); font-family:'Outfit',sans-serif;">0 / 140</span>
-                </div>
-                <textarea id="partner-brief-input" maxlength="140" oninput="if(document.getElementById('partner-brief-count')) document.getElementById('partner-brief-count').textContent = this.value.length + ' / 140';"
-                  data-placeholder-en="Write a short summary under your photo on the home page (max 140 chars)..." 
-                  data-placeholder-ar="اكتب نبذة سريعة تظهر تحت صورتك في الصفحة الرئيسية (أقصى حد 140 حرف)..." 
-                  placeholder="اكتب نبذة سريعة تظهر تحت صورتك في الصفحة الرئيسية (أقصى حد 140 حرف)..."
-                  style="width:100%; min-height:60px; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none; resize:vertical;"></textarea>
-              </div>
-
-              <!-- النبذة الشاملة -->
-              <div>
-                <label style="font-size: 0.75rem; color: var(--gold); font-family: 'Tajawal', sans-serif; display:block; margin-bottom:0.3rem;" data-en="Full Partner Bio" data-ar="النبذة التعريفية الكاملة عن الشريك:">النبذة التعريفية الكاملة عن الشريك:</label>
-                <textarea id="partner-bio-input" data-placeholder-en="Full description of your business..." data-placeholder-ar="النبذة التفصيلية الكاملة عن نشاطك وسيرتك..." placeholder="النبذة التفصيلية الكاملة عن نشاطك وسيرتك..."
-                  style="width:100%; min-height:80px; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none; resize:vertical;"></textarea>
-              </div>
-
-              <!-- معرض الصور للإضافة والمعاينة -->
-              <div>
-                <label style="font-size: 0.75rem; color: var(--gold); font-family: 'Tajawal', sans-serif; display:block; margin-bottom:0.3rem;" data-en="Add Photos to Gallery" data-ar="إضافة صور لمعرض أعمالك / منتجاتك:">إضافة صور لمعرض أعمالك / منتجاتك:</label>
-                <input id="partner-gallery-file" type="file" accept="image/*" multiple style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.5rem .8rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
-                <div id="partnerGalleryPreview" style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.6rem;"></div>
-              </div>
-              
-              <button class="btn-gold" style="width:100%; justify-content:center; padding:0.6rem; margin-top:0.5rem;" onclick="savePartnerProfile()" data-en="Save Partner Info" data-ar="حفظ بيانات الشريك">حفظ بيانات الشريك</button>
-              <p id="partner-save-msg" style="font-size:0.8rem; text-align:center; margin-top:0.4rem; font-family: 'Tajawal', sans-serif;"></p>
-              <p id="partner-pending-notice" style="display:none; font-size:0.8rem; text-align:center; margin-top:0.4rem; color:#e67e22; font-family: 'Tajawal', sans-serif; font-weight:bold;"></p>
-            </div>
-          </div>
-
-          <!-- CHANGE PASSWORD -->
-          <div style="background: var(--bg2); padding: 1.25rem 1.5rem; border-radius: var(--rad-lg); border: 1px solid var(--line); box-shadow: 0 4px 15px rgba(0,0,0,0.01); margin-bottom: 1.25rem;">
-            <h4 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;" data-en="Change Password" data-ar="تغيير كلمة المرور">
-              Change Password
-            </h4>
-            <div style="display: flex; flex-direction: column; gap: 0.6rem;">
-              <input id="old-pass" type="password" data-placeholder-en="Current Password" data-placeholder-ar="كلمة المرور الحالية" placeholder="Current Password"
-                style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
-              <input id="new-pass" type="password" data-placeholder-en="New Password" data-placeholder-ar="كلمة المرور الجديدة" placeholder="New Password"
-                style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.6rem 1rem; border-radius:var(--rad); font-family:'Tajawal',sans-serif; font-size:.85rem; outline:none;" />
-              <button class="btn-gold" style="width:100%; justify-content:center; padding:0.6rem;" onclick="changePassword()" data-en="Save Changes" data-ar="حفظ التغييرات">Save Changes</button>
-              <p id="cp-msg" style="font-size:0.8rem; text-align:center; margin-top:0.4rem; font-family: 'Tajawal', sans-serif;"></p>
-            </div>
-          </div>
-
-          <div style="margin-top: 1.25rem;">
-            <button class="logout-btn" onclick="logoutUser()" data-en="Logout" data-ar="تسجيل الخروج" style="width:100%; justify-content:center; padding:0.7rem; border-radius:var(--rad); border: 1px solid rgba(217, 83, 79, 0.3); background: rgba(217, 83, 79, 0.05); color: #d9534f; cursor:pointer; font-family:'Tajawal', sans-serif; font-weight:700;">Logout</button>
-          </div>
-        </div>
-
-        <!-- TAB CONTENT: MY UPLOADS -->
-        <div id="profile-tab-uploads" class="profile-tab-panel" style="display: none;">
-          <div id="myPhotosGrid" class="profile-photos-grid"></div>
-        </div>
-
-        <!-- TAB CONTENT: FAVORITE LIKED PHOTOS -->
-        <div id="profile-tab-liked" class="profile-tab-panel" style="display: none;">
-          <div id="myLikedGrid" class="profile-photos-grid"></div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- ===== قسم التذييل (Footer) ===== -->
-  <footer id="footer">
-    <img src="imgs/Ozel-Logo--01.png" alt="OZEL Logo" class="footer-logo-img" />
-    <div class="footer-logo">OZEL <span>CAFE</span></div>
-    <p class="footer-tag" data-en="Hidden Gem — An unforgettable experience" data-ar="الجوهرة الخفية — تجربة لا تنسى">Hidden Gem — An unforgettable experience</p>
-    <p class="footer-copy" data-en="© 2025 OZEL CAFE — All rights reserved" data-ar="© 2025 أوزيل كافيه — جميع الحقوق محفوظة">© 2025 OZEL CAFE — All rights reserved</p>
+      <!-- MOST ORDERED DRINKS -->
+      <div style="background: var(--bg3); padding: 1.25rem; border-radius: var(--rad); border: 1px solid var(--line); margin-bottom: 1.5rem;">
+        <h3 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; display: flex; align-items: center; justify-content: space-between;" data-en="Most Ordered Drinks" data-ar="مشروباتك المفضلة">
+          <span data-en="Most Ordered Drinks" data-ar="مشروباتك المفضلة">مشروباتك المفضلة</span>
+          <span style="font-size: 0.75rem; color: var(--gold);">2M History</span>
+        </h3>
+        <div id="topDrinksList" style="display: flex; flex-direction: column; gap: 0.6rem;">
+          <p style="color: var(--muted); font-size: 0.85rem; text-align: center;" data-en="Loading order history..." data-ar="جاري تحميل سجل الطلبات...">جاري تحميل سجل الطلبات...</p>
+        </div>
+      </div>
+
+      <!-- CHANGE PASSWORD -->
+      <div style="background: var(--bg3); padding: 1.25rem; border-radius: var(--rad); border: 1px solid var(--line); margin-bottom: 1.5rem;">
+        <h3 style="color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem;" data-en="Security Settings" data-ar="إعدادات الأمان وكلمة المرور">إعدادات الأمان وكلمة المرور</h3>
+        <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+          <input type="password" id="old-pass" placeholder="كلمة المرور الحالية" data-placeholder-ar="كلمة المرور الحالية" data-placeholder-en="Current Password" style="background: var(--bg2); border: 1px solid var(--line); padding: 0.65rem 0.9rem; border-radius: 8px; color: var(--text); font-family: inherit; font-size: 0.85rem;" />
+          <input type="password" id="new-pass" placeholder="كلمة المرور الجديدة" data-placeholder-ar="كلمة المرور الجديدة" data-placeholder-en="New Password" style="background: var(--bg2); border: 1px solid var(--line); padding: 0.65rem 0.9rem; border-radius: 8px; color: var(--text); font-family: inherit; font-size: 0.85rem;" />
+          <button class="lmi-btn lmi-add" style="width: 100%; margin-top: 0.4rem;" onclick="changePassword()" data-en="Update Password" data-ar="تحديث كلمة المرور">تحديث كلمة المرور</button>
+          <span id="cp-msg" style="font-size: 0.8rem; text-align: center;"></span>
+        </div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div style="display: flex; gap: 0.8rem;">
+        <button onclick="location.href='index.html#menu'" class="lmi-btn lmi-details" style="flex: 1;" data-en="Explore Menu" data-ar="تصفح المنيو">تصفح المنيو</button>
+        <button onclick="logoutUser()" class="lmi-btn" style="flex: 1; border-color: rgba(239,68,68,0.3); color: var(--red); background: rgba(239,68,68,0.06);" data-en="Log Out" data-ar="تسجيل الخروج">تسجيل الخروج</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===== Footer ===== -->
+  <footer id="footer" style="padding: 2.5rem 1rem; border-top: 1px solid var(--line); text-align: center;">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.6rem;">
+      <img src="imgs/2m-logo.png" alt="2M CAFE" style="height: 40px;" />
+      <span style="color: var(--gold); font-weight: 800; letter-spacing: 0.1em;">2M CAFE</span>
+      <p style="color: var(--muted); font-size: 0.8rem;">© 2026 2M CAFE — جميع الحقوق محفوظة</p>
+    </div>
   </footer>
 
-  <script>
-    // Loader Logic
-    (function () {
-      const loader = document.getElementById('loader');
-      window.addEventListener('load', function () {
-        if (loader) {
-          loader.classList.add('hidden');
-          setTimeout(function () {
-            loader.style.display = 'none';
-          }, 1000);
-        }
-      });
-      // Safety timeout
-      setTimeout(function () {
-        if (loader) {
-          loader.classList.add('hidden');
-          setTimeout(function () {
-            loader.style.display = 'none';
-          }, 1000);
-        }
-      }, 3000);
-    })();
-  </script>
-  <script src="app.js?v=102"></script>
+  <script src="app.js?v=200"></script>
 </body>
 
 </html>

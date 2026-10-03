@@ -503,7 +503,7 @@ router.post('/categories', authenticateToken, requireRole('admin'), async (req, 
   }
 });
 
-// ØªØ¹Ø¯ÙŠÙ„ ÙØ¦Ø©
+// تعديل فئة
 router.patch('/categories/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const c = await Category.findById(req.params.id);
@@ -522,13 +522,12 @@ router.patch('/categories/:id', authenticateToken, requireRole('admin'), async (
   }
 });
 
-// Ø­Ø°Ù ÙØ¦Ø© (ÙŠÙ…Ù†Ø¹ Ø¥Ø°Ø§ ÙƒØ§Ù† Ù‡Ù†Ø§Ùƒ Ù…Ø´Ø±ÙˆØ¨Ø§Øª Ù…Ø±ØªØ¨Ø·Ø© Ø¨Ù‡Ø§)
+// حذف فئة (يمنع إذا كان هناك مشروبات مرتبطة بها)
 router.delete('/categories/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const c = await Category.findById(req.params.id);
     if (!c) return res.status(404).json({ error: 'Category not found' });
 
-    // Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø¹Ø¯Ù… ÙˆØ¬ÙˆØ¯ Ù…Ø´Ø±ÙˆØ¨Ø§Øª ØªØ³ØªØ®Ø¯Ù… Ù‡Ø°Ù‡ Ø§Ù„ÙØ¦Ø©
     const drinksUsing = await Drink.countDocuments({ category_id: req.params.id });
     if (drinksUsing > 0) {
       return res.status(400).json({ error: `Cannot delete: ${drinksUsing} drink(s) use this category. Reassign them first.` });
@@ -548,7 +547,7 @@ router.get('/qr-table/:number', authenticateToken, requireRole('admin'), async (
     const tableNum = parseInt(req.params.number);
     if (!tableNum || tableNum < 1) return res.status(400).json({ error: 'Invalid table number' });
     const QRCode = require('qrcode');
-    const baseUrl = process.env.BASE_URL || 'https://www.ozel.cafe';
+    const baseUrl = process.env.BASE_URL || 'https://www.2m.cafe';
     const qrUrl = baseUrl + '/cart.html?table=' + tableNum;
     const dataUrl = await QRCode.toDataURL(qrUrl, { width: 400, margin: 2, color: { dark: '#241E1A', light: '#FDFBF7' } });
     res.json({ success: true, qrCodeUrl: dataUrl, table: tableNum, url: qrUrl });
@@ -563,7 +562,7 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
   try {
     const start        = parseInt(req.query.start)  || 1;
     const end          = parseInt(req.query.end)    || 1;
-    const baseUrl      = req.query.baseUrl      || process.env.BASE_URL || 'https://www.ozel.cafe';
+    const baseUrl      = req.query.baseUrl      || process.env.BASE_URL || 'https://www.2m.cafe';
     const welcomeText  = req.query.welcomeText  || 'Welcome!';
     const thankYouText = req.query.thankYouText || 'Thank you for choosing \u00d6zel.';
     const enjoyText    = req.query.enjoyText    || 'Enjoy your time with us.';
@@ -604,7 +603,7 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
     const PW = 297.64, PH = 419.53;
     const doc = new PDFDocument({ size:[PW,PH], margins:{top:0,bottom:0,left:0,right:0} });
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="OZEL-Tables-${start}-to-${end}.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="2M-Tables-${start}-to-${end}.pdf"`);
     doc.pipe(res);
 
     // ─── Register fonts ───────────────────────────────────────────────────
@@ -626,7 +625,7 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
     const WD2   = '#8B5E3C';   // walnut mid
 
     // ─── Logo ─────────────────────────────────────────────────────────────
-    const LOGO = path.join(__dirname, '../frontend/imgs/Ozel-Logo--02.png');
+    const LOGO = path.join(__dirname, '../frontend/imgs/2m-logo.png');
     const hasLogo = fs.existsSync(LOGO);
 
     // ─── Page geometry ────────────────────────────────────────────────────
@@ -845,7 +844,7 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
          .text('FAST',   RX-14, IROW+15, {width:28, align:'center', characterSpacing:0.4})
          .text('& EASY', RX-14, IROW+21, {width:28, align:'center', characterSpacing:0.4});
 
-      // ⑦ OZEL.CAFE PILL BUTTON ─────────────────────────────────────────
+      // ⑦ 2M.CAFE PILL BUTTON ─────────────────────────────────────────
       const PLW=88, PLH=16, PLX=CX-44, PLY=QCY+CSZ+10;
       doc.save().fillColor(GREEN).roundedRect(PLX, PLY, PLW, PLH, PLH/2).fill().restore();
 
@@ -858,7 +857,7 @@ router.get('/qr-tables-pdf', authenticateToken, requireRole('admin'), async (req
       doc.moveTo(GX-4.5,GY+2.5).bezierCurveTo(GX,GY+3.5,GX,GY+3.5,GX+4.5,GY+2.5).stroke();
       doc.restore();
       doc.fillColor('#FFFFFF').font(fSans).fontSize(8)
-         .text('ozel.cafe', PLX+24, PLY+4.2, {width:PLW-26, align:'center'});
+         .text('2m.cafe', PLX+24, PLY+4.2, {width:PLW-26, align:'center'});
 
       // Mouse cursor arrow
       const CuX=PLX+PLW+3, CuY=PLY+PLH-4;
@@ -934,7 +933,7 @@ router.get('/backup', authenticateToken, requireRole('admin'), async (req, res) 
       backup[name] = await model.find({}).lean();
     }
     res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', `attachment; filename="ozel-backup-${new Date().toISOString().slice(0,10)}.json"`);
+    res.setHeader('Content-Disposition', `attachment; filename="2m-backup-${new Date().toISOString().slice(0,10)}.json"`);
     res.json(backup);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1141,6 +1140,55 @@ router.get('/customers/safe-export', authenticateToken, requireRole('admin'), as
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', `attachment; filename="customers-backup-${new Date().toISOString().split('T')[0]}.json"`);
     res.json(exportData);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 5. إدارة العروض والخصومات في لوحة التحكم (Admin Offers Management)
+router.get('/offers', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const offers = await Offer.find({}).populate('drinkId').sort({ created_at: -1 });
+    const formatted = offers.map(o => ({
+      id: o._id,
+      _id: o._id,
+      drinkId: o.drinkId,
+      drink_name: o.drinkId ? (o.drinkId.name_ar || o.drinkId.name) : 'صنف غير معروف',
+      original_price: o.drinkId ? o.drinkId.price : 0,
+      discount_percent: o.discount_percent,
+      expires_at: o.expires_at,
+      created_at: o.created_at
+    }));
+    res.json(formatted);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/offers', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const { drinkId, discount_percent, expires_at } = req.body;
+    if (!drinkId || !discount_percent) {
+      return res.status(400).json({ error: 'يرجى تحديد المشروب ونسبة الخصم' });
+    }
+    const offer = new Offer({
+      drinkId,
+      discount_percent: Number(discount_percent),
+      expires_at: expires_at ? new Date(expires_at) : null
+    });
+    await offer.save();
+    await offer.populate('drinkId');
+    res.json({ success: true, message: 'تم إضافة العرض بنجاح', offer });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.delete('/offers/:id', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const deleted = await Offer.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'العرض غير موجود' });
+    res.json({ success: true, message: 'تم حذف العرض بنجاح' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

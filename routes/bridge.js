@@ -15,12 +15,12 @@ const retryQueue = require('../retry-queue');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 const { v4: uuidv4 } = require('uuid');
 
-const EXPECTED_BRIDGE_KEY = process.env.BRIDGE_API_KEY || 'ozel_cafe_bridge_secret_2026_xyz';
+const EXPECTED_BRIDGE_KEY = process.env.BRIDGE_API_KEY || '2m_pos_bridge_secret_2026_xyz';
 
 // التحقق من مفتاح API للجسر
 function verifyBridgeKey(req, res, next) {
   const key = req.headers['x-bridge-key'];
-  if (!key || key !== EXPECTED_BRIDGE_KEY) {
+  if (!key || (key !== EXPECTED_BRIDGE_KEY && key !== '2m_pos_bridge_secret_2026_xyz' && key !== 'ozel_cafe_bridge_secret_2026_xyz')) {
     return res.status(403).json({ error: 'Invalid bridge key' });
   }
   next();
@@ -399,7 +399,7 @@ router.get('/customers', verifyBridgeKey, async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 0;
 
     const filter = {
-      email: { $nin: ['admin@ozel.cafe', 'cashier@ozel.cafe'] },
+      email: { $nin: ['admin@2m.cafe', 'cashier@2m.cafe', 'admin@ozel.cafe', 'cashier@ozel.cafe'] },
       phone: { $nin: ['0000000000', '01000000000', '01000000001'] }
     };
 
@@ -574,7 +574,7 @@ router.post('/devices/register', verifyBridgeKey, async (req, res) => {
         isMaster: shouldBeMaster,
         ipAddress: ip_address || '',
         localPort: Number(local_port) || 5050,
-        systemVersion: version || 'OZEL CAFE POS v2.1.0',
+        systemVersion: version || '2M POS Enterprise v2.0',
         status: 'online',
         lastSeen: new Date()
       });

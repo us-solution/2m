@@ -32,3 +32,4 @@ pgdata10/
 # Fonts Cache & Temp PDF Outputs
 /fonts/
 test_output.pdf
+scratch/

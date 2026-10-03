@@ -433,12 +433,12 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
     // إضافة شعار الكافيه في الزاوية العلوية اليمنى
     const fs = require('fs');
     const path = require('path');
-    const logoPath = path.join(__dirname, '../frontend/imgs/Ozel-Logo--01.png');
+    const logoPath = path.join(__dirname, '../frontend/imgs/2m-logo.png');
     if (fs.existsSync(logoPath)) {
       doc.image(logoPath, 460, 35, { width: 60 });
     }
 
-    doc.fontSize(22).font(`${font}-Bold`).text('OZEL Cafe', 40, 40);
+    doc.fontSize(22).font(`${font}-Bold`).text('2M CAFE', 40, 40);
     doc.fontSize(10).font(font).fillColor('#666').text(`Report — ${new Date().toISOString().slice(0,10)} (${periodLabel})`, 40, 68);
 
     // الملخص

@@ -9,7 +9,7 @@ const { authenticateToken } = require('../middlewares/auth');
 const { syncCustomerToCashier, normalizePhone } = require('../services/cashierSync');
 require('dotenv').config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'ozel_cafe_secret_2026';
+const JWT_SECRET = process.env.JWT_SECRET || '2m_cafe_secret_2026';
 
 // تسجيل مستخدم جديد (يتطلب الاسم وكلمة المرور ورقم الهاتف أو البريد)
 router.post('/register', async (req, res) => {
@@ -85,8 +85,8 @@ router.post('/register', async (req, res) => {
 
 // تسجيل الدخول باستخدام رقم الهاتف أو البريد الإلكتروني
 router.post('/login', async (req, res) => {
-  const { identifier, phone, password } = req.body;
-  const loginKey = identifier || phone;
+  const { identifier, phone, email, password } = req.body;
+  const loginKey = identifier || phone || email;
 
   if (!loginKey || !password) {
     return res.status(400).json({ error: 'Missing credentials: Phone/Email and password required' });

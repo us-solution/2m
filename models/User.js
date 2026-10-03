@@ -18,8 +18,8 @@ const userSchema = new mongoose.Schema({
   total_spent: { type: Number, default: 0.00 },
   // مستوى الاشتراك
   subscriptionTier: { type: String, default: 'none' },
-  // حالة العميل (قياسي، ذهبي، طالب، عائلة أوزيل)
-  customerStatus: { type: String, enum: ['standard', 'gold', 'student', 'ozel_family'], default: 'standard' },
+  // حالة العميل (قياسي، ذهبي، طالب، عائلة 2M، VIP)
+  customerStatus: { type: String, enum: ['standard', 'gold', 'student', 'ozel_family', '2m_family', 'vip'], default: 'standard' },
   // عدد الأوردرات الهدية المتاحة للعميل
   freeOrdersCount: { type: Number, default: 0 },
   // هل هو شريك في المكان

@@ -1,34 +1,31 @@
 <!DOCTYPE html>
-<!-- ===== أوزيل كافيه — صفحة تسجيل الدخول والتسجيل ===== -->
+<!-- ===== 2M CAFE — صفحة تسجيل الدخول والتسجيل ===== -->
 <html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8"/>
 <script src="api-override.js?v=3"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <!-- عنوان الصفحة -->
-<title>Login — OZEL CAFE</title>
+<title>تسجيل الدخول — 2M CAFE</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet"/>
 <style>
 :root {
-  --burgundy:      #541a1a;
-  --burgundy2:     #702424;
-  --burgundy-glow: rgba(84, 26, 26, 0.08);
-  --accent-emerald:       #5c766d;
-  --accent-emerald-light: #759288;
-  --accent-emerald-glow:  rgba(92, 118, 109, 0.08);
-  --gold:          #541a1a;
-  --gold2:         #702424;
-  --gold-glow:     rgba(84, 26, 26, 0.12);
-  --bg:            #FDFBF7;
-  --bg2:           #FFFFFF;
-  --bg3:           #F5F2EC;
-  --bg4:           #EAE5DA;
-  --line:          rgba(92, 118, 109, 0.16);
-  --text:          #241E1A;
-  --muted:         rgba(36, 30, 26, 0.65);
+  --gold:          #d97706;
+  --gold2:         #b45309;
+  --gold-glow:     rgba(217, 119, 6, 0.16);
+  --burgundy:      #d97706;
+  --burgundy2:     #b45309;
+  --burgundy-glow: rgba(217, 119, 6, 0.16);
+  --bg:            #f8fafc;
+  --bg2:           #ffffff;
+  --bg3:           #f1f5f9;
+  --bg4:           #e2e8f0;
+  --line:          #e2e8f0;
+  --text:          #0f172a;
+  --muted:         #64748b;
   --white:         #ffffff;
-  --green:         #27AE60;
-  --red:           #C0392B;
+  --green:         #16a34a;
+  --red:           #dc2626;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{
@@ -42,14 +39,14 @@ body{
   justify-content:center;
   position:relative;
 }
-body::before{
-  content:'';
-  position:fixed;
-  inset:0;
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
   background:
-    radial-gradient(ellipse at 20% 50%, rgba(84,26,26,.03) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 50%, rgba(92,118,109,.04) 0%, transparent 60%);
-  z-index:0;
+    radial-gradient(ellipse at 20% 50%, rgba(197, 139, 53, 0.1) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 50%, rgba(184, 123, 40, 0.08) 0%, transparent 60%);
+  z-index: 0;
 }
 .wrap{position:relative;z-index:2;width:100%;max-width:440px;padding:1.5rem;}
 
@@ -151,7 +148,7 @@ body::before{
 }
 .field input::placeholder{color:var(--muted);font-size:.8rem;}
 
-.btn{
+.btn{color:#0c0a09;font-weight:800;
   width:100%;
   background:var(--burgundy);
   color:var(--white);
@@ -267,8 +264,8 @@ body::before{
 
   <!-- ===== رأس الصفحة والشعار ===== -->
   <div class="header">
-    <img src="imgs/Ozel-Logo--02.png" alt="OZEL" class="logo-img"/>
-    <h1>OZEL</h1>
+    <img src="imgs/2m-logo.png" alt="2M CAFE" class="logo-img"/>
+    <h1 style="color:var(--gold); font-weight:800; letter-spacing:0.15em;">2M CAFE</h1>
     <p data-en="Hidden Gem Café" data-ar="الجوهرة المخفية">Hidden Gem Café</p>
   </div>
 
@@ -334,11 +331,11 @@ body::before{
 
 <!-- ===== بداية كود JavaScript الخاص بالصفحة ===== -->
 <script>
-// ===== أوزيل كافيه — منطق تسجيل الدخول والتسجيل =====
+// ===== 2M CAFE — منطق تسجيل الدخول والتسجيل =====
 
 // رابط إعادة التوجيه بعد تسجيل الدخول
 const redirect = new URLSearchParams(location.search).get('from') || 'index.html';
-let currentLang = localStorage.getItem('ozel_lang') || 'en';
+let currentLang = (localStorage.getItem('2m_lang') || localStorage.getItem('ozel_lang')) || 'en';
 
 // ===== التبديل بين علامات تبويب تسجيل الدخول والتسجيل =====
 function switchTab(t){
@@ -405,8 +402,8 @@ async function doLogin(){
     const d=await r.json();
     if(!r.ok){console.error('[Login 500]', d);err.textContent=translateError(d.error||d.message);btn.disabled=false;btn.textContent=a?'تسجيل الدخول':'Login';return;}
     if(!d.token||!d.user){err.textContent=a?'استجابة غير صالحة':'Invalid response';btn.disabled=false;btn.textContent=a?'تسجيل الدخول':'Login';return;}
-    localStorage.setItem('ozel_token',d.token);
-    localStorage.setItem('ozel_user',JSON.stringify(d.user));
+    localStorage.setItem('2m_token',d.token); localStorage.setItem('ozel_token',d.token);
+    localStorage.setItem('2m_user',JSON.stringify(d.user)); localStorage.setItem('ozel_user',JSON.stringify(d.user));
     if(d.user.role==='admin') location.href='admin.html';
     else if(d.user.role==='cashier') location.href='cashier.html';
     else location.href=redirect;
@@ -447,8 +444,8 @@ async function doRegister(){
     const d=await r.json();
     if(!r.ok){err.textContent=translateError(d.error||d.message);btn.disabled=false;btn.textContent=a?'إنشاء حساب':'Create Account';return;}
     if(!d.token||!d.user){err.textContent=a?'استجابة غير صالحة':'Invalid response';btn.disabled=false;btn.textContent=a?'إنشاء حساب':'Create Account';return;}
-    localStorage.setItem('ozel_token',d.token);
-    localStorage.setItem('ozel_user',JSON.stringify(d.user));
+    localStorage.setItem('2m_token',d.token); localStorage.setItem('ozel_token',d.token);
+    localStorage.setItem('2m_user',JSON.stringify(d.user)); localStorage.setItem('ozel_user',JSON.stringify(d.user));
     err.className='err success';
     err.textContent=a?'تم إنشاء الحساب بنجاح! جاري التوجيه...':'Account created! Redirecting...';
     setTimeout(()=>{location.href=redirect;},800);
@@ -472,7 +469,7 @@ function skipLogin(){location.href=redirect;}
 // ===== تبديل اللغة بين العربية والإنجليزية =====
 function toggleLanguage(){
   currentLang=currentLang==='en'?'ar':'en';
-  localStorage.setItem('ozel_lang',currentLang);
+  localStorage.setItem('2m_lang',currentLang); localStorage.setItem('ozel_lang',currentLang);
   applyLanguage(currentLang);
 }
 
@@ -496,8 +493,8 @@ document.getElementById('skipLink').addEventListener('click', skipLogin);
 
 // ===== إعادة التوجيه التلقائي إذا كان رمز الدخول لا يزال صالحاً =====
 (async function(){
-  const u=JSON.parse(localStorage.getItem('ozel_user')||'null');
-  const t=localStorage.getItem('ozel_token');
+  const u=JSON.parse((localStorage.getItem('2m_user') || localStorage.getItem('ozel_user'))||'null');
+  const t=(localStorage.getItem('2m_token') || localStorage.getItem('ozel_token'));
   if(u&&t){
     try{
       const c=await fetch('/api/auth/me',{headers:{'Authorization':'Bearer '+t}});
@@ -508,8 +505,8 @@ document.getElementById('skipLink').addEventListener('click', skipLogin);
         return;
       }
     }catch(e){}
-    localStorage.removeItem('ozel_token');
-    localStorage.removeItem('ozel_user');
+    localStorage.removeItem('2m_token'); localStorage.removeItem('ozel_token');
+    localStorage.removeItem('2m_user'); localStorage.removeItem('ozel_user');
   }
 })();
 

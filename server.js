@@ -1,5 +1,5 @@
 // ============================================
-// الملف الرئيسي للخادم - OZEL Cafe
+// الملف الرئيسي للخادم - 2M CAFE
 // يحتوي على إعدادات Express Routes, Middleware, Seeding
 // ============================================
 
@@ -21,7 +21,6 @@ require('./models/Drink');
 require('./models/Order');
 require('./models/PointsLog');
 require('./models/Offer');
-require('./models/GameRoom');
 require('./models/SyncEvent');
 require('./models/Expense');
 require('./models/CashMovement');
@@ -36,7 +35,6 @@ require('./models/ExpenseCategory');
 require('./models/CustomizationOption');
 require('./models/QueueOrder');
 require('./models/QueueCustomer');
-require('./models/VlogPost');
 require('./models/SystemLicense');
 require('./models/PosDevice');
 
@@ -99,11 +97,11 @@ app.use(sanitizeInput);
 // ============================
 app.use((req, res, next) => {
   const ext = path.extname(req.path);
-  if (['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2'].includes(ext)) {
-    // تخزين الملفات الثابتة لمدة سنة
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-  } else if (['.html', '.htm'].includes(ext) || req.path === '/' || req.path === '') {
-    // ملفات HTML يجب التحقق من التخزين المؤقت
+  if (['.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2'].includes(ext)) {
+    // تخزين الصور والخطوط لمدة أسبوع
+    res.setHeader('Cache-Control', 'public, max-age=604800');
+  } else if (['.css', '.js', '.html', '.htm'].includes(ext) || req.path === '/' || req.path === '') {
+    // ملفات CSS و JS و HTML يجب أن يتم تحديثها فوراً دون كاش قديم
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   }
   next();
@@ -119,9 +117,6 @@ app.use('/api/orders', requireDB, require('./routes/orders'));
 app.use('/api/offers', requireDB, require('./routes/offers'));
 app.use('/api/me', requireDB, require('./routes/me'));
 app.use('/api/admin', requireDB, require('./routes/admin'));
-app.use('/api/vlog', requireDB, require('./routes/vlog'));
-
-app.use('/api/game', requireDB, require('./routes/game'));
 app.use('/api/bridge', requireDB, require('./routes/bridge'));
 app.use('/api/shifts', requireDB, require('./routes/shifts'));
 app.use('/api/reports', requireDB, require('./routes/reports'));
@@ -151,6 +146,8 @@ app.use(express.static(path.join(__dirname, 'frontend')));
 // مسارات مخصصة للصفحات عند عدم وجود امتداد
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'admin.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'login.html')));
+app.get('/cart', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'cart.html')));
+app.get('/profile', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'profile.html')));
 
 // ============================
 // مسار Catch-all لإرجاع index.html
@@ -248,26 +245,26 @@ async function seedDatabase() {
   }
 
   // إنشاء مشرف وكاشير افتراضيين (إذا لم يكونوا موجودين)
-  const existingAdmin = await User.findOne({ email: 'admin@ozel.cafe' });
+  const existingAdmin = await User.findOne({ email: 'admin@2m.cafe' });
   if (!existingAdmin) {
     const adminPassword = await bcrypt.hash('admin123', 10);
     await User.create({
-      name: 'Admin',
+      name: '2M Admin',
       phone: '01000000000',
-      email: 'admin@ozel.cafe',
+      email: 'admin@2m.cafe',
       password: adminPassword,
       role: 'admin',
       subscriptionTier: 'gold'
     });
   }
 
-  const existingCashier = await User.findOne({ email: 'cashier@ozel.cafe' });
+  const existingCashier = await User.findOne({ email: 'cashier@2m.cafe' });
   if (!existingCashier) {
     const cashierPassword = await bcrypt.hash('cashier123', 10);
     await User.create({
-      name: 'Cashier',
+      name: '2M Cashier',
       phone: '01000000001',
-      email: 'cashier@ozel.cafe',
+      email: 'cashier@2m.cafe',
       password: cashierPassword,
       role: 'cashier',
       subscriptionTier: 'silver'
@@ -280,19 +277,20 @@ async function seedDatabase() {
 // ============================
 // 9. بدء الخادم (للتطوير المحلي فقط، وليس على Vercel)
 // ============================
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
 
-// الاتصال بقاعدة البيانات ثم بدء طابور إعادة المحاولة
-connectDB().then(() => {
-  console.log('MongoDB connection established for startup.');
-  retryQueue.start(60000);
-}).catch(err => {
-  console.error('MongoDB startup connection failed:', err.message);
-  // نبدأ retryQueue على أي حال — لو اتصلت DB بعدين هتشتغل
-  retryQueue.start(60000);
-});
+  // الاتصال بقاعدة البيانات ثم بدء طابور إعادة المحاولة
+  connectDB().then(() => {
+    console.log('MongoDB connection established for startup.');
+    retryQueue.start(60000);
+  }).catch(err => {
+    console.error('MongoDB startup connection failed:', err.message);
+    retryQueue.start(60000);
+  });
+}
 
 // ============================
 // تصدير التطبيق لاستخدام Vercel Serverless

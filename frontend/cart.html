@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- ===== أوزيل كافيه — صفحة سلة المشتريات ===== -->
+<!-- ===== 2M كافيه — صفحة سلة المشتريات ===== -->
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8"/>
   <script src="api-override.js?v=3"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <!-- عنوان الصفحة -->
-  <title>Shopping Cart — OZEL CAFE</title>
+  <title>سلة الطلبات — 2M CAFE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="style.css?v=102"/>
+  <link rel="stylesheet" href="style.css?v=300"/>
   <style>
     /* ===== تنسيقات خاصة بصفحة السلة ===== */
     .cart-page {
@@ -210,11 +210,10 @@
 <!-- ===== شريط التنقل العلوي ===== -->
 <nav id="nav" class="scrolled">
   <div class="nav-logo">
-    <a href="index.html"><img src="imgs/Ozel-Logo--01.png" alt="OZEL CAFE Logo" class="nav-logo-img" /></a>
+    <a href="index.html"><img src="imgs/2m-logo.png" alt="2M CAFE Logo" class="nav-logo-img" /></a>
   </div>
   <div class="nav-links">
     <a href="index.html#about" data-en="Story" data-ar="حكايتنا">Story</a>
-    <a href="index.html#lounge" data-en="Lounge" data-ar="ركن التسلية">Lounge</a>
     <a href="index.html#menu" data-en="Menu" data-ar="المنيو">Menu</a>
     <a href="index.html#contact" data-en="Contact" data-ar="تواصل معنا">Contact</a>
   </div>
@@ -246,12 +245,11 @@
   <div class="drawer-overlay" onclick="toggleMobileMenu()"></div>
   <div class="drawer-content">
       <div class="drawer-header">
-        <a href="index.html"><img src="imgs/Ozel-Logo--01.png" alt="OZEL Logo" class="drawer-logo" /></a>
+        <a href="index.html"><img src="imgs/2m-logo.png" alt="2M CAFE Logo" class="drawer-logo" /></a>
         <button class="drawer-close" onclick="toggleMobileMenu()">&times;</button>
       </div>
     <div class="drawer-links">
         <a href="index.html#about" onclick="toggleMobileMenu()" data-en="Story" data-ar="حكايتنا">Story</a>
-        <a href="index.html#lounge" onclick="toggleMobileMenu()" data-en="Lounge" data-ar="ركن التسلية">Lounge</a>
         <a href="index.html#menu" onclick="toggleMobileMenu()" data-en="Menu" data-ar="المنيو">Menu</a>
         <a href="index.html#contact" onclick="toggleMobileMenu()" data-en="Contact" data-ar="تواصل معنا">Contact</a>
       </div>
@@ -354,7 +352,7 @@
     <button onclick="closeThankYou()" title="إغلاق" style="position:absolute; top:14px; right:14px; width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#ffffff; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.7)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">&times;</button>
 
     <div style="margin-bottom:1.2rem;">
-      <img src="imgs/Ozel-Logo--01.png" alt="OZEL CAFE" style="height:55px; opacity:0.9;"/>
+      <img src="imgs/2m-logo.png" alt="2M CAFE" style="height:55px; opacity:0.9;"/>
     </div>
     <div style="font-size:2.8rem; margin-bottom:0.4rem;"></div>
     <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.9rem; color:#4A1517; margin-bottom:0.3rem;" data-en="Thank You!" data-ar="شكراً لك!">Thank You!</h3>
@@ -372,8 +370,12 @@
 
 
 <script>
+  function getCStore(k) { return localStorage.getItem('2m_' + k) || localStorage.getItem('ozel_' + k); }
+  function setCStore(k, v) { localStorage.setItem('2m_' + k, v); }
+  function removeCStore(k) { localStorage.removeItem('2m_' + k); localStorage.removeItem('ozel_' + k); }
+
   function toggleCartTrackerVisibility() {
-    const isAr = (localStorage.getItem('ozel_lang') || 'ar') === 'ar';
+    const isAr = (getCStore('lang') || 'ar') === 'ar';
     const tracker = document.getElementById('orderTracker');
     const btn = document.getElementById('cart-toggle-tracker-btn');
     if (!tracker || !btn) return;
@@ -381,26 +383,28 @@
     if (isHidden) {
       tracker.style.display = 'flex';
       btn.innerHTML = isAr ? 'إخفاء تتبع الحالة' : 'Hide Tracker';
-      btn.style.background = 'rgba(74, 21, 23,0.12)';
-      btn.style.color = 'var(--gold)';
+      btn.style.background = '#f1f5f9';
+      btn.style.color = '#d97706';
+      btn.style.border = '1.5px solid #e2e8f0';
     } else {
       tracker.style.display = 'none';
       btn.innerHTML = isAr ? 'إظهار تتبع الحالة' : 'Show Tracker';
-      btn.style.background = 'var(--gold)';
-      btn.style.color = '#000';
+      btn.style.background = 'linear-gradient(135deg, #d97706, #b45309)';
+      btn.style.color = '#ffffff';
+      btn.style.border = 'none';
     }
   }
 </script>
 
 <script>
-  // ===== أوزيل كافيه — منطق صفحة سلة المشتريات =====
+  // ===== 2M كافيه — منطق صفحة سلة المشتريات =====
 
   // بيانات المستخدم المخزنة محلياً
-  const user  = JSON.parse(localStorage.getItem('ozel_user') || 'null');
+  const user  = JSON.parse(getCStore('user') || 'null');
   
   // ===== الحصول على رؤوس الطلب مع رمز المصادقة =====
   function getAuthH() {
-    const t = localStorage.getItem('ozel_token');
+    const t = getCStore('token');
     return t ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + t } : { 'Content-Type': 'application/json' };
   }
   
@@ -408,9 +412,9 @@
   const urlParams  = new URLSearchParams(window.location.search);
   let tableParam = urlParams.get('table');
   if (tableParam) {
-    localStorage.setItem('ozel_table_number', tableParam.trim());
+    setCStore('table_number', tableParam.trim());
   } else {
-    tableParam = localStorage.getItem('ozel_table_number');
+    tableParam = getCStore('table_number');
   }
 
   // حفظ رقم الطاولة المدخل يدوياً
@@ -420,16 +424,16 @@
       tableField.addEventListener('input', (e) => {
         const val = e.target.value.trim();
         if (val) {
-          localStorage.setItem('ozel_table_number', val);
+          setCStore('table_number', val);
         } else {
-          localStorage.removeItem('ozel_table_number');
+          removeCStore('table_number');
         }
       });
     }
   }, 100);
 
   // تحميل السلة من التخزين المحلي
-  let cart = JSON.parse(localStorage.getItem('ozel_cart') || '[]');
+  let cart = JSON.parse(getCStore('cart') || '[]');
 
   // ===== خريطة الترجمة للإضافات والسكر =====
   const transMap = {
@@ -454,14 +458,14 @@
   };
 
   // اللغة الحالية للتطبيق
-  let currentLang = localStorage.getItem('ozel_lang') || 'en';
+  let currentLang = getCStore('lang') || 'en';
   // مانع إرسال الطلب مرتين
   let _submittingOrder = false;
 
   // ===== تبديل اللغة بين العربية والإنجليزية =====
   function toggleLanguage() {
     currentLang = currentLang === 'en' ? 'ar' : 'en';
-    localStorage.setItem('ozel_lang', currentLang);
+    setCStore('lang', currentLang);
     applyLanguage(currentLang);
   }
 
@@ -555,7 +559,7 @@
       const res = await fetch('/api/me', { headers: getAuthH() });
       if (res.ok) {
         const profile = await res.json();
-        localStorage.setItem('ozel_user', JSON.stringify(profile));
+        setCStore('user', JSON.stringify(profile));
         currentFreeOrdersCount = profile.freeOrdersCount || 0;
         
         const box = document.getElementById('freeOrderBox');
@@ -655,7 +659,7 @@
   // ===== إزالة عنصر من السلة =====
   function removeFromCart(idx) {
     cart.splice(idx, 1);
-    localStorage.setItem('ozel_cart', JSON.stringify(cart));
+    setCStore('cart', JSON.stringify(cart));
     loadCart();
   }
 
@@ -731,7 +735,7 @@
       
       if (data && data.success) {
         cart = [];
-        localStorage.removeItem('ozel_cart');
+        removeCStore('cart');
         loadCart();
         _submittingOrder = false;
         btn.textContent = origText;
@@ -739,7 +743,7 @@
 
         const msg = isTakeaway
           ? (isAr ? 'تم تسليم طلبك للكاشير، سيتم الاتصال بك لتأكيد الطلب' : 'Your order has been sent to the cashier. They will call you to confirm.')
-          : (isAr ? 'تم إرسال طلبك إلى الكاشير. استمتع بمشروباتك في أزيل ' : 'Your order has been sent to the cashier. Enjoy your drinks at OZEL ');
+          : (isAr ? 'تم إرسال طلبك إلى الكاشير. استمتع بمشروباتك في 2M ' : 'Your order has been sent to the cashier. Enjoy your drinks at OZEL ');
         showThankYou(data.order_id, msg);
       } else {
         alert(data.error || (isAr ? 'فشل إرسال الطلب' : 'Failed to send order'));
@@ -782,8 +786,8 @@
 
     // حفظ الطلب النشط لاستمرارية التتبع عند إعادة التحميل
     try {
-      localStorage.setItem('ozel_active_order_id', orderId);
-      localStorage.setItem('ozel_active_order_time', String(Date.now()));
+      setCStore('active_order_id', String(orderId));
+      setCStore('active_order_time', String(Date.now()));
     } catch(e) {}
 
     const STEPS = [
@@ -892,8 +896,8 @@
   // ===== استرجاع تتبع الطلب السابق إذا كان ما يزال نشطاً =====
   (function restoreActiveTracking() {
     try {
-      const activeOrderId = localStorage.getItem('ozel_active_order_id');
-      const activeOrderTime = parseInt(localStorage.getItem('ozel_active_order_time') || '0', 10);
+      const activeOrderId = getCStore('active_order_id');
+      const activeOrderTime = parseInt(getCStore('active_order_time') || '0', 10);
       if (activeOrderId && (Date.now() - activeOrderTime < 2 * 60 * 60 * 1000)) {
         showThankYou(activeOrderId, currentLang === 'ar' ? 'تتبع الطلب الحالي ' : 'Tracking current order ');
       }

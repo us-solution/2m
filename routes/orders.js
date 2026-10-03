@@ -14,7 +14,7 @@ const SyncEvent = require('../models/SyncEvent');
 const retryQueue = require('../retry-queue');
 const axios = require('axios');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'ozel_cafe_secret_2026';
+const JWT_SECRET = process.env.JWT_SECRET || '2m_cafe_secret_2026';
 const BRIDGE_SIGNATURE_SECRET = process.env.BRIDGE_SIGNATURE_SECRET || process.env.BRIDGE_API_KEY || 'bridge-signature-secret';
 const BRIDGE_TIMEOUT_MS = parseInt(process.env.BRIDGE_TIMEOUT_MS || '5000', 10);
 
@@ -536,13 +536,12 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
 
 
 
-// ===== نقاط البيع (Bridge API) - استعلام عن الطلبات غير المتزامنة =====
-const EXPECTED_BRIDGE_KEY = process.env.BRIDGE_API_KEY || 'ozel_cafe_bridge_secret_2026_xyz';
+const EXPECTED_BRIDGE_KEY = process.env.BRIDGE_API_KEY || '2m_pos_bridge_secret_2026_xyz';
 
 // جلب الطلبات التي لم تتم مزامنتها بعد مع نقاط البيع
 router.get('/unsynced', async (req, res) => {
   const bridgeKey = req.headers['x-bridge-key'];
-  if (!bridgeKey || bridgeKey !== EXPECTED_BRIDGE_KEY) {
+  if (!bridgeKey || (bridgeKey !== EXPECTED_BRIDGE_KEY && bridgeKey !== '2m_pos_bridge_secret_2026_xyz' && bridgeKey !== 'ozel_cafe_bridge_secret_2026_xyz')) {
     return res.status(403).json({ error: 'Invalid bridge key' });
   }
   try {

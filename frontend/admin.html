@@ -5,33 +5,34 @@
   <meta charset="UTF-8" />
   <script src="api-override.js?v=3"></script>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>لوحة التحكم — OZEL CAFE</title>
+  <title>لوحة التحكم الإدارية — 2M CAFE</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Tajawal:wght@400;700&family=Montserrat:wght@300;400;600&display=swap"
     rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      --burgundy: #241E1A;
-      --burgundy2: #322822;
-      --burgundy-glow: rgba(74, 21, 23, 0.10);
-      --accent-emerald: #4A1517;
-      --accent-emerald-light: #6E2225;
-      --accent-emerald-glow: rgba(74, 21, 23, 0.12);
-      --gold: #4A1517;
-      --gold2: #380E10;
-      --gold-glow: rgba(74, 21, 23, 0.15);
-      --bg: #FDFBF7;
-      --bg2: #FFFFFF;
-      --bg3: #F5F2EC;
-      --bg4: #EAE5DA;
-      --line: rgba(74, 21, 23, 0.22);
-      --text: #1e1b18;
-      --muted: rgba(30, 27, 24, 0.68);
+      --bg: #f8fafc;
+      --bg2: #ffffff;
+      --bg3: #f1f5f9;
+      --bg4: #e2e8f0;
+      --line: #e2e8f0;
+      --line-hover: rgba(217, 119, 6, 0.4);
+      --gold: #d97706;
+      --gold2: #b45309;
+      --gold-glow: rgba(217, 119, 6, 0.16);
+      --accent-emerald: #d97706;
+      --accent-emerald-light: #f59e0b;
+      --accent-emerald-glow: rgba(217, 119, 6, 0.2);
+      --burgundy: #ffffff;
+      --burgundy2: #f1f5f9;
+      --burgundy-glow: rgba(217, 119, 6, 0.08);
+      --text: #0f172a;
+      --muted: #64748b;
       --white: #ffffff;
-      --green: #2ECC71;
-      --red: #E74C3C;
-      --orange: #E67E22;
+      --green: #16a34a;
+      --red: #dc2626;
+      --orange: #ea580c;
     }
 
     * {
@@ -661,6 +662,26 @@
         justify-content: center;
       }
     }
+  
+    /* ===== 2M Luxury Light Theme Enhancements ===== */
+    body { background: var(--bg); color: var(--text); }
+    header { background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); box-shadow: 0 2px 15px rgba(70,50,30,0.04); }
+    nav { background: var(--bg2); border-left: 1px solid var(--line); }
+    .nav-item { color: var(--muted); border-right: 3px solid transparent; border-left: none; }
+    .nav-item:hover { color: var(--gold); background: var(--gold-glow); }
+    .nav-item.active { color: var(--gold); border-right-color: var(--gold); background: var(--gold-glow); font-weight: 700; }
+    .stat-card { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 2px 8px rgba(70,50,30,0.04); }
+    .stat-n { color: var(--gold); }
+    table { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(70,50,30,0.04); }
+    th { background: var(--bg3); color: var(--gold2); border-bottom: 1px solid var(--line); font-weight: 700; }
+    td { border-bottom: 1px solid var(--line); color: var(--text); }
+    tr:hover td { background: rgba(184, 123, 40, 0.04); }
+    input, select, textarea { background: var(--bg3) !important; border: 1px solid var(--line) !important; color: var(--text) !important; border-radius: 8px; }
+    input:focus, select:focus, textarea:focus { border-color: var(--gold) !important; background: #ffffff !important; outline: none; }
+    .hbtn { border-radius: 8px; border: 1px solid var(--line); color: var(--text-secondary); background: var(--bg2); }
+    .hbtn:hover { border-color: var(--gold); color: var(--gold2); background: var(--bg3); }
+    .c-modal-content { background: #ffffff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 20px 50px rgba(70,50,30,0.15); color: var(--text); }
+
   </style>
   <!-- Vercel Speed Insights removed — only works on Vercel hosting -->
 </head>
@@ -669,9 +690,9 @@
   <div class="toast-container" id="toastContainer"></div>
   <header>
     <div style="display:flex;align-items:center;gap:.75rem;">
-      <img src="imgs/Ozel-Logo--01.png" alt="شعار OZEL CAFE" style="height:44px; width:auto; object-fit:contain;" />
+      <img src="imgs/2m-logo.png" alt="شعار 2M CAFE" style="height:44px; width:auto; object-fit:contain;" />
       <div style="display:flex; flex-direction:column;">
-        <span class="hlogo" style="line-height:1.1;">OZEL</span>
+        <span class="hlogo" style="line-height:1.1;color:var(--gold);font-weight:800;">2M CAFE</span>
         <span style="font-size:.65rem;letter-spacing:.25em;color:var(--muted);text-transform:uppercase">لوحة إدارة النظام</span>
       </div>
     </div>
@@ -695,7 +716,6 @@
         <option value="users">العملاء والمستخدمين</option>
         <option value="tables">رموز QR للطاولات</option>
         <option value="customization">خيارات التخصيص</option>
-        <option value="vlog">إدارة صور الموقع</option>
         <option value="pos-devices">أجهزة الكاشير والمزامنة</option>
       </select>
       <div class="nav-item active" data-page="menu" onclick="showPage('menu',this)">
@@ -721,10 +741,6 @@
       <div class="nav-item" data-page="customization" onclick="showPage('customization',this)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         <span>خيارات التخصيص</span>
-      </div>
-      <div class="nav-item" data-page="vlog" onclick="showPage('vlog',this)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-        <span>إدارة صور الموقع</span>
       </div>
       <div class="nav-item" data-page="pos-devices" onclick="showPage('pos-devices',this)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
@@ -969,7 +985,7 @@
             <div class="form-group" style="margin-bottom:0;">
               <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">رابط الموقع الأساسي
                 (Base URL):</label>
-              <input type="text" id="tqr-base-url" placeholder="https://www.ozel.cafe" class="edit-input"
+              <input type="text" id="tqr-base-url" placeholder="https://www.2m.cafe" class="edit-input"
                 style="width:100%; box-sizing:border-box;">
             </div>
           </div>
@@ -985,7 +1001,7 @@
             <div class="form-group" style="margin-bottom:0;">
               <label style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:block;">رسالة الشكر (بما في
                 ذلك اللغة العربية):</label>
-              <input type="text" id="tqr-thankyou" value="Thank you for choosing Özel." class="edit-input"
+              <input type="text" id="tqr-thankyou" value="Thank you for choosing 2M CAFE." class="edit-input"
                 style="width:100%; box-sizing:border-box;">
             </div>
             <div class="form-group" style="margin-bottom:0;">
@@ -1067,60 +1083,6 @@
           حفظ التغييرات</button>
       </div>
 
-      <!-- ===== إدارة الصور (Vlog & الشركاء) ===== -->
-      <div class="page" id="page-vlog">
-        <h1 class="page-title">إدارة صور الموقع والشركاء</h1>
-        <p class="page-sub">مراجعة وقبول أو حذف صور ألبوم المكان وصور الملفات الشخصية للشركاء</p>
-
-        <!-- تبويبات التنقل -->
-        <div
-          style="display: flex; gap: 1rem; border-bottom: 1.5px solid var(--line); margin-bottom: 1.5rem; padding-bottom: 0.5rem;">
-          <button class="hbtn" id="tab-vlog-album" onclick="switchVlogTab('album')"
-            style="background: var(--gold); color: #fff; height: 36px; padding: 0 1rem; font-size: 0.85rem;">ألبوم
-            المكان (Vlog & Album)</button>
-          <button class="hbtn" id="tab-vlog-partners" onclick="switchVlogTab('partners')"
-            style="background: transparent; color: var(--muted); border-color: var(--line); height: 36px; padding: 0 1rem; font-size: 0.85rem;">صور
-            ومعارض الشركاء</button>
-        </div>
-
-        <!-- قسم ألبوم المكان -->
-        <div id="vlog-album-section">
-          <div class="search-bar" style="position:relative;">
-            <input id="vlog-admin-search" type="text" placeholder="ابحث بالاسم أو الوصف..."
-              oninput="filterAdminVlogTable()" style="flex:1; padding-right:2.5rem;" />
-            <span onclick="document.getElementById('vlog-admin-search').value='';filterAdminVlogTable()"
-              style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--muted); font-size:1.1rem;">×</span>
-          </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th>الصورة</th>
-                <th>الناشر</th>
-                <th>الوصف</th>
-                <th>الإعجابات</th>
-                <th>الحالة</th>
-                <th>تحديد كفائز</th>
-                <th>إجراء</th>
-              </tr>
-            </thead>
-            <tbody id="vlogAdminTable">
-              <tr>
-                <td colspan="7" style="text-align:center; color:var(--muted);">جاري التحميل...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- قسم صور ومعارض الشركاء -->
-        <div id="vlog-partners-section" style="display: none;">
-          <div id="vlogPartnersContainer" style="display: flex; flex-direction: column; gap: 1.5rem;">
-            <p style="text-align:center; color:var(--muted); font-family:'Tajawal', sans-serif;">جاري تحميل بيانات صور
-              الشركاء...</p>
-          </div>
-        </div>
-      </div>
-
       <!-- ===== إدارة أجهزة الكاشير والمزامنة (POS Devices: Master / Slave) ===== -->
       <div class="page" id="page-pos-devices">
         <h1 class="page-title">أجهزة الكاشير والربط السحابي (POS Devices)</h1>
@@ -1163,7 +1125,7 @@
             <div style="background:var(--bg3); padding:1rem; border:1px solid var(--line); border-radius:6px;">
               <span style="display:block; font-size:0.75rem; color:var(--muted); font-weight:700; margin-bottom:0.3rem;">مفتاح الجسر السحابي (Bridge Key):</span>
               <div style="display:flex; gap:0.5rem; align-items:center;">
-                <input type="text" id="pos-bridge-key" value="ozel_cafe_bridge_secret_2026_xyz" readonly class="edit-input" style="width:100%; font-family:monospace; direction:ltr; text-align:left;" />
+                <input type="text" id="pos-bridge-key" value="2m_pos_bridge_secret_2026_xyz" readonly class="edit-input" style="width:100%; font-family:monospace; direction:ltr; text-align:left;" />
                 <button class="hbtn" onclick="copyText('pos-bridge-key')">نسخ</button>
               </div>
             </div>
@@ -1209,14 +1171,14 @@
   </div>
 
   <script>
-    const user = JSON.parse(localStorage.getItem('ozel_user') || 'null');
+    const user = JSON.parse((localStorage.getItem('2m_user') || localStorage.getItem('ozel_user')) || 'null');
     if (!user || (user.role !== 'admin' && user.role !== 'partner' && !user.isPartner)) { location.href = 'login.html?from=admin.html'; }
 
     let menuData = [], usersData = [], ordersData = [], categoriesData = [];
 
     // الحصول على ترويسة المصادقة للطلبات
     function getAuthH() {
-      const token = localStorage.getItem('ozel_token');
+      const token = (localStorage.getItem('2m_token') || localStorage.getItem('ozel_token'));
       return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
     }
 
@@ -1247,7 +1209,7 @@
         document.getElementById('tqr-base-url').value = window.location.origin;
       }
       if (name === 'customization') loadCustomization();
-      if (name === 'vlog') loadAdminVlog();
+      
       if (name === 'pos-devices') {
         const urlInput = document.getElementById('pos-cloud-url');
         if (urlInput) urlInput.value = window.location.origin;
@@ -1283,7 +1245,7 @@
       if (!_lastTableQR) return;
       const a = document.createElement('a');
       a.href = _lastTableQR.qrCodeUrl;
-      a.download = 'OZEL-Table-' + _lastTableQR.table + '.png';
+      a.download = '2M-Table-' + _lastTableQR.table + '.png';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -1304,7 +1266,7 @@
         return;
       }
 
-      const token = localStorage.getItem('ozel_token');
+      const token = (localStorage.getItem('2m_token') || localStorage.getItem('ozel_token'));
       const pdfUrl = `/api/admin/qr-tables-pdf?start=${start}&end=${end}&baseUrl=${baseUrl}&welcomeText=${welcomeText}&thankYouText=${thankYouText}&enjoyText=${enjoyText}&showTableNum=${showTableNum}&token=${token}`;
 
       window.open(pdfUrl, '_blank');
@@ -1316,7 +1278,7 @@
       if (!_lastTableQR) return;
       const win = window.open('', '_blank');
       win.document.write('<!DOCTYPE html>' +
-        '<html><head><title>طاولة ' + _lastTableQR.table + ' - QR Code</title>' +
+        '<html><head><title>لوحة التحكم الإدارية — 2M CAFE</title>' +
         '<base href="' + window.location.origin + '/">' +
         '<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Tajawal:wght@500;700&family=Outfit:wght@600;700&display=swap" rel="stylesheet">' +
         '<style>' +
@@ -1334,10 +1296,30 @@
         '  .instruction-en { font-size: 0.78rem; letter-spacing: 0.08em; color: #241E1A; text-transform: uppercase; margin-bottom: 1.2rem; font-weight: 600; }' +
         '  .site-url { font-size: 0.8rem; color: rgba(36, 30, 26, 0.6); font-family: "Outfit", sans-serif; letter-spacing: 0.05em; word-break: break-all; }' +
         '  @media print { body { background: none; } .card-frame { box-shadow: none; border: 3px solid #541a1a; margin: auto; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); } }' +
-        '</style></head><body>' +
+        '
+    /* ===== 2M Luxury Light Theme Enhancements ===== */
+    body { background: var(--bg); color: var(--text); }
+    header { background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); box-shadow: 0 2px 15px rgba(70,50,30,0.04); }
+    nav { background: var(--bg2); border-left: 1px solid var(--line); }
+    .nav-item { color: var(--muted); border-right: 3px solid transparent; border-left: none; }
+    .nav-item:hover { color: var(--gold); background: var(--gold-glow); }
+    .nav-item.active { color: var(--gold); border-right-color: var(--gold); background: var(--gold-glow); font-weight: 700; }
+    .stat-card { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 2px 8px rgba(70,50,30,0.04); }
+    .stat-n { color: var(--gold); }
+    table { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(70,50,30,0.04); }
+    th { background: var(--bg3); color: var(--gold2); border-bottom: 1px solid var(--line); font-weight: 700; }
+    td { border-bottom: 1px solid var(--line); color: var(--text); }
+    tr:hover td { background: rgba(184, 123, 40, 0.04); }
+    input, select, textarea { background: var(--bg3) !important; border: 1px solid var(--line) !important; color: var(--text) !important; border-radius: 8px; }
+    input:focus, select:focus, textarea:focus { border-color: var(--gold) !important; background: #ffffff !important; outline: none; }
+    .hbtn { border-radius: 8px; border: 1px solid var(--line); color: var(--text-secondary); background: var(--bg2); }
+    .hbtn:hover { border-color: var(--gold); color: var(--gold2); background: var(--bg3); }
+    .c-modal-content { background: #ffffff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 20px 50px rgba(70,50,30,0.15); color: var(--text); }
+
+  </style></head><body>' +
         '  <div class="card-frame">' +
-        '    <img class="logo" src="imgs/Ozel-Logo--02.png" onerror="this.src=\'imgs/Ozel-Logo--01.png\'; this.onerror=null;" />' +
-        '    <h2 class="brand-name">OZEL CAFE</h2>' +
+        '    <img class="logo" src="imgs/2m-logo.png" onerror="this.src=\'imgs/2m-logo.png\'; this.onerror=null;" />' +
+        '    <h2 class="brand-name">2M CAFE</h2>' +
         '    <div class="divider"></div>' +
         '    <div class="table-title">طاولة / Table</div>' +
         '    <h1 class="table-number">' + _lastTableQR.table + '</h1>' +
@@ -1739,7 +1721,7 @@
           <option value="standard" ${u.customerStatus === 'standard' ? 'selected' : ''}>Standard</option>
           <option value="gold" ${u.customerStatus === 'gold' ? 'selected' : ''}>Gold</option>
           <option value="student" ${u.customerStatus === 'student' ? 'selected' : ''}>Student</option>
-          <option value="ozel_family" ${u.customerStatus === 'ozel_family' ? 'selected' : ''}>OZEL FAMILY</option>
+          <option value="ozel_family" ${u.customerStatus === 'ozel_family' ? 'selected' : ''}>2M FAMILY</option>
         </select>
       </td>
       <td>
@@ -2212,387 +2194,6 @@
       }
     }
 
-    let vlogAdminData = [];
-    let selectedVlogPostIdForWinner = null;
-
-    // تبديل تبويب إدارة الصور
-    window.switchVlogTab = function (tab) {
-      const btnAlbum = document.getElementById('tab-vlog-album');
-      const btnPartners = document.getElementById('tab-vlog-partners');
-      const secAlbum = document.getElementById('vlog-album-section');
-      const secPartners = document.getElementById('vlog-partners-section');
-
-      if (tab === 'album') {
-        btnAlbum.style.background = 'var(--gold)';
-        btnAlbum.style.color = '#fff';
-        btnPartners.style.background = 'transparent';
-        btnPartners.style.color = 'var(--muted)';
-        btnPartners.style.borderColor = 'var(--line)';
-
-        secAlbum.style.display = 'block';
-        secPartners.style.display = 'none';
-        loadAdminVlog();
-      } else {
-        btnPartners.style.background = 'var(--gold)';
-        btnPartners.style.color = '#fff';
-        btnAlbum.style.background = 'transparent';
-        btnAlbum.style.color = 'var(--muted)';
-        btnAlbum.style.borderColor = 'var(--line)';
-
-        secAlbum.style.display = 'none';
-        secPartners.style.display = 'block';
-        loadAdminPartnersImages();
-      }
-    };
-
-    async function loadAdminVlog() {
-      try {
-        const res = await fetch('/api/vlog/admin-all', { headers: getAuthH() });
-        if (!res.ok) throw new Error('Failed to load vlog posts');
-        vlogAdminData = await res.json();
-        renderAdminVlogTable(vlogAdminData);
-      } catch (err) {
-        document.getElementById('vlogAdminTable').innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--red);">فشل تحميل المنشورات: ${err.message}</td></tr>`;
-      }
-    }
-
-    function renderAdminVlogTable(data) {
-      const tbody = document.getElementById('vlogAdminTable');
-      if (!tbody) return;
-
-      if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--muted);">لا توجد صور مرفوعة بعد</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = data.map(p => {
-        let statusText = 'قيد الانتظار';
-        let statusClass = 'badge badge-hidden';
-        if (p.isApproved) {
-          statusText = p.isWinner ? 'فائز بالمسابقة' : 'نشط (مقبول)';
-          statusClass = p.isWinner ? 'badge badge-featured' : 'badge badge-cashier';
-        }
-
-        const winnerBtnHtml = !p.isApproved
-          ? `<span style="color:var(--muted); font-size:0.8rem;">بانتظار القبول</span>`
-          : (p.isWinner
-            ? `<span style="color:var(--green); font-size:0.8rem; font-weight:bold;">تم الفوز</span>`
-            : `<button class="hbtn" onclick="openVlogWinnerModal('${p._id}')" style="font-size:0.75rem; color:var(--green); border-color:rgba(39,174,96,0.5)">اختر كفائز </button>`);
-
-        const approveBtnHtml = p.isApproved
-          ? ''
-          : `<button class="hbtn" onclick="approveVlogPost('${p._id}')" style="font-size:0.75rem; color:var(--green); border-color:rgba(39,174,96,0.5); margin-left: 0.5rem; display: inline-block; height: 28px; line-height: 26px; padding: 0 0.5rem;">قبول </button>`;
-
-        return `
-      <tr id="vlog-row-${p._id}">
-        <td>
-          <a href="${p.image}" target="_blank">
-            <img src="${p.image}" class="img-thumb" style="width:50px; height:50px; object-fit:cover; border-radius:4px;"/>
-          </a>
-        </td>
-        <td><strong>${p.userName}</strong></td>
-        <td style="max-width: 250px; white-space: normal; word-break: break-word;">${p.caption || '<span style="color:var(--muted)">بدون وصف</span>'}</td>
-        <td class="points-badge">${p.likesCount} إعجاب</td>
-        <td><span class="${statusClass}">${statusText}</span></td>
-        <td>${winnerBtnHtml}</td>
-        <td>
-          <div style="display: flex; gap: 0.3rem; align-items: center;">
-            ${approveBtnHtml}
-            <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,0.4); height: 28px; padding: 0 0.5rem;" onclick="deleteVlogPost('${p._id}')">حذف</button>
-          </div>
-        </td>
-      </tr>
-    `;
-      }).join('');
-    }
-
-    window.approveVlogPost = async function (id) {
-      try {
-        const res = await fetch(`/api/vlog/${id}/approve`, {
-          method: 'PATCH',
-          headers: getAuthH()
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          showToast('تم قبول الصورة ونشرها بنجاح', 'success');
-          loadAdminVlog();
-        } else {
-          showToast(data.error || 'فشل قبول الصورة', 'error');
-        }
-      } catch (e) {
-        showToast('خطأ في الاتصال بالخادم', 'error');
-      }
-    };
-
-    function filterAdminVlogTable() {
-      const q = document.getElementById('vlog-admin-search').value.toLowerCase();
-      const filtered = vlogAdminData.filter(p =>
-        p.userName.toLowerCase().includes(q) ||
-        (p.caption || '').toLowerCase().includes(q)
-      );
-      renderAdminVlogTable(filtered);
-    }
-
-    window.openVlogWinnerModal = function (id) {
-      selectedVlogPostIdForWinner = id;
-      const modal = document.getElementById('vlogWinnerModal');
-      if (modal) modal.style.display = 'flex';
-    };
-
-    window.closeVlogWinnerModal = function () {
-      selectedVlogPostIdForWinner = null;
-      const modal = document.getElementById('vlogWinnerModal');
-      if (modal) modal.style.display = 'none';
-    };
-
-    window.submitVlogWinner = async function () {
-      if (!selectedVlogPostIdForWinner) return;
-      const prize = document.getElementById('vlogWinnerPrizeInput').value.trim();
-      const btn = document.querySelector('#vlogWinnerModal .c-modal-actions button');
-      const origText = btn.textContent;
-
-      btn.disabled = true;
-      btn.textContent = 'جاري التأكيد...';
-
-      try {
-        const res = await fetch(`/api/vlog/${selectedVlogPostIdForWinner}/winner`, {
-          method: 'PATCH',
-          headers: getAuthH(),
-          body: JSON.stringify({ prize })
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          showToast('تم تحديد الفائز بالمسابقة بنجاح وتم منح العميل كوبون هدية في حسابه.', 'success');
-          closeVlogWinnerModal();
-          loadAdminVlog();
-        } else {
-          showToast(data.error || 'فشل تحديد الفائز', 'error');
-        }
-      } catch (e) {
-        showToast('خطأ في الاتصال بالخادم', 'error');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = origText;
-      }
-    };
-
-    window.deleteVlogPost = async function (id) {
-      if (!confirm('هل أنت متأكد من حذف هذه الصورة نهائياً من الألبوم؟')) return;
-      try {
-        const res = await fetch(`/api/vlog/${id}`, {
-          method: 'DELETE',
-          headers: getAuthH()
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          showToast('تم حذف الصورة بنجاح', 'success');
-          loadAdminVlog();
-        } else {
-          showToast(data.error || 'فشل حذف الصورة', 'error');
-        }
-      } catch (e) {
-        showToast('خطأ في الاتصال بالخادم', 'error');
-      }
-    };
-
-    // ── دوال إدارة صور الشركاء ──
-    let partnersImagesData = [];
-
-    async function loadAdminPartnersImages() {
-      try {
-        const res = await fetch('/api/admin/partners-images', { headers: getAuthH() });
-        if (!res.ok) throw new Error('Failed to load partners images');
-        partnersImagesData = await res.json();
-        renderAdminPartnersImages(partnersImagesData);
-      } catch (err) {
-        document.getElementById('vlogPartnersContainer').innerHTML = `<p style="text-align:center; color:var(--red);">فشل تحميل صور الشركاء: ${err.message}</p>`;
-      }
-    }
-
-    function renderAdminPartnersImages(data) {
-      const container = document.getElementById('vlogPartnersContainer');
-      if (!container) return;
-
-      if (data.length === 0) {
-        container.innerHTML = `<p style="text-align:center; color:var(--muted);">لا يوجد شركاء مضافون حالياً</p>`;
-        return;
-      }
-
-      container.innerHTML = data.map(p => {
-        // اللوجو
-        let logoHtml = '';
-        if (p.partnerLogo) {
-          logoHtml += `
-        <div style="text-align:center; position:relative; background:var(--bg3); border:1px solid var(--line); border-radius:8px; padding:0.5rem; width:120px;">
-          <div style="font-size:0.75rem; color:var(--muted); margin-bottom:0.25rem;">اللوجو المعتمد</div>
-          <img src="${p.partnerLogo}" style="width:70px; height:70px; object-fit:contain; border-radius:4px; margin-bottom:0.4rem;" />
-          <button class="action-btn2" style="color:var(--red); font-size:0.75rem; width:100%; border-color:rgba(192,57,43,0.3); height:24px; padding:0;" onclick="deletePartnerImage('${p._id}', 'logo', false, '')">حذف</button>
-        </div>
-      `;
-        } else {
-          logoHtml += `<div style="text-align:center; color:var(--muted); font-size:0.8rem; padding:1.5rem; border:1px dashed var(--line); border-radius:8px; width:120px; display:flex; align-items:center; justify-content:center;">لا يوجد لوجو</div>`;
-        }
-
-        if (p.pendingPartnerLogo) {
-          logoHtml += `
-        <div style="text-align:center; position:relative; background:rgba(230,126,34,0.05); border:2px solid var(--orange); border-radius:8px; padding:0.5rem; width:120px;">
-          <div style="font-size:0.75rem; color:var(--orange); font-weight:bold; margin-bottom:0.25rem;">شعار قيد المراجعة</div>
-          <img src="${p.pendingPartnerLogo}" style="width:70px; height:70px; object-fit:contain; border-radius:4px; margin-bottom:0.4rem;" />
-          <div style="display:flex; gap:0.2rem;">
-            <button class="hbtn" style="flex:1; font-size:0.7rem; padding:0.2rem; color:var(--green); border-color:var(--green); background:transparent; height:24px; min-width:unset;" onclick="approvePartnerImage('${p._id}', 'logo', '')">قبول</button>
-            <button class="hbtn" style="flex:1; font-size:0.7rem; padding:0.2rem; color:var(--red); border-color:var(--red); background:transparent; height:24px; min-width:unset;" onclick="deletePartnerImage('${p._id}', 'logo', true, '')">رفض</button>
-          </div>
-        </div>
-      `;
-        }
-
-        // الصورة الرئيسية (Cover)
-        let mainImageHtml = '';
-        if (p.partnerMainImage) {
-          mainImageHtml += `
-        <div style="position:relative; background:var(--bg3); border:1px solid var(--line); border-radius:8px; padding:0.5rem; width:180px;">
-          <div style="font-size:0.75rem; color:var(--muted); margin-bottom:0.25rem;">المعتمدة للغلاف</div>
-          <img src="${p.partnerMainImage}" style="width:100%; height:90px; object-fit:cover; border-radius:4px; margin-bottom:0.4rem;" />
-          <button class="action-btn2" style="color:var(--red); font-size:0.75rem; width:100%; border-color:rgba(192,57,43,0.3); height:24px; padding:0;" onclick="deletePartnerImage('${p._id}', 'mainImage', false, '')">حذف</button>
-        </div>
-      `;
-        } else {
-          mainImageHtml += `<div style="text-align:center; color:var(--muted); font-size:0.8rem; padding:2rem 1rem; border:1px dashed var(--line); border-radius:8px; width:180px; display:flex; align-items:center; justify-content:center;">لا توجد غلاف</div>`;
-        }
-
-        if (p.pendingPartnerMainImage) {
-          mainImageHtml += `
-        <div style="position:relative; background:rgba(230,126,34,0.05); border:2px solid var(--orange); border-radius:8px; padding:0.5rem; width:180px;">
-          <div style="font-size:0.75rem; color:var(--orange); font-weight:bold; margin-bottom:0.25rem;">غلاف قيد المراجعة</div>
-          <img src="${p.pendingPartnerMainImage}" style="width:100%; height:90px; object-fit:cover; border-radius:4px; margin-bottom:0.4rem;" />
-          <div style="display:flex; gap:0.2rem;">
-            <button class="hbtn" style="flex:1; font-size:0.7rem; padding:0.2rem; color:var(--green); border-color:var(--green); background:transparent; height:24px; min-width:unset;" onclick="approvePartnerImage('${p._id}', 'mainImage', '')">قبول</button>
-            <button class="hbtn" style="flex:1; font-size:0.7rem; padding:0.2rem; color:var(--red); border-color:var(--red); background:transparent; height:24px; min-width:unset;" onclick="deletePartnerImage('${p._id}', 'mainImage', true, '')">رفض</button>
-          </div>
-        </div>
-      `;
-        }
-
-        // معرض الصور المعتمد
-        let galleryHtml = '';
-        const approvedGallery = p.partnerGallery || [];
-        if (approvedGallery.length === 0) {
-          galleryHtml += `<div style="font-size:0.8rem; color:var(--muted); padding:1rem 0;">لا توجد صور معتمدة في المعرض</div>`;
-        } else {
-          galleryHtml += `
-        <div style="display:flex; flex-direction:column; gap:0.3rem; margin-top:0.4rem;">
-          <div style="font-size:0.75rem; color:var(--muted);">المعرض المعتمد:</div>
-          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-            ${approvedGallery.map(imgUrl => `
-              <div style="position:relative; width:90px; height:90px; border-radius:4px; overflow:hidden; border:1px solid var(--line);">
-                <img src="${imgUrl}" style="width:100%; height:100%; object-fit:cover;" />
-                <button onclick="deletePartnerImage('${p._id}', 'gallery', false, '${imgUrl.replace(/'/g, "\\'")}')" style="position:absolute; top:2px; right:2px; background:rgba(192,57,43,0.9); color:#fff; border:none; width:22px; height:22px; border-radius:50%; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;" title="حذف">حذف</button>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
-        }
-
-        // معرض الصور قيد الانتظار
-        let pendingGalleryHtml = '';
-        const pendingGallery = p.pendingPartnerGallery || [];
-        if (pendingGallery.length > 0) {
-          pendingGalleryHtml += `
-        <div style="display:flex; flex-direction:column; gap:0.3rem; margin-top:0.8rem; background:rgba(230,126,34,0.03); border:1px dashed var(--orange); border-radius:8px; padding:0.8rem;">
-          <div style="font-size:0.78rem; color:var(--orange); font-weight:bold;">صور بالمعرض تنتظر الموافقة (${pendingGallery.length} صور):</div>
-          <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.4rem;">
-            ${pendingGallery.map(imgUrl => `
-              <div style="position:relative; width:100px; height:100px; border-radius:6px; overflow:hidden; border:2px solid var(--orange);">
-                <img src="${imgUrl}" style="width:100%; height:100%; object-fit:cover;" />
-                <div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.7); display:flex; justify-content:space-around; padding:0.2rem 0;">
-                  <button onclick="approvePartnerImage('${p._id}', 'gallery', '${imgUrl.replace(/'/g, "\\'")}')" style="background:none; border:none; color:#2ecc71; font-size:12px; cursor:pointer; font-weight:bold;" title="موافقة">موافقة</button>
-                  <button onclick="deletePartnerImage('${p._id}', 'gallery', true, '${imgUrl.replace(/'/g, "\\'")}')" style="background:none; border:none; color:#e74c3c; font-size:12px; cursor:pointer; font-weight:bold;" title="رفض وحذف">رفض</button>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
-        }
-
-        return `
-      <div style="background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:1.5rem; box-shadow:0 4px 12px rgba(0,0,0,0.02); display:flex; flex-direction:column; gap:1.2rem;">
-        <div style="border-bottom:1px solid var(--line); padding-bottom:0.5rem; display:flex; justify-content:space-between; align-items:center;">
-          <h3 style="color:var(--gold); font-family:'Tajawal',sans-serif; font-size:1.15rem;">${p.name}</h3>
-          ${pendingGallery.length > 0 || p.pendingPartnerLogo || p.pendingPartnerMainImage ? '<span class="badge badge-featured" style="background:rgba(230,126,34,0.1); color:var(--orange); border:1px solid rgba(230,126,34,0.2);">صور معلقة</span>' : '<span class="badge badge-cashier">معتمد بالكامل</span>'}
-        </div>
-        
-        <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
-          <!-- عمود اللوجو -->
-          <div style="display:flex; flex-direction:column; gap:0.5rem;">
-            <div style="font-weight:600; font-size:0.85rem; color:var(--text);">شعار الشريك (Logo):</div>
-            <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
-              ${logoHtml}
-            </div>
-          </div>
-          
-          <!-- عمود الصورة الرئيسية -->
-          <div style="display:flex; flex-direction:column; gap:0.5rem;">
-            <div style="font-weight:600; font-size:0.85rem; color:var(--text);">الصورة التعريفية (Cover):</div>
-            <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
-              ${mainImageHtml}
-            </div>
-          </div>
-        </div>
-        
-        <!-- معرض الصور المعتمد والمنبثق -->
-        <div>
-          ${galleryHtml}
-          ${pendingGalleryHtml}
-        </div>
-      </div>
-    `;
-      }).join('');
-    }
-
-    window.approvePartnerImage = async function (partnerId, type, imageUrl) {
-      try {
-        const res = await fetch(`/api/admin/partners/${partnerId}/approve-image`, {
-          method: 'POST',
-          headers: getAuthH(),
-          body: JSON.stringify({ type, imageUrl })
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          showToast('تم قبول الصورة وتحديث الملف الشخصي بنجاح', 'success');
-          loadAdminPartnersImages();
-        } else {
-          showToast(data.error || 'فشل قبول الصورة', 'error');
-        }
-      } catch (e) {
-        showToast('خطأ في الاتصال بالخادم', 'error');
-      }
-    };
-
-    window.deletePartnerImage = async function (partnerId, type, isPending, imageUrl) {
-      if (!confirm(isPending ? 'هل أنت متأكد من رفض وحذف هذه الصورة المعلقة؟' : 'هل أنت متأكد من حذف هذه الصورة المعتمدة نهائياً؟')) return;
-      try {
-        const res = await fetch(`/api/admin/partners/${partnerId}/delete-image`, {
-          method: 'POST',
-          headers: getAuthH(),
-          body: JSON.stringify({ type, isPending, imageUrl })
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          showToast('تم حذف/رفض الصورة بنجاح', 'success');
-          loadAdminPartnersImages();
-        } else {
-          showToast(data.error || 'فشل حذف الصورة', 'error');
-        }
-      } catch (e) {
-        showToast('خطأ في الاتصال بالخادم', 'error');
-      }
-    };
-
-    // ===== إدارة أجهزة الكاشير (POS Devices & Safe Sync) =====
-    let _posDevicesData = [];
-
     async function loadPosDevices() {
       const tbody = document.getElementById('posDevicesTableBody');
       if (!tbody) return;
@@ -2725,7 +2326,7 @@
     async function downloadSafeCustomersBackup() {
       try {
         showToast('جاري استخراج وتجهيز نسخة احتياطية آمنة للعملاء...', 'info');
-        const token = localStorage.getItem('ozel_token');
+        const token = (localStorage.getItem('2m_token') || localStorage.getItem('ozel_token'));
         const res = await fetch('/api/admin/customers/safe-export', {
           headers: { 'Authorization': 'Bearer ' + token }
         });
@@ -2734,7 +2335,7 @@
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `ozel-customers-safe-backup-${new Date().toISOString().split('T')[0]}.json`;
+        a.download = `2m-customers-safe-backup-${new Date().toISOString().split('T')[0]}.json`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -2777,19 +2378,7 @@
     </div>
   </div>
 
-  <!-- نافذة تحديد الجائزة للفائز بالمسابقة -->
-  <div class="c-modal" id="vlogWinnerModal">
-    <div class="c-modal-content">
-      <h2>تحديد الجائزة للعميل الفائز</h2>
-      <p>أدخل اسم الهدية أو المشروب المجاني المقدم للعميل (سيتم منح العميل كوبون أوردر هدية في حسابه تلقائياً):</p>
-      <input type="text" id="vlogWinnerPrizeInput" placeholder="مثال: مشروب مجاني من اختيارك" class="edit-input"
-        style="width:100%; padding:0.6rem; margin-bottom:1.5rem; text-align:center;" value="أوردر مجاني هدية" />
-      <div class="c-modal-actions">
-        <button class="hbtn" onclick="submitVlogWinner()"
-          style="background:var(--green); color:#fff; border-color:var(--green);">تأكيد الفوز</button>
-        <button class="hbtn" onclick="closeVlogWinnerModal()">إلغاء</button>
-      </div>
-    </div>
+  
   </div>
 
   <!-- نافذة بروفايل العميل وبطاقة العضوية VIP -->

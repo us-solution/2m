@@ -2,36 +2,48 @@ const express = require('express');
 const router = express.Router();
 const Drink = require('../models/Drink');
 const Category = require('../models/Category');
-const { authenticateToken, requireRole } = require('../middlewares/auth');
-const axios = require('axios');
-const CASHIER_API_URL = process.env.CASHIER_API_URL;
-const CASHIER_API_KEY = process.env.CASHIER_API_KEY;
 
-// جلب قائمة المشروبات المتاحة (مع إمكانية الفلترة حسب الفئة أو المميز ودمج المخزون الحي من الكاشير)
+// In-memory cache to guarantee sub-millisecond responses on repeated menu requests
+let _drinksCache = null;
+let _drinksCacheTime = 0;
+const CACHE_TTL_MS = 60 * 1000; // 60 seconds
+
+function invalidateDrinksCache() {
+  _drinksCache = null;
+  _drinksCacheTime = 0;
+}
+
+// جلب قائمة المشروبات المتاحة (مع إمكانية الفلترة حسب الفئة أو المميز)
 router.get('/', async (req, res) => {
   const { category, featured } = req.query;
-  // فلترة المشروبات المتاحة فقط
-  const query = { is_available: 1 };
-  
-  if (category) {
-    query.category_id = category;
-  }
-  if (featured === '1') {
-    query.is_featured = 1;
+
+  // Use cache for the default full menu request
+  if (!category && !featured && _drinksCache && (Date.now() - _drinksCacheTime < CACHE_TTL_MS)) {
+    res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=30');
+    return res.json(_drinksCache);
   }
 
+  const query = { is_available: 1 };
+  if (category) query.category_id = category;
+  if (featured === '1') query.is_featured = 1;
+
   try {
-    // Decouple website drinks endpoint `routes/drinks.js` from local POS inventory
-    const drinks = await Drink.find(query).populate('category_id');
-    
-    // تحويل البيانات إلى JSON مخصص
+    const [categories, drinks] = await Promise.all([
+      Category.find({}).lean(),
+      Drink.find(query).lean()
+    ]);
+
+    const catMap = new Map();
+    categories.forEach(c => catMap.set(String(c._id), c));
+
     const serialized = drinks.map(d => {
+      const cat = d.category_id ? catMap.get(String(d.category_id)) : null;
       return {
         id: d._id,
-        category_id: d.category_id ? d.category_id._id : null,
-        category_name: d.category_id ? d.category_id.name : '',
-        category_name_ar: d.category_id ? d.category_id.name_ar : '',
-        category_icon: d.category_id ? d.category_id.icon : '',
+        category_id: cat ? cat._id : null,
+        category_name: cat ? cat.name : '',
+        category_name_ar: cat ? cat.name_ar : '',
+        category_icon: cat ? cat.icon : '',
         name: d.name,
         name_ar: d.name_ar,
         tagline: d.tagline,
@@ -49,7 +61,11 @@ router.get('/', async (req, res) => {
       };
     });
 
-    // تخزين مؤقت لمدة دقيقة مع دعم stale-while-revalidate لسرعة الاستجابة
+    if (!category && !featured) {
+      _drinksCache = serialized;
+      _drinksCacheTime = Date.now();
+    }
+
     res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=30');
     res.json(serialized);
   } catch (err) {
@@ -60,17 +76,22 @@ router.get('/', async (req, res) => {
 // جلب تفاصيل مشروب محدد بالمعرف
 router.get('/:id', async (req, res) => {
   try {
-    const d = await Drink.findById(req.params.id).populate('category_id');
+    const d = await Drink.findById(req.params.id).lean();
     if (!d) {
       return res.status(404).json({ error: 'Drink not found' });
     }
-    
+
+    let cat = null;
+    if (d.category_id) {
+      cat = await Category.findById(d.category_id).lean();
+    }
+
     res.json({
       id: d._id,
-      category_id: d.category_id ? d.category_id._id : null,
-      category_name: d.category_id ? d.category_id.name : '',
-      category_name_ar: d.category_id ? d.category_id.name_ar : '',
-      category_icon: d.category_id ? d.category_id.icon : '',
+      category_id: cat ? cat._id : null,
+      category_name: cat ? cat.name : '',
+      category_name_ar: cat ? cat.name_ar : '',
+      category_icon: cat ? cat.icon : '',
       name: d.name,
       name_ar: d.name_ar,
       tagline: d.tagline,
@@ -92,3 +113,4 @@ router.get('/:id', async (req, res) => {
 });
 
 module.exports = router;
+module.exports.invalidateDrinksCache = invalidateDrinksCache;

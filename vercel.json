@@ -62,6 +62,14 @@
       "dest": "server.js"
     },
     {
+      "src": "/cart",
+      "dest": "server.js"
+    },
+    {
+      "src": "/profile",
+      "dest": "server.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "server.js"
     }

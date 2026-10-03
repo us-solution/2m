@@ -1,48 +1,41 @@
 <!DOCTYPE html>
-<!-- ===== أوزيل كافيه — الصفحة الرئيسية ===== -->
-<html lang="en" dir="ltr">
+<!-- ===== 2M CAFE — الموقع الرسمي والقائمة الرقمية ===== -->
+<html lang="ar" dir="rtl">
 
 <head>
   <meta charset="UTF-8" />
-  <script src="api-override.js?v=3"></script>
+  <script src="api-override.js?v=4"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- عنوان الموقع ووصف محرك البحث -->
-  <title>OZEL CAFE — Hidden Gem</title>
-  <meta name="description" content="OZEL CAFE — Hidden Gem. An exceptional coffee experience in a special place." />
+  
+  <!-- عنوان الموقع والبيانات التعريفية -->
+  <title>2M CAFE — Luxury Coffee Experience</title>
+  <meta name="description" content="2M CAFE — ملاذ عصري فاخر يُحضر من أجود أنواع البن والمذاقات الراقية مع قائمة رقمية متكاملة." />
+  <link rel="icon" type="image/png" href="imgs/favicon.png" />
+  <link rel="shortcut icon" href="imgs/favicon.ico" />
+
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@300;400;600;700&display=swap"
-    rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=102" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
-  <script src="https://js.pusher.com/8.0.1/pusher.min.js"></script>
-  <script>
-    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
-  </script>
-  <script defer src="/_vercel/speed-insights/script.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=301" />
 </head>
 
 <body>
 
-  <!-- ===== شاشة التحميل (Splash Screen) ===== -->
+  <!-- ===== شاشة التحميل السينمائية (Splash Screen) ===== -->
   <div id="loader">
     <div class="loader-glass"></div>
-    <div class="loader-shimmer"></div>
-    <div class="loader-particles">
-      <span></span><span></span><span></span>
-      <span></span><span></span><span></span>
-      <span></span><span></span>
-    </div>
     <div class="loader-content">
       <div class="loader-logo-wrap">
-        <img src="imgs/Ozel-Logo--02.png" alt="OZEL Logo" class="loader-logo-cinematic" />
+        <img src="imgs/2m-logo.png" alt="2M CAFE Logo" class="loader-logo-cinematic" onerror="this.src='imgs/logo.png'" />
       </div>
       <div class="loader-ozel-text">
-        <span>Ö</span><span>Z</span><span>E</span><span>L</span>
+        <span>2</span><span>M</span>
       </div>
       <div class="loader-ozel-line"></div>
-      <div class="loader-ozel-subtitle">Premium Cafe Experience</div>
+      <div class="loader-ozel-subtitle">2M CAFE — Luxury Experience</div>
       <div class="loader-progress-container">
         <div class="loader-progress-track">
           <div class="loader-progress-bar"></div>
@@ -52,30 +45,35 @@
     </div>
   </div>
 
-  <!-- ===== شريط التنقل العلوي ===== -->
+  <!-- ===== شريط التنقل العلوي (Navbar) ===== -->
   <nav id="nav">
     <div class="nav-logo">
-      <a href="index.html"><img src="imgs/Ozel-Logo--01.png" alt="OZEL Logo" class="nav-logo-img" /></a>
+      <a href="index.html">
+        <img src="imgs/2m-logo.png" alt="2M CAFE Logo" class="nav-logo-img" onerror="this.src='imgs/logo.png'" />
+      </a>
     </div>
+
     <div class="nav-links">
-      <a href="#about" data-en="Story" data-ar="حكايتنا">Story</a>
-      <a href="#lounge" data-en="Table Games" data-ar="ركن التسلية">Table Games</a>
-      <a href="#menu" data-en="Menu" data-ar="المنيو">Menu</a>
-      <a href="#vlog" data-en="Cafe Album" data-ar="ألبوم الصور">Cafe Album</a>
-      <a href="#contact" data-en="Contact" data-ar="تواصل معنا">Contact</a>
+      <a href="#about" data-en="Our Story" data-ar="قصتنا">قصتنا</a>
+      <a href="#menu" data-en="Menu" data-ar="المنيو">المنيو</a>
+      <a href="#contact" data-en="Contact" data-ar="تواصل معنا">تواصل معنا</a>
     </div>
-    <div class="nav-right-sec" style="display:flex;gap:1.5rem;align-items:center">
-      <div class="lang-switch-wrapper" onclick="toggleLanguage()" id="langToggleSwitch">
+
+    <div class="nav-right-sec">
+      <!-- تبديل اللغة -->
+      <div class="lang-switch-wrapper" onclick="toggleLanguage()" id="langToggleSwitch" title="Switch Language">
         <span class="lang-switch-text en-text">EN</span>
         <div class="lang-switch-pill">
           <div class="lang-switch-thumb"></div>
         </div>
         <span class="lang-switch-text ar-text">ع</span>
       </div>
+
       <div id="nav-user-area"></div>
-      <button class="nav-cta" onclick="scrollToSection('menu')" data-en="Order Now" data-ar="اطلب الآن">Order Now</button>
+      <button class="nav-cta" onclick="scrollToSection('menu')" data-en="Order Now" data-ar="اطلب الآن">اطلب الآن</button>
     </div>
-    <!-- ===== زر القائمة المتنقلة (للجوال فقط) ===== -->
+
+    <!-- زر القائمة للجوال -->
     <button class="nav-hamburger" id="navHamburger" aria-label="Menu" onclick="toggleMobileMenu()">
       <span></span>
       <span></span>
@@ -83,489 +81,288 @@
     </button>
   </nav>
 
-  <!-- ===== القائمة الجانبية المتنقلة (Drawer) ===== -->
+  <!-- ===== القائمة الجانبية المتنقلة للجوال (Mobile Drawer) ===== -->
   <div class="mobile-drawer" id="mobileDrawer">
     <div class="drawer-overlay" onclick="toggleMobileMenu()"></div>
     <div class="drawer-content">
       <div class="drawer-header">
-        <a href="index.html" onclick="toggleMobileMenu()"><img src="imgs/Ozel-Logo--01.png" alt="OZEL Logo" class="drawer-logo" /></a>
+        <a href="index.html" onclick="toggleMobileMenu()">
+          <img src="imgs/2m-logo.png" alt="2M CAFE Logo" class="drawer-logo" onerror="this.src='imgs/logo.png'" />
+        </a>
         <button class="drawer-close" onclick="toggleMobileMenu()">&times;</button>
       </div>
+      
       <div class="drawer-links">
-        <a href="#about" onclick="toggleMobileMenu()" data-en="Story" data-ar="حكايتنا">Story</a>
-        <a href="#lounge" onclick="toggleMobileMenu()" data-en="Table Games" data-ar="ركن التسلية">Table Games</a>
-        <a href="#menu" onclick="toggleMobileMenu()" data-en="Menu" data-ar="المنيو">Menu</a>
-        <a href="#vlog" onclick="toggleMobileMenu()" data-en="Cafe Album" data-ar="ألبوم الصور">Cafe Album</a>
-        <a href="#contact" onclick="toggleMobileMenu()" data-en="Contact" data-ar="تواصل معنا">Contact</a>
+        <a href="#about" onclick="toggleMobileMenu()" data-en="Our Story" data-ar="قصتنا">قصتنا</a>
+        <a href="#menu" onclick="toggleMobileMenu()" data-en="Menu" data-ar="المنيو">المنيو</a>
+        <a href="#contact" onclick="toggleMobileMenu()" data-en="Contact" data-ar="تواصل معنا">تواصل معنا</a>
       </div>
-      <div class="drawer-divider"></div>
+
       <div class="drawer-footer">
-        <!-- Language Switcher in Drawer -->
-        <div class="drawer-lang-wrapper">
-          <span style="font-size:0.75rem; color:var(--muted);" data-en="Language" data-ar="اللغة">Language</span>
-          <div class="lang-switch-wrapper" onclick="toggleLanguage()">
-            <span class="lang-switch-text en-text">EN</span>
-            <div class="lang-switch-pill">
-              <div class="lang-switch-thumb"></div>
-            </div>
-            <span class="lang-switch-text ar-text">ع</span>
+        <div class="lang-switch-wrapper" onclick="toggleLanguage()">
+          <span class="lang-switch-text en-text">EN</span>
+          <div class="lang-switch-pill">
+            <div class="lang-switch-thumb"></div>
           </div>
+          <span class="lang-switch-text ar-text">عربي</span>
         </div>
-        
-        <!-- User Area in Drawer -->
         <div id="drawer-user-area"></div>
-        
-        <!-- Order Now CTA in Drawer -->
-        <button class="drawer-cta" onclick="toggleMobileMenu(); scrollToSection('menu')" data-en="Order Now" data-ar="اطلب الآن">Order Now</button>
+        <button class="btn-gold" style="width:100%" onclick="toggleMobileMenu(); scrollToSection('menu')" data-en="Order Now" data-ar="اطلب الآن">اطلب الآن</button>
       </div>
     </div>
   </div>
 
-  <!-- ===== القسم الرئيسي (Hero) ===== -->
+  <!-- ===== القسم الرئيسي (Hero Section) ===== -->
   <section id="hero">
     <div class="hero-bg"></div>
     <div class="hero-grain"></div>
-    <div class="hero-vignette"></div>
+    
     <div class="hero-content">
-      <div class="hero-eyebrow" data-en="— EXQUISITE COFFEE & TABLE GAMES —" data-ar="— قهوة فاخرة وألعاب تسلية —">— EXQUISITE COFFEE & TABLE GAMES —</div>
+      <div class="hero-badges-row">
+        <span class="hero-pill-tag"><i class="hpt-icon">✦</i> <span data-en="100% Specialty Arabica" data-ar="بن مختص 100% أرابيكا">بن مختص 100% أرابيكا</span></span>
+        <span class="hero-pill-tag"><i class="hpt-icon">☕</i> <span data-en="Artisanal Roastery" data-ar="محمصة ومذاق فاخر">محمصة ومذاق فاخر</span></span>
+        <span class="hero-pill-tag"><i class="hpt-icon">⚡</i> <span data-en="Instant Table Order" data-ar="طلب فوري على الطاولة">طلب فوري على الطاولة</span></span>
+      </div>
+
+      <div class="hero-eyebrow" data-en="— 2M CAFE LUXURY COFFEE & LOUNGE —" data-ar="— كافيه 2M — تجربة استثنائية راقية —">— كافيه 2M — تجربة استثنائية راقية —</div>
+      
       <h1 class="hero-headline">
-        <div class="headline-line" data-text="ÖZEL">ÖZEL</div>
+        <div class="headline-line">2M CAFE</div>
       </h1>
-      <p class="hero-ar-name" data-en="THE SENSORY EXPERIENCE" data-ar="التجربة الحسية الفريدة">THE SENSORY EXPERIENCE</p>
-      <p class="hero-tagline" data-en="A premium sanctuary where sensory excellence meets peaceful moments" data-ar="ملاذٌ فاخر حيث يلتقي التميز الحسي باللحظات الهادئة">A premium sanctuary where sensory excellence meets peaceful moments</p>
+      
+      <p class="hero-ar-name" data-en="THE LUXURY COFFEE DESTINATION" data-ar="وجهة القهوة والمذاق الفاخر">وجهة القهوة والمذاق الفاخر</p>
+      
+      <div class="hero-rating-pill">
+        <span class="stars">★★★★★</span>
+        <span class="hrp-text" data-en="Rated 4.9★ by Coffee Lovers" data-ar="تقييم 4.9★ من محبي القهوة">تقييم 4.9★ من محبي القهوة</span>
+      </div>
+
+      <p class="hero-tagline" data-en="A modern luxury sanctuary crafted with the finest coffee beans and exceptional culinary delights for unforgettable moments." data-ar="ملاذ عصري فاخر يُحضر من أجود أنواع البن والمذاقات الراقية ليمنحك لحظات استثنائية لا تُنسى.">ملاذ عصري فاخر يُحضر من أجود أنواع البن والمذاقات الراقية ليمنحك لحظات استثنائية لا تُنسى.</p>
+      
       <div class="hero-actions">
         <button type="button" class="btn-gold" onclick="scrollToSection('menu')">
-          <span data-en="Discover Menu" data-ar="تصفح المنيو">Discover Menu</span>
+          <span data-en="Explore Menu" data-ar="تصفح المنيو">تصفح المنيو</span>
         </button>
-        <button type="button" class="btn-outline" onclick="scrollToSection('about')" data-en="Our Story" data-ar="حكايتنا">Our Story</button>
+        <button type="button" class="btn-offers-pulse" onclick="scrollToSection('offersSection')">
+          <span data-en="Special Offers %" data-ar="العروض والخصومات 🔥">العروض والخصومات 🔥</span>
+        </button>
+        <button type="button" class="btn-outline" onclick="scrollToSection('about')" data-en="Our Story" data-ar="قصتنا">قصتنا</button>
       </div>
-    </div>
-    <div class="hero-scroll">
-      <span data-en="Scroll" data-ar="اسحب لأسفل">Scroll</span>
-      <div class="hero-scroll-line"></div>
-    </div>
-    <div class="hero-stats">
-      <div class="hstat"><strong>+80</strong><span data-en="Items" data-ar="صنف">Items</span></div>
-      <div class="hstat-sep"></div>
-      <div class="hstat"><strong>100%</strong><span data-en="Fresh" data-ar="طازج">Fresh</span></div>
-      <div class="hstat-sep"></div>
-      <div class="hstat"><strong>4.9</strong><span data-en="Rating" data-ar="تقييم">Rating</span></div>
+
+      <div class="hero-stats">
+        <div class="hstat">
+          <strong>+280</strong>
+          <span data-en="Items" data-ar="صنف بالمنيو">صنف بالمنيو</span>
+        </div>
+        <div class="hstat-sep"></div>
+        <div class="hstat">
+          <strong>100%</strong>
+          <span data-en="Fresh" data-ar="طازج يومياً">طازج يومياً</span>
+        </div>
+        <div class="hstat-sep"></div>
+        <div class="hstat">
+          <strong>4.9★</strong>
+          <span data-en="Rating" data-ar="تقييم الجودة">تقييم الجودة</span>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- ===== شريط العلامات المتحرك (Marquee) ===== -->
-  <div class="marquee-wrap">
+  <!-- ===== شريط الماركي المتحرك الفاخر ===== -->
+  <div class="marquee-wrap" id="marqueeTicker">
     <div class="marquee-track">
-      <span>Espresso Rituals</span><span class="sep">&bull;</span>
-      <span>Frappe Rituals</span><span class="sep">&bull;</span>
-      <span>Milk Shake</span><span class="sep">&bull;</span>
-      <span>Mojito & Refresh</span><span class="sep">&bull;</span>
-      <span>Hot & More</span><span class="sep">&bull;</span>
-      <span>Ice Cream</span><span class="sep">&bull;</span>
-      <span>Desserts</span><span class="sep">&bull;</span>
-      <span>Espresso Rituals</span><span class="sep">&bull;</span>
-      <span>Frappe Rituals</span><span class="sep">&bull;</span>
-      <span>Milk Shake</span><span class="sep">&bull;</span>
-      <span>Mojito & Refresh</span><span class="sep">&bull;</span>
-      <span>Hot & More</span><span class="sep">&bull;</span>
-      <span>Ice Cream</span><span class="sep">&bull;</span>
-      <span>Desserts</span><span class="sep">&bull;</span>
+      <div class="marquee-item"><span class="m-icon">☕</span><span class="m-text">Specialty Coffee & Espresso</span></div><span class="sep">✦</span>
+      <div class="marquee-item"><span class="m-icon">🍹</span><span class="m-text">Fresh Juices & Mojitos</span></div><span class="sep">✦</span>
+      <div class="marquee-item"><span class="m-icon">✨</span><span class="m-text">2M Signature Spanish Latte</span></div><span class="sep">✦</span>
+      <div class="marquee-item"><span class="m-icon">🧇</span><span class="m-text">Belgian Waffles & Crepes</span></div><span class="sep">✦</span>
+      <div class="marquee-item"><span class="m-icon">🍨</span><span class="m-text">Artisanal Gelato & Ice Cream</span></div><span class="sep">✦</span>
+      <div class="marquee-item"><span class="m-icon">🧋</span><span class="m-text">Specialty Boba & Smoothies</span></div><span class="sep">✦</span>
+      <div class="marquee-item"><span class="m-icon">🌿</span><span class="m-text">100% Specialty Arabica</span></div><span class="sep">✦</span>
+      <div class="marquee-item"><span class="m-icon">👑</span><span class="m-text">Luxury Lounge & Hospitality</span></div><span class="sep">✦</span>
+      <!-- Duplicate for infinite seamless scroll -->
+      <div class="marquee-item"><span class="m-icon">☕</span><span class="m-text">Specialty Coffee & Espresso</span></div><span class="sep">✦</span>
+      <div class="marquee-item"><span class="m-icon">🍹</span><span class="m-text">Fresh Juices & Mojitos</span></div><span class="sep">✦</span>
+      <div class="marquee-item"><span class="m-icon">✨</span><span class="m-text">2M Signature Spanish Latte</span></div><span class="sep">✦</span>
+      <div class="marquee-item"><span class="m-icon">🧇</span><span class="m-text">Belgian Waffles & Crepes</span></div><span class="sep">✦</span>
+      <div class="marquee-item"><span class="m-icon">🍨</span><span class="m-text">Artisanal Gelato & Ice Cream</span></div><span class="sep">✦</span>
+      <div class="marquee-item"><span class="m-icon">🧋</span><span class="m-text">Specialty Boba & Smoothies</span></div><span class="sep">✦</span>
+      <div class="marquee-item"><span class="m-icon">🌿</span><span class="m-text">100% Specialty Arabica</span></div><span class="sep">✦</span>
+      <div class="marquee-item"><span class="m-icon">👑</span><span class="m-text">Luxury Lounge & Hospitality</span></div><span class="sep">✦</span>
+    </div>
   </div>
 
-  <!-- ===== قسم الشركاء (Partners) ===== -->
-  <section id="partners" style="padding: 5rem 2rem; background: var(--bg2); border-bottom: 1px solid var(--line); position: relative;">
-    <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: radial-gradient(circle, rgba(84,26,26,0.03) 0%, transparent 70%); filter: blur(20px); pointer-events: none;"></div>
-    <div class="section-head-center" style="margin-bottom: 3.5rem;">
-      <p class="section-eyebrow" data-en="/ Success Partners /" data-ar="/ شركاء النجاح /">/ Success Partners /</p>
-      <h2 class="section-heading" data-en="Our Success Partners" data-ar="شركاء نجاحنا">Our Success Partners</h2>
-      <p class="section-sub" data-en="Meet our elite success partners. Click on any logo to discover their profile, bio, and shared gallery." data-ar="تعرف على شركاء نجاحنا المتميزين. اضغط على أي شعار لاستكشاف ملفهم الشخصي ونبذتهم وصورهم المرفوعة.">Meet our elite success partners. Click on any logo to discover their profile, bio, and shared gallery.</p>
-    </div>
-    <div class="partners-logos-grid" id="partnersContainer" style="display: flex; justify-content: center; align-items: center; gap: 3.5rem; flex-wrap: wrap; max-width: 1200px; margin: 0 auto;">
-      <div class="menu-loading">
-        <div class="menu-loading-ring"></div>
-      </div>
+  <!-- ===== قسم عروض 2M الحصرية (Special Offers) ===== -->
+  <section id="offersSection" class="offers-section">
+    <div class="offers-container-wrap">
+      <div id="offersContainer"></div>
     </div>
   </section>
 
-  <!-- ===== قسم قصة الكافيه (About) ===== -->
+  <!-- ===== قسم قصة 2M CAFE (About) ===== -->
   <section id="about">
     <div class="about-inner">
       <div class="about-visual">
         <div class="abstract-design">
-          <div class="circle circle-1"></div>
-          <div class="circle circle-2"></div>
           <div class="glass-card">
-            <img src="imgs/Ozel-Logo--02.png" alt="OZEL Logo" class="about-card-logo" />
-            <p>THE ESSENCE OF COFFEE</p>
+            <img src="imgs/2m-logo.png" alt="2M CAFE Logo" class="about-card-logo" onerror="this.src='imgs/logo.png'" />
+            <p>2M CAFE SIGNATURE</p>
           </div>
         </div>
         <div class="about-card-float">
-          <div class="acf-label">Founded in</div>
-          <div class="acf-val">2024</div>
+          <div class="acf-label" data-en="Quality Standard" data-ar="معيار الجودة">معيار الجودة</div>
+          <div class="acf-val">100%</div>
         </div>
       </div>
+
       <div class="about-text">
-        <p class="section-eyebrow" data-en="/ Our Story /" data-ar="/ قصتنا /">/ Our Story /</p>
-        <h2 class="section-heading" data-en="An exceptional haven...<br /><em>discovered only by lovers of beauty</em>" data-ar="ملاذ استثنائي...<br /><em>لا يكتشفه إلا عشاق الجمال</em>">An exceptional haven...<br /><em>discovered only by lovers of beauty</em></h2>
-        <p class="about-para" data-en="At 'Ozel Cafe', we don't just make coffee, we craft it as a masterpiece worthy of your taste. Every bean we choose, and every drop we pour, is the result of true passion aimed at giving you an experience immersed in tranquility, and unforgettable moments of pure pleasure." data-ar="في 'أوزيل كافيه'، نحن لا نصنع القهوة فحسب، بل نصنعها كتحفة فنية تليق بذوقك. كل حبة نختارها، وكل قطرة نصبها، هي نتاج شغف حقيقي يهدف لمنحك تجربة مغمورة بالهدوء، ولحظات لا تنسى من المتعة الخالصة.">
-          At "Ozel Cafe", we don't just make coffee, we craft it as a masterpiece worthy of your taste. Every bean we
-          choose, and every drop we pour, is the result of true passion aimed at giving you an experience immersed in
-          tranquility, and unforgettable moments of pure pleasure.
+        <p class="section-eyebrow" data-en="/ Our Story /" data-ar="/ حكايتنا /">/ حكايتنا /</p>
+        <h2 class="section-heading" data-en="Passion in every bean...<br /><em>Mastery in every sip</em>" data-ar="شغف في كل حبة بن...<br /><em>وإتقان في كل رشفة</em>">شغف في كل حبة بن...<br /><em>وإتقان في كل رشفة</em></h2>
+        
+        <p class="about-para" data-en="In '2M CAFE', coffee is not just a routine drink, it is a sensory craft prepared with authentic passion. Every blend is hand-selected from the finest global crops to deliver an unparalleled experience of luxury, taste, and hospitality." data-ar="في '2M CAFE'، لا نصنع القهوة كمشروب روتيني، بل نحضرها كصنعة حسية متقنة بشغف حقيقي. ننتقي أفضل حبوب البن من أعرق المحاصيل العالمية لنمنحك تجربة استثنائية من الفخامة، والمذاق، وحسن الضيافة.">
+          في '2M CAFE'، لا نصنع القهوة كمشروب روتيني، بل نحضرها كصنعة حسية متقنة بشغف حقيقي. ننتقي أفضل حبوب البن من أعرق المحاصيل العالمية لنمنحك تجربة استثنائية من الفخامة، والمذاق، وحسن الضيافة.
         </p>
+
         <div class="about-features">
-          <div class="af-item"><span class="af-icon">&bull;</span>
-            <div><strong data-en="Authentic Origin" data-ar="أصل أصيل">Authentic Origin</strong>
-              <p data-en="Premium Arabica beans, carefully selected from the world's most ancient farms." data-ar="حبوب أرابيكا ممتازة، تم اختيارها بعناية من أعرق المزارع حول العالم.">Premium Arabica beans, carefully selected from the world's most ancient farms.</p>
+          <div class="af-item">
+            <span class="af-icon">✦</span>
+            <div>
+              <strong data-en="Finest Global Crops" data-ar="أجود المحاصيل العالمية">أجود المحاصيل العالمية</strong>
+              <p data-en="Specialty 100% Arabica beans, roasted to perfection to extract rich aromatics." data-ar="حبوب أرابيكا مختصة 100% محمصة بدقة لاستخلاص النكهات العميقة المتوازنة.">حبوب أرابيكا مختصة 100% محمصة بدقة لاستخلاص النكهات العميقة المتوازنة.</p>
             </div>
           </div>
-          <div class="af-item"><span class="af-icon">&bull;</span>
-            <div><strong data-en="Pure Taste" data-ar="طعم نقي">Pure Taste</strong>
-              <p data-en="Fresh ingredients daily, completely free of any artificial additives to enjoy nature." data-ar="مكونات طازجة يومياً، خالية تماماً من أي إضافات صناعية للاستمتاع بالطبيعة.">Fresh ingredients daily, completely free of any artificial additives to enjoy nature.</p>
+
+          <div class="af-item">
+            <span class="af-icon">✦</span>
+            <div>
+              <strong data-en="Fresh Ingredients Daily" data-ar="مكونات طازجة يومياً">مكونات طازجة يومياً</strong>
+              <p data-en="Natural fresh fruits, pure milk, and high-end sauces with no artificial colors." data-ar="فواكه طبيعية طازجة، حليب نقي، وصوصات راقية خالية من الإضافات الصناعية.">فواكه طبيعية طازجة، حليب نقي، وصوصات راقية خالية من الإضافات الصناعية.</p>
             </div>
           </div>
-          <div class="af-item"><span class="af-icon">&bull;</span>
-            <div><strong data-en="Art in Every Cup" data-ar="فن في كل كوب">Art in Every Cup</strong>
-              <p data-en="Latte art translates our passion into visual paintings that delight the eye before the taste." data-ar="فن اللاتيه يترجم شغفنا إلى لوحات بصرية تبهج العين قبل المذاق.">Latte art translates our passion into visual paintings that delight the eye before the taste.</p>
+
+          <div class="af-item">
+            <span class="af-icon">✦</span>
+            <div>
+              <strong data-en="Speed & Perfection" data-ar="سرعة وإتقان">سرعة وإتقان</strong>
+              <p data-en="Connected directly with POS systems to ensure your order arrives instantly and accurately." data-ar="ربط ذكي ومباشر بنظام الكاشير لضمان وصول طلبك طازجاً وبأعلى سرعة ودقة.">ربط ذكي ومباشر بنظام الكاشير لضمان وصول طلبك طازجاً وبأعلى سرعة ودقة.</p>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== قسم ركن التسلية والألعاب (Table Lounge) ===== -->
-  <section id="lounge">
-    <div class="section-head-center">
-      <p class="section-eyebrow" data-en="/ Table Lounge /" data-ar="/ ركن التسلية /">/ Table Lounge /</p>
-      <h2 class="section-heading" data-en="Table Lounge — <em>Games</em>" data-ar="ركن التسلية  <em>وقت المرح</em>">Table Lounge — <em>Games</em></h2>
-      <p class="section-sub" data-en="Fun multiplayer games to play with friends at the table while waiting for your coffee" data-ar="ألعاب جماعية ممتعة لتلعبها مع أصدقائك على الطاولة أثناء انتظار قهوتك">Fun multiplayer games to play with friends at the table while waiting for your coffee</p>
-    </div>
-
-    <div class="lounge-container">
-      <div class="lounge-cards-grid">
-        <div class="lounge-game-card active" id="btn-tab-imposter" onclick="switchLoungeTab('imposter')">
-          <div class="lgc-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>
-          <h3 data-en="Who is the Imposter?" data-ar="مين الدخيل؟">Who is the Imposter?</h3>
-          <p data-en="Find the spy among you." data-ar="اكتشف الجاسوس بينكم.">Find the spy among you.</p>
-        </div>
-        <div class="lounge-game-card" id="btn-tab-ttt" onclick="switchLoungeTab('ttt')">
-          <div class="lgc-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div>
-          <h3 data-en="Tic-Tac-Coffee" data-ar="إكس أو">Tic-Tac-Coffee</h3>
-          <p data-en="Classic fun." data-ar="لعبة كلاسيكية.">Classic fun.</p>
-        </div>
-        <div class="lounge-game-card" id="btn-tab-uno" onclick="switchLoungeTab('uno')">
-          <div class="lgc-icon">🃏</div>
-          <h3 data-en="UNO Card Game" data-ar="لعبة أونو">UNO Card Game</h3>
-          <p data-en="Online multiplayer" data-ar="لعب جماعي أونلاين">Online multiplayer</p>
-        </div>
-      </div>
-
-      <div class="lounge-content">
-        <!-- ===== لعبة مين الدخيل (Imposter) ===== -->
-        <div id="lounge-imposter" class="lounge-panel active">
-          <div class="imposter-game-wrap" style="width: 100%;">
-            <div id="imposter-setup" class="imposter-setup-panel" style="text-align: center; padding: 2rem 0;">
-              <!-- Setup state populated dynamically -->
-            </div>
-            
-            <div id="imposter-gameplay" class="imposter-gameplay-panel" style="display: none; width: 100%;">
-              <!-- Gameplay cards populated dynamically -->
-            </div>
-
-            <div id="imposter-result" class="imposter-result-panel" style="display: none; text-align: center; padding: 2rem 0;">
-              <!-- Result state populated dynamically -->
-            </div>
-          </div>
-        </div>
-
-        <!-- ===== لعبة إكس-أو (Tic-Tac-Coffee) ===== -->
-        <div id="lounge-ttt" class="lounge-panel">
-          <div class="ttt-game-wrap">
-            <div class="ttt-modes-row">
-              <div class="ttt-mode-selectors">
-                <button class="ttt-mode-btn active" id="ttt-btn-local" onclick="setTTTMode('local')" data-en="Player vs Player" data-ar="لاعب ضد لاعب">Player vs Player</button>
-                <button class="ttt-mode-btn" id="ttt-btn-ai" onclick="setTTTMode('ai')" data-en="vs AI" data-ar="ضد الذكاء الاصطناعي">vs AI</button>
-              </div>
-            </div>
-
-            <div style="text-align: center;">
-              <div class="ttt-rule-badge" data-en="3 Pieces Max (FIFO) — No Draws!" data-ar="نظام الـ 3 قطع (FIFO) — لا تعادل نهائياً!">
-                نظام الـ 3 قطع (FIFO) — لا تعادل نهائياً!
-              </div>
-            </div>
-
-            <div class="ttt-info" style="margin-top: 0.75rem;">
-              <span id="ttt-status" style="font-weight:700; color:var(--accent-emerald);" data-en="Player O's Turn" data-ar="دور اللاعب الأول (اللاعب O)">Player O's Turn</span>
-              <button class="btn-outline" onclick="resetTTT()" style="padding: 0.35rem 0.9rem; font-size: 0.8rem; border-color: var(--line); border-radius: 30px;" data-en="Reset" data-ar="إعادة البدء">Reset</button>
-            </div>
-
-            <div class="ttt-board-wrapper">
-              <div class="ttt-board" id="ttt-board">
-                <div class="ttt-cell" data-idx="0" onclick="playTTT(0)"></div>
-                <div class="ttt-cell" data-idx="1" onclick="playTTT(1)"></div>
-                <div class="ttt-cell" data-idx="2" onclick="playTTT(2)"></div>
-                <div class="ttt-cell" data-idx="3" onclick="playTTT(3)"></div>
-                <div class="ttt-cell" data-idx="4" onclick="playTTT(4)"></div>
-                <div class="ttt-cell" data-idx="5" onclick="playTTT(5)"></div>
-                <div class="ttt-cell" data-idx="6" onclick="playTTT(6)"></div>
-                <div class="ttt-cell" data-idx="7" onclick="playTTT(7)"></div>
-                <div class="ttt-cell" data-idx="8" onclick="playTTT(8)"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ===== لعبة أونو (UNO) ===== -->
-        <div id="lounge-uno" class="lounge-panel">
-          <div class="uno-game-wrap" style="width: 100%;">
-            <!-- Lobby -->
-            <div id="uno-lobby" style="text-align: center; padding: 2rem 0;">
-              <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:var(--gold); margin-bottom:1.5rem;" data-en="UNO Card Game" data-ar="لعبة أونو">UNO Card Game</h3>
-              <div style="max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem;">
-                <input type="text" id="uno-player-name" data-placeholder-en="Your Nickname" data-placeholder-ar="اسمك المستعار" placeholder="Your Nickname" class="field" style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.85rem 1rem; border-radius:4px; font-family:'Tajawal',sans-serif; text-align:center; font-weight:bold;"/>
-                <div style="display: flex; gap: 0.5rem;">
-                  <button class="btn-gold" onclick="createUnoRoom()" style="flex: 1; justify-content: center; font-size: 0.85rem;" data-en="Create Room" data-ar="إنشاء غرفة">Create Room</button>
-                  <button class="btn-outline" onclick="showJoinUnoInput()" style="flex: 1; justify-content: center; font-size: 0.85rem;" data-en="Join Room" data-ar="انضمام لغرفة">Join Room</button>
-                </div>
-                <div id="uno-join-box" style="display: none; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; border-top: 1px solid var(--line); padding-top: 1rem;">
-                  <input type="text" id="uno-room-code" data-placeholder-en="4-Letter Room Code" data-placeholder-ar="رمز الغرفة (٤ أحرف)" placeholder="4-Letter Room Code" maxlength="4" style="width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:.85rem 1rem; border-radius:4px; font-family:'Tajawal',sans-serif; text-align:center; text-transform:uppercase; font-weight:bold;"/>
-                  <button class="btn-gold" onclick="submitJoinUnoRoom()" style="width: 100%; justify-content: center; font-size: 0.85rem;" data-en="Join" data-ar="انضمام">Join</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Waiting -->
-            <div id="uno-waiting" class="uno-waiting-panel" style="display: none; text-align: center; padding: 2rem 0;">
-              <span style="font-size:0.75rem; color:var(--muted); letter-spacing:0.1em;" data-en="ROOM CODE" data-ar="رمز الغرفة">ROOM CODE</span>
-              <h2 id="uno-code-display" style="font-family:'Montserrat',sans-serif; font-size:3.5rem; font-weight:700; color:var(--gold); margin-bottom:1.5rem;">----</h2>
-              <div style="background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:1.5rem; max-width:320px; margin:0 auto 2rem;">
-                <h4 style="margin-bottom:1rem; border-bottom:1px solid var(--line); padding-bottom:0.5rem;" data-en="Players in Lobby" data-ar="اللاعبون">Players in Lobby</h4>
-                <div id="uno-player-list" style="display:flex; flex-direction:column; gap:0.5rem; text-align:left;"></div>
-              </div>
-              <div id="uno-host-actions" style="display: none; max-width: 320px; margin: 0 auto;">
-                <button class="btn-gold" onclick="startUnoGame()" style="width: 100%; justify-content: center;" data-en=" Start Game" data-ar=" ابدأ اللعبة "> Start Game</button>
-              </div>
-              <p id="uno-nonhost-msg" style="color:var(--muted); font-size:0.85rem;" data-en="Waiting for host to start..." data-ar="بانتظار بدء اللعبة من منشئ الغرفة..."></p>
-            </div>
-
-            <!-- Board -->
-            <div id="uno-board" class="uno-board-panel" style="display: none; width: 100%;">
-              <!-- Top bar -->
-              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 0.8rem; margin-bottom: 1.5rem;">
-                <div><span data-en="Room:" data-ar="الغرفة:">Room:</span> <strong style="color:var(--gold)">...</strong></div>
-                <div id="uno-turn-indicator" style="font-weight:700; color:var(--accent-emerald);"></div>
-                <div id="uno-direction" style="font-size:0.75rem; color:var(--muted);"></div>
-              </div>
-
-              <!-- Other Players -->
-              <div id="uno-other-players" style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.5rem;"></div>
-
-              <!-- Table Center -->
-              <div style="display: flex; justify-content: center; align-items: center; gap: 2.5rem; margin-bottom: 2rem; background: var(--bg3); padding: 1.5rem; border-radius: 12px; border: 1px dashed var(--line); max-width: 500px; margin-inline: auto;">
-                <!-- Draw Pile -->
-                <div style="text-align: center;">
-                  <span style="font-size:0.65rem; color:var(--muted); text-transform:uppercase; display:block; margin-bottom:0.4rem;" data-en="Draw Pile" data-ar="سحب">Draw Pile</span>
-                  <div id="uno-deck" onclick="drawUnoCard()" style="width: 70px; height: 100px; background: linear-gradient(135deg, var(--gold), #9c6161); border: 2px solid var(--white); border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 1.5rem; cursor: pointer; transition: transform 0.2s;"></div>
-                  <span id="uno-deck-count" style="font-size:0.75rem; color:var(--muted); margin-top:0.4rem; display:block;">0 cards</span>
-                </div>
-                <!-- Discard / Top Card -->
-                <div style="text-align: center;">
-                  <span style="font-size:0.65rem; color:var(--muted); text-transform:uppercase; display:block; margin-bottom:0.4rem;" data-en="Top Card" data-ar="البطاقة العلوية">Top Card</span>
-                  <div id="uno-top-card" style="width: 70px; height: 100px; background: var(--bg2); border: 2px solid var(--gold); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold;">---</div>
-                  <span id="uno-current-color" style="font-size:0.75rem; color:var(--muted); margin-top:0.4rem; display:block;"></span>
-                </div>
-              </div>
-
-              <!-- My Hand -->
-              <div style="text-align: center; margin-bottom: 1.5rem;">
-                <h4 style="font-family:'Tajawal',sans-serif; margin-bottom:1rem; font-size:1rem;" data-en="Your Cards" data-ar="بطاقاتك">Your Cards</h4>
-                <div id="uno-my-hand" style="display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap;"></div>
-              </div>
-
-              <!-- Controls -->
-              <div style="display: flex; gap: 0.5rem; max-width: 400px; margin: 0 auto 1.5rem; flex-wrap: wrap; justify-content: center;">
-                <button class="btn-outline" id="uno-draw-btn" onclick="drawUnoCard()" style="padding: 0.6rem 1.2rem; font-size: 0.85rem;" data-en="Draw Card" data-ar="اسحب بطاقة">Draw Card</button>
-                <button class="btn-outline" id="uno-pass-btn" onclick="passTurn()" disabled style="padding: 0.6rem 1.2rem; font-size: 0.85rem;" data-en="Pass" data-ar="تخطي">Pass</button>
-                <button class="btn-gold" id="uno-uno-btn" onclick="sayUno()" style="display:none; padding: 0.6rem 1.2rem; font-size: 0.85rem;" data-en="UNO!" data-ar="أونو!">UNO!</button>
-              </div>
-
-              <!-- Logs -->
-              <div style="background: var(--bg3); padding: 1rem; border-radius: 8px; border: 1px solid var(--line); max-width: 500px; margin-inline: auto;">
-                <span style="font-size:0.7rem; color:var(--muted); font-weight:bold; text-transform:uppercase; display:block; border-bottom:1px solid var(--line); padding-bottom:0.3rem; margin-bottom:0.5rem;" data-en="Live Logs" data-ar="سجل اللعبة">Live Logs</span>
-                <div id="uno-logs" style="height: 80px; overflow-y: auto; font-size: 0.8rem; text-align: left; display: flex; flex-direction: column; gap: 0.2rem; color: var(--muted);"></div>
-              </div>
-            </div>
-
-            <!-- Finished -->
-            <div id="uno-finish" class="uno-finish-panel" style="display: none; text-align: center; padding: 2rem 0;"></div>
-
-            <!-- Color Picker Overlay -->
-            <div id="uno-color-picker" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.6); z-index:9999; align-items:center; justify-content:center;">
-              <div style="background:var(--bg2); border-radius:16px; padding:2rem; text-align:center;">
-                <h3 style="margin-bottom:1.5rem; font-family:'Cormorant Garamond',serif;" data-en="Choose a Color" data-ar="اختر لوناً">Choose a Color</h3>
-                <div style="display:flex; gap:1rem; justify-content:center;">
-                  <button class="uno-color-btn" data-color="red" style="width:60px;height:60px;border-radius:50%;background:#E74C3C;border:3px solid transparent;cursor:pointer;"></button>
-                  <button class="uno-color-btn" data-color="yellow" style="width:60px;height:60px;border-radius:50%;background:#F1C40F;border:3px solid transparent;cursor:pointer;"></button>
-                  <button class="uno-color-btn" data-color="green" style="width:60px;height:60px;border-radius:50%;background:#2ECC71;border:3px solid transparent;cursor:pointer;"></button>
-                  <button class="uno-color-btn" data-color="blue" style="width:60px;height:60px;border-radius:50%;background:#3498DB;border:3px solid transparent;cursor:pointer;"></button>
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ===== قسم ألبوم وفلوج أوزيل (Ozel Album & Vlog) ===== -->
-  <section id="vlog">
-    <div class="section-head-center">
-      <p class="section-eyebrow" data-en="/ Ozel Album /" data-ar="/ ألبوم أوزيل /">/ Ozel Album /</p>
-      <h2 class="section-heading" data-en="Ozel Album — <em>Contest</em>" data-ar="ألبوم أوزيل — <em>المسابقة</em>">Ozel Album — <em>Contest</em></h2>
-      <p class="section-sub" data-en="Share your best moments in our cafe and compete for a free order!" data-ar="شاركنا أجمل لقطاتك في الكافيه وتنافس للحصول على أوردر هدية مجاني!">Share your best moments in our cafe and compete for a free order!</p>
-    </div>
-
-    <div class="vlog-container">
-      <!-- بنر إعلان المسابقة -->
-      <div class="vlog-contest-banner">
-        <div class="vcb-content">
-          <h3 data-en="Photo of the Week Contest" data-ar="مسابقة صورة الأسبوع">Photo of the Week Contest</h3>
-          <p data-en="Upload your photos of Ozel Cafe. The best picture and the picture with the most likes will win a FREE order coupon! Winners are announced every week." data-ar="صور المكان أو مشروبك المفضل وشاركنا الصورة. أفضل صورة واكتر صورة تاخد لايكات هتاخد أوردر هدية مجاني! يتم الإعلان عن الفائزين أسبوعياً.">Upload your photos of Ozel Cafe. The best picture and the picture with the most likes will win a FREE order coupon! Winners are announced every week.</p>
-        </div>
-      </div>
-
-      <div class="vlog-grid-layout leaderboard-hidden">
-        <!-- ركن رفع الصور والتحكم -->
-        <div class="vlog-upload-panel" id="vlogUploadPanel">
-          <!-- سيتم تحميل لوحة الرفع ديناميكياً بناءً على حالة تسجيل الدخول -->
-        </div>
-
-        <!-- ركن لوحة الصدارة المتصدرين -->
-        <div class="vlog-leaderboard-panel" id="vlogLeaderboard" style="display: none;">
-          <h3 class="vlp-title" data-en="Current Leaders" data-ar="المتصدرون حالياً">Current Leaders</h3>
-          <div class="vlp-list" id="vlogLeaderboardList">
-            <!-- سيتم تحميل قائمة المتصدرين هنا -->
-          </div>
-        </div>
-      </div>
-
-      <!-- المعرض الرئيسي للصور -->
-      <div class="vlog-gallery-title">
-        <h3 data-en="Gallery Feed" data-ar="ألبوم الصور">Gallery Feed</h3>
-        <div class="vlog-gallery-line"></div>
-      </div>
-
-      <div class="vlog-gallery-grid" id="vlogGalleryGrid">
-        <div class="menu-loading">
-          <div class="menu-loading-ring"></div>
-        </div>
-      </div>
-
-      <!-- أرشيف الفائزين السابقين -->
-      <div class="vlog-winners-section" id="vlogWinnersSection" style="display: none;">
-        <h3 class="vws-title" data-en="Past Winners Showcase" data-ar="معرض الفائزين السابقين">Past Winners Showcase</h3>
-        <div class="vws-grid" id="vlogWinnersGrid">
-          <!-- الفائزين السابقين -->
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== قسم القائمة (Menu) ===== -->
+  <!-- ===== قسم قائمة المنيو الكاملة (Full Menu) ===== -->
   <section id="menu">
     <div class="section-head-center">
-      <p class="section-eyebrow" data-en="/ Ozel Menu /" data-ar="/ قائمة أوزيل /">/ Ozel Menu /</p>
-      <h2 class="section-heading" data-en="Ozel Menu — <em>Menu</em>" data-ar="قائمة أوزيل  <em>Menu</em>">Ozel Menu — <em>Menu</em></h2>
-      <p class="section-sub" data-en="Click on any drink to customize and order instantly without leaving the page!" data-ar="اضغط على أي مشروب لتخصيصه وطلبه فوراً دون مغادرة الصفحة!">Click on any drink to customize and order instantly without leaving the page!</p>
+      <p class="section-eyebrow" data-en="/ 2M CAFE Menu /" data-ar="/ قائمة 2M CAFE /">/ قائمة 2M CAFE /</p>
+      <h2 class="section-heading" data-en="Full Menu — <em>Explore All Flavors</em>" data-ar="المنيو الكامل — <em>استكشف أشهى المذاقات</em>">المنيو الكامل — <em>استكشف أشهى المذاقات</em></h2>
+      <p class="section-sub" data-en="All prices and products are directly synchronized with our cashier system. Click any item to customize and add to order!" data-ar="جميع الأصناف والأسعار مطابقة بنسبة 100% لنظام الكاشير. اضغط على أي صنف لتخصيصه وإضافته لطلبك!">جميع الأصناف والأسعار مطابقة بنسبة 100% لنظام الكاشير. اضغط على أي صنف لتخصيصه وإضافته لطلبك!</p>
     </div>
 
-    <div id="offersContainer" class="offers-container"></div>
+    <!-- شريط البحث السريع في الأصناف -->
+    <div class="menu-search-bar">
+      <input type="text" id="menuSearchInput" class="menu-search-input" placeholder="ابحث عن صنفك المفضل بالاسم أو التصنيف..." data-placeholder-ar="ابحث عن صنفك المفضل بالاسم أو التصنيف..." data-placeholder-en="Search by item name or category..." oninput="searchMenu(this.value)" />
+    </div>
 
-    <div class="menu-layout-split">
-      <div class="menu-left-main">
-        <div class="cat-bar" id="catTabs"></div>
-
-        <div class="menu-grid" id="menuGrid">
-          <div class="menu-loading">
-            <div class="menu-loading-ring"></div>
-            <p>Loading menu...</p>
-          </div>
-        </div>
+    <!-- شريط التصنيفات الـ 20 -->
+    <div class="cat-bar" id="catTabs">
+      <div class="cat-tab active" data-cat="all" onclick="filterByCategory('all', this)">
+        <span>✨</span>
+        <span data-en="All Menu" data-ar="الكل">الكل</span>
       </div>
+    </div>
 
-
+    <!-- شبكة الأصناف والمنتجات -->
+    <div class="menu-grid" id="menuGrid">
+      <div class="menu-loading">
+        <div class="menu-loading-ring"></div>
+        <p data-en="Loading fresh menu..." data-ar="جاري تحميل قائمة 2M CAFE...">جاري تحميل قائمة 2M CAFE...</p>
+      </div>
     </div>
   </section>
 
-  <!-- ===== نافذة تخصيص المشروب (Drink Modal) ===== -->
+  <!-- ===== نافذة تخصيص المشروب (Customization Modal) ===== -->
   <div id="drinkModal" class="modal-overlay" onclick="closeModal(event)">
-    <div class="modal-panel" id="modalBox">
+    <div class="modal-panel" id="modalBox" onclick="event.stopPropagation()">
       <button class="modal-x" onclick="closeModal()">&times;</button>
       <div id="modalContent"></div>
     </div>
   </div>
 
-  <!-- ===== زر السلة العائم (Cart FAB) ===== -->
-  <a href="cart.html" class="cart-fab" id="cartFab"
-    style="display: flex; align-items: center; justify-content: center; text-decoration: none; padding: 0.5rem 1rem; border-radius: 30px; gap: 0.4rem;">
-    <span class="cart-fab-text" style="font-family: 'Tajawal', sans-serif; font-weight: 700; font-size: 0.85rem; color: var(--white);" data-en="Cart" data-ar="الطلب">Cart</span>
-    <span class="cart-fab-badge" id="cartCount" style="position: static; transform: none;">0</span>
+  <!-- ===== زر السلة العائم (Cart Floating Button) ===== -->
+  <a href="cart.html" class="cart-fab" id="cartFab">
+    <span class="cart-fab-icon">🛒</span>
+    <span class="cart-fab-text" data-en="Cart" data-ar="الطلب">الطلب</span>
+    <span class="cart-fab-badge" id="cartCount">0</span>
   </a>
 
-  <!-- ===== قسم التواصل (Contact) ===== -->
+  <!-- ===== قسم تواصل معنا (Contact Section) ===== -->
   <section id="contact">
     <div class="contact-wrap">
       <div class="contact-info">
-        <p class="section-eyebrow" data-en="/ Visit Us /" data-ar="/ تفضل بزيارتنا /">/ Visit Us /</p>
-        <h2 class="section-heading" data-en="Always Welcome" data-ar="مرحباً بكم دائماً">Always Welcome</h2>
+        <p class="section-eyebrow" data-en="/ Visit 2M CAFE /" data-ar="/ تفضل بزيارتنا /">/ تفضل بزيارتنا /</p>
+        <h2 class="section-heading" data-en="Always Welcoming You" data-ar="مرحباً بكم دائماً في 2M CAFE">مرحباً بكم دائماً في 2M CAFE</h2>
+        
         <div class="contact-items">
-          <div class="ci"><span>&bull;</span>
-            <div><strong data-en="Location" data-ar="الموقع">Location</strong>
-              <p data-en="Sadat City, Green Park" data-ar="مدينة السادات، جرين بارك">Sadat City, Green Park</p>
+          <div class="ci">
+            <span>📍</span>
+            <div>
+              <strong data-en="Location" data-ar="الموقع">الموقع</strong>
+              <p data-en="Sadat City, Green Park, Egypt" data-ar="مدينة السادات، جرين بارك، مصر">مدينة السادات، جرين بارك، مصر</p>
+            </div>
+          </div>
+
+          <div class="ci">
+            <span>⏰</span>
+            <div>
+              <strong data-en="Working Hours" data-ar="أوقات العمل">أوقات العمل</strong>
+              <p data-en="Daily: 8:00 AM – 2:00 AM" data-ar="يومياً من 8:00 صباحاً حتى 2:00 بعد منتصف الليل">يومياً من 8:00 صباحاً حتى 2:00 بعد منتصف الليل</p>
+            </div>
+          </div>
+
+          <div class="ci">
+            <span>☕</span>
+            <div>
+              <strong data-en="Service" data-ar="الخدمة">الخدمة</strong>
+              <p data-en="Dine-in, Takeaway, QR Table Orders" data-ar="صالة، سفري، وطلبات QR مباشرة من الطاولة">صالة، سفري، وطلبات QR مباشرة من الطاولة</p>
             </div>
           </div>
         </div>
       </div>
+
       <form class="contact-form" onsubmit="handleContact(event)">
-        <h3 data-en="Contact Us" data-ar="تواصل معنا">Contact Us</h3>
+        <h3 data-en="Send Us a Message" data-ar="أرسل لنا رسالة">أرسل لنا رسالة</h3>
+        
         <div class="form-field">
-          <label data-en="Name" data-ar="الاسم">Name</label>
-          <input type="text" id="contact-name" data-placeholder-en="Your Name" data-placeholder-ar="الاسم الكريم" placeholder="Your Name" required />
+          <label data-en="Name" data-ar="الاسم الكريم">الاسم الكريم</label>
+          <input type="text" id="contact-name" data-placeholder-en="Your Name" data-placeholder-ar="أدخل اسمك" placeholder="أدخل اسمك" required />
         </div>
+
         <div class="form-field">
-          <label data-en="Phone Number" data-ar="رقم الهاتف">Phone Number</label>
-          <input type="tel" id="contact-phone" data-placeholder-en="+20 100 000 0000" data-placeholder-ar="٠١٠٠٠٠٠٠٠٠٠" placeholder="+20 100 000 0000" required />
+          <label data-en="Phone Number" data-ar="رقم الهاتف">رقم الهاتف</label>
+          <input type="tel" id="contact-phone" data-placeholder-en="01xxxxxxxxx" data-placeholder-ar="٠١xxxxxxxxx" placeholder="٠١xxxxxxxxx" required />
         </div>
+
         <div class="form-field">
-          <label data-en="Message" data-ar="الرسالة">Message</label>
-          <textarea id="contact-msg" data-placeholder-en="How can we help you?" data-placeholder-ar="كيف يمكننا مساعدتك؟" placeholder="How can we help you?" rows="4"></textarea>
+          <label data-en="Message" data-ar="الرسالة أو الاستفسار">الرسالة أو الاستفسار</label>
+          <textarea id="contact-msg" rows="4" data-placeholder-en="How can we assist you?" data-placeholder-ar="كيف يمكننا مساعدتك أو خدمة طلبك؟" placeholder="كيف يمكننا مساعدتك أو خدمة طلبك؟"></textarea>
         </div>
-        <button type="submit" class="btn-gold" style="width:100%;justify-content:center" data-en="Send " data-ar="إرسال ">Send </button>
+
+        <button type="submit" class="btn-gold" style="width:100%" data-en="Send Message" data-ar="إرسال الرسالة">إرسال الرسالة</button>
         <p class="form-msg" id="formNote"></p>
       </form>
     </div>
   </section>
 
-  <!-- ===== قسم التذييل (Footer) ===== -->
+  <!-- ===== التذييل (Footer) ===== -->
   <footer id="footer">
-    <img src="imgs/Ozel-Logo--01.png" alt="OZEL Logo" class="footer-logo-img" />
-    <div class="footer-logo">OZEL <span>CAFE</span></div>
-    <p class="footer-tag" data-en="Hidden Gem — An unforgettable experience" data-ar="الجوهرة الخفية — تجربة لا تنسى">Hidden Gem — An unforgettable experience</p>
-    <p class="footer-copy" data-en="© 2025 OZEL CAFE — All rights reserved" data-ar="© 2025 أوزيل كافيه — جميع الحقوق محفوظة">© 2025 OZEL CAFE — All rights reserved</p>
+    <img src="imgs/2m-logo.png" alt="2M CAFE Logo" class="footer-logo-img" onerror="this.src='imgs/logo.png'" />
+    <div class="footer-logo">2M <span>CAFE</span></div>
+    <p class="footer-tag" data-en="2M CAFE — Exceptional coffee, premium tastes, and unforgettable sensory experiences." data-ar="2M CAFE — قهوة استثنائية، مذاقات فاخرة، وتجارب حسية راقية لا تُنسى.">2M CAFE — قهوة استثنائية، مذاقات فاخرة، وتجارب حسية راقية لا تُنسى.</p>
+    <p class="footer-copy" data-en="© 2026 2M CAFE — All rights reserved" data-ar="© 2026 2M CAFE — جميع الحقوق محفوظة">© 2026 2M CAFE — جميع الحقوق محفوظة</p>
   </footer>
 
-  <!-- Profile page is now a separate page: profile.html -->
-
-  <!-- ===== نافذة عرض الصورة بالحجم الكامل (Image Lightbox Modal) ===== -->
-  <div id="vlogLightbox" class="modal-overlay" onclick="closeVlogLightbox(event)" style="z-index: 1200; background: rgba(0,0,0,0.9);">
-    <div style="position: relative; max-width: 90%; max-height: 90%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-      <div class="modal-x" onclick="closeVlogLightbox()" style="position: absolute; top: -45px; right: 0; color: #fff; font-size: 2.2rem; cursor: pointer;">&times;</div>
-      <img id="lightboxImg" src="" alt="Full view" style="max-width: 100%; max-height: 75vh; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); object-fit: contain;"/>
-      <div id="lightboxCaption" style="margin-top: 1rem; text-align: center; color: #fff; font-family: 'Tajawal', sans-serif; font-size: 1rem; font-weight: 500; min-height: 20px;"></div>
-    </div>
-  </div>
-
+  <!-- Loader Script -->
   <script>
     (function() {
       var loader = document.getElementById('loader');
@@ -573,55 +370,34 @@
       var percentText = loader ? loader.querySelector('.loader-percent') : null;
       if (!loader) return;
       
-      var startTime = Date.now();
-      var duration = 3500; // 3.5 seconds minimum loader time
-      var intervalTime = 25; // Update every 25ms
       var progress = 0;
-      var isLoaded = false;
-      
       var timer = setInterval(function() {
-        var elapsed = Date.now() - startTime;
-        var percent = Math.min(100, Math.floor((elapsed / duration) * 100));
-        
-        if (isLoaded) {
-          progress += 5;
-          if (progress >= 100) {
-            progress = 100;
-            clearInterval(timer);
-            hideLoader();
-          }
-        } else {
-          if (percent >= 90) {
-            progress = Math.min(92, progress + 0.2);
-          } else {
-            progress = percent;
-          }
-        }
-        
-        if (progressBar) progressBar.style.width = progress + '%';
-        if (percentText) percentText.textContent = Math.floor(progress) + '%';
-      }, intervalTime);
-      
-      function hideLoader() {
-        setTimeout(function() {
-          loader.classList.add('hidden');
+        progress += Math.floor(Math.random() * 15) + 10;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(timer);
+          if (progressBar) progressBar.style.width = '100%';
+          if (percentText) percentText.textContent = '100%';
           setTimeout(function() {
-            loader.style.display = 'none';
-          }, 1000);
-        }, 300);
-      }
-      
+            loader.classList.add('hidden');
+          }, 350);
+        } else {
+          if (progressBar) progressBar.style.width = progress + '%';
+          if (percentText) percentText.textContent = progress + '%';
+        }
+      }, 40);
+
       window.addEventListener('load', function() {
-        isLoaded = true;
+        setTimeout(function() {
+          if (loader && !loader.classList.contains('hidden')) {
+            loader.classList.add('hidden');
+          }
+        }, 800);
       });
-      
-      setTimeout(function() {
-        isLoaded = true;
-      }, 5000);
     })();
   </script>
-  <script src="app.js?v=102"></script>
-  <script src="uno.js?v=3"></script>
-</body>
 
+  <!-- Main Application Script -->
+  <script src="app.js?v=301"></script>
+</body>
 </html>
