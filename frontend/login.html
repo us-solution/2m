@@ -132,7 +132,7 @@ body::before {
 .field input, .field select{
   width:100%;
   background:var(--bg3);
-  border:1px solid transparent;
+  border:1.5px solid var(--line);
   color:var(--text);
   padding:.8rem 1rem;
   font-family:'Tajawal',sans-serif;
@@ -146,9 +146,9 @@ body::before {
   background:var(--bg2);
   box-shadow:0 0 0 3px var(--burgundy-glow);
 }
-.field input::placeholder{color:var(--muted);font-size:.8rem;}
+.field input::placeholder{color:#8c7e6c;font-size:.85rem;}
 
-.btn{color:#0c0a09;font-weight:800;
+.btn{
   width:100%;
   background:var(--burgundy);
   color:var(--white);
@@ -253,6 +253,17 @@ body::before {
     window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
   </script>
   <script defer src="/_vercel/speed-insights/script.js"></script>
+
+<style id="2m-light-palette">
+:root {
+  --gold: #bd923f; --gold2: #966b22; --gold-glow: rgba(189,146,63,.17);
+  --burgundy: #bd923f; --burgundy2: #a87925; --burgundy-glow: rgba(189,146,63,.15);
+  --bg: #fffdf8; --bg2: #ffffff; --bg3: #f7f1e4; --bg4: #ede2c9;
+  --line: #eadfc8; --text: #30291d; --text-secondary: #625844; --muted: #887e6b;
+  --white: #ffffff; --green: #2f8058;
+}
+body { background-color: var(--bg); color: var(--text); }
+</style>
 </head>
 <body>
 
@@ -266,7 +277,7 @@ body::before {
   <div class="header">
     <img src="imgs/2m-logo.png" alt="2M CAFE" class="logo-img"/>
     <h1 style="color:var(--gold); font-weight:800; letter-spacing:0.15em;">2M CAFE</h1>
-    <p data-en="Hidden Gem Café" data-ar="الجوهرة المخفية">Hidden Gem Café</p>
+    <p data-en="Luxury Coffee Experience" data-ar="تجربة استثنائية راقية">Luxury Coffee Experience</p>
   </div>
 
   <!-- ===== بطاقة تسجيل الدخول/التسجيل ===== -->

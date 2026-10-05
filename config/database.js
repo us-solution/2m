@@ -10,7 +10,7 @@ require('dotenv').config();
 // استخدام Google DNS كبديل لحل SRV records في حالة DNS محلي لا يدعمها
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://usforsolution_db_user:Bs9x5qwJKInreLGG@ozel.8bos2na.mongodb.net/ozel_cafe?retryWrites=true&w=majority&appName=ozel';
+const MONGODB_URI = process.env.MONGODB_URI || '';
 
 // تخزين الاتصال مؤقتًا لبيئات Serverless (Vercel) — منع الاتصالات المتكررة
 let cached = global._mongooseConnection;
@@ -23,6 +23,9 @@ if (!cached) {
 // تستخدم التخزين المؤقت لتفادي إنشاء اتصالات متعددة
 // ============================
 async function connectDB() {
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI is not configured');
+  }
   if (cached.conn) {
     return cached.conn;
   }

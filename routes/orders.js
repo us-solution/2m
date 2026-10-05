@@ -107,11 +107,8 @@ async function createSyncEvent(order, eventType, payload) {
 
 // إيصال الحدث إلى الجسر المحلي
 async function deliverToBridge(event) {
-  // تم إيقاف الجسر بناءً على طلب العميل
-  return { skipped: true, reason: 'bridge_disabled' };
-
-  const BRIDGE_URL = process.env.BRIDGE_WEBHOOK_URL;
-  const BRIDGE_KEY = process.env.BRIDGE_API_KEY;
+  const BRIDGE_URL = process.env.BRIDGE_WEBHOOK_URL || process.env.CASHIER_API_URL;
+  const BRIDGE_KEY = process.env.BRIDGE_API_KEY || process.env.CASHIER_API_KEY;
   if (!BRIDGE_URL || !BRIDGE_KEY) return { skipped: true, reason: 'bridge_not_configured' };
 
   const rawBody = JSON.stringify(event.payload);
@@ -162,6 +159,7 @@ const getOptionalUser = async (req) => {
 // إنشاء طلب جديد (مع مصادقة اختيارية)
 router.post('/', async (req, res) => {
   const { table_number, items, total_price, notes, customer_phone, useFreeOrder } = req.body;
+  const externalOrderId = String(req.body.idempotency_key || req.body.client_order_id || req.body.order_id || '').trim() || null;
 
   if (table_number === undefined || !items || total_price === undefined) {
     return res.status(400).json({ error: 'Missing fields: table_number, items, and total_price are required' });
@@ -171,6 +169,19 @@ router.post('/', async (req, res) => {
   const qrCodeToken = uuidv4();
 
   try {
+    if (externalOrderId) {
+      const existing = await Order.findOne({ externalOrderId });
+      if (existing) {
+        return res.json({
+          success: true,
+          duplicate: true,
+          order_id: existing._id,
+          points_earned: existing.points_earned,
+          sync: { status: existing.syncMeta?.syncStatus || 'pending' }
+        });
+      }
+    }
+
     const user = await getOptionalUser(req);
     let priceNum = parseFloat(total_price) || 0;
     let points_earned = Math.floor(priceNum);
@@ -238,7 +249,8 @@ router.post('/', async (req, res) => {
       status: 'pending',
       qrCodeToken,
       isQrConfirmed: false,
-      customerPhone: customer_phone || null
+      customerPhone: customer_phone || null,
+      externalOrderId
     });
 
     // إضافة النقاط للعميل إذا كان مسجلاً أو خصم الكوبون الهدية
@@ -536,12 +548,12 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
 
 
 
-const EXPECTED_BRIDGE_KEY = process.env.BRIDGE_API_KEY || '2m_pos_bridge_secret_2026_xyz';
+const EXPECTED_BRIDGE_KEY = process.env.BRIDGE_API_KEY || '';
 
 // جلب الطلبات التي لم تتم مزامنتها بعد مع نقاط البيع
 router.get('/unsynced', async (req, res) => {
   const bridgeKey = req.headers['x-bridge-key'];
-  if (!bridgeKey || (bridgeKey !== EXPECTED_BRIDGE_KEY && bridgeKey !== '2m_pos_bridge_secret_2026_xyz' && bridgeKey !== 'ozel_cafe_bridge_secret_2026_xyz')) {
+  if (!bridgeKey || !EXPECTED_BRIDGE_KEY || bridgeKey !== EXPECTED_BRIDGE_KEY) {
     return res.status(403).json({ error: 'Invalid bridge key' });
   }
   try {

@@ -288,10 +288,8 @@ function filterAndRenderMenu() {
 
 // ===== Render Menu Items =====
 function renderMenu(drinks) {
-  const grid = document.getElementById('menuGrid');
-  if (!grid) return;
-  grid.innerHTML = '';
-  const isAr = currentLang === 'ar';
+  renderMenuGrid(drinks);
+}
 
 // ===== Helper: Best Match Drink Image =====
 function getDrinkImage(d) {

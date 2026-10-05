@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="style.css?v=300"/>
+  <link rel="stylesheet" href="style.css?v=305"/>
   <style>
     /* ===== تنسيقات خاصة بصفحة السلة ===== */
     .cart-page {
@@ -309,7 +309,7 @@
       <!-- ===== خيار الطلب السفري (تيك أواي) ===== -->
       <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1.5rem;">
         <input type="checkbox" id="isTakeaway" style="width:auto; cursor:pointer;" onchange="handleTakeawayToggle(this)"/>
-        <label for="isTakeaway" style="margin-bottom:0; cursor:pointer; font-size:.8rem; color:var(--muted); letter-spacing:.1em;" data-en="Takeaway order" data-ar="طلب سفري (تيك أواي)">Takeaway order</label>
+        <label for="isTakeaway" style="margin-bottom:0; cursor:pointer; font-size:.9rem; font-weight:700; color:var(--text); letter-spacing:.02em;" data-en="Takeaway order" data-ar="طلب سفري (تيك أواي)">Takeaway order</label>
       </div>
 
       <!-- ===== حقل رقم الهاتف للطلبات السفرية ===== -->
@@ -346,25 +346,24 @@
 </div>
 
 <!-- ===== نافذة شكراً بعد نجاح الطلب ===== -->
-<div class="modal-overlay" id="thankYouModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); backdrop-filter:blur(12px); justify-content:center; align-items:center; z-index:9999; padding:1.5rem;">
-  <div class="modal-panel" style="max-width:420px; width:100%; background:#1a1208; border:1.5px solid #4A1517; border-radius:20px; padding:2.5rem 2rem; text-align:center; box-shadow:0 16px 50px rgba(0,0,0,0.7), 0 0 30px rgba(74, 21, 23,0.15); position:relative; animation:fadeIn 0.4s ease;">
+<div class="modal-overlay" id="thankYouModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(8px); justify-content:center; align-items:center; z-index:9999; padding:1.5rem;">
+  <div class="modal-panel" style="max-width:440px; width:100%; background:#ffffff; border:1.5px solid #e9dfcc; border-radius:24px; padding:2.5rem 2rem; text-align:center; box-shadow:0 20px 50px rgba(50,35,15,0.18); position:relative; animation:fadeIn 0.35s ease;">
     <!-- زرار الإغلاق -->
-    <button onclick="closeThankYou()" title="إغلاق" style="position:absolute; top:14px; right:14px; width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#ffffff; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.7)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">&times;</button>
+    <button onclick="closeThankYou()" title="إغلاق" style="position:absolute; top:14px; right:14px; width:34px; height:34px; border-radius:50%; background:#f8f3e8; border:1px solid #e9dfcc; color:#30291f; font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s;" onmouseover="this.style.background='#dc2626'; this.style.color='#ffffff';" onmouseout="this.style.background='#f8f3e8'; this.style.color='#30291f';">&times;</button>
 
     <div style="margin-bottom:1.2rem;">
-      <img src="imgs/2m-logo.png" alt="2M CAFE" style="height:55px; opacity:0.9;"/>
+      <img src="imgs/2m-logo.png" alt="2M CAFE" style="height:55px; width:auto; object-fit:contain;"/>
     </div>
-    <div style="font-size:2.8rem; margin-bottom:0.4rem;"></div>
-    <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.9rem; color:#4A1517; margin-bottom:0.3rem;" data-en="Thank You!" data-ar="شكراً لك!">Thank You!</h3>
-    <p style="font-size:0.8rem; color:rgba(255,255,255,0.55); margin-bottom:1.2rem;"><span data-en="Order ID:" data-ar="رقم الطلب:">Order ID:</span> <strong id="tyOrderId" style="color:#4A1517">#--</strong></p>
+    <h3 style="font-family:'Tajawal',sans-serif; font-size:1.8rem; font-weight:800; color:#b45309; margin-bottom:0.4rem;" data-en="Thank You!" data-ar="شكراً لك!">Thank You!</h3>
+    <p style="font-size:0.9rem; color:#62594a; margin-bottom:1.2rem;"><span data-en="Order ID:" data-ar="رقم الطلب:">Order ID:</span> <strong id="tyOrderId" style="color:#d97706; font-size:1.15rem; font-weight:800;">#--</strong></p>
 
     <!-- ===== حالة استلام الطلب ===== -->
-    <div id="orderStatusBox" style="margin: 1.2rem 0; padding: 1rem 1.2rem; border-radius: 14px; background: rgba(245,158,11,0.18); border: 1.5px solid rgba(245,158,11,0.5); font-weight: 800; font-size: 1rem; line-height: 1.6; font-family: 'Tajawal', sans-serif; color: #ffffff; display:flex; align-items:center; justify-content:center; gap:0.5rem;">
-      <span></span><span data-text>لم يتم استلام وتأكيد الطلب بعد</span>
+    <div id="orderStatusBox" style="margin: 1.2rem 0; padding: 1rem 1.2rem; border-radius: 14px; background: #fef3c7; border: 1.5px solid #f59e0b; font-weight: 800; font-size: 1rem; line-height: 1.6; font-family: 'Tajawal', sans-serif; color: #92400e; display:flex; align-items:center; justify-content:center; gap:0.5rem;">
+      <span>⏳</span><span data-text>لم يتم استلام وتأكيد الطلب بعد</span>
     </div>
     <!-- ===== end status ===== -->
 
-    <button class="btn-gold" style="width:100%; justify-content:center; margin-top:1rem;" onclick="closeThankYou()" data-en="Done" data-ar="موافق">موافق</button>
+    <button class="btn-gold" style="width:100%; justify-content:center; margin-top:1.2rem; font-size:1rem; padding:0.85rem;" onclick="closeThankYou()" data-en="Done" data-ar="موافق">موافق</button>
   </div>
 </div>
 
@@ -743,7 +742,7 @@
 
         const msg = isTakeaway
           ? (isAr ? 'تم تسليم طلبك للكاشير، سيتم الاتصال بك لتأكيد الطلب' : 'Your order has been sent to the cashier. They will call you to confirm.')
-          : (isAr ? 'تم إرسال طلبك إلى الكاشير. استمتع بمشروباتك في 2M ' : 'Your order has been sent to the cashier. Enjoy your drinks at OZEL ');
+          : (isAr ? 'تم إرسال طلبك إلى الكاشير. استمتع بمشروباتك في 2M ' : 'Your order has been sent to the cashier. Enjoy your drinks at 2M CAFE ');
         showThankYou(data.order_id, msg);
       } else {
         alert(data.error || (isAr ? 'فشل إرسال الطلب' : 'Failed to send order'));
@@ -832,24 +831,24 @@
         const textEl = boxEl.querySelector('[data-text]');
 
         if (status === 'confirmed' || status === 'preparing' || status === 'ready' || status === 'received' || status === 'accepted' || status === 'completed') {
-          if (iconEl) iconEl.textContent = '';
+          if (iconEl) iconEl.textContent = '✓';
           if (textEl) textEl.textContent = isAr ? 'تم استلام وتأكيد الطلب بنجاح' : 'Order Received & Confirmed';
-          boxEl.style.background = 'rgba(16,185,129,0.2)';
-          boxEl.style.border = '1.5px solid rgba(16,185,129,0.6)';
-          boxEl.style.color = '#ffffff';
+          boxEl.style.background = '#dcfce7';
+          boxEl.style.border = '1.5px solid #22c55e';
+          boxEl.style.color = '#15803d';
         } else if (status === 'cancelled' || status === 'rejected') {
-          if (iconEl) iconEl.textContent = '×';
+          if (iconEl) iconEl.textContent = '✕';
           if (textEl) textEl.textContent = isAr ? 'لم يتم استلام وتأكيد الطلب' : 'Order Was Not Accepted';
-          boxEl.style.background = 'rgba(239,68,68,0.2)';
-          boxEl.style.border = '1.5px solid rgba(239,68,68,0.6)';
-          boxEl.style.color = '#ffffff';
+          boxEl.style.background = '#fee2e2';
+          boxEl.style.border = '1.5px solid #ef4444';
+          boxEl.style.color = '#b91c1c';
           clearInterval(trackTimer);
         } else {
-          if (iconEl) iconEl.textContent = '';
+          if (iconEl) iconEl.textContent = '⏳';
           if (textEl) textEl.textContent = isAr ? 'لم يتم استلام وتأكيد الطلب بعد' : 'Order Has Not Been Confirmed Yet';
-          boxEl.style.background = 'rgba(245,158,11,0.18)';
-          boxEl.style.border = '1.5px solid rgba(245,158,11,0.5)';
-          boxEl.style.color = '#ffffff';
+          boxEl.style.background = '#fef3c7';
+          boxEl.style.border = '1.5px solid #f59e0b';
+          boxEl.style.color = '#92400e';
         }
       } catch (err) {
         console.warn('[Tracking] error:', err);

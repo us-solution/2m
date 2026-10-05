@@ -15,12 +15,12 @@ const retryQueue = require('../retry-queue');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 const { v4: uuidv4 } = require('uuid');
 
-const EXPECTED_BRIDGE_KEY = process.env.BRIDGE_API_KEY || '2m_pos_bridge_secret_2026_xyz';
+const EXPECTED_BRIDGE_KEY = process.env.BRIDGE_API_KEY || '';
 
 // التحقق من مفتاح API للجسر
 function verifyBridgeKey(req, res, next) {
   const key = req.headers['x-bridge-key'];
-  if (!key || (key !== EXPECTED_BRIDGE_KEY && key !== '2m_pos_bridge_secret_2026_xyz' && key !== 'ozel_cafe_bridge_secret_2026_xyz')) {
+  if (!key || !EXPECTED_BRIDGE_KEY || key !== EXPECTED_BRIDGE_KEY) {
     return res.status(403).json({ error: 'Invalid bridge key' });
   }
   next();
@@ -282,6 +282,9 @@ router.post('/inbound-status', verifyBridgeKey, verifyBridgeSignature, async (re
     }
 
     order.status = data.status;
+    if (data.print_status) order.printStatus = data.print_status;
+    if (data.print_job_id) order.printJobId = data.print_job_id;
+    if (data.pos_order_id) order.posOrderId = String(data.pos_order_id);
     order.orderVersion = meta.orderVersion || order.orderVersion || 1;
     order.syncMeta = {
       ...(order.syncMeta || {}),

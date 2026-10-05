@@ -684,6 +684,17 @@
 
   </style>
   <!-- Vercel Speed Insights removed — only works on Vercel hosting -->
+
+<style id="2m-light-palette">
+:root {
+  --gold: #bd923f; --gold2: #966b22; --gold-glow: rgba(189,146,63,.17);
+  --burgundy: #bd923f; --burgundy2: #a87925; --burgundy-glow: rgba(189,146,63,.15);
+  --bg: #fffdf8; --bg2: #ffffff; --bg3: #f7f1e4; --bg4: #ede2c9;
+  --line: #eadfc8; --text: #30291d; --text-secondary: #625844; --muted: #887e6b;
+  --white: #ffffff; --green: #2f8058;
+}
+body { background-color: var(--bg); color: var(--text); }
+</style>
 </head>
 
 <body>
@@ -1316,7 +1327,8 @@
     .hbtn:hover { border-color: var(--gold); color: var(--gold2); background: var(--bg3); }
     .c-modal-content { background: #ffffff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 20px 50px rgba(70,50,30,0.15); color: var(--text); }
 
-  </style></head><body>' +
+  </style>
+</head><body>' +
         '  <div class="card-frame">' +
         '    <img class="logo" src="imgs/2m-logo.png" onerror="this.src=\'imgs/2m-logo.png\'; this.onerror=null;" />' +
         '    <h2 class="brand-name">2M CAFE</h2>' +
@@ -2389,7 +2401,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
           <span>بطاقة عضوية العميل</span>
         </h2>
-        <button onclick="closeCustomerCardModal()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--muted); padding:0.2rem 0.5rem;">حذف</button>
+        <button onclick="closeCustomerCardModal()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:var(--text); padding:0.2rem 0.5rem;" title="إغلاق">&times;</button>
       </div>
 
       <div id="vip-card-modal-content">

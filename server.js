@@ -8,9 +8,9 @@ const path = require('path');
 const cors = require('cors');
 const compression = require('compression');
 const helmet = require('helmet');
+require('dotenv').config();
 const { sanitizeInput } = require('./middlewares/sanitize');
 const connectDB = require('./config/database');
-require('dotenv').config();
 
 // ============================
 // تسجيل نماذج Mongoose (Models)
@@ -78,7 +78,17 @@ app.use(helmet({
 // ============================
 // 2. إعدادات CORS (السماح بالنطاقات الأخرى)
 // ============================
-app.use(cors());
+const websiteAllowedOrigins = String(process.env.WEBSITE_ALLOWED_ORIGINS || '')
+  .split(',').map(value => value.trim()).filter(Boolean);
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || websiteAllowedOrigins.includes(origin) || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+      return callback(null, true);
+    }
+    callback(new Error('Origin is not allowed by website CORS policy'));
+  },
+  credentials: true
+}));
 
 // ============================
 // 3. Middleware للضغط (Gzip)

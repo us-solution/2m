@@ -71,6 +71,27 @@ const orderSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  // معرف ثابت من العميل/الجسر لمنع إنشاء نفس الطلب مرتين عند إعادة المحاولة
+  externalOrderId: {
+    type: String,
+    unique: true,
+    sparse: true,
+    index: true,
+    default: null
+  },
+  posOrderId: {
+    type: String,
+    default: null
+  },
+  printJobId: {
+    type: String,
+    default: null
+  },
+  printStatus: {
+    type: String,
+    enum: ['pending', 'printing', 'printed', 'failed', null],
+    default: 'pending'
+  },
   // معرف الوردية المرتبطة
   shiftId: {
     type: mongoose.Schema.Types.ObjectId,
