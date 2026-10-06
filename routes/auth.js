@@ -22,9 +22,17 @@ router.post('/register', async (req, res) => {
   }
 
   try {
-    // التحقق من عدم تسجيل رقم الهاتف مسبقاً
+    // التحقق من عدم تسجيل رقم الهاتف مسبقاً (فحص كل الصيغ)
     if (cleanPhone) {
-      const existingPhone = await User.findOne({ phone: cleanPhone });
+      const with0 = '0' + cleanPhone.replace(/^0+/, '');
+      const without0 = cleanPhone.replace(/^0+/, '');
+      const existingPhone = await User.findOne({
+        $or: [
+          { phone: cleanPhone },
+          { phone: with0 },
+          { phone: without0 }
+        ]
+      });
       if (existingPhone) {
         return res.status(409).json({ error: 'Phone number already registered' });
       }
@@ -70,10 +78,10 @@ router.post('/register', async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        phone: user.phone && user.phone.startsWith('email_') ? '' : (user.phone || ''),
+        phone: user.phone && String(user.phone).startsWith('email_') ? '' : (user.phone || ''),
         email: user.email,
         role: user.role,
-        points: user.points,
+        points: user.points || 0,
         subscriptionTier: user.subscriptionTier,
         freeOrdersCount: user.freeOrdersCount || 0
       }
@@ -85,21 +93,37 @@ router.post('/register', async (req, res) => {
 
 // تسجيل الدخول باستخدام رقم الهاتف أو البريد الإلكتروني
 router.post('/login', async (req, res) => {
-  const { identifier, phone, email, password } = req.body;
-  const loginKey = identifier || phone || email;
+  const { identifier, phone, email, username, password } = req.body;
+  const loginKey = identifier || phone || email || username;
 
   if (!loginKey || !password) {
     return res.status(400).json({ error: 'Missing credentials: Phone/Email and password required' });
   }
 
   try {
-    // البحث عن المستخدم بالبريد أو الهاتف
-    const user = await User.findOne({
-      $or: [
-        { phone: loginKey },
-        { email: loginKey }
-      ]
-    });
+    const trimmedKey = String(loginKey).trim();
+    const lowerEmail = trimmedKey.toLowerCase();
+    const cleanPhone = normalizePhone(trimmedKey);
+    const withLeadingZero = cleanPhone ? '0' + cleanPhone.replace(/^0+/, '') : '';
+    const withoutLeadingZero = cleanPhone ? cleanPhone.replace(/^0+/, '') : '';
+
+    const queryOr = [
+      { email: lowerEmail },
+      { email: trimmedKey },
+      { phone: trimmedKey }
+    ];
+    if (cleanPhone && cleanPhone !== trimmedKey) {
+      queryOr.push({ phone: cleanPhone });
+    }
+    if (withLeadingZero && withLeadingZero !== trimmedKey) {
+      queryOr.push({ phone: withLeadingZero });
+    }
+    if (withoutLeadingZero && withoutLeadingZero !== trimmedKey) {
+      queryOr.push({ phone: withoutLeadingZero });
+    }
+
+    // البحث عن المستخدم بالبريد أو الهاتف بجميع الصيغ الممكنة
+    const user = await User.findOne({ $or: queryOr });
 
     if (!user || !user.password) return res.status(401).json({ error: 'Invalid credentials' });
     // التحقق من كلمة المرور
@@ -114,17 +138,17 @@ router.post('/login', async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        phone: user.phone && user.phone.startsWith('email_') ? '' : (user.phone || ''),
+        phone: user.phone && String(user.phone).startsWith('email_') ? '' : (user.phone || ''),
         email: user.email,
         role: user.role,
-        points: user.points,
+        points: user.points || 0,
         subscriptionTier: user.subscriptionTier,
         freeOrdersCount: user.freeOrdersCount || 0
       }
     });
   } catch (err) {
     console.error('[LOGIN ERROR]', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', details: err.message });
   }
 });
 

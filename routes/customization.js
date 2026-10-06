@@ -43,16 +43,14 @@ router.get('/', async (req, res) => {
 // ===== تحديث خيارات التخصيص (مدير فقط) =====
 router.put('/', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
-    const { sugarLevels, extras, logo1, logo2, heroBg } = req.body;
+    const { sugarLevels, extras } = req.body;
     let config = await CustomizationOption.findOne({ configId: 'default' });
     if (!config) {
       config = new CustomizationOption({ configId: 'default' });
     }
     if (sugarLevels) config.sugarLevels = sugarLevels;
     if (extras) config.extras = extras;
-    if (logo1 !== undefined) config.logo1 = logo1;
-    if (logo2 !== undefined) config.logo2 = logo2;
-    if (heroBg !== undefined) config.heroBg = heroBg;
+    
     
     await config.save();
     res.json({ success: true, data: config });

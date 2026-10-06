@@ -1058,37 +1058,6 @@ body { background-color: var(--bg); color: var(--text); }
           </div>
         </div>
 
-        <!-- تخصيص الهوية واللوجو والخلفية للموقع -->
-        <div style="background:var(--bg2); padding:1.5rem; border:1px solid var(--line); margin-top:2rem;">
-          <h3 style="font-family:'Cormorant Garamond',serif; margin:0 0 1rem; color:var(--text);">تخصيص الهوية البصرية واللوجو والخلفية للموقع</h3>
-          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem;">
-            <!-- اللوجو الفاتح -->
-            <div style="background:var(--bg3); padding:1rem; border:1px solid var(--line);">
-              <label style="display:block; font-size:.8rem; color:var(--gold); font-weight:700; margin-bottom:.5rem;">اللوجو الفاتح (للهيدر والفوتر والـ Drawer)</label>
-              <input type="file" id="logo1-file" accept="image/*" style="width:100%; background:var(--bg2); border:1px solid var(--line); color:var(--text); padding:.4rem; font-size:.8rem; outline:none;" />
-              <div id="logo1-preview" style="margin-top:.8rem; text-align:center; min-height:80px; display:flex; align-items:center; justify-content:center; border:1px dashed var(--line); background:var(--bg2);">
-                <span style="font-size:.7rem; color:var(--muted);">لا يوجد معاينة</span>
-              </div>
-            </div>
-            <!-- اللوجو الداكن -->
-            <div style="background:var(--bg3); padding:1rem; border:1px solid var(--line);">
-              <label style="display:block; font-size:.8rem; color:var(--gold); font-weight:700; margin-bottom:.5rem;">اللوجو الداكن / الذهبي (للودر وعن الكافيه)</label>
-              <input type="file" id="logo2-file" accept="image/*" style="width:100%; background:var(--bg2); border:1px solid var(--line); color:var(--text); padding:.4rem; font-size:.8rem; outline:none;" />
-              <div id="logo2-preview" style="margin-top:.8rem; text-align:center; min-height:80px; display:flex; align-items:center; justify-content:center; border:1px dashed var(--line); background:var(--bg2);">
-                <span style="font-size:.7rem; color:var(--muted);">لا يوجد معاينة</span>
-              </div>
-            </div>
-            <!-- صورة الخلفية الرئيسية -->
-            <div style="background:var(--bg3); padding:1rem; border:1px solid var(--line);">
-              <label style="display:block; font-size:.8rem; color:var(--gold); font-weight:700; margin-bottom:.5rem;">صورة الخلفية الرئيسية (Hero Background)</label>
-              <input type="file" id="heroBg-file" accept="image/*" style="width:100%; background:var(--bg2); border:1px solid var(--line); color:var(--text); padding:.4rem; font-size:.8rem; outline:none;" />
-              <div id="heroBg-preview" style="margin-top:.8rem; text-align:center; min-height:80px; display:flex; align-items:center; justify-content:center; border:1px dashed var(--line); background:var(--bg2);">
-                <span style="font-size:.7rem; color:var(--muted);">لا يوجد معاينة</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <button class="hbtn" onclick="saveCustomization()"
           style="margin-top:1.5rem; background:var(--gold); color:var(--bg); border-color:var(--gold); padding:.6rem 2rem; font-weight:700;">
           حفظ التغييرات</button>
@@ -1307,28 +1276,7 @@ body { background-color: var(--bg); color: var(--text); }
         '  .instruction-en { font-size: 0.78rem; letter-spacing: 0.08em; color: #241E1A; text-transform: uppercase; margin-bottom: 1.2rem; font-weight: 600; }' +
         '  .site-url { font-size: 0.8rem; color: rgba(36, 30, 26, 0.6); font-family: "Outfit", sans-serif; letter-spacing: 0.05em; word-break: break-all; }' +
         '  @media print { body { background: none; } .card-frame { box-shadow: none; border: 3px solid #541a1a; margin: auto; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); } }' +
-        '
-    /* ===== 2M Luxury Light Theme Enhancements ===== */
-    body { background: var(--bg); color: var(--text); }
-    header { background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); box-shadow: 0 2px 15px rgba(70,50,30,0.04); }
-    nav { background: var(--bg2); border-left: 1px solid var(--line); }
-    .nav-item { color: var(--muted); border-right: 3px solid transparent; border-left: none; }
-    .nav-item:hover { color: var(--gold); background: var(--gold-glow); }
-    .nav-item.active { color: var(--gold); border-right-color: var(--gold); background: var(--gold-glow); font-weight: 700; }
-    .stat-card { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 2px 8px rgba(70,50,30,0.04); }
-    .stat-n { color: var(--gold); }
-    table { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(70,50,30,0.04); }
-    th { background: var(--bg3); color: var(--gold2); border-bottom: 1px solid var(--line); font-weight: 700; }
-    td { border-bottom: 1px solid var(--line); color: var(--text); }
-    tr:hover td { background: rgba(184, 123, 40, 0.04); }
-    input, select, textarea { background: var(--bg3) !important; border: 1px solid var(--line) !important; color: var(--text) !important; border-radius: 8px; }
-    input:focus, select:focus, textarea:focus { border-color: var(--gold) !important; background: #ffffff !important; outline: none; }
-    .hbtn { border-radius: 8px; border: 1px solid var(--line); color: var(--text-secondary); background: var(--bg2); }
-    .hbtn:hover { border-color: var(--gold); color: var(--gold2); background: var(--bg3); }
-    .c-modal-content { background: #ffffff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 20px 50px rgba(70,50,30,0.15); color: var(--text); }
-
-  </style>
-</head><body>' +
+        '</style></head><body>' +
         '  <div class="card-frame">' +
         '    <img class="logo" src="imgs/2m-logo.png" onerror="this.src=\'imgs/2m-logo.png\'; this.onerror=null;" />' +
         '    <h2 class="brand-name">2M CAFE</h2>' +
@@ -1916,40 +1864,6 @@ body { background-color: var(--bg); color: var(--text); }
         customizationData = data;
         renderSugarLevels(data.sugarLevels || []);
         renderExtras(data.extras || []);
-        
-        // عرض معاينة اللوجو والخلفية الموجودة حالياً
-        if (data.logo1) {
-          document.getElementById('logo1-preview').innerHTML = `<img src="${data.logo1}" style="max-height:80px; max-width:100%; object-fit:contain;" />`;
-        } else {
-          document.getElementById('logo1-preview').innerHTML = `<span style="font-size:.7rem; color:var(--muted);">لا يوجد معاينة</span>`;
-        }
-        if (data.logo2) {
-          document.getElementById('logo2-preview').innerHTML = `<img src="${data.logo2}" style="max-height:80px; max-width:100%; object-fit:contain;" />`;
-        } else {
-          document.getElementById('logo2-preview').innerHTML = `<span style="font-size:.7rem; color:var(--muted);">لا يوجد معاينة</span>`;
-        }
-        if (data.heroBg) {
-          document.getElementById('heroBg-preview').innerHTML = `<img src="${data.heroBg}" style="max-height:80px; max-width:100%; object-fit:contain;" />`;
-        } else {
-          document.getElementById('heroBg-preview').innerHTML = `<span style="font-size:.7rem; color:var(--muted);">لا يوجد معاينة</span>`;
-        }
-
-        // إعداد مستمعي التغيير لعرض المعاينة الفورية عند اختيار ملف جديد
-        ['logo1', 'logo2', 'heroBg'].forEach(id => {
-          const inp = document.getElementById(id + '-file');
-          if (inp) {
-            inp.onchange = function(e) {
-              const file = e.target.files[0];
-              if (file) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                  document.getElementById(id + '-preview').innerHTML = `<img src="${evt.target.result}" style="max-height:80px; max-width:100%; object-fit:contain;" />`;
-                };
-                reader.readAsDataURL(file);
-              }
-            };
-          }
-        });
       } catch (e) { console.error(e); }
     }
 
@@ -2154,36 +2068,12 @@ body { background-color: var(--bg); color: var(--text); }
     async function saveCustomization() {
       if (!customizationData) return;
       try {
-        const logo1Input = document.getElementById('logo1-file');
-        const logo2Input = document.getElementById('logo2-file');
-        const heroBgInput = document.getElementById('heroBg-file');
-
-        let logo1Base64 = undefined;
-        let logo2Base64 = undefined;
-        let heroBgBase64 = undefined;
-
-        if ((logo1Input && logo1Input.files[0]) || (logo2Input && logo2Input.files[0]) || (heroBgInput && heroBgInput.files[0])) {
-          showToast('جاري ضغط ومعالجة الصور المرفوعة...', 'info');
-        }
-
-        if (logo1Input && logo1Input.files[0]) {
-          logo1Base64 = await compressImageHelper(logo1Input.files[0], 400, 400, 0.85);
-        }
-        if (logo2Input && logo2Input.files[0]) {
-          logo2Base64 = await compressImageHelper(logo2Input.files[0], 400, 400, 0.85);
-        }
-        if (heroBgInput && heroBgInput.files[0]) {
-          heroBgBase64 = await compressImageHelper(heroBgInput.files[0], 1200, 1200, 0.70);
-        }
-
         const payload = {
           sugarLevels: customizationData.sugarLevels.map((s, i) => ({ ...s, sortOrder: i })),
           extras: customizationData.extras.map((e, i) => ({ ...e, sortOrder: i }))
         };
 
-        if (logo1Base64) payload.logo1 = logo1Base64;
-        if (logo2Base64) payload.logo2 = logo2Base64;
-        if (heroBgBase64) payload.heroBg = heroBgBase64;
+        
 
         const res = await fetch('/api/customization', {
           method: 'PUT',
@@ -2194,9 +2084,7 @@ body { background-color: var(--bg); color: var(--text); }
         if (data.success) {
           showToast('تم حفظ خيارات التخصيص والهوية البصرية بنجاح', 'success');
           customizationData = data.data;
-          if (logo1Input) logo1Input.value = '';
-          if (logo2Input) logo2Input.value = '';
-          if (heroBgInput) heroBgInput.value = '';
+          
         } else {
           showToast('خطأ في الحفظ: ' + (data.error || 'غير معروف'), 'error');
         }

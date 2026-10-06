@@ -379,6 +379,7 @@ function translateError(msg){
   if(msg==='Email already registered') return a?'البريد الإلكتروني مسجل بالفعل':'Email already registered';
   if(msg==='All fields required'||msg==='Name, password, and at least a Phone number or Email are required') return a?'يرجى إكمال جميع الحقول المطلوبة':'Please complete all required fields';
   if(msg==='Database connection failed'||msg.includes('MongoDB')||msg.includes('database')||msg.includes('ECONNREFUSED')) return a?'فشل الاتصال بقاعدة البيانات، يرجى المحاولة لاحقاً':'Database connection failed, please try again later';
+  if(msg==='Internal server error'||msg.includes('Internal')||msg.includes('server error')||msg.includes('CORS')) return a?'حدث خطأ في استجابة السيرفر، يرجى المحاولة لاحقاً':'Server error, please try again later';
   if(msg.includes('validation failed')||msg.includes('required')) return a?'يرجى التأكد من صحة البيانات المدخلة':'Please check your input data';
   if(msg.includes('E11000')||msg.includes('duplicate')) return a?'رقم الهاتف أو البريد موجود بالفعل':'Phone or email already exists';
   return a? msg : msg;
