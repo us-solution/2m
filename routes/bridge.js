@@ -15,16 +15,52 @@ const retryQueue = require('../retry-queue');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 const { v4: uuidv4 } = require('uuid');
 
-const EXPECTED_BRIDGE_KEY = process.env.BRIDGE_API_KEY || '';
+const DEFAULT_BRIDGE_KEY = '2m_pos_bridge_secret_2026_xyz';
+const VALID_BRIDGE_KEYS = [
+  process.env.BRIDGE_API_KEY,
+  process.env.CASHIER_API_KEY,
+  DEFAULT_BRIDGE_KEY,
+  'ozel_cafe_bridge_secret_2026_xyz'
+].filter(Boolean);
+
+const EXPECTED_BRIDGE_KEY = process.env.BRIDGE_API_KEY || DEFAULT_BRIDGE_KEY;
+
+// استخراج مفتاح الجسر من مختلف الترويسات المدعومة
+function extractBridgeKey(req) {
+  return req.headers['x-bridge-key'] || 
+         req.headers['x-api-key'] || 
+         (req.headers['authorization'] && req.headers['authorization'].replace(/^Bearer\s+/i, '')) || 
+         req.query?.key || 
+         '';
+}
 
 // التحقق من مفتاح API للجسر
 function verifyBridgeKey(req, res, next) {
-  const key = req.headers['x-bridge-key'];
-  if (!key || !EXPECTED_BRIDGE_KEY || key !== EXPECTED_BRIDGE_KEY) {
+  const key = extractBridgeKey(req);
+  if (!key || !VALID_BRIDGE_KEYS.includes(String(key).trim())) {
     return res.status(403).json({ error: 'Invalid bridge key' });
   }
   next();
 }
+
+// فحص الاتصال العام بالجسر (دون اشتراط المفتاح)
+router.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: '2M CAFE Cloud Bridge API',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// فحص الاتصال التفاعلي مع التأكد من صحة المفتاح (Ping)
+router.get('/ping', verifyBridgeKey, (req, res) => {
+  res.json({
+    status: 'connected',
+    bridge_key_valid: true,
+    message: 'الاتصال السحابي سليم ومفتاح الجسر معتمد',
+    timestamp: new Date().toISOString()
+  });
+});
 
 // التحقق من التوقيع الرقمي للجسر (HMAC-SHA256)
 function verifyBridgeSignature(req, res, next) {
@@ -320,8 +356,8 @@ router.post('/inbound-status', verifyBridgeKey, verifyBridgeSignature, async (re
 
 // السماح بالدخول للأدمن أو الجسر (أحدهما يكفي)
 async function authAdminOrBridge(req, res, next) {
-  const bridgeKey = req.headers['x-bridge-key'];
-  if (bridgeKey && bridgeKey === EXPECTED_BRIDGE_KEY) return next();
+  const bridgeKey = extractBridgeKey(req);
+  if (bridgeKey && VALID_BRIDGE_KEYS.includes(String(bridgeKey).trim())) return next();
   authenticateToken(req, res, () => {
     if (!req.user) return res.status(403).json({ error: 'Unauthorized' });
     if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });

@@ -145,6 +145,17 @@ app.use('/api/recipes', requireDB, require('./routes/recipes'));
 app.use('/api/customization', requireDB, require('./routes/customization'));
 app.use('/api/cron', requireDB, require('./routes/cron'));
 
+// نقطة فحص صحة الخادم والاتصال السحابي
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    name: '2M CAFE Cloud Server',
+    version: '2.0.0',
+    uptime: Math.round(process.uptime()),
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.post('/api/debug-log', requireDB, (req, res) => {
   console.log('[FRONTEND LOG]', req.body);
   res.json({ success: true });
