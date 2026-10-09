@@ -15,15 +15,12 @@ const retryQueue = require('../retry-queue');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 const { v4: uuidv4 } = require('uuid');
 
-const DEFAULT_BRIDGE_KEY = '2m_pos_bridge_secret_2026_xyz';
 const VALID_BRIDGE_KEYS = [
   process.env.BRIDGE_API_KEY,
-  process.env.CASHIER_API_KEY,
-  DEFAULT_BRIDGE_KEY,
-  'ozel_cafe_bridge_secret_2026_xyz'
+  process.env.CASHIER_API_KEY
 ].filter(Boolean);
 
-const EXPECTED_BRIDGE_KEY = process.env.BRIDGE_API_KEY || DEFAULT_BRIDGE_KEY;
+const EXPECTED_BRIDGE_KEY = process.env.BRIDGE_API_KEY || process.env.CASHIER_API_KEY || '';
 
 // استخراج مفتاح الجسر من مختلف الترويسات المدعومة
 function extractBridgeKey(req) {
@@ -37,7 +34,7 @@ function extractBridgeKey(req) {
 // التحقق من مفتاح API للجسر
 function verifyBridgeKey(req, res, next) {
   const key = extractBridgeKey(req);
-  if (!key || !VALID_BRIDGE_KEYS.includes(String(key).trim())) {
+  if (!EXPECTED_BRIDGE_KEY || !key || !VALID_BRIDGE_KEYS.includes(String(key).trim())) {
     return res.status(403).json({ error: 'Invalid bridge key' });
   }
   next();
@@ -843,7 +840,8 @@ router.delete('/drinks/:id', verifyBridgeKey, async (req, res) => {
 router.get('/orders/online-pending', verifyBridgeKey, async (req, res) => {
   try {
     const orders = await Order.find({ 
-      status: { $in: ['pending', 'confirmed'] }
+      status: 'pending',
+      createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
     }).sort({ createdAt: -1 }).populate('userId');
     
     const serialized = orders.map(o => {
@@ -1025,19 +1023,36 @@ router.patch('/orders/:id/status', verifyBridgeKey, async (req, res) => {
       return res.status(404).json({ error: 'Order not found' });
     }
     
-    order.status = status;
-    if (status === 'confirmed') {
+    const normalizedStatus = (status === 'confirmed' || status === 'accepted') ? 'accepted' :
+                             (status === 'rejected' || status === 'cancelled') ? 'cancelled' : status;
+    order.status = normalizedStatus;
+    if (normalizedStatus === 'accepted' || status === 'confirmed') {
       order.isQrConfirmed = true;
     }
     order.orderVersion = (order.orderVersion || 1) + 1;
+    order.syncMeta = {
+      ...(order.syncMeta || {}),
+      syncStatus: 'acked',
+      lastSyncedAt: new Date(),
+      lastError: null
+    };
     await order.save();
     
-    // إقرار حدث المزامنة المرتبط بالطلب في المونجو دي بي
+    // إقرار حدث المزامنة المرتبط بالطلب في المونجو دي بي وحذف أي تكرار من طابور الإعادة
     const SyncEvent = require('../models/SyncEvent');
     await SyncEvent.updateMany(
       { orderId: order._id },
       { $set: { status: 'acked', acknowledgedAt: new Date(), failureReason: null } }
     );
+    try {
+      const QueueOrder = require('../models/QueueOrder');
+      await QueueOrder.deleteMany({
+        $or: [
+          { 'orderData.order_id': String(order._id) },
+          { 'orderData.orderId': String(order._id) }
+        ]
+      });
+    } catch (_) {}
     
     res.json({ success: true, orderId: String(order._id), status: order.status });
   } catch (err) {

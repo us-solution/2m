@@ -2719,30 +2719,40 @@ body { background: #fffdf8; color: #30291f; }
 }
 @media (max-width: 768px) {
   #nav {
-    top: 8px;
+    top: 6px;
     left: 8px;
     right: 8px;
-    height: 68px;
+    height: 56px;
     padding-inline: 12px;
-    border-radius: 19px;
+    border-radius: 14px;
     gap: 8px;
   }
-  .nav-logo-img { width: 110px; height: 70px; }
+  .nav-logo-img { width: 85px; height: 50px; object-fit: contain; }
   .nav-links, .nav-cta { display: none !important; }
   .nav-right-sec { margin-inline-start: auto; gap: 8px; }
   .nav-right-sec > .lang-switch-wrapper, #nav-user-area { display: none !important; }
-  .nav-hamburger { display: flex; width: 42px; height: 42px; border-radius: 13px; background: #f7f1e4; }
-  #hero { min-height: 760px; padding: 112px 18px 58px; }
+  .nav-hamburger { display: flex; width: 36px; height: 36px; border-radius: 10px; background: #f7f1e4; }
+  #hero { min-height: 720px; padding: 88px 18px 50px; }
   .hero-headline { font-size: clamp(3.5rem, 15vw, 6.5rem); }
   .hero-actions { width: min(100%, 420px); }
   .hero-actions button { min-height: 48px; }
-  #menu { padding: 5rem 18px; }
+  #menu { padding: 4rem 18px; }
   .menu-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
   .contact-wrap { grid-template-columns: 1fr; }
-  #contact { padding: 5rem 18px; }
+  #contact { padding: 4rem 18px; }
 }
 @media (max-width: 560px) {
-  #hero { min-height: 740px; padding-inline: 15px; }
+  #nav {
+    top: 5px;
+    left: 6px;
+    right: 6px;
+    height: 50px;
+    padding-inline: 10px;
+    border-radius: 12px;
+  }
+  .nav-logo-img { width: 75px; height: 44px; object-fit: contain; }
+  .nav-hamburger { width: 34px; height: 34px; border-radius: 9px; }
+  #hero { min-height: 700px; padding: 78px 15px 45px; }
   .hero-badges-row { gap: 7px; }
   .hero-pill-tag { font-size: .72rem; padding: 6px 10px; }
   .hero-headline { font-size: clamp(3.1rem, 17vw, 5rem); }
@@ -2763,8 +2773,8 @@ body { background: #fffdf8; color: #30291f; }
   .cart-fab { bottom: 14px; }
 }
 @media (max-width: 360px) {
-  .nav-logo-img { width: 100px; height: 64px; }
-  #nav { left: 6px; right: 6px; padding-inline: 9px; }
+  .nav-logo-img { width: 65px; height: 38px; }
+  #nav { left: 4px; right: 4px; height: 46px; padding-inline: 8px; }
   .hero-headline { font-size: 3rem; }
   .hero-stats { padding-inline: 3px; }
 }

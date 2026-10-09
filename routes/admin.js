@@ -1194,4 +1194,212 @@ router.delete('/offers/:id', authenticateToken, requireRole('admin'), async (req
   }
 });
 
+
+// =========================================================================
+// لوحة تحكم وتقارير الكاشير المتكاملة (Cashier System Dashboard API)
+// توفر فلاتر التاريخ (اليوم، أمس، الأسبوع، الشهر، مخصص) وتدعم المصدرين: Live POS و Cloud DB
+// =========================================================================
+router.get('/cashier-dashboard', authenticateToken, requireRole('admin'), async (req, res) => {
+  const { period, from, to, refresh } = req.query;
+
+  try {
+    const now = new Date();
+    let startDate, endDate, periodLabel;
+
+    if (period === 'yesterday') {
+      const y = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      startDate = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 0, 0, 0);
+      endDate = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 23, 59, 59, 999);
+      periodLabel = 'أمس';
+    } else if (period === 'week') {
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      periodLabel = 'آخر 7 أيام';
+    } else if (period === 'month') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      periodLabel = 'هذا الشهر';
+    } else if (period === 'all') {
+      startDate = new Date(0);
+      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      periodLabel = 'الكل (جميع الفترات)';
+    } else if (from && to) {
+      startDate = new Date(from);
+      endDate = new Date(to);
+      if (endDate.getHours() === 0 && endDate.getMinutes() === 0) {
+        endDate.setHours(23, 59, 59, 999);
+      }
+      periodLabel = `مخصص (${from} إلى ${to})`;
+    } else if (from) {
+      startDate = new Date(from);
+      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      periodLabel = `من ${from}`;
+    } else {
+      // Default: today
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      periodLabel = 'اليوم';
+    }
+
+    // 1. Query MongoDB for authoritative records
+    const Expense = require('../models/Expense');
+    const Shift = require('../models/Shift');
+    const CashMovement = require('../models/CashMovement');
+
+    const [orders, expenses, shifts, categories, drinks, customers, movements, devices, lastSyncDoc] = await Promise.all([
+      Order.find({ createdAt: { $gte: startDate, $lte: endDate } })
+        .sort({ createdAt: -1 })
+        .populate('userId', 'name phone')
+        .lean(),
+      Expense.find({ expenseDate: { $gte: startDate, $lte: endDate } })
+        .sort({ expenseDate: -1 })
+        .lean(),
+      Shift.find({ closedAt: { $gte: startDate, $lte: endDate } })
+        .sort({ closedAt: -1 })
+        .lean(),
+      Category.find({}).sort({ sort_order: 1 }).lean(),
+      Drink.find({}).populate('category_id').sort({ name: 1 }).lean(),
+      User.find({ role: 'customer' }).sort({ total_spent: -1 }).limit(100).lean(),
+      CashMovement.find({ movementDate: { $gte: startDate, $lte: endDate } }).sort({ movementDate: -1 }).lean(),
+      PosDevice.find({}).sort({ lastSeen: -1 }).lean(),
+      Order.findOne({ 'syncMeta.lastSyncedAt': { $ne: null } })
+        .sort({ 'syncMeta.lastSyncedAt': -1 })
+        .select('syncMeta.lastSyncedAt')
+        .lean()
+    ]);
+
+    const validOrders = orders.filter(o => !['cancelled', 'refunded'].includes(o.status));
+    const totalSales = validOrders.reduce((sum, o) => sum + (Number(o.total_price) || 0), 0);
+    const ordersCount = validOrders.length;
+    const totalExpenses = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+    const netProfit = totalSales - totalExpenses;
+    const avgOrder = ordersCount > 0 ? (totalSales / ordersCount) : 0;
+
+    let cashSales = 0, cardSales = 0, walletSales = 0, splitSales = 0;
+    validOrders.forEach(o => {
+      const p = (o.paymentMethod || 'cash').toLowerCase();
+      const val = Number(o.total_price) || 0;
+      if (p === 'card' || p === 'visa') cardSales += val;
+      else if (p === 'wallet') walletSales += val;
+      else if (p === 'split') splitSales += val;
+      else cashSales += val;
+    });
+
+    const inflow = movements.filter(m => m.movementType === 'in').reduce((s, m) => s + (Number(m.amount) || 0), 0);
+    const outflow = movements.filter(m => m.movementType === 'out').reduce((s, m) => s + (Number(m.amount) || 0), 0);
+
+    const serializedInvoices = orders.map(o => {
+      let rawItems = [];
+      try {
+        rawItems = Array.isArray(o.items) ? o.items : JSON.parse(o.items || '[]');
+      } catch (_) {
+        rawItems = [];
+      }
+      return {
+        id: String(o._id),
+        invoiceNumber: o.syncMeta?.lastEventId || o.externalOrderId || String(o._id).slice(-6),
+        customerName: o.userId?.name || (o.customerPhone ? o.customerPhone : 'محلي/سفري'),
+        customerPhone: o.userId?.phone || o.customerPhone || '—',
+        tableNumber: o.table_number || 'محلي',
+        total: Number(o.total_price) || 0,
+        paymentMethod: o.paymentMethod || 'cash',
+        status: o.status || 'paid',
+        posSynced: Boolean(o.posSynced),
+        createdAt: o.createdAt,
+        itemsCount: rawItems.length,
+        items: rawItems.map(i => ({
+          name: i.name || i.name_ar || 'صنف',
+          quantity: Number(i.quantity) || 1,
+          price: Number(i.price) || 0
+        }))
+      };
+    });
+
+    const serializedProducts = drinks.map(d => ({
+      id: String(d._id),
+      name: d.name,
+      nameAr: d.name_ar || d.name,
+      categoryName: d.category_id ? (d.category_id.name_ar || d.category_id.name) : 'عام',
+      price: Number(d.price) || 0,
+      isAvailable: Boolean(d.is_available)
+    }));
+
+    const serializedCategories = categories.map(c => ({
+      id: String(c._id),
+      name: c.name,
+      nameAr: c.name_ar || c.name,
+      color: c.color || '#3b82f6'
+    }));
+
+    const serializedCustomers = customers.map(c => ({
+      id: String(c._id),
+      name: c.name,
+      phone: c.phone || '—',
+      points: Number(c.points) || 0,
+      totalSpent: Number(c.total_spent) || 0,
+      customerStatus: c.customerStatus || 'standard'
+    }));
+
+    const serializedExpenses = expenses.map(e => ({
+      id: String(e._id),
+      title: e.title || e.description || 'مصروف',
+      amount: Number(e.amount) || 0,
+      category: e.category || 'عام',
+      date: e.expenseDate || e.createdAt
+    }));
+
+    const serializedShifts = shifts.map(s => ({
+      id: String(s._id),
+      cashierName: s.cashierName || 'كاشير',
+      openedAt: s.openedAt,
+      closedAt: s.closedAt,
+      totalRevenue: Number(s.totalRevenue) || 0,
+      totalOrders: Number(s.totalOrders) || 0
+    }));
+
+    const responsePayload = {
+      success: true,
+      source: 'cloud_synced',
+      lastSyncTimestamp: lastSyncDoc?.syncMeta?.lastSyncedAt || null,
+      period: {
+        from: startDate.toISOString(),
+        to: endDate.toISOString(),
+        label: periodLabel
+      },
+      kpis: {
+        totalSales,
+        ordersCount,
+        cashSales,
+        cardSales,
+        walletSales,
+        splitSales,
+        totalExpenses,
+        netProfit,
+        averageOrder: Math.round(avgOrder * 100) / 100,
+        inflow,
+        outflow,
+        activeDevicesCount: devices.filter(d => d.status === 'online').length
+      },
+      invoices: serializedInvoices,
+      products: serializedProducts,
+      categories: serializedCategories,
+      customers: serializedCustomers,
+      expenses: serializedExpenses,
+      shifts: serializedShifts,
+      devices: devices.map(d => ({
+        deviceId: d.deviceId,
+        deviceName: d.deviceName,
+        isMaster: Boolean(d.isMaster),
+        status: d.status,
+        lastSeen: d.lastSeen
+      }))
+    };
+
+    res.json(responsePayload);
+  } catch (err) {
+    console.error('[Cashier Dashboard Error]:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

@@ -10,7 +10,7 @@ require('dotenv').config();
 // ============================
 // المفتاح السري لتوقيع JWT
 // ============================
-const JWT_SECRET = process.env.JWT_SECRET || 'ozel_cafe_secret_2026';
+const JWT_SECRET = process.env.JWT_SECRET || '2m_cafe_secret_2026';
 
 // ============================
 // التحقق من صحة التوكن JWT واستخراج المستخدم
@@ -29,7 +29,10 @@ const authenticateToken = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = await User.findById(decoded.id);
+    let user = await User.findById(decoded.id);
+    if (!user) {
+      user = await User.findOne({ _id: String(decoded.id) });
+    }
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized: User not found' });
     }

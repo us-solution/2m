@@ -2,6 +2,8 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
+  // دعم معرفات المستخدمين سواء كانت نصية أو ObjectId
+  _id: { type: mongoose.Schema.Types.Mixed, default: () => new mongoose.Types.ObjectId() },
   // اسم المستخدم
   name: { type: String, required: true },
   // رقم الهاتف (فريد)

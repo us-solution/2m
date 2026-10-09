@@ -451,8 +451,10 @@ router.patch('/:id/status', authenticateToken, requireRole('cashier'), async (re
       return res.status(409).json({ error: 'Version conflict', currentVersion: order.orderVersion || 1 });
     }
 
-    order.status = status;
-    if (status === 'confirmed') order.isQrConfirmed = true;
+    const normalizedStatus = (status === 'confirmed' || status === 'accepted') ? 'accepted' :
+                             (status === 'rejected' || status === 'cancelled') ? 'cancelled' : status;
+    order.status = normalizedStatus;
+    if (normalizedStatus === 'accepted' || status === 'confirmed') order.isQrConfirmed = true;
     order.cashierId = req.user._id;
     if (paymentMethod) order.paymentMethod = paymentMethod;
     if (shiftId) order.shiftId = shiftId;

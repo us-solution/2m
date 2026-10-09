@@ -7,7 +7,7 @@ const getCashierUrl = () => {
 };
 
 const getBridgeKey = () => {
-  return process.env.BRIDGE_API_KEY || process.env.CASHIER_API_KEY || 'ozel_cafe_bridge_secret_2026_xyz';
+  return process.env.BRIDGE_API_KEY || process.env.CASHIER_API_KEY || '';
 };
 
 const TIMEOUT_MS = parseInt(process.env.BRIDGE_TIMEOUT_MS || '5000', 10);

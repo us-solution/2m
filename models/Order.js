@@ -52,9 +52,9 @@ const orderSchema = new mongoose.Schema({
   // رمز QR الخاص بالطلب
   qrCodeToken: {
     type: String,
-    unique: true,
     sparse: true,
-    default: null
+    index: true,
+    default: undefined
   },
   // هل تم تأكيد الطلب عبر QR؟
   isQrConfirmed: {
@@ -74,10 +74,9 @@ const orderSchema = new mongoose.Schema({
   // معرف ثابت من العميل/الجسر لمنع إنشاء نفس الطلب مرتين عند إعادة المحاولة
   externalOrderId: {
     type: String,
-    unique: true,
     sparse: true,
     index: true,
-    default: null
+    default: undefined
   },
   posOrderId: {
     type: String,
