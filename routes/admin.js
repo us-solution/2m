@@ -1259,17 +1259,32 @@ router.get('/cashier-dashboard', authenticateToken, requireRole('admin'), async 
       startDate = new Date(0);
       endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
       periodLabel = 'الكل (جميع الفترات)';
-    } else if (from && to) {
-      startDate = new Date(from);
-      endDate = new Date(to);
-      if (endDate.getHours() === 0 && endDate.getMinutes() === 0) {
-        endDate.setHours(23, 59, 59, 999);
+    } else if (from && to && from !== 'true' && to !== 'true') {
+      const pStart = new Date(from);
+      const pEnd = new Date(to);
+      if (!isNaN(pStart.getTime()) && !isNaN(pEnd.getTime())) {
+        startDate = pStart;
+        endDate = pEnd;
+        if (endDate.getHours() === 0 && endDate.getMinutes() === 0) {
+          endDate.setHours(23, 59, 59, 999);
+        }
+        periodLabel = `مخصص (${from} إلى ${to})`;
+      } else {
+        startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate);
+        endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
+        periodLabel = 'اليوم';
       }
-      periodLabel = `مخصص (${from} إلى ${to})`;
-    } else if (from) {
-      startDate = new Date(from);
-      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
-      periodLabel = `من ${from}`;
+    } else if (from && from !== 'true') {
+      const pStart = new Date(from);
+      if (!isNaN(pStart.getTime())) {
+        startDate = pStart;
+        endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
+        periodLabel = `من ${from}`;
+      } else {
+        startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate);
+        endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
+        periodLabel = 'اليوم';
+      }
     } else {
       // Default: today
       startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate);

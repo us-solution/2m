@@ -55,8 +55,8 @@ const requireRole = (requiredRole) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // تسلسل هرمي للأدوار: customer (0) < cashier (1) < partner / admin (2)
-    const hierarchy = { 'customer': 0, 'cashier': 1, 'partner': 2, 'admin': 2 };
+    // تسلسل هرمي للأدوار: customer (0) < cashier (1) < partner / admin / manager (2)
+    const hierarchy = { 'customer': 0, 'cashier': 1, 'partner': 2, 'admin': 2, 'manager': 2 };
     const userRole = req.user.role || 'customer';
     const reqRole = requiredRole || 'customer';
 

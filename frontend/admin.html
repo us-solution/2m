@@ -1623,6 +1623,12 @@ body { background-color: var(--bg); color: var(--text); }
 
     // جلب بيانات لوحة تحكم الكاشير من الخادم
     async function loadCashierDashboard(period = currentCashierPeriod, from = null, to = null, forceRefresh = false) {
+      if (typeof from === 'boolean') {
+        forceRefresh = from;
+        from = null;
+        to = null;
+      }
+
       const badgeText = document.getElementById('cashier-source-text');
       const badgeDot = document.getElementById('cashier-source-dot');
       if (badgeText) badgeText.textContent = 'جاري جلب البيانات...';
@@ -3466,12 +3472,8 @@ body { background-color: var(--bg); color: var(--text); }
       }
 
       try {
-        const res = await fetchWithTimeout('/api/admin/cashier-dashboard?period=today', { headers: getAuthH() }, 10000);
-        if (res.ok) {
-          cashierDashboardData = await res.json();
-          renderCashierDashboardData(cashierDashboardData);
-        }
-        if (document.getElementById('page-reports-center').classList.contains('active')) {
+        await loadCashierDashboard(currentCashierPeriod, null, null, true);
+        if (document.getElementById('page-reports-center') && document.getElementById('page-reports-center').classList.contains('active')) {
           await fetchReportPreview();
         }
         if (syncStatus) {
@@ -3488,11 +3490,18 @@ body { background-color: var(--bg); color: var(--text); }
       }
     }
 
+    // توافقية دالة عرض الكاشير
+    function renderCashierDashboardData(d) {
+      if (typeof renderCashierDashboard === 'function') {
+        renderCashierDashboard(d);
+      }
+    }
+
     // مزامنة خلفية حية دورية كل 15 ثانية (Phase 3 Live Sync)
     setInterval(() => {
       const isDashboardActive = document.getElementById('page-cashier-dashboard') && document.getElementById('page-cashier-dashboard').classList.contains('active');
       if (isDashboardActive && !document.hidden) {
-        loadCashierDashboard(currentCashierPeriod, true);
+        loadCashierDashboard(currentCashierPeriod, null, null, true);
       }
     }, 15000);
 
