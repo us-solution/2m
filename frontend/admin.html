@@ -2197,13 +2197,6 @@ body { background-color: var(--bg); color: var(--text); }
             <span>الصفحة 1 من 1</span>
           </div>
 
-          <script>
-            window.onload = function() {
-              setTimeout(function() {
-                window.print();
-              }, 400);
-            };
-          </script>
         </body>
         </html>
       `;
@@ -2211,6 +2204,12 @@ body { background-color: var(--bg); color: var(--text); }
       printWin.document.open();
       printWin.document.write(htmlContent);
       printWin.document.close();
+      setTimeout(function() {
+        try {
+          printWin.focus();
+          printWin.print();
+        } catch (_) {}
+      }, 500);
     }
 
 

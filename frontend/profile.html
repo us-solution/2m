@@ -99,6 +99,23 @@
         <p style="color: var(--muted); font-size: 0.85rem;" data-en="Your digital loyalty card & perks" data-ar="بطاقتك الرقمية ومكافآت الولاء">بطاقتك الرقمية ومكافآت الولاء</p>
       </div>
 
+      <!-- ADMIN DASHBOARD QUICK ACCESS (يظهر فقط لحسابات الأدمن) -->
+      <div id="adminAccessCard" style="display:none; background: linear-gradient(135deg, rgba(217, 119, 6, 0.15) 0%, rgba(217, 119, 6, 0.05) 100%); border: 1.5px solid var(--gold); border-radius: var(--rad); padding: 1.25rem; margin-bottom: 1.5rem; text-align: right;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem;">
+          <div>
+            <span style="font-weight:800; font-size:1.05rem; color:var(--gold); display:flex; align-items:center; gap:0.4rem;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+              <span>صلاحيات الإدارة — حساب مسؤول</span>
+            </span>
+            <p style="margin:0.3rem 0 0; font-size:0.85rem; color:var(--muted);">اضغط هنا للانتقال مباشرة إلى لوحة التحكم الإدارية ومتابعة الكاشير والمنيو والتقارير</p>
+          </div>
+          <button onclick="location.href='admin.html'" style="background:var(--gold); color:#0c0a09; font-weight:800; border:none; padding:0.65rem 1.4rem; border-radius:8px; cursor:pointer; font-size:0.95rem; display:inline-flex; align-items:center; gap:0.5rem; box-shadow:0 4px 15px rgba(217,119,6,0.35); transition:all .2s;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            <span>لوحة التحكم</span>
+          </button>
+        </div>
+      </div>
+
       <!-- VIP LOYALTY CARD -->
       <div class="vip-card" id="profileVipCard" data-tilt data-tilt-max="8" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.2" style="cursor: pointer; position: relative; border-radius: 18px; padding: 1.8rem; background: linear-gradient(135deg, #181410 0%, #2b1f14 50%, #452c16 100%); box-shadow: 0 16px 40px rgba(0,0,0,0.45); border: 1.5px solid rgba(245,158,11,0.4); overflow: hidden; margin-bottom: 2rem;">
         <div style="position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: space-between; min-height: 180px;">

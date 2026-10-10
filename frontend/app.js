@@ -161,8 +161,16 @@ function renderNavUser() {
     const initial = (CUSER.name || 'U').charAt(0).toUpperCase();
     const ptsLabel = isAr ? 'نقطة' : 'pts';
     const profileText = isAr ? 'حسابي' : 'My Profile';
+    const isAdmin = CUSER.role === 'admin' || CUSER.role === 'partner';
+    const adminBtn = isAdmin ? `
+      <a href="admin.html" class="nav-admin-btn" title="لوحة التحكم الإدارية" style="text-decoration: none; padding: 0.4rem 0.85rem; border-radius: 8px; background: var(--gold); color: #0c0a09; font-size: 0.82rem; font-weight: 800; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 2px 8px rgba(217,119,6,0.35); transition: transform .15s;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <span>${isAr ? 'لوحة التحكم' : 'Admin'}</span>
+      </a>
+    ` : '';
     html = `
-      <div style="display: flex; align-items: center; gap: 0.8rem;">
+      <div style="display: flex; align-items: center; gap: 0.6rem;">
+        ${adminBtn}
         <div class="nav-user-logged" onclick="location.href='profile.html'" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
           <div class="user-avatar" style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#b45309);color:#0c0a09;font-weight:800;display:flex;align-items:center;justify-content:center;">${initial}</div>
           <div class="user-info-brief" style="display:flex;flex-direction:column;line-height:1.2;">
@@ -852,6 +860,12 @@ window.openProfileModal = async function() {
       cardEl.style.background = bgColor;
       badgeEl.textContent = title;
       discountEl.textContent = (currentLang === 'ar' ? 'نسبة الخصم الخاصة: ' : 'Your discount rate: ') + discountPct;
+    }
+
+    const adminCard = document.getElementById('adminAccessCard');
+    if (adminCard) {
+      const isAdmin = userDetails.role === 'admin' || userDetails.role === 'partner';
+      adminCard.style.display = isAdmin ? 'block' : 'none';
     }
   }
 
