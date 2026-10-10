@@ -68,12 +68,15 @@ router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) =
       createdAt: { $gte: today }
     });
 
-    // Ø¥ÙŠØ±Ø§Ø¯Ø§Øª Ø§Ù„ÙŠÙˆÙ… (Ø¨Ø¯ÙˆÙ† Ø§Ù„Ù…Ù„ØºØ§Ø©)
+    // الحالات المعتمدة كإيرادات مبيعات نهائية (فقط الطلبات المدفوعة أو المكتملة)
+    const FINALIZED_STATUSES = ['paid', 'completed'];
+
+    // إيرادات اليوم المكتملة فقط (لا تشمل المعلقة أو الملغاة أو المرفوضة)
     const todayRevenueAgg = await Order.aggregate([
       {
         $match: {
           createdAt: { $gte: today },
-          status: { $ne: 'cancelled' }
+          status: { $in: FINALIZED_STATUSES }
         }
       },
       {
@@ -85,12 +88,12 @@ router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) =
     ]);
     const today_revenue = todayRevenueAgg.length > 0 ? parseFloat(todayRevenueAgg[0].total) : 0;
 
-    // Ø¥ÙŠØ±Ø§Ø¯Ø§Øª Ø§Ù„Ø´Ù‡Ø± Ø§Ù„Ø­Ø§Ù„ÙŠ
+    // إيرادات الشهر الحالي المكتملة فقط
     const monthlyRevenueAgg = await Order.aggregate([
       {
         $match: {
           createdAt: { $gte: firstDayOfMonth },
-          status: { $ne: 'cancelled' }
+          status: { $in: FINALIZED_STATUSES }
         }
       },
       {
@@ -102,11 +105,11 @@ router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) =
     ]);
     const monthly_revenue = monthlyRevenueAgg.length > 0 ? parseFloat(monthlyRevenueAgg[0].total) : 0;
 
-    // Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø¥ÙŠØ±Ø§Ø¯Ø§Øª Ù„ÙƒÙ„ Ø§Ù„ÙˆÙ‚Øª
+    // إجمالي الإيرادات المكتملة لكل الوقت
     const totalRevenueAgg = await Order.aggregate([
       {
         $match: {
-          status: { $ne: 'cancelled' }
+          status: { $in: FINALIZED_STATUSES }
         }
       },
       {
@@ -118,19 +121,21 @@ router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) =
     ]);
     const total_revenue = totalRevenueAgg.length > 0 ? parseFloat(totalRevenueAgg[0].total) : 0;
 
-    // Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø¹Ø¯Ø¯ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡ Ø§Ù„Ù…Ø³Ø¬Ù„ÙŠÙ†
+    // إجمالي عدد العملاء المسجلين
     const total_customers = await User.countDocuments({ role: 'customer' });
 
-    // Ø§Ù„Ø·Ù„Ø¨Ø§Øª Ø§Ù„Ù…Ø¹Ù„Ù‚Ø©
+    // إحصائيات حالات الطلبات منفصلة
     const pending_orders = await Order.countDocuments({ status: 'pending' });
+    const cancelled_orders = await Order.countDocuments({ status: { $in: ['cancelled', 'rejected'] } });
+    const finalized_orders = await Order.countDocuments({ status: { $in: FINALIZED_STATUSES } });
 
-    // Ø¥Ø­ØµØ§Ø¦ÙŠØ§Øª Ø£Ø¯Ø§Ø¡ Ø§Ù„ÙƒØ§Ø´ÙŠØ± (Ø§Ù„Ø·Ù„Ø¨Ø§Øª Ø§Ù„ØªÙŠ ØªÙ…Øª Ù…Ø¹Ø§Ù„Ø¬ØªÙ‡Ø§ Ø§Ù„ÙŠÙˆÙ…)
+    // إحصائيات أداء الكاشير (فقط الطلبات المكتملة والنهائية لليوم)
     const cashierStatsAgg = await Order.aggregate([
       {
         $match: {
           createdAt: { $gte: today },
           cashierId: { $ne: null },
-          status: { $ne: 'cancelled' }
+          status: { $in: FINALIZED_STATUSES }
         }
       },
       {
@@ -167,6 +172,8 @@ router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) =
       total_revenue,
       total_customers,
       pending_orders,
+      cancelled_orders,
+      finalized_orders,
       cashier_stats
     });
   } catch (err) {
@@ -180,18 +187,10 @@ router.get('/users', authenticateToken, requireRole('admin'), async (req, res) =
     const users = await User.find().sort({ createdAt: -1 });
     const serialized = users.map(u => ({
       id: u._id,
-      name: u.name,
+      name: u.name || '',
       phone: u.phone && u.phone.startsWith('email_') ? '' : (u.phone || ''),
-      email: u.email,
-      role: u.role,
-      points: u.points,
-      total_spent: parseFloat(u.total_spent),
-      date_joined: u.createdAt.toISOString(),
-      subscriptionTier: u.subscriptionTier,
-      customerStatus: u.customerStatus || 'standard',
-      isPartner: u.isPartner || false,
-      partnerLogo: u.partnerLogo || '',
-      partnerBio: u.partnerBio || ''
+      role: u.role === 'admin' ? 'admin' : 'customer',
+      date_joined: u.createdAt ? u.createdAt.toISOString() : new Date().toISOString()
     }));
     res.json(serialized);
   } catch (err) {
@@ -201,39 +200,40 @@ router.get('/users', authenticateToken, requireRole('admin'), async (req, res) =
 
 // Ø¥Ù†Ø´Ø§Ø¡ Ù…Ø³ØªØ®Ø¯Ù… Ø¬Ø¯ÙŠØ¯ Ø¨ÙˆØ§Ø³Ø·Ø© Ø§Ù„Ø£Ø¯Ù…Ù† (Ù…Ø¹ ØªØ´ÙÙŠØ± ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±)
 router.post('/users', authenticateToken, requireRole('admin'), async (req, res) => {
-  const { name, phone, email, password, role, points, subscriptionTier, customerStatus, isPartner, partnerLogo, partnerBio } = req.body;
+  const { name, phone, role, password } = req.body;
 
-  if (!name || !password || (!phone && !email)) {
-    return res.status(400).json({ error: 'Missing fields: name, password, and phone/email required' });
+  if (!name || !String(name).trim()) {
+    return res.status(400).json({ error: 'الاسم مطلوب' });
+  }
+  if (!phone || !String(phone).trim()) {
+    return res.status(400).json({ error: 'رقم الهاتف مطلوب' });
   }
 
-  try {
-    if (phone) {
-      const existingPhone = await User.findOne({ phone });
-      if (existingPhone) return res.status(409).json({ error: 'Phone already registered' });
-    }
-    if (email) {
-      const existingEmail = await User.findOne({ email });
-      if (existingEmail) return res.status(409).json({ error: 'Email already registered' });
-    }
+  const cleanName = String(name).trim();
+  const cleanPhone = String(phone).trim();
+  // دور المستخدم: عميل (customer) أو مدير (admin) فقط
+  const normalizedRole = (role === 'admin' || role === 'manager') ? 'admin' : 'customer';
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const isPartnerVal = role === 'partner' ? true : Boolean(isPartner);
+  try {
+    const existingPhone = await User.findOne({ phone: cleanPhone });
+    if (existingPhone) return res.status(409).json({ error: 'رقم الهاتف مسجل بالفعل' });
+
+    const plainPass = password && String(password).trim() ? String(password).trim() : cleanPhone;
+    const hashedPassword = await bcrypt.hash(plainPass, 10);
+
     const u = await User.create({
-      name,
-      phone: phone || `email_${Date.now()}`,
-      email: email || null,
+      name: cleanName,
+      phone: cleanPhone,
       password: hashedPassword,
-      role: role || 'customer',
-      points: parseInt(points || 0),
-      subscriptionTier: subscriptionTier || 'none',
-      customerStatus: customerStatus || 'standard',
-      isPartner: isPartnerVal,
-      partnerLogo: partnerLogo || '',
-      partnerBio: partnerBio || ''
+      role: normalizedRole,
+      points: 0,
+      total_spent: 0,
+      subscriptionTier: 'none',
+      customerStatus: 'standard',
+      isPartner: false
     });
 
-    res.json({ success: true, id: u._id });
+    res.json({ success: true, id: u._id, role: normalizedRole });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -241,31 +241,33 @@ router.post('/users', authenticateToken, requireRole('admin'), async (req, res) 
 
 // ØªØ¹Ø¯ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ù…Ø³ØªØ®Ø¯Ù… Ù…ÙˆØ¬ÙˆØ¯
 router.patch('/users/:id', authenticateToken, requireRole('admin'), async (req, res) => {
-  const { name, phone, email, role, points, password, subscriptionTier, customerStatus, isPartner, partnerLogo, partnerBio } = req.body;
+  const { name, phone, role, password } = req.body;
 
   try {
     const u = await User.findById(req.params.id);
-    if (!u) return res.status(404).json({ error: 'User not found' });
+    if (!u) return res.status(404).json({ error: 'المستخدم غير موجود' });
 
-    if (name !== undefined) u.name = name;
-    if (phone !== undefined) u.phone = phone;
-    if (email !== undefined) u.email = email;
-    if (role !== undefined) {
-      u.role = role;
-      u.isPartner = (role === 'partner') || (isPartner !== undefined ? Boolean(isPartner) : false);
+    if (name !== undefined && String(name).trim()) {
+      u.name = String(name).trim();
     }
-    if (points !== undefined) u.points = parseInt(points);
-    if (subscriptionTier !== undefined) u.subscriptionTier = subscriptionTier;
-    if (customerStatus !== undefined) u.customerStatus = customerStatus;
-    if (isPartner !== undefined) u.isPartner = isPartner;
-    if (partnerLogo !== undefined) u.partnerLogo = partnerLogo;
-    if (partnerBio !== undefined) u.partnerBio = partnerBio;
-    if (password) {
-      u.password = await bcrypt.hash(password, 10);
+    if (phone !== undefined && String(phone).trim()) {
+      const cleanPhone = String(phone).trim();
+      if (cleanPhone !== u.phone) {
+        const existing = await User.findOne({ phone: cleanPhone, _id: { $ne: u._id } });
+        if (existing) return res.status(409).json({ error: 'رقم الهاتف مسجل لمستخدم آخر' });
+        u.phone = cleanPhone;
+      }
+    }
+    if (role !== undefined) {
+      // حصر الدور في خيارين فقط: عميل أو مدير
+      u.role = (role === 'admin' || role === 'manager') ? 'admin' : 'customer';
+    }
+    if (password && String(password).trim()) {
+      u.password = await bcrypt.hash(String(password).trim(), 10);
     }
 
     await u.save();
-    res.json({ success: true });
+    res.json({ success: true, role: u.role });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -1294,9 +1296,15 @@ router.get('/cashier-dashboard', authenticateToken, requireRole('admin'), async 
         .sort({ expenseDate: -1 })
         .limit(100)
         .lean(),
-      // 2: الورديات المقفلة في الفترة
-      Shift.find({ closedAt: { $gte: startDate, $lte: endDate } })
-        .sort({ closedAt: -1 })
+      // 2: الورديات في الفترة (مقفلة أو مفتوحة)
+      Shift.find({
+        $or: [
+          { closedAt: { $gte: startDate, $lte: endDate } },
+          { openedAt: { $gte: startDate, $lte: endDate } },
+          { status: 'open' }
+        ]
+      })
+        .sort({ openedAt: -1 })
         .limit(50)
         .lean(),
       // 3: الوردية الحالية المفتوحة (إن وجدت)
@@ -1335,8 +1343,15 @@ router.get('/cashier-dashboard', authenticateToken, requireRole('admin'), async 
     const drinks = shouldFetchCatalog ? results[8] : [];
     const customers = shouldFetchCatalog ? results[9] : [];
 
-    // حساب المؤشرات المالية
-    const validOrders = orders.filter(o => !['cancelled', 'refunded'].includes(o.status));
+    // الحالات المعتمدة كإيرادات مبيعات نهائية
+    const FINALIZED_STATUSES = ['paid', 'completed'];
+
+    // حساب المؤشرات المالية بدقة (استبعاد المعلقة والملغاة والمرفوضة)
+    const validOrders = orders.filter(o => FINALIZED_STATUSES.includes(o.status));
+    const pendingOrders = orders.filter(o => o.status === 'pending');
+    const cancelledOrders = orders.filter(o => ['cancelled', 'rejected'].includes(o.status));
+    const refundedOrders = orders.filter(o => o.status === 'refunded');
+
     const totalSales = validOrders.reduce((sum, o) => sum + (Number(o.total_price) || 0), 0);
     const ordersCount = validOrders.length;
     const totalExpenses = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
@@ -1408,11 +1423,16 @@ router.get('/cashier-dashboard', authenticateToken, requireRole('admin'), async 
       },
       currentOpenShift: currentOpenShift ? {
         id: String(currentOpenShift._id),
+        posShiftId: currentOpenShift.posShiftId,
         cashierName: currentOpenShift.cashierName || 'كاشير الوردية',
         openedAt: currentOpenShift.openedAt,
         openingBalance: Number(currentOpenShift.openingBalance) || 0,
+        closingBalance: Number(currentOpenShift.closingBalance) || 0,
+        expectedBalance: Number(currentOpenShift.expectedBalance) || 0,
+        variance: Number(currentOpenShift.variance) || 0,
         totalOrders: Number(currentOpenShift.totalOrders) || 0,
         totalRevenue: Number(currentOpenShift.totalRevenue) || 0,
+        paymentBreakdown: currentOpenShift.paymentBreakdown || {},
         status: 'open'
       } : null,
       period: {
@@ -1423,6 +1443,10 @@ router.get('/cashier-dashboard', authenticateToken, requireRole('admin'), async 
       kpis: {
         totalSales,
         ordersCount,
+        finalizedCount: validOrders.length,
+        pendingCount: pendingOrders.length,
+        cancelledCount: cancelledOrders.length,
+        refundedCount: refundedOrders.length,
         cashSales,
         cardSales,
         walletSales,
@@ -1466,11 +1490,18 @@ router.get('/cashier-dashboard', authenticateToken, requireRole('admin'), async 
       })),
       shifts: shifts.map(s => ({
         id: String(s._id),
+        posShiftId: s.posShiftId,
         cashierName: s.cashierName || 'كاشير',
+        status: s.status || (s.closedAt ? 'closed' : 'open'),
         openedAt: s.openedAt,
         closedAt: s.closedAt,
+        openingBalance: Number(s.openingBalance) || 0,
+        closingBalance: Number(s.closingBalance) || 0,
+        expectedBalance: Number(s.expectedBalance) || 0,
+        variance: Number(s.variance) || 0,
         totalRevenue: Number(s.totalRevenue) || 0,
-        totalOrders: Number(s.totalOrders) || 0
+        totalOrders: Number(s.totalOrders) || 0,
+        paymentBreakdown: s.paymentBreakdown || {}
       })),
       devices: devices.map(d => {
         const isOnline = d.lastSeen && new Date(d.lastSeen).getTime() > fiveMinutesAgo;

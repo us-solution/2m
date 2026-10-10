@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
   // رقم الهاتف (فريد)
   phone: { type: String, unique: true, required: true },
   // البريد الإلكتروني (فريد اختياري)
-  email: { type: String, unique: true, sparse: true, default: null },
+  email: { type: String, unique: true, sparse: true },
   // كلمة المرور المشفرة
   password: { type: String, required: true },
   // صلاحية المستخدم (customer, admin, cashier, partner)

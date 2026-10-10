@@ -97,6 +97,13 @@ const orderSchema = new mongoose.Schema({
     ref: 'Shift',
     default: null
   },
+  // معرف الوردية المحلي في نظام POS
+  posShiftId: {
+    type: Number,
+    index: true,
+    sparse: true,
+    default: null
+  },
   // طريقة الدفع (نقدي، بطاقة، محفظة، مقسم)
   paymentMethod: {
     type: String,

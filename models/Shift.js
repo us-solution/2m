@@ -2,8 +2,10 @@
 const mongoose = require('mongoose');
 
 const shiftSchema = new mongoose.Schema({
-  // معرف الكاشير
-  cashierId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  // معرف الكاشير (يدعم ObjectId أو معرف نصي/رقمي من الـ POS)
+  cashierId: { type: mongoose.Schema.Types.Mixed, default: null },
+  // معرف الوردية في نظام POS المحلي
+  posShiftId: { type: Number, index: true, sparse: true },
   // اسم الكاشير
   cashierName: { type: String, default: '' },
   // معرف الفرع

@@ -9,6 +9,7 @@ const Drink = require('../models/Drink');
 const Category = require('../models/Category');
 const SystemLicense = require('../models/SystemLicense');
 const PosDevice = require('../models/PosDevice');
+const Shift = require('../models/Shift');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const retryQueue = require('../retry-queue');
@@ -200,9 +201,9 @@ router.post('/ack', verifyBridgeKey, async (req, res) => {
   }
 });
 
-// Synchronize local invoice to cloud — UNIFIED endpoint with Idempotency + Order creation + Loyalty Points
+// Synchronize local invoice to cloud — UNIFIED endpoint with Idempotency + Order creation + Shift linking
 router.post('/invoices/sync', verifyBridgeKey, async (req, res) => {
-  const { invoice_number, idempotency_key, total, payment_method, items, customer_phone, customer_name, customer_id, created_at, status } = req.body || {};
+  const { invoice_number, idempotency_key, total, payment_method, items, customer_phone, customer_name, customer_id, created_at, status, shift_id } = req.body || {};
 
   // Require at least one deduplication key
   if (!idempotency_key && !invoice_number) {
@@ -229,28 +230,18 @@ router.post('/invoices/sync', verifyBridgeKey, async (req, res) => {
       }
     }
 
-    // -- Loyalty Points Calculation --
     let user = null;
-    let pointsEarned = 0;
     const invoiceTotal = Number(total) || 0;
 
     if (customer_phone && customer_phone !== '0000000000') {
       user = await User.findOne({ phone: customer_phone });
-      if (user && invoiceTotal > 0) {
-        pointsEarned = Math.floor(invoiceTotal / 10);
-        user.points = (user.points || 0) + pointsEarned;
-        user.total_spent = (user.total_spent || 0) + invoiceTotal;
-        await user.save();
+    }
 
-        // Log points
-        const PointsLog = require('../models/PointsLog');
-        await PointsLog.create({
-          userId: user._id,
-          points: pointsEarned,
-          type: 'earn',
-          notes: `نقاط مكتسبة من فاتورة الكاشير المزامنة #${invoice_number || idempotency_key}`
-        });
-      }
+    // ربط الفاتورة بالوردية المقابلة في MongoDB إن وجدت
+    let shiftDoc = null;
+    const numShiftId = shift_id !== undefined && shift_id !== null ? Number(shift_id) : null;
+    if (numShiftId) {
+      shiftDoc = await Shift.findOne({ posShiftId: numShiftId });
     }
 
     // -- Create Order in MongoDB --
@@ -269,11 +260,13 @@ router.post('/invoices/sync', verifyBridgeKey, async (req, res) => {
       table_number: 'سفري/محلي',
       items: orderItems,
       total_price: invoiceTotal,
-      points_earned: pointsEarned,
-      status: status || 'paid',
+      points_earned: 0,
+      status: (status && status !== 'completed') ? status : 'paid',
       notes: `تمت المزامنة من الكاشير. طريقة الدفع: ${payment_method || 'cash'}`,
       customerPhone: customer_phone || null,
       posSynced: true,
+      posShiftId: numShiftId,
+      shiftId: shiftDoc ? shiftDoc._id : null,
       qrCodeToken: `pos-sync-${invoice_number || idempotency_key}-${eventId}`,
       paymentMethod: paymentMethodMap(payment_method),
       syncMeta: {
@@ -293,9 +286,93 @@ router.post('/invoices/sync', verifyBridgeKey, async (req, res) => {
       acknowledgedAt: new Date()
     });
 
-    res.json({ success: true, message: 'Invoice synced successfully', eventId, points_earned: pointsEarned });
+    res.json({ success: true, message: 'Invoice synced successfully', eventId, points_earned: 0 });
   } catch (err) {
     console.error('[Bridge] invoices/sync error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// مزامنة ورديات الكاشير من نظام POS المحلي إلى السحابة
+router.post('/shifts/sync', verifyBridgeKey, async (req, res) => {
+  const {
+    pos_shift_id,
+    status,
+    cashier_name,
+    user_id,
+    opened_at,
+    closed_at,
+    opening_balance,
+    closing_balance,
+    expected_balance,
+    variance,
+    total_orders,
+    total_revenue,
+    total_refunds,
+    payment_breakdown,
+    notes
+  } = req.body || {};
+
+  const numShiftId = pos_shift_id !== undefined && pos_shift_id !== null ? Number(pos_shift_id) : null;
+  if (!numShiftId) {
+    return res.status(400).json({ error: 'pos_shift_id is required' });
+  }
+
+  try {
+    let shift = await Shift.findOne({ posShiftId: numShiftId });
+    const shiftData = {
+      posShiftId: numShiftId,
+      cashierName: cashier_name || (shift ? shift.cashierName : 'كاشير السيستم'),
+      status: status || 'open',
+      openingBalance: Number(opening_balance) || 0,
+      closingBalance: Number(closing_balance) || 0,
+      expectedBalance: Number(expected_balance) || 0,
+      variance: Number(variance) || 0,
+      totalOrders: Number(total_orders) || 0,
+      totalRevenue: Number(total_revenue) || 0,
+      totalRefunds: Number(total_refunds) || 0,
+      paymentBreakdown: {
+        cash: Number(payment_breakdown?.cash) || 0,
+        card: Number(payment_breakdown?.card || payment_breakdown?.visa) || 0,
+        wallet: Number(payment_breakdown?.wallet) || 0,
+        split: Number(payment_breakdown?.split) || 0
+      },
+      notes: notes || ''
+    };
+
+    if (opened_at) shiftData.openedAt = new Date(opened_at);
+    if (closed_at) shiftData.closedAt = new Date(closed_at);
+    if (user_id) shiftData.cashierId = user_id;
+
+    if (shift) {
+      Object.assign(shift, shiftData);
+      await shift.save();
+    } else {
+      shift = await Shift.create(shiftData);
+    }
+
+    // ربط أي طلبات في MongoDB مسجلة بنفس رقم الوردية
+    await Order.updateMany(
+      { posShiftId: numShiftId, shiftId: null },
+      { $set: { shiftId: shift._id } }
+    );
+
+    res.json({
+      success: true,
+      message: 'Shift synchronized successfully',
+      shift: {
+        id: shift._id,
+        posShiftId: shift.posShiftId,
+        status: shift.status,
+        cashierName: shift.cashierName,
+        totalOrders: shift.totalOrders,
+        totalRevenue: shift.totalRevenue,
+        openedAt: shift.openedAt,
+        closedAt: shift.closedAt
+      }
+    });
+  } catch (err) {
+    console.error('[Bridge] shifts/sync error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -948,18 +1025,8 @@ router.post('/sync-invoice', verifyBridgeKey, async (req, res) => {
     if (customer_phone) {
       user = await User.findOne({ phone: customer_phone });
       if (user) {
-        pointsEarned = Math.floor(total / 10);
-        user.points = (user.points || 0) + pointsEarned;
         user.total_spent = (user.total_spent || 0) + total;
         await user.save();
-
-        const PointsLog = require('../models/PointsLog');
-        await PointsLog.create({
-          userId: user._id,
-          points: pointsEarned,
-          type: 'earn',
-          notes: `نقاط مكتسبة من فاتورة الكاشير المزامنة #${invoice_number}`
-        });
       }
     }
 

@@ -184,13 +184,13 @@ router.post('/', async (req, res) => {
 
     const user = await getOptionalUser(req);
     let priceNum = parseFloat(total_price) || 0;
-    let points_earned = Math.floor(priceNum);
+    // Separate identity and customer management from sales: do not auto-award points
+    let points_earned = 0;
     let isFreeOrderApplied = false;
 
     if (useFreeOrder && user && user.freeOrdersCount > 0) {
       isFreeOrderApplied = true;
       priceNum = 0;
-      points_earned = 0;
     }
 
     const parsedItems = safeParseItems(items).map(item => ({
@@ -244,7 +244,7 @@ router.post('/', async (req, res) => {
       table_number: String(table_number),
       items: parsedItems,
       total_price: priceNum,
-      points_earned: points_earned,
+      points_earned: 0,
       notes: finalNotes,
       status: 'pending',
       qrCodeToken,
@@ -253,24 +253,13 @@ router.post('/', async (req, res) => {
       externalOrderId
     });
 
-    // إضافة النقاط للعميل إذا كان مسجلاً أو خصم الكوبون الهدية
     if (user) {
       if (isFreeOrderApplied) {
         user.freeOrdersCount = Math.max(0, user.freeOrdersCount - 1);
       } else {
-        user.points += points_earned;
-        user.total_spent = parseFloat(user.total_spent) + priceNum;
+        user.total_spent = parseFloat(user.total_spent || 0) + priceNum;
       }
       await user.save();
-
-      if (points_earned > 0) {
-        await PointsLog.create({
-          userId: user._id,
-          points: points_earned,
-          reason: `Order #${order._id}`,
-          orderId: order._id
-        });
-      }
     }
 
 

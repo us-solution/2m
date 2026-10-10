@@ -781,6 +781,7 @@ body { background-color: var(--bg); color: var(--text); }
         <option value="offers">العروض والخصومات</option>
         <option value="users">العملاء والمستخدمين</option>
         <option value="cashier-dashboard">لوحة تحكم وتقارير الكاشير</option>
+        <option value="reports-center">مركز التقارير والـ PDF</option>
         <option value="customization">خيارات التخصيص</option>
         <option value="pos-devices">أجهزة الكاشير والمزامنة</option>
       </select>
@@ -803,6 +804,10 @@ body { background-color: var(--bg); color: var(--text); }
       <div class="nav-item" data-page="cashier-dashboard" onclick="showPage('cashier-dashboard',this)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><line x1="8" y1="7" x2="16" y2="7"></line><line x1="8" y1="11" x2="16" y2="11"></line></svg>
         <span>بيانات وتقارير الكاشير</span>
+      </div>
+      <div class="nav-item" data-page="reports-center" onclick="showPage('reports-center',this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        <span>مركز التقارير والـ PDF</span>
       </div>
       <div class="nav-item" data-page="customization" onclick="showPage('customization',this)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -871,53 +876,49 @@ body { background-color: var(--bg); color: var(--text); }
 
 
 
-      <!-- ===== المستخدمين ===== -->
+      <!-- ===== العملاء والمستخدمين (Customers & Users) ===== -->
       <div class="page" id="page-users">
-        <h1 class="page-title">المستخدمين</h1>
-        <p class="page-sub">إدارة حسابات العملاء والموظفين</p>
+        <h1 class="page-title">إدارة العملاء والمستخدمين</h1>
+        <p class="page-sub">إدارة الحسابات — الاسم، رقم الهاتف، والدور (عميل / مدير)</p>
 
-        <div class="admin-form">
-          <div class="form-group" style="flex: 1; min-width: 120px;">
+        <div class="admin-form" style="display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap; background:var(--bg2); padding:1.2rem; border-radius:10px; border:1px solid var(--line); margin-bottom:1.5rem;">
+          <div class="form-group" style="flex: 1.5; min-width: 150px;">
             <label for="nu-name">الاسم</label>
-            <input type="text" id="nu-name" placeholder="الاسم" class="edit-input">
+            <input type="text" id="nu-name" placeholder="الاسم" class="edit-input" required>
           </div>
-          <div class="form-group" style="flex: 1; min-width: 120px;">
-            <label for="nu-phone">الهاتف</label>
-            <input type="tel" id="nu-phone" placeholder="الهاتف" class="edit-input">
+          <div class="form-group" style="flex: 1.5; min-width: 150px;">
+            <label for="nu-phone">رقم الهاتف</label>
+            <input type="tel" id="nu-phone" placeholder="رقم الهاتف" class="edit-input" required>
           </div>
-          <div class="form-group" style="flex: 1.2; min-width: 150px;">
-            <label for="nu-email">البريد الإلكتروني (اختياري)</label>
-            <input type="email" id="nu-email" placeholder="البريد الإلكتروني" class="edit-input">
-          </div>
-          <div class="form-group" style="flex: 1; min-width: 120px;">
-            <label for="nu-pass">كلمة المرور</label>
-            <input type="password" id="nu-pass" placeholder="كلمة المرور" class="edit-input">
-          </div>
-          <div class="form-group" style="flex: 0.8; min-width: 100px;">
-            <label for="nu-role">الصلاحية</label>
+          <div class="form-group" style="flex: 1; min-width: 130px;">
+            <label for="nu-role">الدور</label>
             <select id="nu-role" class="edit-input">
               <option value="customer">عميل</option>
-              <option value="partner">شريك</option>
               <option value="admin">مدير</option>
             </select>
           </div>
-          <button class="hbtn" onclick="addUser()">حفظ</button>
+          <div class="form-group" style="flex: 1; min-width: 120px;">
+            <label for="nu-pass">كلمة المرور (اختياري)</label>
+            <input type="password" id="nu-pass" placeholder="افتراضياً رقم الهاتف" class="edit-input">
+          </div>
+          <button class="hbtn" onclick="addUser()" style="height:42px; padding:0 1.5rem;">حفظ</button>
         </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>الاسم</th>
-              <th>الهاتف</th>
-              <th>الدور</th>
-              <th>النقاط</th>
-              <th>الإنفاق</th>
-              <th>حالة العميل</th>
-              <th>إجراء</th>
-            </tr>
-          </thead>
-          <tbody id="usersTable"></tbody>
-        </table>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:50px;">#</th>
+                <th>الاسم</th>
+                <th>رقم الهاتف</th>
+                <th>الدور</th>
+                <th>تاريخ التسجيل</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="usersTable"></tbody>
+          </table>
+        </div>
       </div>
 
       <!-- ===== التصنيفات ===== -->
@@ -1412,6 +1413,119 @@ body { background-color: var(--bg); color: var(--text); }
         </div>
       </div>
 
+      <!-- ===== مركز التقارير والـ PDF (Reports & PDF Center) ===== -->
+      <div class="page" id="page-reports-center">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+          <div>
+            <h1 class="page-title" style="margin-bottom:0.3rem;">Reports & PDF Center — مركز التقارير والـ PDF</h1>
+            <p class="page-sub" style="margin-bottom:0;">استخراج وتوليد وطباعة التقارير المالية والتشغيلية المعتمدة لنظام نقاط البيع والكاشير</p>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.8rem;">
+            <span id="rc-sync-status" style="font-size:0.85rem; color:#2ecc71; background:rgba(46,204,113,0.12); padding:0.4rem 0.8rem; border-radius:20px; border:1px solid rgba(46,204,113,0.3); display:inline-flex; align-items:center; gap:0.4rem;">
+              <span style="width:8px; height:8px; border-radius:50%; background:#2ecc71; display:inline-block;"></span>
+              متزامن مع الكاشير
+            </span>
+            <button class="action-btn2" onclick="triggerImmediateSyncAndRefresh()" style="border-color:var(--gold); color:var(--gold); display:inline-flex; align-items:center; gap:0.4rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+              <span>مزامنة فورية الآن</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter & Selection Card -->
+        <div style="background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:1.25rem; margin-bottom:1.5rem; box-shadow:0 4px 20px rgba(0,0,0,0.15);">
+          <div style="display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end;">
+            
+            <!-- Report Type -->
+            <div style="flex:2; min-width:240px;">
+              <label style="display:block; font-size:0.85rem; font-weight:700; color:var(--gold); margin-bottom:0.4rem;">اختر نوع التقرير المطلوب (12 تقريراً معتمداً)</label>
+              <select id="rc-report-type" class="edit-input" onchange="fetchReportPreview()" style="width:100%; height:42px; font-weight:700; font-size:0.95rem; background:var(--bg3); border-color:var(--line);">
+                <option value="sales">1. تقرير المبيعات — Sales</option>
+                <option value="menu_products">2. تقرير القائمة والمنتجات — Menu & Products</option>
+                <option value="income_revenue">3. تقرير الدخل والإيرادات — Income & Revenue</option>
+                <option value="profit_loss">4. تقرير الأرباح والخسائر — Profit & Loss</option>
+                <option value="inventory_stock">5. تقرير المخزون وأرصدة المخزون — Inventory & Stock</option>
+                <option value="warehouses">6. تقرير المستودعات — Warehouses</option>
+                <option value="product_movements">7. تقرير حركة المنتجات — Product Movements</option>
+                <option value="costs">8. تقرير التكاليف — Costs</option>
+                <option value="expenses">9. تقرير المصروفات — Expenses</option>
+                <option value="cash_flow">10. تقرير السيولة والأرصدة النقدية — Cash Flow & Balances</option>
+                <option value="cashier_shifts">11. تقرير الكاشير والورديات — Cashier & Shifts</option>
+                <option value="invoices_orders">12. تقرير الفواتير والطلبات — Invoices & Orders</option>
+              </select>
+            </div>
+
+            <!-- Start Date -->
+            <div style="flex:1; min-width:140px;">
+              <label style="display:block; font-size:0.85rem; color:var(--muted); margin-bottom:0.4rem;">من تاريخ</label>
+              <input type="date" id="rc-start-date" class="edit-input" style="width:100%; height:42px; background:var(--bg3);" onchange="fetchReportPreview()">
+            </div>
+
+            <!-- End Date -->
+            <div style="flex:1; min-width:140px;">
+              <label style="display:block; font-size:0.85rem; color:var(--muted); margin-bottom:0.4rem;">إلى تاريخ</label>
+              <input type="date" id="rc-end-date" class="edit-input" style="width:100%; height:42px; background:var(--bg3);" onchange="fetchReportPreview()">
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+              <button class="hbtn" onclick="fetchReportPreview()" style="height:42px; padding:0 1.2rem; display:inline-flex; align-items:center; gap:0.4rem;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <span>معاينة التقرير</span>
+              </button>
+
+              <button class="hbtn" onclick="downloadReportPdf()" style="height:42px; padding:0 1.4rem; background:linear-gradient(135deg, #c0392b, #e74c3c); border-color:#e74c3c; display:inline-flex; align-items:center; gap:0.5rem; font-weight:700;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M12 18v-6"></path><path d="M9 15l3 3 3-3"></path></svg>
+                <span>تحميل PDF معتمد</span>
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Date Presets -->
+          <div style="display:flex; gap:0.5rem; margin-top:1rem; flex-wrap:wrap; align-items:center;">
+            <span style="font-size:0.8rem; color:var(--muted); margin-left:0.5rem;">فترات سريعة:</span>
+            <button class="filter-pill rc-pill active" id="rc-preset-all" onclick="setReportPreset('all')">الكل</button>
+            <button class="filter-pill rc-pill" id="rc-preset-today" onclick="setReportPreset('today')">اليوم</button>
+            <button class="filter-pill rc-pill" id="rc-preset-yesterday" onclick="setReportPreset('yesterday')">أمس</button>
+            <button class="filter-pill rc-pill" id="rc-preset-week" onclick="setReportPreset('week')">هذا الأسبوع</button>
+            <button class="filter-pill rc-pill" id="rc-preset-month" onclick="setReportPreset('month')">هذا الشهر</button>
+          </div>
+        </div>
+
+        <!-- KPI Summary Cards Container -->
+        <div id="rc-kpi-container" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-bottom:1.5rem;">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- Report Data Table Preview Card -->
+        <div style="background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:1.25rem; box-shadow:0 4px 20px rgba(0,0,0,0.15);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.8rem;">
+            <div>
+              <h2 id="rc-table-title" style="font-size:1.15rem; color:var(--text); margin-bottom:0.2rem;">بيانات التقرير المعاينة</h2>
+              <p id="rc-table-subtitle" style="font-size:0.85rem; color:var(--muted); margin-bottom:0;">جاري تحميل المعاينة...</p>
+            </div>
+            <div style="font-size:0.85rem; color:var(--muted);">
+              عدد السجلات: <span id="rc-records-count" style="color:var(--gold); font-weight:700;">0</span>
+            </div>
+          </div>
+
+          <div style="overflow-x:auto; border-radius:8px; border:1px solid var(--line);">
+            <table id="rc-data-table" style="width:100%; border-collapse:collapse; text-align:right;">
+              <thead id="rc-table-head" style="background:rgba(212,175,55,0.08);">
+                <!-- Dynamic headers -->
+              </thead>
+              <tbody id="rc-table-body">
+                <tr><td colspan="8" style="text-align:center; padding:2rem; color:var(--muted);">انقر على "معاينة التقرير" لعرض البيانات</td></tr>
+              </tbody>
+              <tfoot id="rc-table-foot" style="background:rgba(255,255,255,0.03); font-weight:700;">
+                <!-- Optional totals footer -->
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -1450,6 +1564,7 @@ body { background-color: var(--bg); color: var(--text); }
       if (name === 'offers') loadOffers();
       if (name === 'users') loadUsers();
       if (name === 'cashier-dashboard') loadCashierDashboard();
+      if (name === 'reports-center') loadReportsCenter();
       if (name === 'customization') loadCustomization();
       
       if (name === 'pos-devices') {
@@ -2546,93 +2661,92 @@ body { background-color: var(--bg); color: var(--text); }
       else showModal('خطأ', data.error || 'خطأ في الحذف');
     }
 
-    // ????? ????? ??????????
+    // جلب وعرض قائمة المستخدمين والعملاء
     async function loadUsers() {
-      const res = await fetch('/api/admin/users', { headers: getAuthH() });
-      usersData = await res.json();
-      document.getElementById('usersTable').innerHTML = usersData.map(u => `
-    <tr>
-      <td><span class="editable" onclick="editUserField('${u.id}','name','${(u.name || '').replace(/'/g, "\\'")}',this)">${u.name || ''}</span></td>
-      <td style="font-size:.8rem;color:var(--muted)"><span class="editable" onclick="editUserField('${u.id}','phone','${u.phone || ''}',this)">${u.phone || ''}</span></td>
-      <td>
-        <select onchange="changeRole('${u.id}',this.value)" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.3rem;font-family:'Outfit',sans-serif;font-size:.8rem;">
-          <option value="customer" ${u.role === 'customer' ? 'selected' : ''}>عميل</option>
-          <option value="partner" ${u.role === 'partner' ? 'selected' : ''}>شريك</option>
-          <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>مدير</option>
-        </select>
-      </td>
-      <td class="points-badge"><span class="editable" onclick="editUserPoints('${u.id}',${u.points || 0},this)">${u.points || 0}</span></td>
-      <td style="color:var(--gold);font-size:.9rem">${Math.round(u.total_spent || 0)} ج.م</td>
-      <td>
-        <select onchange="changeCustomerStatus('${u.id}',this.value)" style="background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.3rem;font-family:'Outfit',sans-serif;font-size:.8rem;">
-          <option value="standard" ${u.customerStatus === 'standard' ? 'selected' : ''}>Standard</option>
-          <option value="gold" ${u.customerStatus === 'gold' ? 'selected' : ''}>Gold</option>
-          <option value="student" ${u.customerStatus === 'student' ? 'selected' : ''}>Student</option>
-          <option value="ozel_family" ${u.customerStatus === 'ozel_family' ? 'selected' : ''}>2M FAMILY</option>
-        </select>
-      </td>
-      <td>
-        <button class="action-btn2" onclick="editUserPassword('${u.id}')">كلمة المرور</button>
-        <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteUser('${u.id}')">حذف</button>
-      </td>
-    </tr>
-  `).join('');
+      try {
+        const res = await fetchWithTimeout('/api/admin/users', { headers: getAuthH() });
+        if (!res.ok) throw new Error('فشل جلب المستخدمين');
+        usersData = await res.json();
+        const tbody = document.getElementById('usersTable');
+        if (!usersData || usersData.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:2rem;">لا يوجد مستخدمون مسجلون بعد</td></tr>';
+          return;
+        }
+        tbody.innerHTML = usersData.map((u, idx) => `
+          <tr>
+            <td style="color:var(--muted); font-size:0.85rem;">${idx + 1}</td>
+            <td style="font-weight:700;"><span class="editable" onclick="editUserField('${u.id}','name','${(u.name || '').replace(/'/g, "\\'")}',this)">${u.name || '—'}</span></td>
+            <td style="direction:ltr; text-align:right;"><span class="editable" onclick="editUserField('${u.id}','phone','${u.phone || ''}',this)">${u.phone || '—'}</span></td>
+            <td>
+              <select onchange="changeRole('${u.id}',this.value)" style="background:var(--bg3);border:1px solid var(--line);color:var(--gold);padding:.35rem .6rem;border-radius:6px;font-family:'Tajawal',sans-serif;font-weight:700;font-size:.85rem;">
+                <option value="customer" ${u.role !== 'admin' ? 'selected' : ''}>عميل</option>
+                <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>مدير</option>
+              </select>
+            </td>
+            <td style="color:var(--muted); font-size:0.85rem;">${u.date_joined ? new Date(u.date_joined).toLocaleDateString('ar-EG') : '—'}</td>
+            <td>
+              <button class="action-btn2" onclick="editUserPassword('${u.id}')">كلمة المرور</button>
+              <button class="action-btn2" style="color:var(--red); border-color:rgba(192,57,43,.4)" onclick="deleteUser('${u.id}')">حذف</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error('loadUsers error:', e);
+        showModal('خطأ', 'فشل في تحميل قائمة المستخدمين');
+      }
     }
 
-    // إضافة مستخدم جديد
+    // إضافة مستخدم أو عميل جديد (الاسم، رقم الهاتف، والدور: عميل / مدير)
     async function addUser() {
       const name = document.getElementById('nu-name').value.trim();
       const phone = document.getElementById('nu-phone').value.trim();
-      const email = document.getElementById('nu-email').value.trim();
-      const password = document.getElementById('nu-pass').value;
       const role = document.getElementById('nu-role').value;
-      if (!name || !password) { showModal('تنبيه', 'يرجى إدخال الاسم وكلمة المرور'); return; }
-      if (!phone && !email) { showModal('تنبيه', 'يرجى تقديم الهاتف أو البريد الإلكتروني على الأقل'); return; }
+      const password = document.getElementById('nu-pass').value.trim();
+
+      if (!name) { showModal('تنبيه', 'يرجى إدخال اسم المستخدم / العميل'); return; }
+      if (!phone) { showModal('تنبيه', 'يرجى إدخال رقم الهاتف'); return; }
+
       try {
-        const res = await fetch('/api/admin/users', { method: 'POST', headers: getAuthH(), body: JSON.stringify({ name, phone, email: email || undefined, password, role }) });
+        const res = await fetch('/api/admin/users', {
+          method: 'POST',
+          headers: getAuthH(),
+          body: JSON.stringify({ name, phone, role, password: password || undefined })
+        });
         const data = await res.json();
         if (data.success) {
           document.getElementById('nu-name').value = '';
           document.getElementById('nu-phone').value = '';
-          document.getElementById('nu-email').value = '';
           document.getElementById('nu-pass').value = '';
+          document.getElementById('nu-role').value = 'customer';
           loadUsers();
-          showModal('نجاح', 'تمت إضافة المستخدم');
-        } else { showModal('خطأ', data.error); }
-      } catch (e) { showModal('خطأ', 'خطأ في إضافة المستخدم'); }
+          showModal('نجاح', 'تم حفظ المستخدم بنجاح');
+        } else {
+          showModal('خطأ', data.error || 'فشل في حفظ المستخدم');
+        }
+      } catch (e) {
+        showModal('خطأ', 'خطأ في الاتصال بالسيرفر أثناء إضافة المستخدم');
+      }
     }
 
-    // ????? ??? ?????? ??????
+    // تعديل حقل نصي للمستخدم (الاسم أو الهاتف)
     function editUserField(id, field, current, el) {
       const inp = document.createElement('input');
-      inp.className = 'edit-input'; inp.type = 'text'; inp.value = current; inp.style.width = '120px';
+      inp.className = 'edit-input'; inp.type = 'text'; inp.value = current; inp.style.width = '140px';
       inp.onblur = async () => {
         const val = inp.value.trim();
-        if (val && val !== current) { await patchUser(id, { [field]: val }); el.textContent = val; }
-        else { el.textContent = current; }
-        inp.replaceWith(el);
-      };
-      inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') inp.replaceWith(el); };
-      el.replaceWith(inp); inp.focus(); inp.select();
-    }
-
-    // ????? ???? ????????
-    function editUserPoints(id, current, el) {
-      const inp = document.createElement('input');
-      inp.className = 'edit-input'; inp.type = 'number'; inp.value = current; inp.style.width = '70px';
-      inp.onblur = async () => {
-        const val = parseInt(inp.value);
-        if (!isNaN(val) && val >= 0 && val !== current) {
-          await patchUser(id, { points: val });
+        if (val && val !== current) {
+          await patchUser(id, { [field]: val });
           el.textContent = val;
-        } else { el.textContent = current; }
+        } else {
+          el.textContent = current;
+        }
         inp.replaceWith(el);
       };
       inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') inp.replaceWith(el); };
       el.replaceWith(inp); inp.focus(); inp.select();
     }
 
-    // ????? ???? ???? ????????
+    // تغيير كلمة المرور للمستخدم
     async function editUserPassword(id) {
       const newPass = await showModal('تغيير كلمة المرور', 'أدخل كلمة المرور الجديدة:', false, true);
       if (newPass && newPass.trim().length >= 4) {
@@ -2643,35 +2757,42 @@ body { background-color: var(--bg); color: var(--text); }
       }
     }
 
-    // ????? ????? ?????? ??? ??????
+    // إرسال تحديث لبيانات المستخدم
     async function patchUser(id, data) {
-      await fetch(`/api/admin/users/${id}`, { method: 'PATCH', headers: getAuthH(), body: JSON.stringify(data) });
+      try {
+        const res = await fetch(`/api/admin/users/${id}`, { method: 'PATCH', headers: getAuthH(), body: JSON.stringify(data) });
+        const resData = await res.json();
+        if (!resData.success) {
+          showModal('خطأ', resData.error || 'فشل التحديث');
+          loadUsers();
+        }
+      } catch (err) {
+        showModal('خطأ', 'فشل في تحديث بيانات المستخدم');
+        loadUsers();
+      }
     }
 
-    // ??? ??????
+    // حذف مستخدم
     async function deleteUser(id) {
       if (!await showModal('تأكيد', 'هل أنت متأكد من حذف المستخدم نهائياً؟', true)) return;
-      const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE', headers: getAuthH() });
-      const data = await res.json();
-      if (data.success) loadUsers();
-      else showModal('خطأ', data.error || 'خطأ في الحذف');
+      try {
+        const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE', headers: getAuthH() });
+        const data = await res.json();
+        if (data.success) {
+          loadUsers();
+        } else {
+          showModal('خطأ', data.error || 'خطأ في الحذف');
+        }
+      } catch (err) {
+        showModal('خطأ', 'فشل في حذف المستخدم');
+      }
     }
 
-    // ????? ?????? ????????
+    // تغيير دور المستخدم (حصر الاختيار في عميل أو مدير)
     async function changeRole(id, role) {
-      await fetch(`/api/admin/users/${id}`, { method: 'PATCH', headers: getAuthH(), body: JSON.stringify({ role }) });
-    }
-
-    // تغيير حالة العميل
-    async function changeCustomerStatus(id, status) {
-      await fetch(`/api/admin/users/${id}`, { method: 'PATCH', headers: getAuthH(), body: JSON.stringify({ customerStatus: status }) });
-    }
-
-    // تغيير حالة الشريك للعميل
-    async function changePartnerStatus(id, isPartnerVal) {
-      const status = isPartnerVal === 'true';
-      await fetch(`/api/admin/users/${id}`, { method: 'PATCH', headers: getAuthH(), body: JSON.stringify({ isPartner: status }) });
-      showToast('تم تحديث حالة الشريك', 'success');
+      const normalizedRole = role === 'admin' ? 'admin' : 'customer';
+      await patchUser(id, { role: normalizedRole });
+      loadUsers();
     }
 
     // ????? ??????
@@ -3149,6 +3270,231 @@ body { background-color: var(--bg); color: var(--text); }
       if (!str) return '';
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
+
+    // =========================================================================
+    // كود مركز التقارير والـ PDF (Reports & PDF Center)
+    // =========================================================================
+    let currentReportEngineData = null;
+
+    function loadReportsCenter() {
+      // تعيين الفترات الافتراضية إذا كانت فارغة
+      const startInp = document.getElementById('rc-start-date');
+      const endInp = document.getElementById('rc-end-date');
+      if (!startInp.value && !endInp.value) {
+        // افتراضياً: بداية الشهر الحالي حتى اليوم
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        startInp.value = `${y}-${m}-01`;
+        endInp.value = `${y}-${m}-${d}`;
+      }
+      fetchReportPreview();
+    }
+
+    function setReportPreset(preset) {
+      document.querySelectorAll('.rc-pill').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.getElementById('rc-preset-' + preset);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const startInp = document.getElementById('rc-start-date');
+      const endInp = document.getElementById('rc-end-date');
+      const now = new Date();
+      const formatDate = (date) => {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      };
+
+      if (preset === 'today') {
+        startInp.value = formatDate(now);
+        endInp.value = formatDate(now);
+      } else if (preset === 'yesterday') {
+        const yest = new Date(now);
+        yest.setDate(yest.getDate() - 1);
+        startInp.value = formatDate(yest);
+        endInp.value = formatDate(yest);
+      } else if (preset === 'week') {
+        const pastWeek = new Date(now);
+        pastWeek.setDate(pastWeek.getDate() - 7);
+        startInp.value = formatDate(pastWeek);
+        endInp.value = formatDate(now);
+      } else if (preset === 'month') {
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        startInp.value = formatDate(firstDay);
+        endInp.value = formatDate(now);
+      } else if (preset === 'all') {
+        startInp.value = '';
+        endInp.value = '';
+      }
+
+      fetchReportPreview();
+    }
+
+    async function fetchReportPreview() {
+      const type = document.getElementById('rc-report-type').value;
+      const start = document.getElementById('rc-start-date').value;
+      const end = document.getElementById('rc-end-date').value;
+
+      const tbody = document.getElementById('rc-table-body');
+      const thead = document.getElementById('rc-table-head');
+      const tfoot = document.getElementById('rc-table-foot');
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:2.5rem; color:var(--gold);"><span style="display:inline-block; animation:pulse 1.5s infinite;">⏳ جاري استخراج وحساب بيانات التقرير من النظام...</span></td></tr>';
+      thead.innerHTML = '';
+      tfoot.innerHTML = '';
+
+      try {
+        let url = `/api/reports/engine/data?reportType=${encodeURIComponent(type)}`;
+        if (start) url += `&startDate=${encodeURIComponent(start)}`;
+        if (end) url += `&endDate=${encodeURIComponent(end)}`;
+
+        const res = await fetchWithTimeout(url, { headers: getAuthH() }, 20000);
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || 'فشل جلب بيانات التقرير');
+        }
+
+        const resJson = await res.json();
+        const data = resJson.data || resJson;
+        currentReportEngineData = data;
+
+        document.getElementById('rc-table-title').textContent = data.title || 'تقرير';
+        document.getElementById('rc-table-subtitle').textContent = `الفترة: ${data.periodFormatted || 'جميع الفترات'} • وقت التوليد: ${new Date(data.generatedAt || Date.now()).toLocaleTimeString('ar-EG')}`;
+        document.getElementById('rc-records-count').textContent = data.rows ? data.rows.length : 0;
+
+        renderReportKpis(data);
+        renderReportTable(data);
+      } catch (err) {
+        console.error('fetchReportPreview error:', err);
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:2.5rem; color:var(--red);">⚠️ خطأ: ${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+
+    function renderReportKpis(data) {
+      const container = document.getElementById('rc-kpi-container');
+      if (!container) return;
+
+      const sum = data.summary || {};
+      const cards = [];
+
+      for (const [key, val] of Object.entries(sum)) {
+        let label = key;
+        let formattedVal = val;
+        let color = 'var(--text)';
+
+        if (typeof val === 'number') {
+          if (key.includes('مبيعات') || key.includes('إيرادات') || key.includes('أرباح') || key.includes('تكلفة') || key.includes('مصروفات') || key.includes('نقد') || key.includes('رصيد') || key.includes('قيمة')) {
+            formattedVal = val.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ج.م';
+          } else {
+            formattedVal = val.toLocaleString('ar-EG');
+          }
+        }
+
+        if (key.includes('صافي') || key.includes('أرباح') || key.includes('إيرادات') || key.includes('مبيعات')) {
+          color = 'var(--gold)';
+        } else if (key.includes('مصروفات') || key.includes('تكلفة')) {
+          color = '#e74c3c';
+        }
+
+        cards.push(`
+          <div style="background:var(--bg2); border:1px solid var(--line); border-radius:10px; padding:1.1rem; border-right:4px solid ${color};">
+            <div style="font-size:0.8rem; color:var(--muted); margin-bottom:0.3rem;">${escapeHtml(label)}</div>
+            <div style="font-size:1.35rem; font-weight:800; color:${color}; font-family:'Tajawal',sans-serif;">${escapeHtml(String(formattedVal))}</div>
+          </div>
+        `);
+      }
+
+      container.innerHTML = cards.join('');
+    }
+
+    function renderReportTable(data) {
+      const thead = document.getElementById('rc-table-head');
+      const tbody = document.getElementById('rc-table-body');
+      const tfoot = document.getElementById('rc-table-foot');
+
+      const headers = data.headers || [];
+      const rows = data.rows || [];
+      const totals = data.totals || null;
+
+      thead.innerHTML = `
+        <tr>
+          ${headers.map(h => `<th style="padding:0.8rem 1rem; border-bottom:2px solid var(--line); color:var(--gold); font-size:0.9rem; font-weight:700;">${escapeHtml(h)}</th>`).join('')}
+        </tr>
+      `;
+
+      if (rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${headers.length || 1}" style="text-align:center; padding:2.5rem; color:var(--muted);">لا توجد حركات أو بيانات مسجلة في هذه الفترة</td></tr>`;
+      } else {
+        tbody.innerHTML = rows.map((row, idx) => `
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.05); background:${idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)'};">
+            ${row.map(cell => `<td style="padding:0.75rem 1rem; font-size:0.88rem; color:var(--text);">${escapeHtml(String(cell !== null && cell !== undefined ? cell : '—'))}</td>`).join('')}
+          </tr>
+        `).join('');
+      }
+
+      if (totals && Array.isArray(totals)) {
+        tfoot.innerHTML = `
+          <tr style="border-top:2px solid var(--gold); background:rgba(212,175,55,0.06); font-weight:800;">
+            ${totals.map(tot => `<td style="padding:0.85rem 1rem; color:var(--gold); font-size:0.92rem;">${escapeHtml(String(tot !== null && tot !== undefined ? tot : ''))}</td>`).join('')}
+          </tr>
+        `;
+      } else {
+        tfoot.innerHTML = '';
+      }
+    }
+
+    function downloadReportPdf() {
+      const type = document.getElementById('rc-report-type').value;
+      const start = document.getElementById('rc-start-date').value;
+      const end = document.getElementById('rc-end-date').value;
+      const token = (localStorage.getItem('2m_token') || localStorage.getItem('ozel_token') || '');
+
+      let url = `/api/reports/engine/pdf?reportType=${encodeURIComponent(type)}&token=${encodeURIComponent(token)}`;
+      if (start) url += `&startDate=${encodeURIComponent(start)}`;
+      if (end) url += `&endDate=${encodeURIComponent(end)}`;
+
+      window.open(url, '_blank');
+      showToast('جاري إنشاء وتحميل تقرير PDF المعتمد...', 'info');
+    }
+
+    async function triggerImmediateSyncAndRefresh() {
+      const syncStatus = document.getElementById('rc-sync-status');
+      if (syncStatus) {
+        syncStatus.innerHTML = '<span style="width:8px; height:8px; border-radius:50%; background:#f39c12; display:inline-block;"></span> جاري المزامنة...';
+        syncStatus.style.color = '#f39c12';
+      }
+
+      try {
+        const res = await fetchWithTimeout('/api/admin/cashier-dashboard?period=today', { headers: getAuthH() }, 10000);
+        if (res.ok) {
+          cashierDashboardData = await res.json();
+          renderCashierDashboardData(cashierDashboardData);
+        }
+        if (document.getElementById('page-reports-center').classList.contains('active')) {
+          await fetchReportPreview();
+        }
+        if (syncStatus) {
+          syncStatus.innerHTML = '<span style="width:8px; height:8px; border-radius:50%; background:#2ecc71; display:inline-block;"></span> متزامن مع الكاشير';
+          syncStatus.style.color = '#2ecc71';
+        }
+        showToast('تمت المزامنة بنجاح وحفظ أحدث البيانات', 'success');
+      } catch (err) {
+        if (syncStatus) {
+          syncStatus.innerHTML = '<span style="width:8px; height:8px; border-radius:50%; background:#e74c3c; display:inline-block;"></span> خطأ في المزامنة';
+          syncStatus.style.color = '#e74c3c';
+        }
+        showToast('فشل تحديث المزامنة: ' + err.message, 'error');
+      }
+    }
+
+    // مزامنة خلفية حية دورية كل 15 ثانية (Phase 3 Live Sync)
+    setInterval(() => {
+      const isDashboardActive = document.getElementById('page-cashier-dashboard') && document.getElementById('page-cashier-dashboard').classList.contains('active');
+      if (isDashboardActive && !document.hidden) {
+        loadCashierDashboard(currentCashierPeriod, true);
+      }
+    }, 15000);
 
   </script>
 

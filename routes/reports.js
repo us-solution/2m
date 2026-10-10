@@ -29,11 +29,12 @@ router.get('/sales', authenticateToken, requireRole('admin'), async (req, res) =
       match.createdAt = { $gte: d };
     }
 
+    const FINALIZED_STATUSES = ['paid', 'completed'];
     const orders = await Order.find(match).lean();
     const total = orders.reduce((s, o) => s + (o.total_price || 0), 0);
-    const paid = orders.filter(o => !['cancelled','refunded'].includes(o.status));
+    const paid = orders.filter(o => FINALIZED_STATUSES.includes(o.status));
     const revenue = paid.reduce((s, o) => s + (o.total_price || 0), 0);
-    const cancelled = orders.filter(o => o.status === 'cancelled');
+    const cancelled = orders.filter(o => ['cancelled', 'rejected'].includes(o.status));
     const refunded = orders.filter(o => o.status === 'refunded');
 
     // التاريخ اليومي للرسم البياني (آخر 7 أيام)
@@ -42,27 +43,29 @@ router.get('/sales', authenticateToken, requireRole('admin'), async (req, res) =
       const d = new Date(); d.setDate(d.getDate() - i); d.setHours(0,0,0,0);
       const end = new Date(d); end.setDate(end.getDate() + 1);
       const dayOrders = await Order.find({ createdAt: { $gte: d, $lt: end } }).lean();
-      const dayPaid = dayOrders.filter(o => !['cancelled','refunded'].includes(o.status));
+      const dayPaid = dayOrders.filter(o => FINALIZED_STATUSES.includes(o.status));
       const dayRev = dayPaid.reduce((s, o) => s + (o.total_price || 0), 0);
       dailyHistory.push({
         date: d.toISOString().slice(0,10),
-        orders: dayOrders.length,
+        orders: dayPaid.length,
         revenue: dayRev,
-        avgValue: dayOrders.length ? (dayRev / dayOrders.length) : 0
+        avgValue: dayPaid.length ? (dayRev / dayPaid.length) : 0
       });
     }
 
     res.json({
       period: period || 'custom',
       totalOrders: orders.length,
+      finalizedOrders: paid.length,
       totalRevenue: revenue,
       cancelledOrders: cancelled.length,
       refundedOrders: refunded.length,
-      avgOrderValue: orders.length ? (revenue / orders.length) : 0,
+      avgOrderValue: paid.length ? (revenue / paid.length) : 0,
       statusBreakdown: {
         pending: orders.filter(o => o.status === 'pending').length,
         ready: orders.filter(o => o.status === 'ready').length,
         served: orders.filter(o => o.status === 'served').length,
+        finalized: paid.length,
         cancelled: cancelled.length + refunded.length
       },
       dailyHistory
@@ -86,7 +89,7 @@ router.get('/top-items', authenticateToken, requireRole('admin'), async (req, re
       match.createdAt = { $gte: d };
     }
 
-    match.status = { $nin: ['cancelled', 'refunded'] };
+    match.status = { $in: ['paid', 'completed'] };
     const orders = await Order.find(match).lean();
     const itemMap = {};
     for (const o of orders) {
@@ -136,9 +139,9 @@ router.get('/cashiers', authenticateToken, requireRole('admin'), async (req, res
       byCashier[s.cashierId].splitCollected += (s.paymentBreakdown && s.paymentBreakdown.split) || 0;
     }
 
-    // إضافة المبيعات من الطلبات المرتبطة بالكاشير
+    // إضافة المبيعات من الطلبات المرتبطة بالكاشير (فقط المدفوعة والمكتملة)
     for (const o of orders) {
-      if (!o.cashierId) continue;
+      if (!o.cashierId || !['paid', 'completed'].includes(o.status)) continue;
       const cid = o.cashierId.toString();
       if (!byCashier[cid]) byCashier[cid] = { cashierId: cid, cashierName: 'كاشير', shifts: 0, totalRevenue: 0, totalOrders: 0, cashCollected: 0, cardCollected: 0, walletCollected: 0, splitCollected: 0, totalRefunds: 0 };
       if (o.paymentMethod === 'cash') byCashier[cid].cashCollected += o.total_price || 0;
@@ -153,7 +156,7 @@ router.get('/cashiers', authenticateToken, requireRole('admin'), async (req, res
   }
 });
 
-// توزيع طرق الدفع
+// توزيع طرق الدفع (فقط للطلبات المكتملة والمدفوعة)
 router.get('/payment-methods', authenticateToken, requireRole('admin'), async (req, res) => {
   const { start, end } = req.query;
   try {
@@ -167,6 +170,7 @@ router.get('/payment-methods', authenticateToken, requireRole('admin'), async (r
       match.createdAt = { $gte: d };
     }
     match.paymentMethod = { $ne: null, $exists: true };
+    match.status = { $in: ['paid', 'completed'] };
 
     const orders = await Order.find(match).lean();
     const breakdown = { cash: { count: 0, total: 0 }, card: { count: 0, total: 0 }, wallet: { count: 0, total: 0 }, split: { count: 0, total: 0 }, unspecified: { count: 0, total: 0 } };
@@ -203,7 +207,7 @@ router.get('/hourly-sales', authenticateToken, requireRole('admin'), async (req,
       if (!o.createdAt) continue;
       const h = new Date(o.createdAt).getHours();
       hourly[h].orders += 1;
-      if (!['cancelled', 'refunded'].includes(o.status)) hourly[h].revenue += o.total_price || 0;
+      if (['paid', 'completed'].includes(o.status)) hourly[h].revenue += o.total_price || 0;
     }
     res.json(Object.values(hourly));
   } catch (err) {
@@ -225,7 +229,7 @@ router.get('/expense-vs-revenue', authenticateToken, requireRole('admin'), async
       CashMovement.find({ movementDate: { $gte: s, $lte: e } }).lean()
     ]);
 
-    const paid = orders.filter(o => !['cancelled', 'refunded'].includes(o.status));
+    const paid = orders.filter(o => ['paid', 'completed'].includes(o.status));
     const revenue = paid.reduce((sum, o) => sum + (o.total_price || 0), 0);
     const refunds = orders.filter(o => o.status === 'refunded').reduce((sum, o) => sum + (o.total_price || 0), 0);
     const totalCosts = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
@@ -248,7 +252,7 @@ router.get('/expense-vs-revenue', authenticateToken, requireRole('admin'), async
       const d = new Date(e); d.setDate(d.getDate() - i); d.setHours(0,0,0,0);
       const next = new Date(d); next.setDate(next.getDate() + 1);
       const dayOrders = orders.filter(o => { const c = new Date(o.createdAt); return c >= d && c < next; });
-      const dayPaid = dayOrders.filter(o => !['cancelled', 'refunded'].includes(o.status));
+      const dayPaid = dayOrders.filter(o => ['paid', 'completed'].includes(o.status));
       const dayExpenses = expenses.filter(ex => { const c = new Date(ex.expenseDate); return c >= d && c < next; });
       days.push({
         date: d.toISOString().slice(0, 10),
@@ -290,7 +294,7 @@ router.get('/monthly-summary', authenticateToken, requireRole('admin'), async (r
       Expense.find({ expenseDate: { $gte: start, $lte: end } }).lean()
     ]);
 
-    const paidOrders = orders.filter(o => !['cancelled', 'refunded'].includes(o.status));
+    const paidOrders = orders.filter(o => ['paid', 'completed'].includes(o.status));
     const revenue = paidOrders.reduce((sum, o) => sum + (o.total_price || 0), 0);
     const totalCosts = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
     const netOperatingProfit = revenue - totalCosts;
@@ -339,7 +343,7 @@ router.get('/accounts', authenticateToken, requireRole('admin'), async (req, res
       Order.find({ createdAt: { $gte: start, $lte: end } }).lean(),
       CashMovement.find({ movementDate: { $gte: start, $lte: end } }).sort({ movementDate: -1 }).lean()
     ]);
-    const paidOrders = orders.filter(o => !['cancelled', 'refunded'].includes(o.status));
+    const paidOrders = orders.filter(o => ['paid', 'completed'].includes(o.status));
     const refunds = orders.filter(o => o.status === 'refunded');
     const inflow = movements.filter(m => m.movementType === 'in').reduce((s, m) => s + (m.amount || 0), 0);
     const outflow = movements.filter(m => m.movementType === 'out').reduce((s, m) => s + (m.amount || 0), 0);
@@ -427,7 +431,7 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
       CashMovement.find({ movementDate: { $gte: startDate, $lte: endDate } }).lean()
     ]);
 
-    const paid = orders.filter(o => !['cancelled', 'refunded'].includes(o.status));
+    const paid = orders.filter(o => ['paid', 'completed'].includes(o.status));
     const revenue = paid.reduce((s, o) => s + (Number(o.total_price) || 0), 0);
     const refundsTotal = orders.filter(o => o.status === 'refunded').reduce((s, o) => s + (Number(o.total_price) || 0), 0);
     const totalCosts = expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
@@ -647,7 +651,7 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
 router.get('/profitability', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const { start, end } = req.query;
-    const match = { status: { $nin: ['cancelled', 'refunded'] } };
+    const match = { status: { $in: ['paid', 'completed'] } };
     if (start || end) {
       match.createdAt = {};
       if (start) match.createdAt.$gte = new Date(start);
@@ -763,6 +767,43 @@ router.get('/cost-analysis', authenticateToken, requireRole('admin'), async (req
     }).sort((a, b) => a.margin - b.margin);
     res.json(result);
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ===== مركز التقارير والـ PDF الشامل (12 تقرير متوافق مع نظام POS) =====
+const reportEngine = require('../services/reportEngine');
+
+// 1. جلب بيانات التقرير بتنسيق JSON للعرض في لوحة التحكم
+router.get('/engine/data', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const reportType = req.query.reportType || req.query.type || 'sales';
+    const reportData = await reportEngine.getReportData(reportType, req.query);
+    res.json({ success: true, ...reportData, data: reportData });
+  } catch (err) {
+    console.error('[Report Engine Data Error]:', err);
+    res.status(500).json({ error: 'فشل تحميل بيانات التقرير: ' + err.message });
+  }
+});
+
+// 2. تصدير وتنزيل ملف PDF موثق مع دعم كامل للغة العربية وتصميم A4 احترافي
+router.get('/engine/pdf', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const reportType = req.query.reportType || req.query.type || 'sales';
+    const reportData = await reportEngine.getReportData(reportType, req.query);
+
+    const doc = reportEngine.generateReportPdfStream(reportData);
+    const filename = `2M-Report-${reportType}-${new Date().toISOString().slice(0, 10)}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    doc.pipe(res);
+    doc.end();
+  } catch (err) {
+    console.error('[Report Engine PDF Error]:', err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'فشل استخراج ملف PDF: ' + err.message });
+    }
+  }
 });
 
 module.exports = router;
