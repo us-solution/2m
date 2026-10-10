@@ -69,8 +69,10 @@ function parseReportPeriod(period, start, end) {
 
 // 1. تجميع بيانات التقرير المطلوب برمجياً من قاعدة البيانات
 async function getReportData(reportType, queryParams = {}) {
-  const { period, start, end, cashierId, shiftId, categoryId } = queryParams;
-  const { startDate, endDate, periodLabel } = parseReportPeriod(period, start, end);
+  const { period, start, end, startDate: qStartDate, endDate: qEndDate, cashierId, shiftId, categoryId } = queryParams;
+  const sDate = start || qStartDate;
+  const eDate = end || qEndDate;
+  const { startDate, endDate, periodLabel } = parseReportPeriod(period, sDate, eDate);
 
   switch (reportType) {
     case 'sales': {

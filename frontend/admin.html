@@ -3365,8 +3365,9 @@ body { background-color: var(--bg); color: var(--text); }
         const data = resJson.data || resJson;
         currentReportEngineData = data;
 
+        const periodText = (data.period && data.period.label) ? data.period.label : (data.periodFormatted || 'جميع الفترات');
         document.getElementById('rc-table-title').textContent = data.title || 'تقرير';
-        document.getElementById('rc-table-subtitle').textContent = `الفترة: ${data.periodFormatted || 'جميع الفترات'} • وقت التوليد: ${new Date(data.generatedAt || Date.now()).toLocaleTimeString('ar-EG')}`;
+        document.getElementById('rc-table-subtitle').textContent = `الفترة: ${periodText} • وقت التوليد: ${new Date(data.generatedAt || Date.now()).toLocaleTimeString('ar-EG')}`;
         document.getElementById('rc-records-count').textContent = data.rows ? data.rows.length : 0;
 
         renderReportKpis(data);
@@ -3381,34 +3382,56 @@ body { background-color: var(--bg); color: var(--text); }
       const container = document.getElementById('rc-kpi-container');
       if (!container) return;
 
-      const sum = data.summary || {};
       const cards = [];
 
-      for (const [key, val] of Object.entries(sum)) {
-        let label = key;
-        let formattedVal = val;
-        let color = 'var(--text)';
+      // إذا كانت مصفوفة kpis المعتمدة من محرك التقارير
+      if (Array.isArray(data.kpis) && data.kpis.length > 0) {
+        data.kpis.forEach(k => {
+          const label = k.label || '';
+          const formattedVal = k.value !== undefined && k.value !== null ? k.value : '—';
+          let color = 'var(--text)';
 
-        if (typeof val === 'number') {
-          if (key.includes('مبيعات') || key.includes('إيرادات') || key.includes('أرباح') || key.includes('تكلفة') || key.includes('مصروفات') || key.includes('نقد') || key.includes('رصيد') || key.includes('قيمة')) {
-            formattedVal = val.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ج.م';
-          } else {
-            formattedVal = val.toLocaleString('ar-EG');
+          if (label.includes('صافي') || label.includes('أرباح') || label.includes('إيرادات') || label.includes('مبيعات')) {
+            color = 'var(--gold)';
+          } else if (label.includes('مصروفات') || label.includes('تكلفة') || label.includes('غير متوفر')) {
+            color = '#e74c3c';
           }
-        }
 
-        if (key.includes('صافي') || key.includes('أرباح') || key.includes('إيرادات') || key.includes('مبيعات')) {
-          color = 'var(--gold)';
-        } else if (key.includes('مصروفات') || key.includes('تكلفة')) {
-          color = '#e74c3c';
-        }
+          cards.push(`
+            <div style="background:var(--bg2); border:1px solid var(--line); border-radius:10px; padding:1.1rem; border-right:4px solid ${color};">
+              <div style="font-size:0.8rem; color:var(--muted); margin-bottom:0.3rem;">${escapeHtml(label)}</div>
+              <div style="font-size:1.35rem; font-weight:800; color:${color}; font-family:'Tajawal',sans-serif;">${escapeHtml(String(formattedVal))}</div>
+            </div>
+          `);
+        });
+      } else if (data.summary && typeof data.summary === 'object') {
+        // دعم احتياطي لكائن summary
+        for (const [key, val] of Object.entries(data.summary)) {
+          let label = key;
+          let formattedVal = val;
+          let color = 'var(--text)';
 
-        cards.push(`
-          <div style="background:var(--bg2); border:1px solid var(--line); border-radius:10px; padding:1.1rem; border-right:4px solid ${color};">
-            <div style="font-size:0.8rem; color:var(--muted); margin-bottom:0.3rem;">${escapeHtml(label)}</div>
-            <div style="font-size:1.35rem; font-weight:800; color:${color}; font-family:'Tajawal',sans-serif;">${escapeHtml(String(formattedVal))}</div>
-          </div>
-        `);
+          if (typeof val === 'number') {
+            if (key.includes('مبيعات') || key.includes('إيرادات') || key.includes('أرباح') || key.includes('تكلفة') || key.includes('مصروفات') || key.includes('نقد') || key.includes('رصيد') || key.includes('قيمة')) {
+              formattedVal = val.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ج.م';
+            } else {
+              formattedVal = val.toLocaleString('ar-EG');
+            }
+          }
+
+          if (key.includes('صافي') || key.includes('أرباح') || key.includes('إيرادات') || key.includes('مبيعات')) {
+            color = 'var(--gold)';
+          } else if (key.includes('مصروفات') || key.includes('تكلفة')) {
+            color = '#e74c3c';
+          }
+
+          cards.push(`
+            <div style="background:var(--bg2); border:1px solid var(--line); border-radius:10px; padding:1.1rem; border-right:4px solid ${color};">
+              <div style="font-size:0.8rem; color:var(--muted); margin-bottom:0.3rem;">${escapeHtml(label)}</div>
+              <div style="font-size:1.35rem; font-weight:800; color:${color}; font-family:'Tajawal',sans-serif;">${escapeHtml(String(formattedVal))}</div>
+            </div>
+          `);
+        }
       }
 
       container.innerHTML = cards.join('');
@@ -3419,30 +3442,82 @@ body { background-color: var(--bg); color: var(--text); }
       const tbody = document.getElementById('rc-table-body');
       const tfoot = document.getElementById('rc-table-foot');
 
-      const headers = data.headers || [];
-      const rows = data.rows || [];
-      const totals = data.totals || null;
-
-      thead.innerHTML = `
-        <tr>
-          ${headers.map(h => `<th style="padding:0.8rem 1rem; border-bottom:2px solid var(--line); color:var(--gold); font-size:0.9rem; font-weight:700;">${escapeHtml(h)}</th>`).join('')}
-        </tr>
-      `;
-
-      if (rows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${headers.length || 1}" style="text-align:center; padding:2.5rem; color:var(--muted);">لا توجد حركات أو بيانات مسجلة في هذه الفترة</td></tr>`;
-      } else {
-        tbody.innerHTML = rows.map((row, idx) => `
-          <tr style="border-bottom:1px solid rgba(255,255,255,0.05); background:${idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)'};">
-            ${row.map(cell => `<td style="padding:0.75rem 1rem; font-size:0.88rem; color:var(--text);">${escapeHtml(String(cell !== null && cell !== undefined ? cell : '—'))}</td>`).join('')}
-          </tr>
-        `).join('');
+      // استخراج الأعمدة والمفاتيح
+      let columns = [];
+      if (Array.isArray(data.columns) && data.columns.length > 0) {
+        columns = data.columns;
+      } else if (Array.isArray(data.headers) && data.headers.length > 0) {
+        columns = data.headers.map((h, i) => ({ key: String(i), label: h, align: 'right' }));
       }
 
-      if (totals && Array.isArray(totals)) {
+      const rows = Array.isArray(data.rows) ? data.rows : [];
+      const totals = data.totals || null;
+
+      // إذا لم تكن الأعمدة محددة مسبقاً وكان لدينا صفوف ككائنات، نستخرج المفاتيح تلقائياً
+      if (columns.length === 0 && rows.length > 0 && typeof rows[0] === 'object' && !Array.isArray(rows[0])) {
+        columns = Object.keys(rows[0]).map(k => ({ key: k, label: k, align: 'right' }));
+      }
+
+      // رسم رأس الجدول
+      if (columns.length > 0) {
+        thead.innerHTML = `
+          <tr>
+            ${columns.map(c => `<th style="padding:0.8rem 1rem; border-bottom:2px solid var(--line); color:var(--gold); font-size:0.9rem; font-weight:700; text-align:${c.align || 'right'};">${escapeHtml(c.label || c.key || '')}</th>`).join('')}
+          </tr>
+        `;
+      } else {
+        thead.innerHTML = '';
+      }
+
+      // رسم صفوف البيانات بأمان تام لكلا حالتي الكائنات والمصفوفات
+      if (rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${Math.max(columns.length, 1)}" style="text-align:center; padding:2.5rem; color:var(--muted);">لا توجد حركات أو بيانات مسجلة في هذه الفترة</td></tr>`;
+      } else {
+        tbody.innerHTML = rows.map((row, idx) => {
+          let cells = [];
+          if (Array.isArray(row)) {
+            cells = row;
+          } else if (row && typeof row === 'object') {
+            if (columns.length > 0) {
+              cells = columns.map(c => row[c.key]);
+            } else {
+              cells = Object.values(row);
+            }
+          } else {
+            cells = [row];
+          }
+
+          return `
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05); background:${idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)'};">
+              ${cells.map((cell, cIdx) => {
+                const align = (columns[cIdx] && columns[cIdx].align) ? columns[cIdx].align : 'right';
+                const cellVal = (cell !== null && cell !== undefined) ? cell : '—';
+                return `<td style="padding:0.75rem 1rem; font-size:0.88rem; color:var(--text); text-align:${align};">${escapeHtml(String(cellVal))}</td>`;
+              }).join('')}
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // رسم الإجماليات (Totals)
+      if (totals) {
+        let totalCells = [];
+        if (Array.isArray(totals)) {
+          totalCells = totals;
+        } else if (typeof totals === 'object') {
+          if (columns.length > 0) {
+            totalCells = columns.map(c => totals[c.key] || '');
+          } else {
+            totalCells = Object.values(totals);
+          }
+        }
+
         tfoot.innerHTML = `
           <tr style="border-top:2px solid var(--gold); background:rgba(212,175,55,0.06); font-weight:800;">
-            ${totals.map(tot => `<td style="padding:0.85rem 1rem; color:var(--gold); font-size:0.92rem;">${escapeHtml(String(tot !== null && tot !== undefined ? tot : ''))}</td>`).join('')}
+            ${totalCells.map((tot, cIdx) => {
+              const align = (columns[cIdx] && columns[cIdx].align) ? columns[cIdx].align : 'right';
+              return `<td style="padding:0.85rem 1rem; color:var(--gold); font-size:0.92rem; text-align:${align};">${escapeHtml(String(tot !== null && tot !== undefined ? tot : ''))}</td>`;
+            }).join('')}
           </tr>
         `;
       } else {
