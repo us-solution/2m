@@ -5,35 +5,13 @@ const Shift = require('../models/Shift');
 const Order = require('../models/Order');
 const CashMovement = require('../models/CashMovement');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
+const { blockPosMutation } = require('../middlewares/posReadOnlyGuard');
 
-// فتح وردية جديدة للكاشير
-router.post('/open', authenticateToken, requireRole('cashier'), async (req, res) => {
-  const { openingBalance, notes } = req.body;
-  try {
-    // التحقق من عدم وجود وردية مفتوحة بالفعل
-    const active = await Shift.findOne({ cashierId: req.user._id, status: 'open' });
-    if (active) {
-      return res.status(400).json({ error: 'You already have an open shift' });
-    }
-    const shift = await Shift.create({
-      cashierId: req.user._id,
-      cashierName: req.user.name || 'Cashier',
-      openingBalance: parseFloat(openingBalance) || 0,
-      notes: notes || '',
-      status: 'open'
-    });
-    res.json({ success: true, shift });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// فتح وردية جديدة للكاشير — محظور من موقع الويب، الورديات تُفتح حصراً على جهاز الكاشير
+router.post('/open', authenticateToken, blockPosMutation('فتح وردية كاشير'));
 
-// إغلاق الوردية مع حساب الرصيد المتوقع والفروقات
-router.post('/close/:id', authenticateToken, requireRole('cashier'), async (req, res) => {
-  const { closingBalance, notes } = req.body;
-  try {
-    const shift = await Shift.findOne({ _id: req.params.id, cashierId: req.user._id, status: 'open' });
-    if (!shift) return res.status(404).json({ error: 'Open shift not found' });
+// إغلاق الوردية — محظور من موقع الويب، الورديات تُغلق حصراً على جهاز الكاشير
+router.post('/close/:id', authenticateToken, blockPosMutation('إغلاق وردية كاشير'));
 
     // حساب الرصيد المتوقع = الرصيد الافتتاحي + المدفوعات النقدية - المبالغ المستردة
     const cashPayments = await Order.aggregate([
@@ -158,16 +136,7 @@ router.get('/:id', authenticateToken, requireRole('cashier'), async (req, res) =
   }
 });
 
-// حذف وردية (بواسطة الأدمن)
-router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) => {
-  try {
-    const shift = await Shift.findById(req.params.id);
-    if (!shift) return res.status(404).json({ error: 'Shift not found' });
-    await shift.deleteOne();
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// حذف وردية — محظور تماماً من موقع الويب للحفاظ على النزاهة المحاسبية لنظام الكاشير
+router.delete('/:id', authenticateToken, blockPosMutation('حذف وردية كاشير'));
 
 module.exports = router;

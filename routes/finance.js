@@ -29,26 +29,10 @@ router.get('/expenses', authenticateToken, requireRole('admin'), async (req, res
   }
 });
 
-// إضافة مصروف جديد
-router.post('/expenses', authenticateToken, requireRole('admin'), async (req, res) => {
-  try {
-    const { title, category, amount, expenseDate, paymentMethod, shiftId, notes } = req.body;
-    if (!title || amount === undefined) return res.status(400).json({ error: 'title and amount are required' });
-    const created = await Expense.create({
-      title,
-      category: category || 'other',
-      amount: parseFloat(amount) || 0,
-      expenseDate: expenseDate ? new Date(expenseDate) : new Date(),
-      paymentMethod: paymentMethod || 'cash',
-      shiftId: shiftId || null,
-      notes: notes || '',
-      createdBy: req.user._id
-    });
-    res.json({ success: true, expense: created });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
+const { blockPosMutation } = require('../middlewares/posReadOnlyGuard');
+
+// إضافة مصروف جديد — محظور من موقع الويب، المصروفات التشغيلية تُسجل حصراً على جهاز الكاشير
+router.post('/expenses', authenticateToken, blockPosMutation('إضافة مصروف تشغيلي'));
 
 // جلب حركات الخزينة (إيداع/سحب نقدي)
 router.get('/cash-movements', authenticateToken, requireRole('admin'), async (req, res) => {
@@ -63,51 +47,14 @@ router.get('/cash-movements', authenticateToken, requireRole('admin'), async (re
   }
 });
 
-// إضافة حركة خزينة جديدة
-router.post('/cash-movements', authenticateToken, requireRole('admin'), async (req, res) => {
-  try {
-    const { movementType, amount, reason, shiftId, movementDate, notes } = req.body;
-    if (!movementType || amount === undefined || !reason) {
-      return res.status(400).json({ error: 'movementType, amount and reason are required' });
-    }
-    const created = await CashMovement.create({
-      movementType,
-      amount: parseFloat(amount) || 0,
-      reason,
-      shiftId: shiftId || null,
-      movementDate: movementDate ? new Date(movementDate) : new Date(),
-      notes: notes || '',
-      createdBy: req.user._id
-    });
-    res.json({ success: true, movement: created });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
+// إضافة حركة خزينة جديدة — محظور من موقع الويب، حركات الخزينة تتم حصراً على جهاز الكاشير
+router.post('/cash-movements', authenticateToken, blockPosMutation('إضافة حركة خزينة'));
 
-// حذف مصروف
-router.delete('/expenses/:id', authenticateToken, requireRole('admin'), async (req, res) => {
-  try {
-    const item = await Expense.findById(req.params.id);
-    if (!item) return res.status(404).json({ error: 'Expense not found' });
-    await item.deleteOne();
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// حذف مصروف — محظور من موقع الويب
+router.delete('/expenses/:id', authenticateToken, blockPosMutation('حذف مصروف'));
 
-// حذف حركة خزينة
-router.delete('/cash-movements/:id', authenticateToken, requireRole('admin'), async (req, res) => {
-  try {
-    const item = await CashMovement.findById(req.params.id);
-    if (!item) return res.status(404).json({ error: 'Cash movement not found' });
-    await item.deleteOne();
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// حذف حركة خزينة — محظور من موقع الويب
+router.delete('/cash-movements/:id', authenticateToken, blockPosMutation('حذف حركة خزينة'));
 
 // ===== فئات المصروفات =====
 

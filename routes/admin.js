@@ -41,7 +41,18 @@ async function triggerMenuUpdate() {
 }
 
 
-// Ø¬Ù„Ø¨ Ø¥Ø­ØµØ§Ø¦ÙŠØ§Øª Ø¹Ø§Ù…Ø© Ù„Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ… (Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø·Ù„Ø¨Ø§ØªØŒ Ø¥ÙŠØ±Ø§Ø¯Ø§Øª Ø§Ù„ÙŠÙˆÙ… ÙˆØ§Ù„Ø´Ù‡Ø±ØŒ Ø£Ø¯Ø§Ø¡ Ø§Ù„ÙƒØ§Ø´ÙŠØ±)
+// فحص تشخيصي آمن لعزل وهوية قاعدة البيانات دون كشف أي أسرار أو كلمات مرور
+router.get('/db-diagnostic', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const { getSafeDatabaseDiagnostic } = require('../config/database');
+    const diag = await getSafeDatabaseDiagnostic();
+    res.json(diag);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// جلب إحصائيات عامة للوحة التحكم (إجمالي الطلبات، إيرادات اليوم والشهر، أداء الكاشير)
 router.get('/stats', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const today = new Date();
@@ -1196,32 +1207,55 @@ router.delete('/offers/:id', authenticateToken, requireRole('admin'), async (req
 
 
 // =========================================================================
+// =========================================================================
 // لوحة تحكم وتقارير الكاشير المتكاملة (Cashier System Dashboard API)
-// توفر فلاتر التاريخ (اليوم، أمس، الأسبوع، الشهر، مخصص) وتدعم المصدرين: Live POS و Cloud DB
+// توفر فلاتر التاريخ (اليوم، أمس، الأسبوع، الأسبوع الماضي، الشهر، الشهر الماضي، مخصص)
+// مراقبة الوردية المفتوحة الحالية، حالة اتصال أجهزة الكاشير، والبيانات المتزامنة للقراءة فقط
 // =========================================================================
 router.get('/cashier-dashboard', authenticateToken, requireRole('admin'), async (req, res) => {
-  const { period, from, to, refresh } = req.query;
+  const { period, from, to, includeCatalog } = req.query;
 
   try {
+    // حساب نطاقات التاريخ مع مراعاة المنطقة الزمنية للنشاط التجاري (مصر: GMT+2/3)
     const now = new Date();
+    // إزاحة التوقيت المحلي للقاهرة
+    const cairoOffsetMs = 2 * 60 * 60 * 1000;
+    const cairoNow = new Date(now.getTime() + cairoOffsetMs);
+    const cairoYear = cairoNow.getUTCFullYear();
+    const cairoMonth = cairoNow.getUTCMonth();
+    const cairoDate = cairoNow.getUTCDate();
+
+    // دالة إنشاء تاريخ في بداية يوم بتوقيت القاهرة
+    const getCairoDayStart = (y, m, d) => new Date(Date.UTC(y, m, d, 0, 0, 0) - cairoOffsetMs);
+    const getCairoDayEnd = (y, m, d) => new Date(Date.UTC(y, m, d, 23, 59, 59, 999) - cairoOffsetMs);
+
     let startDate, endDate, periodLabel;
 
     if (period === 'yesterday') {
-      const y = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      startDate = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 0, 0, 0);
-      endDate = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 23, 59, 59, 999);
+      startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate - 1);
+      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate - 1);
       periodLabel = 'أمس';
     } else if (period === 'week') {
-      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate - 6);
+      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
       periodLabel = 'آخر 7 أيام';
+    } else if (period === 'last_week') {
+      startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate - 13);
+      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate - 7);
+      periodLabel = 'الأسبوع الماضي';
     } else if (period === 'month') {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
-      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      startDate = getCairoDayStart(cairoYear, cairoMonth, 1);
+      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
       periodLabel = 'هذا الشهر';
+    } else if (period === 'last_month') {
+      startDate = getCairoDayStart(cairoYear, cairoMonth - 1, 1);
+      // آخر يوم في الشهر الماضي
+      const lastDayOfPrevMonth = new Date(Date.UTC(cairoYear, cairoMonth, 0)).getUTCDate();
+      endDate = getCairoDayEnd(cairoYear, cairoMonth - 1, lastDayOfPrevMonth);
+      periodLabel = 'الشهر الماضي';
     } else if (period === 'all') {
       startDate = new Date(0);
-      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
       periodLabel = 'الكل (جميع الفترات)';
     } else if (from && to) {
       startDate = new Date(from);
@@ -1232,42 +1266,76 @@ router.get('/cashier-dashboard', authenticateToken, requireRole('admin'), async 
       periodLabel = `مخصص (${from} إلى ${to})`;
     } else if (from) {
       startDate = new Date(from);
-      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
       periodLabel = `من ${from}`;
     } else {
       // Default: today
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate);
+      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
       periodLabel = 'اليوم';
     }
 
-    // 1. Query MongoDB for authoritative records
     const Expense = require('../models/Expense');
     const Shift = require('../models/Shift');
     const CashMovement = require('../models/CashMovement');
 
-    const [orders, expenses, shifts, categories, drinks, customers, movements, devices, lastSyncDoc] = await Promise.all([
+    // تنفيذ الاستعلامات مع دعم الفصل لتسريع الاستجابة وتفادي مهلة Serverless
+    const shouldFetchCatalog = includeCatalog !== 'false';
+
+    const queries = [
+      // 0: طلبات الفترة
       Order.find({ createdAt: { $gte: startDate, $lte: endDate } })
         .sort({ createdAt: -1 })
+        .limit(200)
         .populate('userId', 'name phone')
         .lean(),
+      // 1: مصروفات الفترة
       Expense.find({ expenseDate: { $gte: startDate, $lte: endDate } })
         .sort({ expenseDate: -1 })
+        .limit(100)
         .lean(),
+      // 2: الورديات المقفلة في الفترة
       Shift.find({ closedAt: { $gte: startDate, $lte: endDate } })
         .sort({ closedAt: -1 })
+        .limit(50)
         .lean(),
-      Category.find({}).sort({ sort_order: 1 }).lean(),
-      Drink.find({}).populate('category_id').sort({ name: 1 }).lean(),
-      User.find({ role: 'customer' }).sort({ total_spent: -1 }).limit(100).lean(),
-      CashMovement.find({ movementDate: { $gte: startDate, $lte: endDate } }).sort({ movementDate: -1 }).lean(),
+      // 3: الوردية الحالية المفتوحة (إن وجدت)
+      Shift.findOne({ status: 'open' })
+        .sort({ openedAt: -1 })
+        .lean(),
+      // 4: حركات الخزينة
+      CashMovement.find({ movementDate: { $gte: startDate, $lte: endDate } })
+        .sort({ movementDate: -1 })
+        .limit(100)
+        .lean(),
+      // 5: أجهزة الكاشير
       PosDevice.find({}).sort({ lastSeen: -1 }).lean(),
+      // 6: آخر توثيق مزامنة
       Order.findOne({ 'syncMeta.lastSyncedAt': { $ne: null } })
         .sort({ 'syncMeta.lastSyncedAt': -1 })
-        .select('syncMeta.lastSyncedAt')
+        .select('syncMeta.lastSyncedAt createdAt')
         .lean()
-    ]);
+    ];
 
+    if (shouldFetchCatalog) {
+      queries.push(Category.find({}).sort({ sort_order: 1 }).lean());
+      queries.push(Drink.find({}).select('name name_ar category_id price is_available').populate('category_id', 'name name_ar').sort({ name: 1 }).lean());
+      queries.push(User.find({ role: 'customer' }).select('name phone points total_spent customerStatus').sort({ total_spent: -1 }).limit(100).lean());
+    }
+
+    const results = await Promise.all(queries);
+    const orders = results[0];
+    const expenses = results[1];
+    const shifts = results[2];
+    const currentOpenShift = results[3];
+    const movements = results[4];
+    const devices = results[5];
+    const lastSyncDoc = results[6];
+    const categories = shouldFetchCatalog ? results[7] : [];
+    const drinks = shouldFetchCatalog ? results[8] : [];
+    const customers = shouldFetchCatalog ? results[9] : [];
+
+    // حساب المؤشرات المالية
     const validOrders = orders.filter(o => !['cancelled', 'refunded'].includes(o.status));
     const totalSales = validOrders.reduce((sum, o) => sum + (Number(o.total_price) || 0), 0);
     const ordersCount = validOrders.length;
@@ -1287,6 +1355,17 @@ router.get('/cashier-dashboard', authenticateToken, requireRole('admin'), async 
 
     const inflow = movements.filter(m => m.movementType === 'in').reduce((s, m) => s + (Number(m.amount) || 0), 0);
     const outflow = movements.filter(m => m.movementType === 'out').reduce((s, m) => s + (Number(m.amount) || 0), 0);
+
+    // فحص اتصال أجهزة الكاشير
+    const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+    const activeDevice = devices.find(d => d.lastSeen && new Date(d.lastSeen).getTime() > fiveMinutesAgo);
+    const posConnectionStatus = activeDevice ? 'connected' : (devices.length > 0 ? 'offline' : 'not_configured');
+
+    const lastCommunicationAttempt = devices.reduce((latest, d) => {
+      if (!d.lastSeen) return latest;
+      const t = new Date(d.lastSeen).getTime();
+      return t > latest ? t : latest;
+    }, 0);
 
     const serializedInvoices = orders.map(o => {
       let rawItems = [];
@@ -1315,52 +1394,27 @@ router.get('/cashier-dashboard', authenticateToken, requireRole('admin'), async 
       };
     });
 
-    const serializedProducts = drinks.map(d => ({
-      id: String(d._id),
-      name: d.name,
-      nameAr: d.name_ar || d.name,
-      categoryName: d.category_id ? (d.category_id.name_ar || d.category_id.name) : 'عام',
-      price: Number(d.price) || 0,
-      isAvailable: Boolean(d.is_available)
-    }));
-
-    const serializedCategories = categories.map(c => ({
-      id: String(c._id),
-      name: c.name,
-      nameAr: c.name_ar || c.name,
-      color: c.color || '#3b82f6'
-    }));
-
-    const serializedCustomers = customers.map(c => ({
-      id: String(c._id),
-      name: c.name,
-      phone: c.phone || '—',
-      points: Number(c.points) || 0,
-      totalSpent: Number(c.total_spent) || 0,
-      customerStatus: c.customerStatus || 'standard'
-    }));
-
-    const serializedExpenses = expenses.map(e => ({
-      id: String(e._id),
-      title: e.title || e.description || 'مصروف',
-      amount: Number(e.amount) || 0,
-      category: e.category || 'عام',
-      date: e.expenseDate || e.createdAt
-    }));
-
-    const serializedShifts = shifts.map(s => ({
-      id: String(s._id),
-      cashierName: s.cashierName || 'كاشير',
-      openedAt: s.openedAt,
-      closedAt: s.closedAt,
-      totalRevenue: Number(s.totalRevenue) || 0,
-      totalOrders: Number(s.totalOrders) || 0
-    }));
-
     const responsePayload = {
       success: true,
-      source: 'cloud_synced',
-      lastSyncTimestamp: lastSyncDoc?.syncMeta?.lastSyncedAt || null,
+      source: activeDevice ? 'live_pos' : 'cloud_synced',
+      isReadOnly: true,
+      posConnection: {
+        status: posConnectionStatus,
+        label: posConnectionStatus === 'connected' ? 'متصل ومباشر' : (posConnectionStatus === 'offline' ? 'غير متصل (البيانات مزامنة سحابياً)' : 'لم يتم تسجيل جهاز بعد'),
+        lastSyncTimestamp: lastSyncDoc?.syncMeta?.lastSyncedAt || lastSyncDoc?.createdAt || null,
+        lastCommunicationAttempt: lastCommunicationAttempt ? new Date(lastCommunicationAttempt).toISOString() : null,
+        activeDevicesCount: devices.filter(d => d.lastSeen && new Date(d.lastSeen).getTime() > fiveMinutesAgo).length,
+        totalDevicesCount: devices.length
+      },
+      currentOpenShift: currentOpenShift ? {
+        id: String(currentOpenShift._id),
+        cashierName: currentOpenShift.cashierName || 'كاشير الوردية',
+        openedAt: currentOpenShift.openedAt,
+        openingBalance: Number(currentOpenShift.openingBalance) || 0,
+        totalOrders: Number(currentOpenShift.totalOrders) || 0,
+        totalRevenue: Number(currentOpenShift.totalRevenue) || 0,
+        status: 'open'
+      } : null,
       period: {
         from: startDate.toISOString(),
         to: endDate.toISOString(),
@@ -1378,21 +1432,58 @@ router.get('/cashier-dashboard', authenticateToken, requireRole('admin'), async 
         averageOrder: Math.round(avgOrder * 100) / 100,
         inflow,
         outflow,
-        activeDevicesCount: devices.filter(d => d.status === 'online').length
+        activeDevicesCount: devices.filter(d => d.lastSeen && new Date(d.lastSeen).getTime() > fiveMinutesAgo).length
       },
       invoices: serializedInvoices,
-      products: serializedProducts,
-      categories: serializedCategories,
-      customers: serializedCustomers,
-      expenses: serializedExpenses,
-      shifts: serializedShifts,
-      devices: devices.map(d => ({
-        deviceId: d.deviceId,
-        deviceName: d.deviceName,
-        isMaster: Boolean(d.isMaster),
-        status: d.status,
-        lastSeen: d.lastSeen
-      }))
+      products: drinks.map(d => ({
+        id: String(d._id),
+        name: d.name,
+        nameAr: d.name_ar || d.name,
+        categoryName: d.category_id ? (d.category_id.name_ar || d.category_id.name) : 'عام',
+        price: Number(d.price) || 0,
+        isAvailable: Boolean(d.is_available)
+      })),
+      categories: categories.map(c => ({
+        id: String(c._id),
+        name: c.name,
+        nameAr: c.name_ar || c.name,
+        color: c.color || '#3b82f6'
+      })),
+      customers: customers.map(c => ({
+        id: String(c._id),
+        name: c.name,
+        phone: c.phone || '—',
+        points: Number(c.points) || 0,
+        totalSpent: Number(c.total_spent) || 0,
+        customerStatus: c.customerStatus || 'standard'
+      })),
+      expenses: expenses.map(e => ({
+        id: String(e._id),
+        title: e.title || e.description || 'مصروف',
+        amount: Number(e.amount) || 0,
+        category: e.category || 'عام',
+        date: e.expenseDate || e.createdAt
+      })),
+      shifts: shifts.map(s => ({
+        id: String(s._id),
+        cashierName: s.cashierName || 'كاشير',
+        openedAt: s.openedAt,
+        closedAt: s.closedAt,
+        totalRevenue: Number(s.totalRevenue) || 0,
+        totalOrders: Number(s.totalOrders) || 0
+      })),
+      devices: devices.map(d => {
+        const isOnline = d.lastSeen && new Date(d.lastSeen).getTime() > fiveMinutesAgo;
+        return {
+          deviceId: d.deviceId,
+          deviceName: d.deviceName,
+          isMaster: Boolean(d.isMaster),
+          status: isOnline ? 'online' : 'offline',
+          lastSeen: d.lastSeen,
+          ipAddress: d.ipAddress,
+          systemVersion: d.systemVersion
+        };
+      })
     };
 
     res.json(responsePayload);

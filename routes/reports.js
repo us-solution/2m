@@ -358,251 +358,288 @@ router.get('/accounts', authenticateToken, requireRole('admin'), async (req, res
   }
 });
 
-// إنشاء تقرير PDF كامل مع جميع التفاصيل
+// إنشاء تقرير PDF كامل مع جميع التفاصيل ودعم اللغة العربية
 router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => {
   const { period, start, end } = req.query;
   try {
-    const match = {};
+    const fs = require('fs');
+    const path = require('path');
+
+    // توقيت القاهرة للأنشطة التجارية
+    const now = new Date();
+    const cairoOffsetMs = 2 * 60 * 60 * 1000;
+    const cairoNow = new Date(now.getTime() + cairoOffsetMs);
+    const cairoYear = cairoNow.getUTCFullYear();
+    const cairoMonth = cairoNow.getUTCMonth();
+    const cairoDate = cairoNow.getUTCDate();
+
+    const getCairoDayStart = (y, m, d) => new Date(Date.UTC(y, m, d, 0, 0, 0) - cairoOffsetMs);
+    const getCairoDayEnd = (y, m, d) => new Date(Date.UTC(y, m, d, 23, 59, 59, 999) - cairoOffsetMs);
+
+    let startDate, endDate, periodLabel;
+
     if (start || end) {
-      match.createdAt = {};
-      if (start) match.createdAt.$gte = new Date(start);
-      if (end) match.createdAt.$lte = new Date(end);
+      startDate = start ? new Date(start) : new Date(0);
+      endDate = end ? new Date(end) : getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
+      if (endDate.getHours() === 0 && endDate.getMinutes() === 0) endDate.setHours(23, 59, 59, 999);
+      periodLabel = `مخصص (${start || ''} إلى ${end || ''})`;
+    } else if (period === 'yesterday') {
+      startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate - 1);
+      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate - 1);
+      periodLabel = 'أمس';
+    } else if (period === 'week') {
+      startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate - 6);
+      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
+      periodLabel = 'آخر 7 أيام';
+    } else if (period === 'last_week') {
+      startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate - 13);
+      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate - 7);
+      periodLabel = 'الأسبوع الماضي';
+    } else if (period === 'month') {
+      startDate = getCairoDayStart(cairoYear, cairoMonth, 1);
+      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
+      periodLabel = 'هذا الشهر';
+    } else if (period === 'last_month') {
+      startDate = getCairoDayStart(cairoYear, cairoMonth - 1, 1);
+      const lastDayOfPrevMonth = new Date(Date.UTC(cairoYear, cairoMonth, 0)).getUTCDate();
+      endDate = getCairoDayEnd(cairoYear, cairoMonth - 1, lastDayOfPrevMonth);
+      periodLabel = 'الشهر الماضي';
+    } else if (period === 'all') {
+      startDate = new Date(0);
+      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
+      periodLabel = 'جميع الفترات';
     } else {
-      const d = new Date();
-      if (period === 'month') { d.setDate(1); d.setHours(0,0,0,0); }
-      else if (period === 'week') { d.setDate(d.getDate() - 7); d.setHours(0,0,0,0); }
-      else { d.setHours(0,0,0,0); }
-      match.createdAt = { $gte: d };
+      // Default: today
+      startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate);
+      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
+      periodLabel = 'اليوم';
     }
-    const periodLabel = period || 'custom';
+
+    const match = { createdAt: { $gte: startDate, $lte: endDate } };
 
     const orders = await Order.find(match).sort({ createdAt: -1 }).populate('userId', 'name phone').lean();
-    const sinceDate = match.createdAt && match.createdAt.$gte ? match.createdAt.$gte : new Date(0);
     const [shifts, expenses, cashMovements] = await Promise.all([
-      Shift.find({ closedAt: { $gte: sinceDate } }).lean(),
-      Expense.find({ expenseDate: { $gte: sinceDate } }).lean(),
-      CashMovement.find({ movementDate: { $gte: sinceDate } }).lean()
+      Shift.find({ $or: [
+        { closedAt: { $gte: startDate, $lte: endDate } },
+        { status: 'open', openedAt: { $gte: startDate, $lte: endDate } }
+      ] }).lean(),
+      Expense.find({ expenseDate: { $gte: startDate, $lte: endDate } }).lean(),
+      CashMovement.find({ movementDate: { $gte: startDate, $lte: endDate } }).lean()
     ]);
 
-    const paid = orders.filter(o => !['cancelled','refunded'].includes(o.status));
-    const revenue = paid.reduce((s, o) => s + (o.total_price || 0), 0);
-    const refundsTotal = orders.filter(o => o.status === 'refunded').reduce((s, o) => s + (o.total_price || 0), 0);
-    const totalCosts = expenses.reduce((s, e) => s + (e.amount || 0), 0);
-    const cashIn = cashMovements.filter(m => m.movementType === 'in').reduce((s, m) => s + (m.amount || 0), 0);
-    const cashOut = cashMovements.filter(m => m.movementType === 'out').reduce((s, m) => s + (m.amount || 0), 0);
+    const paid = orders.filter(o => !['cancelled', 'refunded'].includes(o.status));
+    const revenue = paid.reduce((s, o) => s + (Number(o.total_price) || 0), 0);
+    const refundsTotal = orders.filter(o => o.status === 'refunded').reduce((s, o) => s + (Number(o.total_price) || 0), 0);
+    const totalCosts = expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+    const cashIn = cashMovements.filter(m => m.movementType === 'in').reduce((s, m) => s + (Number(m.amount) || 0), 0);
+    const cashOut = cashMovements.filter(m => m.movementType === 'out').reduce((s, m) => s + (Number(m.amount) || 0), 0);
     const netOperating = revenue - totalCosts;
-    const startRef = match.createdAt && match.createdAt.$gte ? match.createdAt.$gte : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-    const daysElapsed = Math.max(1, Math.ceil((Date.now() - new Date(startRef).getTime()) / 86400000));
-    const monthlyRunRate = (revenue / daysElapsed) * 30;
 
     // توزيع طرق الدفع
     const pmBreakdown = { cash: 0, card: 0, wallet: 0, split: 0 };
     for (const o of paid) {
-      const pm = o.paymentMethod;
-      if (pm && pmBreakdown[pm] !== undefined) pmBreakdown[pm] += o.total_price || 0;
-    }
-
-    // المبيعات حسب الساعة
-    const hourly = {};
-    for (let h = 0; h < 24; h++) hourly[h] = { h, orders: 0, revenue: 0 };
-    for (const o of orders) {
-      if (!o.createdAt) continue;
-      const h = new Date(o.createdAt).getHours();
-      hourly[h].orders += 1;
-      if (!['cancelled', 'refunded'].includes(o.status)) hourly[h].revenue += o.total_price || 0;
+      const pm = (o.paymentMethod || 'cash').toLowerCase();
+      if (pm === 'card' || pm === 'visa') pmBreakdown.card += Number(o.total_price) || 0;
+      else if (pm === 'wallet') pmBreakdown.wallet += Number(o.total_price) || 0;
+      else if (pm === 'split') pmBreakdown.split += Number(o.total_price) || 0;
+      else pmBreakdown.cash += Number(o.total_price) || 0;
     }
 
     // توزيع التكاليف حسب الفئة
     const costCategories = {};
     for (const e of expenses) {
-      const cat = e.category || 'other';
-      costCategories[cat] = (costCategories[cat] || 0) + (e.amount || 0);
+      const cat = e.category || 'عام';
+      costCategories[cat] = (costCategories[cat] || 0) + (Number(e.amount) || 0);
     }
 
     const doc = new PDFDocument({ margin: 40, size: 'A4' });
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="report-${new Date().toISOString().slice(0,10)}.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="2M-Cafe-Report-${new Date().toISOString().slice(0,10)}.pdf"`);
     doc.pipe(res);
 
-    const font = 'Helvetica';
-    let pageNum = 0;
+    // تسجيل الخطوط العربية المتوفرة محلياً
+    const tajawalPath = path.join(__dirname, '../fonts/Tajawal-Regular.ttf');
+    const tajawalBoldPath = path.join(__dirname, '../fonts/Tajawal-Bold.ttf');
+    const hasTajawal = fs.existsSync(tajawalPath) && fs.existsSync(tajawalBoldPath);
 
-    // الصفحة 1: رأس التقرير + الملخص + طرق الدفع
-    pageNum++;
-    
-    // إضافة شعار الكافيه في الزاوية العلوية اليمنى
-    const fs = require('fs');
-    const path = require('path');
+    if (hasTajawal) {
+      doc.registerFont('Tajawal', tajawalPath);
+      doc.registerFont('Tajawal-Bold', tajawalBoldPath);
+    }
+
+    const fontRegular = hasTajawal ? 'Tajawal' : 'Helvetica';
+    const fontBold = hasTajawal ? 'Tajawal-Bold' : 'Helvetica-Bold';
+
+    // الصفحة 1: رأس التقرير + الملخص المالي + طرق الدفع
     const logoPath = path.join(__dirname, '../frontend/imgs/2m-logo.png');
     if (fs.existsSync(logoPath)) {
-      doc.image(logoPath, 460, 35, { width: 60 });
+      try { doc.image(logoPath, 470, 35, { width: 65 }); } catch (_) {}
     }
 
-    doc.fontSize(22).font(`${font}-Bold`).text('2M CAFE', 40, 40);
-    doc.fontSize(10).font(font).fillColor('#666').text(`Report — ${new Date().toISOString().slice(0,10)} (${periodLabel})`, 40, 68);
+    doc.fontSize(22).font(fontBold).fillColor('#1a1a1a').text('2M CAFE — TWO MILLION CAFE', 40, 40);
+    doc.fontSize(12).font(fontRegular).fillColor('#c29f43').text(`تقرير المبيعات والعمليات التشغيلية (نظام الكاشير)`, 40, 68);
+    doc.fontSize(9).font(fontRegular).fillColor('#666').text(`الفترة: ${periodLabel} | تاريخ الاستخراج: ${new Date().toLocaleString('ar-EG')} بتوقيت القاهرة`, 40, 86);
 
-    // الملخص
-    doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Summary', 40, 100);
-    doc.fontSize(11).font(font).fillColor('#333');
-    const sY = 120;
-    doc.text(`Total Orders: ${orders.length}`, 40, sY);
-    doc.text(`Revenue: EGP ${revenue.toFixed(2)}`, 40, sY + 18);
-    doc.text(`Refunds: EGP ${refundsTotal.toFixed(2)}`, 40, sY + 36);
-    doc.text(`Avg Order: EGP ${orders.length ? (revenue / orders.length).toFixed(2) : '0.00'}`, 250, sY);
-    doc.text(`Cancelled: ${orders.filter(o => o.status === 'cancelled').length}`, 250, sY + 18);
-    doc.text(`Paid Orders: ${paid.length}`, 250, sY + 36);
-    doc.text(`Costs: EGP ${totalCosts.toFixed(2)}`, 40, sY + 54);
-    doc.text(`Net Operating: EGP ${netOperating.toFixed(2)}`, 250, sY + 54);
-    doc.text(`Monthly Run-rate: EGP ${monthlyRunRate.toFixed(2)}`, 40, sY + 72);
-    doc.text(`Cashbox: In EGP ${cashIn.toFixed(2)} / Out EGP ${cashOut.toFixed(2)}`, 250, sY + 72);
+    doc.moveTo(40, 105).lineTo(540, 105).strokeColor('#e2e8f0').stroke();
 
-    // طرق الدفع
-    let yPos = sY + 110;
-    doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Payment Methods', 40, yPos);
-    yPos += 22;
-    doc.fontSize(9).font(`${font}-Bold`).fillColor('#555');
-    doc.text('Method', 40, yPos); doc.text('Amount', 420, yPos, { width: 100, align: 'right' });
-    yPos += 4;
-    doc.moveTo(40, yPos).lineTo(520, yPos).strokeColor('#ddd').stroke();
+    // الملخص المالي
+    doc.fillColor('#1a1a1a').fontSize(14).font(fontBold).text('الملخص المالي والتشغيلي (Financial Summary)', 40, 118);
+    doc.fontSize(10).font(fontRegular).fillColor('#333');
+    const sY = 140;
+
+    doc.text(`إجمالي المبيعات: ${revenue.toLocaleString('ar-EG')} ج.م`, 40, sY);
+    doc.text(`إجمالي عدد الفواتير: ${orders.length}`, 40, sY + 20);
+    doc.text(`الطلبات المدفوعة: ${paid.length}`, 40, sY + 40);
+    doc.text(`المصروفات التشغيلية: ${totalCosts.toLocaleString('ar-EG')} ج.م`, 40, sY + 60);
+
+    const avgVal = orders.length ? (revenue / orders.length) : 0;
+    doc.text(`متوسط قيمة الفاتورة: ${avgVal.toFixed(2)} ج.م`, 300, sY);
+    doc.text(`الطلبات الملغاة: ${orders.filter(o => o.status === 'cancelled').length}`, 300, sY + 20);
+    doc.text(`المبالغ المستردة: ${refundsTotal.toLocaleString('ar-EG')} ج.م`, 300, sY + 40);
+    doc.font(fontBold).fillColor('#16a34a').text(`صافي أرباح التشغيل: ${netOperating.toLocaleString('ar-EG')} ج.م`, 300, sY + 60);
+
+    // تفصيل طرق الدفع
+    let yPos = sY + 95;
+    doc.fillColor('#1a1a1a').fontSize(13).font(fontBold).text('توزيع طرق الدفع (Payment Breakdown)', 40, yPos);
+    yPos += 20;
+
+    doc.fontSize(9).font(fontBold).fillColor('#475569');
+    doc.text('طريقة الدفع', 40, yPos);
+    doc.text('المبلغ الإجمالي', 420, yPos, { width: 100, align: 'right' });
+    yPos += 14;
+    doc.moveTo(40, yPos).lineTo(540, yPos).strokeColor('#cbd5e1').stroke();
     yPos += 8;
-    doc.fontSize(9).font(font).fillColor('#333');
-    const pmLabels = { cash: 'Cash', card: 'Card', wallet: 'Wallet', split: 'Split' };
-    for (const [key, label] of Object.entries(pmLabels)) {
-      const amt = pmBreakdown[key] || 0;
-      doc.text(label, 40, yPos);
-      doc.text(`EGP ${amt.toFixed(2)}`, 420, yPos, { width: 100, align: 'right' });
-      yPos += 16;
+
+    doc.fontSize(9).font(fontRegular).fillColor('#1e293b');
+    const pmLabels = [
+      { key: 'cash', ar: 'نقدي (كاش)' },
+      { key: 'card', ar: 'بطاقة إلكترونية / فيزا' },
+      { key: 'wallet', ar: 'محفظة ذكية (فودافون كاش / انستاباي)' },
+      { key: 'split', ar: 'دفع مجزأ' }
+    ];
+
+    for (const item of pmLabels) {
+      const amt = pmBreakdown[item.key] || 0;
+      doc.text(item.ar, 40, yPos);
+      doc.text(`${amt.toLocaleString('ar-EG')} ج.م`, 420, yPos, { width: 100, align: 'right' });
+      yPos += 18;
     }
 
-    // الصفحة 2: الأصناف الأكثر مبيعاً + أداء الكاشير
+    // تفصيل الورديات
+    yPos += 15;
+    doc.fillColor('#1a1a1a').fontSize(13).font(fontBold).text('تقارير الورديات والكاشير (Shift Reports)', 40, yPos);
+    yPos += 20;
+
+    doc.fontSize(9).font(fontBold).fillColor('#475569');
+    doc.text('اسم الكاشير', 40, yPos);
+    doc.text('الحالة', 160, yPos);
+    doc.text('الطلبات', 240, yPos);
+    doc.text('الإيراد الإجمالي', 340, yPos);
+    doc.text('الرصيد الافتتاحي', 440, yPos, { width: 80, align: 'right' });
+    yPos += 14;
+    doc.moveTo(40, yPos).lineTo(540, yPos).strokeColor('#cbd5e1').stroke();
+    yPos += 8;
+
+    doc.fontSize(9).font(fontRegular).fillColor('#1e293b');
+    if (shifts.length === 0) {
+      doc.text('لا توجد ورديات مسجلة خلال هذه الفترة', 40, yPos);
+      yPos += 18;
+    } else {
+      for (const s of shifts.slice(0, 15)) {
+        if (yPos > 740) { doc.addPage(); yPos = 40; }
+        doc.text(s.cashierName || 'كاشير', 40, yPos, { width: 110 });
+        doc.text(s.status === 'open' ? 'نشطة (مفتوحة)' : 'مقفلة', 160, yPos);
+        doc.text(String(s.totalOrders || 0), 240, yPos);
+        doc.text(`${(s.totalRevenue || 0).toLocaleString('ar-EG')} ج.م`, 340, yPos);
+        doc.text(`${(s.openingBalance || 0).toLocaleString('ar-EG')} ج.م`, 440, yPos, { width: 80, align: 'right' });
+        yPos += 18;
+      }
+    }
+
+    // الصفحة 2: الأصناف الأكثر مبيعاً وقائمة المصروفات
     doc.addPage();
     yPos = 40;
-    pageNum++;
 
     // الأصناف الأكثر مبيعاً
     const itemMap = {};
     for (const o of orders) {
       let items = [];
-      try { items = typeof o.items === 'string' ? JSON.parse(o.items) : (o.items || []); } catch {}
+      try { items = Array.isArray(o.items) ? o.items : JSON.parse(o.items || '[]'); } catch (_) {}
       for (const i of items) {
-        const name = i.name || 'Unknown';
+        const name = i.name || i.name_ar || 'صنف غير مسمى';
         if (!itemMap[name]) itemMap[name] = { name, qty: 0, revenue: 0 };
-        itemMap[name].qty += i.quantity || 1;
-        itemMap[name].revenue += (i.price || 0) * (i.quantity || 1);
+        const q = Number(i.quantity) || 1;
+        const p = Number(i.price) || 0;
+        itemMap[name].qty += q;
+        itemMap[name].revenue += p * q;
       }
     }
     const topItems = Object.values(itemMap).sort((a, b) => b.revenue - a.revenue).slice(0, 15);
 
-    doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Top Items', 40, yPos);
-    yPos += 22;
-    doc.fontSize(9).font(`${font}-Bold`).fillColor('#555');
-    doc.text('Item', 40, yPos); doc.text('Qty', 350, yPos); doc.text('Revenue', 420, yPos, { width: 100, align: 'right' });
-    yPos += 4;
-    doc.moveTo(40, yPos).lineTo(520, yPos).strokeColor('#ddd').stroke();
-    yPos += 8;
-    doc.fontSize(9).font(font).fillColor('#333');
-    for (const item of topItems) {
-      doc.text(item.name, 40, yPos, { width: 300 });
-      doc.text(String(item.qty), 350, yPos);
-      doc.text(`EGP ${item.revenue.toFixed(2)}`, 420, yPos, { width: 100, align: 'right' });
-      yPos += 16;
-    }
-
-    // أداء الكاشير
+    doc.fillColor('#1a1a1a').fontSize(14).font(fontBold).text('الأصناف الأكثر طلباً ومبيعاً (Top Sold Items)', 40, yPos);
     yPos += 20;
-    if (yPos > 700) { doc.addPage(); yPos = 40; pageNum++; }
-    doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Cashier Performance', 40, yPos);
-    yPos += 22;
-    doc.fontSize(9).font(`${font}-Bold`).fillColor('#555');
-    doc.text('Cashier', 40, yPos); doc.text('Shifts', 140, yPos); doc.text('Orders', 200, yPos);
-    doc.text('Revenue', 280, yPos); doc.text('Cash', 370, yPos);
-    yPos += 4;
-    doc.moveTo(40, yPos).lineTo(520, yPos).strokeColor('#ddd').stroke();
+
+    doc.fontSize(9).font(fontBold).fillColor('#475569');
+    doc.text('الصنف', 40, yPos);
+    doc.text('الكمية', 340, yPos);
+    doc.text('إجمالي القيمة', 420, yPos, { width: 100, align: 'right' });
+    yPos += 14;
+    doc.moveTo(40, yPos).lineTo(540, yPos).strokeColor('#cbd5e1').stroke();
     yPos += 8;
-    doc.fontSize(9).font(font).fillColor('#333');
-    for (const s of shifts) {
-      if (yPos > 740) { doc.addPage(); yPos = 40; pageNum++; }
-      doc.text(s.cashierName || 'Unknown', 40, yPos, { width: 95 });
-      doc.text(String(s.totalOrders || 0), 140, yPos);
-      doc.text(String(s.totalOrders || 0), 200, yPos);
-      doc.text(`EGP ${(s.totalRevenue || 0).toFixed(0)}`, 280, yPos, { width: 85, align: 'right' });
-      const cashAmt = (s.paymentBreakdown && s.paymentBreakdown.cash) || 0;
-      doc.text(`EGP ${cashAmt.toFixed(0)}`, 370, yPos, { width: 85, align: 'right' });
-      yPos += 14;
+
+    doc.fontSize(9).font(fontRegular).fillColor('#1e293b');
+    if (topItems.length === 0) {
+      doc.text('لا توجد مبيعات أصناف مسجلة في هذه الفترة', 40, yPos);
+      yPos += 18;
+    } else {
+      for (const item of topItems) {
+        doc.text(item.name, 40, yPos, { width: 280 });
+        doc.text(String(item.qty), 340, yPos);
+        doc.text(`${item.revenue.toLocaleString('ar-EG')} ج.م`, 420, yPos, { width: 100, align: 'right' });
+        yPos += 18;
+      }
     }
 
-    // الصفحة 3: الورديات + المبيعات حسب الساعة + توزيع التكاليف
-    doc.addPage();
-    yPos = 40;
-    pageNum++;
+    // تفصيل المصروفات والتكاليف
+    yPos += 25;
+    if (yPos > 680) { doc.addPage(); yPos = 40; }
 
-    // الورديات
-    doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Shifts', 40, yPos);
-    yPos += 22;
-    doc.fontSize(9).font(`${font}-Bold`).fillColor('#555');
-    doc.text('Cashier', 40, yPos); doc.text('Period', 130, yPos); doc.text('Orders', 280, yPos); doc.text('Revenue', 340, yPos); doc.text('Cash', 430, yPos);
-    yPos += 4;
-    doc.moveTo(40, yPos).lineTo(520, yPos).strokeColor('#ddd').stroke();
-    yPos += 8;
-    doc.fontSize(9).font(font).fillColor('#333');
-    for (const s of shifts.slice(0, 25)) {
-      if (yPos > 740) { doc.addPage(); yPos = 40; pageNum++; }
-      const openDate = s.openedAt ? new Date(s.openedAt).toLocaleDateString() : '—';
-      const closeDate = s.closedAt ? new Date(s.closedAt).toLocaleDateString() : 'Open';
-      doc.text(s.cashierName || 'Unknown', 40, yPos, { width: 85 });
-      doc.text(`${openDate} → ${closeDate}`, 130, yPos, { width: 140 });
-      doc.text(String(s.totalOrders || 0), 280, yPos);
-      doc.text(`EGP ${(s.totalRevenue || 0).toFixed(0)}`, 340, yPos, { width: 75, align: 'right' });
-      const cashAmt = (s.paymentBreakdown && s.paymentBreakdown.cash) || 0;
-      doc.text(`EGP ${cashAmt.toFixed(0)}`, 430, yPos, { width: 75, align: 'right' });
-      yPos += 14;
-    }
-
-    // المبيعات حسب الساعة
+    doc.fillColor('#1a1a1a').fontSize(14).font(fontBold).text('تفاصيل المصروفات التشغيلية (Expenses Breakdown)', 40, yPos);
     yPos += 20;
-    if (yPos > 700) { doc.addPage(); yPos = 40; pageNum++; }
-    doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Hourly Sales', 40, yPos);
-    yPos += 22;
-    doc.fontSize(9).font(`${font}-Bold`).fillColor('#555');
-    doc.text('Hour', 40, yPos); doc.text('Orders', 100, yPos); doc.text('Revenue', 420, yPos, { width: 100, align: 'right' });
-    yPos += 4;
-    doc.moveTo(40, yPos).lineTo(520, yPos).strokeColor('#ddd').stroke();
+
+    doc.fontSize(9).font(fontBold).fillColor('#475569');
+    doc.text('بيان المصروف', 40, yPos);
+    doc.text('التصنيف', 240, yPos);
+    doc.text('التاريخ', 340, yPos);
+    doc.text('المبلغ', 440, yPos, { width: 80, align: 'right' });
+    yPos += 14;
+    doc.moveTo(40, yPos).lineTo(540, yPos).strokeColor('#cbd5e1').stroke();
     yPos += 8;
-    doc.fontSize(9).font(font).fillColor('#333');
-    // عرض الساعات التي بها نشاط فقط
-    const activeHours = Object.values(hourly).filter(h => h.orders > 0);
-    for (const h of activeHours) {
-      if (yPos > 740) { doc.addPage(); yPos = 40; pageNum++; }
-      const label = `${String(h.h).padStart(2, '0')}:00`;
-      doc.text(label, 40, yPos);
-      doc.text(String(h.orders), 100, yPos);
-      doc.text(`EGP ${h.revenue.toFixed(2)}`, 420, yPos, { width: 100, align: 'right' });
-      yPos += 14;
+
+    doc.fontSize(9).font(fontRegular).fillColor('#1e293b');
+    if (expenses.length === 0) {
+      doc.text('لا توجد مصروفات مسجلة خلال هذه الفترة', 40, yPos);
+      yPos += 18;
+    } else {
+      for (const exp of expenses.slice(0, 20)) {
+        if (yPos > 740) { doc.addPage(); yPos = 40; }
+        doc.text(exp.title || 'مصروف', 40, yPos, { width: 190 });
+        doc.text(exp.category || 'عام', 240, yPos);
+        doc.text(exp.expenseDate ? new Date(exp.expenseDate).toLocaleDateString('ar-EG') : '—', 340, yPos);
+        doc.text(`${(exp.amount || 0).toLocaleString('ar-EG')} ج.م`, 440, yPos, { width: 80, align: 'right' });
+        yPos += 18;
+      }
     }
 
-    // توزيع التكاليف
-    yPos += 20;
-    if (yPos > 700) { doc.addPage(); yPos = 40; pageNum++; }
-    doc.fillColor('#111').fontSize(14).font(`${font}-Bold`).text('Cost Breakdown', 40, yPos);
-    yPos += 22;
-    doc.fontSize(9).font(`${font}-Bold`).fillColor('#555');
-    doc.text('Category', 40, yPos); doc.text('Amount', 420, yPos, { width: 100, align: 'right' });
-    yPos += 4;
-    doc.moveTo(40, yPos).lineTo(520, yPos).strokeColor('#ddd').stroke();
-    yPos += 8;
-    doc.fontSize(9).font(font).fillColor('#333');
-    const catEntries = Object.entries(costCategories).sort((a, b) => b[1] - a[1]);
-    for (const [cat, amt] of catEntries) {
-      if (yPos > 740) { doc.addPage(); yPos = 40; pageNum++; }
-      doc.text(cat, 40, yPos, { width: 300 });
-      doc.text(`EGP ${amt.toFixed(2)}`, 420, yPos, { width: 100, align: 'right' });
-      yPos += 14;
-    }
-    doc.text(`Total: EGP ${totalCosts.toFixed(2)}`, 40, yPos + 6, { width: 480, align: 'right' });
+    // تذييل الصفحة الأخير
+    doc.fontSize(8).font(fontRegular).fillColor('#94a3b8').text('تم استخراج هذا التقرير تلقائياً من نظام 2M CAFE السحابي — جميع السجلات والبيانات موثقة من نظام نقاط البيع (POS).', 40, 770, { align: 'center', width: 500 });
 
     doc.end();
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[PDF Export Error]:', err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'فشل استخراج تقرير PDF: ' + err.message });
+    }
   }
 });
 

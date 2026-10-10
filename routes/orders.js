@@ -625,11 +625,17 @@ router.post('/mark-synced', async (req, res) => {
   }
 });
 
-// حذف طلب (بواسطة الأدمن فقط)
+// حذف طلب (بواسطة الأدمن فقط — مع حماية الفواتير المتزامنة من الكاشير)
 router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ error: 'Order not found' });
+    if (order.posSynced || order.externalOrderId || order.posOrderId) {
+      return res.status(403).json({
+        error: 'READ_ONLY_POS_RECORD',
+        message: 'لا يمكن حذف هذا الطلب من الموقع لأنه مسجل ومتزامن مع نظام الكاشير (POS). السجلات المالية محمية للقراءة فقط.'
+      });
+    }
     await order.deleteOne();
     res.json({ success: true });
   } catch (err) {
