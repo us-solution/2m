@@ -470,6 +470,8 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
     const fontRegular = 'Tajawal';
     const fontBold = 'Tajawal-Bold';
 
+    const { toEnglishDigits, formatCurrency, formatNumber, formatDateTime, formatDate } = require('../services/reportEngine');
+
     // الصفحة 1: رأس التقرير + الملخص المالي + طرق الدفع
     const logoPath = path.join(__dirname, '../frontend/imgs/2m-logo.png');
     if (fs.existsSync(logoPath)) {
@@ -478,7 +480,7 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
 
     doc.fontSize(22).font(fontBold).fillColor('#1a1a1a').text('2M CAFE — TWO MILLION CAFE', 40, 40);
     doc.fontSize(12).font(fontRegular).fillColor('#c29f43').text(`تقرير المبيعات والعمليات التشغيلية (نظام الكاشير)`, 40, 68);
-    doc.fontSize(9).font(fontRegular).fillColor('#666').text(`الفترة: ${periodLabel} | تاريخ الاستخراج: ${new Date().toLocaleString('ar-EG')} بتوقيت القاهرة`, 40, 86);
+    doc.fontSize(9).font(fontRegular).fillColor('#666').text(`الفترة: ${periodLabel} | تاريخ الاستخراج: ${formatDateTime(new Date())} بتوقيت القاهرة`, 40, 86);
 
     doc.moveTo(40, 105).lineTo(540, 105).strokeColor('#e2e8f0').stroke();
 
@@ -487,16 +489,16 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
     doc.fontSize(10).font(fontRegular).fillColor('#333');
     const sY = 140;
 
-    doc.text(`إجمالي المبيعات: ${revenue.toLocaleString('ar-EG')} ج.م`, 40, sY);
-    doc.text(`إجمالي عدد الفواتير: ${orders.length}`, 40, sY + 20);
-    doc.text(`الطلبات المدفوعة: ${paid.length}`, 40, sY + 40);
-    doc.text(`المصروفات التشغيلية: ${totalCosts.toLocaleString('ar-EG')} ج.م`, 40, sY + 60);
+    doc.text(`إجمالي المبيعات: ${formatCurrency(revenue)}`, 40, sY);
+    doc.text(`إجمالي عدد الفواتير: ${formatNumber(orders.length)}`, 40, sY + 20);
+    doc.text(`الطلبات المدفوعة: ${formatNumber(paid.length)}`, 40, sY + 40);
+    doc.text(`المصروفات التشغيلية: ${formatCurrency(totalCosts)}`, 40, sY + 60);
 
     const avgVal = orders.length ? (revenue / orders.length) : 0;
-    doc.text(`متوسط قيمة الفاتورة: ${avgVal.toFixed(2)} ج.م`, 300, sY);
-    doc.text(`الطلبات الملغاة: ${orders.filter(o => o.status === 'cancelled').length}`, 300, sY + 20);
-    doc.text(`المبالغ المستردة: ${refundsTotal.toLocaleString('ar-EG')} ج.م`, 300, sY + 40);
-    doc.font(fontBold).fillColor('#16a34a').text(`صافي أرباح التشغيل: ${netOperating.toLocaleString('ar-EG')} ج.م`, 300, sY + 60);
+    doc.text(`متوسط قيمة الفاتورة: ${formatCurrency(avgVal)}`, 300, sY);
+    doc.text(`الطلبات الملغاة: ${formatNumber(orders.filter(o => o.status === 'cancelled').length)}`, 300, sY + 20);
+    doc.text(`المبالغ المستردة: ${formatCurrency(refundsTotal)}`, 300, sY + 40);
+    doc.font(fontBold).fillColor('#16a34a').text(`صافي أرباح التشغيل: ${formatCurrency(netOperating)}`, 300, sY + 60);
 
     // تفصيل طرق الدفع
     let yPos = sY + 95;
@@ -521,7 +523,7 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
     for (const item of pmLabels) {
       const amt = pmBreakdown[item.key] || 0;
       doc.text(item.ar, 40, yPos);
-      doc.text(`${amt.toLocaleString('ar-EG')} ج.م`, 420, yPos, { width: 100, align: 'right' });
+      doc.text(formatCurrency(amt), 420, yPos, { width: 100, align: 'right' });
       yPos += 18;
     }
 
@@ -549,9 +551,9 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
         if (yPos > 740) { doc.addPage(); yPos = 40; }
         doc.text(s.cashierName || 'كاشير', 40, yPos, { width: 110 });
         doc.text(s.status === 'open' ? 'نشطة (مفتوحة)' : 'مقفلة', 160, yPos);
-        doc.text(String(s.totalOrders || 0), 240, yPos);
-        doc.text(`${(s.totalRevenue || 0).toLocaleString('ar-EG')} ج.م`, 340, yPos);
-        doc.text(`${(s.openingBalance || 0).toLocaleString('ar-EG')} ج.م`, 440, yPos, { width: 80, align: 'right' });
+        doc.text(formatNumber(s.totalOrders || 0), 240, yPos);
+        doc.text(formatCurrency(s.totalRevenue || 0), 340, yPos);
+        doc.text(formatCurrency(s.openingBalance || 0), 440, yPos, { width: 80, align: 'right' });
         yPos += 18;
       }
     }
@@ -594,8 +596,8 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
     } else {
       for (const item of topItems) {
         doc.text(item.name, 40, yPos, { width: 280 });
-        doc.text(String(item.qty), 340, yPos);
-        doc.text(`${item.revenue.toLocaleString('ar-EG')} ج.م`, 420, yPos, { width: 100, align: 'right' });
+        doc.text(formatNumber(item.qty), 340, yPos);
+        doc.text(formatCurrency(item.revenue), 420, yPos, { width: 100, align: 'right' });
         yPos += 18;
       }
     }
@@ -625,8 +627,8 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
         if (yPos > 740) { doc.addPage(); yPos = 40; }
         doc.text(exp.title || 'مصروف', 40, yPos, { width: 190 });
         doc.text(exp.category || 'عام', 240, yPos);
-        doc.text(exp.expenseDate ? new Date(exp.expenseDate).toLocaleDateString('ar-EG') : '—', 340, yPos);
-        doc.text(`${(exp.amount || 0).toLocaleString('ar-EG')} ج.م`, 440, yPos, { width: 80, align: 'right' });
+        doc.text(formatDate(exp.expenseDate), 340, yPos);
+        doc.text(formatCurrency(exp.amount || 0), 440, yPos, { width: 80, align: 'right' });
         yPos += 18;
       }
     }

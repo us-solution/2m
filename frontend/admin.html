@@ -1458,13 +1458,13 @@ body { background-color: var(--bg); color: var(--text); }
             <!-- Start Date -->
             <div style="flex:1; min-width:140px;">
               <label style="display:block; font-size:0.85rem; color:var(--muted); margin-bottom:0.4rem;">من تاريخ</label>
-              <input type="date" id="rc-start-date" class="edit-input" style="width:100%; height:42px; background:var(--bg3);" onchange="fetchReportPreview()">
+              <input type="date" id="rc-start-date" class="edit-input" style="width:100%; height:42px; background:var(--bg3);" onchange="onReportDateInputChange()">
             </div>
 
             <!-- End Date -->
             <div style="flex:1; min-width:140px;">
               <label style="display:block; font-size:0.85rem; color:var(--muted); margin-bottom:0.4rem;">إلى تاريخ</label>
-              <input type="date" id="rc-end-date" class="edit-input" style="width:100%; height:42px; background:var(--bg3);" onchange="fetchReportPreview()">
+              <input type="date" id="rc-end-date" class="edit-input" style="width:100%; height:42px; background:var(--bg3);" onchange="onReportDateInputChange()">
             </div>
 
             <!-- Action Buttons -->
@@ -1552,11 +1552,23 @@ body { background-color: var(--bg); color: var(--text); }
     function showPage(name, el) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      document.getElementById('page-' + name).classList.add('active');
-      if (el && el.classList && el.classList.contains('nav-item')) el.classList.add('active');
+      const targetPageEl = document.getElementById('page-' + name);
+      if (targetPageEl) targetPageEl.classList.add('active');
+      if (el && el.classList && el.classList.contains('nav-item')) {
+        el.classList.add('active');
+      } else {
+        const matchingNav = document.querySelector(`.nav-item[data-page="${name}"]`);
+        if (matchingNav) matchingNav.classList.add('active');
+      }
 
       const sel = document.getElementById('mobile-nav-select');
       if (sel) sel.value = name;
+
+      try {
+        if (window.location.hash !== '#' + name) {
+          history.replaceState(null, '', '#' + name);
+        }
+      } catch (_) {}
 
       if (name === 'dashboard') showPage('menu');
       if (name === 'menu') loadMenu();
@@ -1621,6 +1633,23 @@ body { background-color: var(--bg); color: var(--text); }
       if (content) content.style.display = 'block';
     }
 
+    // دوال تنسيق الأرقام والعملات الإنجليزية الموحدة
+    function formatEnCurrency(val) {
+      const n = Number(val) || 0;
+      return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ج.م';
+    }
+    function formatEnInt(val) {
+      const n = Number(val) || 0;
+      return n.toLocaleString('en-US');
+    }
+    function toEnglishDigits(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+        .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+        .replace(/[\u200e\u200f\u202a-\u202e]/g, '');
+    }
+
     // جلب بيانات لوحة تحكم الكاشير من الخادم
     async function loadCashierDashboard(period = currentCashierPeriod, from = null, to = null, forceRefresh = false) {
       if (typeof from === 'boolean') {
@@ -1633,6 +1662,22 @@ body { background-color: var(--bg); color: var(--text); }
       const badgeDot = document.getElementById('cashier-source-dot');
       if (badgeText) badgeText.textContent = 'جاري جلب البيانات...';
       if (badgeDot) badgeDot.style.background = 'var(--gold)';
+
+      const kpiTotal = document.getElementById('kpi-total-sales');
+      const kpiCount = document.getElementById('kpi-invoices-count');
+      const kpiCash = document.getElementById('kpi-cash-sales');
+      const kpiCard = document.getElementById('kpi-card-sales');
+      const kpiExp = document.getElementById('kpi-expenses');
+      const kpiProfit = document.getElementById('kpi-net-profit');
+
+      if (!cashierDashboardData) {
+        if (kpiTotal) kpiTotal.textContent = '...';
+        if (kpiCount) kpiCount.textContent = '...';
+        if (kpiCash) kpiCash.textContent = '...';
+        if (kpiCard) kpiCard.textContent = '...';
+        if (kpiExp) kpiExp.textContent = '...';
+        if (kpiProfit) kpiProfit.textContent = '...';
+      }
 
       let url = '/api/admin/cashier-dashboard?period=' + encodeURIComponent(period);
       if (from) url += '&from=' + encodeURIComponent(from);
@@ -1677,6 +1722,14 @@ body { background-color: var(--bg); color: var(--text); }
         if (badgeText && badgeDot) {
           badgeText.textContent = 'غير متصل بالسيرفر';
           badgeDot.style.background = 'var(--red)';
+        }
+        if (!cashierDashboardData) {
+          if (kpiTotal) kpiTotal.textContent = 'تعذر التحميل';
+          if (kpiCount) kpiCount.textContent = 'تعذر التحميل';
+          if (kpiCash) kpiCash.textContent = 'تعذر التحميل';
+          if (kpiCard) kpiCard.textContent = 'تعذر التحميل';
+          if (kpiExp) kpiExp.textContent = 'تعذر التحميل';
+          if (kpiProfit) kpiProfit.textContent = 'تعذر التحميل';
         }
         document.getElementById('invoicesTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--red); padding:2rem;">فشل في تحميل البيانات — ' + err.message + '</td></tr>';
       }
@@ -1772,10 +1825,10 @@ body { background-color: var(--bg); color: var(--text); }
       const openShiftWidget = document.getElementById('openShiftTabWidget');
 
       if (openShift) {
-        const openedTime = openShift.openedAt ? new Date(openShift.openedAt).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'}) : '';
+        const openedTime = openShift.openedAt ? new Date(openShift.openedAt).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}) : '';
         if (shiftTitleEl) shiftTitleEl.textContent = openShift.cashierName || 'كاشير الوردية';
         if (shiftDotEl) shiftDotEl.style.background = 'var(--green)';
-        if (shiftDetailsEl) shiftDetailsEl.textContent = `مفتوحة منذ: ${openedTime} | الطلبات: ${openShift.totalOrders || 0} | الإيراد: ${(openShift.totalRevenue || 0).toLocaleString('ar-EG')} ج.م`;
+        if (shiftDetailsEl) shiftDetailsEl.textContent = `مفتوحة منذ: ${openedTime} | الطلبات: ${formatEnInt(openShift.totalOrders || 0)} | الإيراد: ${formatEnCurrency(openShift.totalRevenue || 0)}`;
         if (shiftBadgeEl) {
           shiftBadgeEl.textContent = 'مفتوحة الآن';
           shiftBadgeEl.style.color = 'var(--green)';
@@ -1789,16 +1842,16 @@ body { background-color: var(--bg); color: var(--text); }
                 <span class="badge" style="background:rgba(22, 163, 74, 0.15); color:var(--green); font-weight:700; margin-bottom:0.4rem; display:inline-block;">وردية نشطة ومفتوحة حالياً</span>
                 <h3 style="margin:0; font-size:1.15rem; color:var(--text); font-weight:700;">الكاشير المسؤول: ${escapeHtml(openShift.cashierName || 'غير محدد')}</h3>
                 <div style="font-size:0.85rem; color:var(--muted); margin-top:0.3rem;">
-                  بدأت في: ${new Date(openShift.openedAt).toLocaleString('ar-EG')} | رصيد الافتتاح: ${(openShift.openingBalance || 0).toLocaleString('ar-EG')} ج.م
+                  بدأت في: ${new Date(openShift.openedAt).toLocaleString('en-GB')} | رصيد الافتتاح: ${formatEnCurrency(openShift.openingBalance || 0)}
                 </div>
               </div>
               <div style="display:flex; gap:1.5rem; text-align:center;">
                 <div>
-                  <div style="font-size:1.25rem; font-weight:700; color:var(--gold);">${(openShift.totalRevenue || 0).toLocaleString('ar-EG')} ج.م</div>
+                  <div style="font-size:1.25rem; font-weight:700; color:var(--gold);">${formatEnCurrency(openShift.totalRevenue || 0)}</div>
                   <div style="font-size:0.75rem; color:var(--muted);">إيراد الوردية اللحظي</div>
                 </div>
                 <div>
-                  <div style="font-size:1.25rem; font-weight:700; color:var(--text);">${openShift.totalOrders || 0}</div>
+                  <div style="font-size:1.25rem; font-weight:700; color:var(--text);">${formatEnInt(openShift.totalOrders || 0)}</div>
                   <div style="font-size:0.75rem; color:var(--muted);">عدد الطلبات الحالية</div>
                 </div>
               </div>
@@ -1828,12 +1881,12 @@ body { background-color: var(--bg); color: var(--text); }
       }
 
       // 1. Update KPIs
-      document.getElementById('kpi-total-sales').textContent = (kpis.totalSales || 0).toLocaleString('ar-EG') + ' ج.م';
-      document.getElementById('kpi-invoices-count').textContent = (kpis.ordersCount || 0).toLocaleString('ar-EG');
-      document.getElementById('kpi-cash-sales').textContent = (kpis.cashSales || 0).toLocaleString('ar-EG') + ' ج.م';
-      document.getElementById('kpi-card-sales').textContent = ((kpis.cardSales || 0) + (kpis.walletSales || 0)).toLocaleString('ar-EG') + ' ج.م';
-      document.getElementById('kpi-expenses').textContent = (kpis.totalExpenses || 0).toLocaleString('ar-EG') + ' ج.م';
-      document.getElementById('kpi-net-profit').textContent = (kpis.netProfit || 0).toLocaleString('ar-EG') + ' ج.م';
+      document.getElementById('kpi-total-sales').textContent = formatEnCurrency(kpis.totalSales);
+      document.getElementById('kpi-invoices-count').textContent = formatEnInt(kpis.ordersCount);
+      document.getElementById('kpi-cash-sales').textContent = formatEnCurrency(kpis.cashSales);
+      document.getElementById('kpi-card-sales').textContent = formatEnCurrency((kpis.cardSales || 0) + (kpis.walletSales || 0));
+      document.getElementById('kpi-expenses').textContent = formatEnCurrency(kpis.totalExpenses);
+      document.getElementById('kpi-net-profit').textContent = formatEnCurrency(kpis.netProfit);
 
       // 2. Render Invoices Table
       renderInvoicesTable(d.invoices || []);
@@ -1842,11 +1895,11 @@ body { background-color: var(--bg); color: var(--text); }
       renderProductsCashierTable(d.products || []);
 
       // 4. Render Treasury
-      document.getElementById('tr-cash-total').textContent = (kpis.cashSales || 0).toLocaleString('ar-EG') + ' ج.م';
-      document.getElementById('tr-card-total').textContent = (kpis.cardSales || 0).toLocaleString('ar-EG') + ' ج.م';
-      document.getElementById('tr-wallet-total').textContent = (kpis.walletSales || 0).toLocaleString('ar-EG') + ' ج.م';
-      document.getElementById('tr-inflow-total').textContent = (kpis.inflow || 0).toLocaleString('ar-EG') + ' ج.م';
-      document.getElementById('tr-outflow-total').textContent = (kpis.totalExpenses || 0).toLocaleString('ar-EG') + ' ج.م';
+      document.getElementById('tr-cash-total').textContent = formatEnCurrency(kpis.cashSales);
+      document.getElementById('tr-card-total').textContent = formatEnCurrency(kpis.cardSales);
+      document.getElementById('tr-wallet-total').textContent = formatEnCurrency(kpis.walletSales);
+      document.getElementById('tr-inflow-total').textContent = formatEnCurrency(kpis.inflow);
+      document.getElementById('tr-outflow-total').textContent = formatEnCurrency(kpis.totalExpenses);
 
       const devList = document.getElementById('devicesStatusList');
       if (devList) {
@@ -1870,15 +1923,15 @@ body { background-color: var(--bg); color: var(--text); }
       // 5. Render Expenses Table
       const expBody = document.getElementById('expensesTableBody');
       const expTotalLabel = document.getElementById('expensesTotalLabel');
-      if (expTotalLabel) expTotalLabel.textContent = 'إجمالي المصروفات: ' + (kpis.totalExpenses || 0).toLocaleString('ar-EG') + ' ج.م';
+      if (expTotalLabel) expTotalLabel.textContent = 'إجمالي المصروفات: ' + formatEnCurrency(kpis.totalExpenses);
       if (expBody) {
         if (d.expenses && d.expenses.length > 0) {
           expBody.innerHTML = d.expenses.map(e => `
             <tr>
-              <td>${e.title}</td>
-              <td><span class="badge badge-info">${e.category}</span></td>
-              <td>${e.date ? new Date(e.date).toLocaleDateString('ar-EG') : '—'}</td>
-              <td style="font-weight:700; color:var(--red);">${(e.amount || 0).toLocaleString('ar-EG')} ج.م</td>
+              <td>${escapeHtml(e.title || '')}</td>
+              <td><span class="badge badge-info">${escapeHtml(e.category || '')}</span></td>
+              <td>${e.date ? new Date(e.date).toLocaleDateString('en-GB') : '—'}</td>
+              <td style="font-weight:700; color:var(--red);">${formatEnCurrency(e.amount)}</td>
             </tr>
           `).join('');
         } else {
@@ -1889,16 +1942,16 @@ body { background-color: var(--bg); color: var(--text); }
       // 6. Render Customers Table
       const custBody = document.getElementById('customersTableBody');
       const custCount = document.getElementById('displayedCustomersCount');
-      if (custCount) custCount.textContent = (d.customers ? d.customers.length : 0);
+      if (custCount) custCount.textContent = formatEnInt(d.customers ? d.customers.length : 0);
       if (custBody) {
         if (d.customers && d.customers.length > 0) {
           custBody.innerHTML = d.customers.map(c => `
             <tr>
-              <td style="font-weight:700;">${c.name}</td>
-              <td style="direction:ltr; text-align:right;">${c.phone}</td>
-              <td style="color:var(--gold); font-weight:700;">${(c.points || 0).toLocaleString('ar-EG')} نقطة</td>
-              <td style="font-weight:700;">${(c.totalSpent || 0).toLocaleString('ar-EG')} ج.م</td>
-              <td><span class="badge ${c.customerStatus === 'gold' ? 'badge-gold' : 'badge-info'}">${c.customerStatus.toUpperCase()}</span></td>
+              <td style="font-weight:700;">${escapeHtml(c.name || '')}</td>
+              <td style="direction:ltr; text-align:right;">${escapeHtml(c.phone || '')}</td>
+              <td style="color:var(--gold); font-weight:700;">${formatEnInt(c.points || 0)} نقطة</td>
+              <td style="font-weight:700;">${formatEnCurrency(c.totalSpent || 0)}</td>
+              <td><span class="badge ${c.customerStatus === 'gold' ? 'badge-gold' : 'badge-info'}">${escapeHtml((c.customerStatus || 'standard').toUpperCase())}</span></td>
             </tr>
           `).join('');
         } else {
@@ -2868,8 +2921,10 @@ body { background-color: var(--bg); color: var(--text); }
       });
     }
 
-    // Load stats on start
-    showPage('menu');
+    // Load stats on start (respect deep link hash)
+    const initialHash = (window.location.hash || '').replace('#', '');
+    const validPages = ['menu', 'categories', 'offers', 'users', 'cashier-dashboard', 'reports-center', 'customization', 'pos-devices'];
+    showPage(validPages.includes(initialHash) ? initialHash : 'menu');
 
     // ── Inventory Functions ──
     let allIngredients = [];
@@ -3292,24 +3347,31 @@ body { background-color: var(--bg); color: var(--text); }
     // كود مركز التقارير والـ PDF (Reports & PDF Center)
     // =========================================================================
     let currentReportEngineData = null;
+    let currentReportPreset = 'all';
 
     function loadReportsCenter() {
-      // تعيين الفترات الافتراضية إذا كانت فارغة
+      // تعيين الفترات الافتراضية إذا كانت فارغة (افتراضياً: الكل لعرض جميع البيانات المتاحة)
       const startInp = document.getElementById('rc-start-date');
       const endInp = document.getElementById('rc-end-date');
       if (!startInp.value && !endInp.value) {
-        // افتراضياً: بداية الشهر الحالي حتى اليوم
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = String(now.getMonth() + 1).padStart(2, '0');
-        const d = String(now.getDate()).padStart(2, '0');
-        startInp.value = `${y}-${m}-01`;
-        endInp.value = `${y}-${m}-${d}`;
+        currentReportPreset = 'all';
+        startInp.value = '';
+        endInp.value = '';
+        document.querySelectorAll('.rc-pill').forEach(b => b.classList.remove('active'));
+        const allBtn = document.getElementById('rc-preset-all');
+        if (allBtn) allBtn.classList.add('active');
       }
       fetchReportPreview();
     }
 
+    function onReportDateInputChange() {
+      currentReportPreset = 'custom';
+      document.querySelectorAll('.rc-pill').forEach(b => b.classList.remove('active'));
+      fetchReportPreview();
+    }
+
     function setReportPreset(preset) {
+      currentReportPreset = preset;
       document.querySelectorAll('.rc-pill').forEach(b => b.classList.remove('active'));
       const activeBtn = document.getElementById('rc-preset-' + preset);
       if (activeBtn) activeBtn.classList.add('active');
@@ -3363,6 +3425,9 @@ body { background-color: var(--bg); color: var(--text); }
 
       try {
         let url = `/api/reports/engine/data?reportType=${encodeURIComponent(type)}`;
+        if (currentReportPreset && currentReportPreset !== 'custom') {
+          url += `&period=${encodeURIComponent(currentReportPreset)}`;
+        }
         if (start) url += `&startDate=${encodeURIComponent(start)}`;
         if (end) url += `&endDate=${encodeURIComponent(end)}`;
 
@@ -3378,8 +3443,8 @@ body { background-color: var(--bg); color: var(--text); }
 
         const periodText = (data.period && data.period.label) ? data.period.label : (data.periodFormatted || 'جميع الفترات');
         document.getElementById('rc-table-title').textContent = data.title || 'تقرير';
-        document.getElementById('rc-table-subtitle').textContent = `الفترة: ${periodText} • وقت التوليد: ${new Date(data.generatedAt || Date.now()).toLocaleTimeString('ar-EG')}`;
-        document.getElementById('rc-records-count').textContent = data.rows ? data.rows.length : 0;
+        document.getElementById('rc-table-subtitle').textContent = `الفترة: ${periodText} • وقت التوليد: ${new Date(data.generatedAt || Date.now()).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+        document.getElementById('rc-records-count').textContent = formatEnInt(data.rows ? data.rows.length : 0);
 
         renderReportKpis(data);
         renderReportTable(data);
@@ -3424,9 +3489,9 @@ body { background-color: var(--bg); color: var(--text); }
 
           if (typeof val === 'number') {
             if (key.includes('مبيعات') || key.includes('إيرادات') || key.includes('أرباح') || key.includes('تكلفة') || key.includes('مصروفات') || key.includes('نقد') || key.includes('رصيد') || key.includes('قيمة')) {
-              formattedVal = val.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ج.م';
+              formattedVal = formatEnCurrency(val);
             } else {
-              formattedVal = val.toLocaleString('ar-EG');
+              formattedVal = formatEnInt(val);
             }
           }
 
@@ -3543,6 +3608,9 @@ body { background-color: var(--bg); color: var(--text); }
       const token = (localStorage.getItem('2m_token') || localStorage.getItem('ozel_token') || '');
 
       let url = `/api/reports/engine/pdf?reportType=${encodeURIComponent(type)}&token=${encodeURIComponent(token)}`;
+      if (currentReportPreset && currentReportPreset !== 'custom') {
+        url += `&period=${encodeURIComponent(currentReportPreset)}`;
+      }
       if (start) url += `&startDate=${encodeURIComponent(start)}`;
       if (end) url += `&endDate=${encodeURIComponent(end)}`;
 

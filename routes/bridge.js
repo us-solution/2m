@@ -10,6 +10,7 @@ const Category = require('../models/Category');
 const SystemLicense = require('../models/SystemLicense');
 const PosDevice = require('../models/PosDevice');
 const Shift = require('../models/Shift');
+const Expense = require('../models/Expense');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const retryQueue = require('../retry-queue');
@@ -269,6 +270,7 @@ router.post('/invoices/sync', verifyBridgeKey, async (req, res) => {
       shiftId: shiftDoc ? shiftDoc._id : null,
       qrCodeToken: `pos-sync-${invoice_number || idempotency_key}-${eventId}`,
       paymentMethod: paymentMethodMap(payment_method),
+      createdAt: created_at ? new Date(created_at) : new Date(),
       syncMeta: {
         lastEventId: invoice_number || idempotency_key,
         lastEventType: 'invoice.sync',
@@ -289,6 +291,97 @@ router.post('/invoices/sync', verifyBridgeKey, async (req, res) => {
     res.json({ success: true, message: 'Invoice synced successfully', eventId, points_earned: 0 });
   } catch (err) {
     console.error('[Bridge] invoices/sync error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Synchronize local expense from POS to cloud with Idempotency + Category Mapping + Shift linking
+router.post('/expenses/sync', verifyBridgeKey, async (req, res) => {
+  const {
+    expense_id,
+    idempotency_key,
+    amount,
+    category,
+    description,
+    shift_id,
+    created_at,
+    payment_method
+  } = req.body || {};
+
+  if (!idempotency_key && !expense_id) {
+    return res.status(400).json({ error: 'idempotency_key or expense_id is required' });
+  }
+
+  try {
+    if (idempotency_key) {
+      const existingByKey = await SyncEvent.findOne({ 'payload.idempotency_key': idempotency_key });
+      if (existingByKey) {
+        return res.json({ success: true, message: 'Already synced (Idempotent — by key)', eventId: existingByKey.eventId });
+      }
+      const existingExp = await Expense.findOne({ idempotencyKey: idempotency_key });
+      if (existingExp) {
+        return res.json({ success: true, message: 'Already synced (Expense exists)', eventId: idempotency_key });
+      }
+    }
+
+    if (expense_id) {
+      const existingExp = await Expense.findOne({ posExpenseId: Number(expense_id) });
+      if (existingExp) {
+        return res.json({ success: true, message: 'Already synced (posExpenseId exists)', eventId: String(expense_id) });
+      }
+    }
+
+    let shiftDoc = null;
+    const numShiftId = shift_id !== undefined && shift_id !== null ? Number(shift_id) : null;
+    if (numShiftId) {
+      shiftDoc = await Shift.findOne({ posShiftId: numShiftId });
+    }
+
+    // Category mapping to valid enum: ['utilities', 'purchase', 'maintenance', 'salary', 'rent', 'marketing', 'other']
+    let mappedCat = 'other';
+    const catStr = String(category || '').toLowerCase().trim();
+    if (catStr.includes('مشتريات') || catStr.includes('بضاعة') || catStr.includes('purchase')) {
+      mappedCat = 'purchase';
+    } else if (catStr.includes('كهرباء') || catStr.includes('مياه') || catStr.includes('غاز') || catStr.includes('نت') || catStr.includes('فاتورة') || catStr.includes('فواتير') || catStr.includes('utilities')) {
+      mappedCat = 'utilities';
+    } else if (catStr.includes('صيانة') || catStr.includes('maintenance')) {
+      mappedCat = 'maintenance';
+    } else if (catStr.includes('رواتب') || catStr.includes('مرتب') || catStr.includes('salary') || catStr.includes('salaries')) {
+      mappedCat = 'salary';
+    } else if (catStr.includes('إيجار') || catStr.includes('ايجار') || catStr.includes('rent')) {
+      mappedCat = 'rent';
+    } else if (catStr.includes('تسويق') || catStr.includes('اعلان') || catStr.includes('marketing')) {
+      mappedCat = 'marketing';
+    }
+
+    const expDate = created_at ? new Date(created_at) : new Date();
+    const eventId = uuidv4();
+
+    await Expense.create({
+      title: description || category || 'مصروف من الكاشير',
+      category: mappedCat,
+      amount: Number(amount) || 0,
+      expenseDate: expDate,
+      createdAt: expDate,
+      paymentMethod: payment_method || 'cash',
+      shiftId: shiftDoc ? shiftDoc._id : null,
+      branchId: 'main',
+      notes: `تمت المزامنة من الكاشير #${expense_id || ''}. ${description || ''}`.trim(),
+      posExpenseId: expense_id ? Number(expense_id) : null,
+      idempotencyKey: idempotency_key || null
+    });
+
+    await SyncEvent.create({
+      eventId,
+      eventType: 'EXPENSE_SYNCED',
+      payload: req.body,
+      status: 'acked',
+      acknowledgedAt: new Date()
+    });
+
+    res.json({ success: true, message: 'Expense synced successfully', eventId });
+  } catch (err) {
+    console.error('[Bridge] expenses/sync error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });

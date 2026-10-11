@@ -17,50 +17,141 @@ const RecipeItem = require('../models/RecipeItem');
 
 const FINALIZED_STATUSES = ['paid', 'completed'];
 
-// دالة مساعدة لحساب نطاق التاريخ بتوقيت القاهرة
+// ─── دوال التنسيق المعتمدة لإجبار الأرقام الإنجليزية 0123456789 في ملفات الـ PDF ───
+
+// تحويل أي أرقام هندية/مشرقية إلى أرقام إنجليزية نظامية (0123456789)
+function toEnglishDigits(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+    .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+    .replace(/[\u200e\u200f\u202a-\u202e]/g, ''); // إزالة محارف التوجيه المخفية
+}
+
+// تنسيق المبالغ المالية مع الحفاظ على الفواصل الإنجليزية وعلامة العملة العربية
+function formatCurrency(val) {
+  const num = Number(val) || 0;
+  const formatted = num.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  return `${formatted} ج.م`;
+}
+
+// تنسيق الأعداد الصحيحة والكميات بأرقام إنجليزية
+function formatNumber(val) {
+  const num = Number(val) || 0;
+  return num.toLocaleString('en-US');
+}
+
+// تنسيق التاريخ والوقت بتوقيت القاهرة بأرقام إنجليزية YYYY/MM/DD HH:mm
+function formatDateTime(dateVal) {
+  if (!dateVal) return '—';
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return '—';
+  try {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Africa/Cairo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).formatToParts(d);
+    const p = {};
+    parts.forEach(part => { p[part.type] = part.value; });
+    return `${p.year}/${p.month}/${p.day} ${p.hour}:${p.minute}`;
+  } catch (_) {
+    return d.toISOString().slice(0, 16).replace('T', ' ');
+  }
+}
+
+// تنسيق التاريخ فقط YYYY/MM/DD
+function formatDate(dateVal) {
+  if (!dateVal) return '—';
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return '—';
+  try {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Africa/Cairo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).formatToParts(d);
+    const p = {};
+    parts.forEach(part => { p[part.type] = part.value; });
+    return `${p.year}/${p.month}/${p.day}`;
+  } catch (_) {
+    return d.toISOString().slice(0, 10);
+  }
+}
+
+// دالة مساعدة لحساب نطاق التاريخ بدقة متوافقة مع توقيت القاهرة
 function parseReportPeriod(period, start, end) {
   const now = new Date();
-  const cairoOffsetMs = 2 * 60 * 60 * 1000;
-  const cairoNow = new Date(now.getTime() + cairoOffsetMs);
-  const cairoYear = cairoNow.getUTCFullYear();
-  const cairoMonth = cairoNow.getUTCMonth();
-  const cairoDate = cairoNow.getUTCDate();
 
-  const getCairoDayStart = (y, m, d) => new Date(Date.UTC(y, m, d, 0, 0, 0) - cairoOffsetMs);
-  const getCairoDayEnd = (y, m, d) => new Date(Date.UTC(y, m, d, 23, 59, 59, 999) - cairoOffsetMs);
+  // الحصول على تواريخ القاهرة الحالية
+  let cairoParts;
+  try {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Africa/Cairo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).formatToParts(now);
+    const p = {};
+    parts.forEach(part => { p[part.type] = part.value; });
+    cairoParts = { year: parseInt(p.year, 10), month: parseInt(p.month, 10) - 1, day: parseInt(p.day, 10) };
+  } catch (_) {
+    cairoParts = { year: now.getUTCFullYear(), month: now.getUTCMonth(), day: now.getUTCDate() };
+  }
+
+  // حساب فارق توقيت القاهرة الفعلي (+02:00 أو +03:00)
+  const probe = new Date(Date.UTC(cairoParts.year, cairoParts.month, cairoParts.day, 12, 0, 0));
+  const cairoHour = parseInt(probe.toLocaleTimeString('en-US', { timeZone: 'Africa/Cairo', hour12: false, hour: 'numeric' }), 10);
+  const offsetHours = cairoHour - 12; // 2 أو 3
+  const offsetMs = offsetHours * 60 * 60 * 1000;
+
+  const getCairoDayStart = (y, m, d) => new Date(Date.UTC(y, m, d, 0, 0, 0) - offsetMs);
+  const getCairoDayEnd = (y, m, d) => new Date(Date.UTC(y, m, d, 23, 59, 59, 999) - offsetMs);
 
   let startDate, endDate, periodLabel;
 
   if (start || end) {
     startDate = start ? new Date(start) : new Date(0);
-    endDate = end ? new Date(end) : getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
+    endDate = end ? new Date(end) : getCairoDayEnd(cairoParts.year, cairoParts.month, cairoParts.day);
     if (endDate.getHours() === 0 && endDate.getMinutes() === 0) endDate.setHours(23, 59, 59, 999);
     periodLabel = `مخصص (${start || ''} إلى ${end || ''})`;
   } else if (period === 'yesterday') {
-    startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate - 1);
-    endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate - 1);
+    startDate = getCairoDayStart(cairoParts.year, cairoParts.month, cairoParts.day - 1);
+    endDate = getCairoDayEnd(cairoParts.year, cairoParts.month, cairoParts.day - 1);
     periodLabel = 'أمس';
   } else if (period === 'week') {
-    startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate - 6);
-    endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
+    startDate = getCairoDayStart(cairoParts.year, cairoParts.month, cairoParts.day - 6);
+    endDate = getCairoDayEnd(cairoParts.year, cairoParts.month, cairoParts.day);
     periodLabel = 'آخر 7 أيام';
+  } else if (period === 'last_week') {
+    startDate = getCairoDayStart(cairoParts.year, cairoParts.month, cairoParts.day - 13);
+    endDate = getCairoDayEnd(cairoParts.year, cairoParts.month, cairoParts.day - 7);
+    periodLabel = 'الأسبوع الماضي';
   } else if (period === 'month') {
-    startDate = getCairoDayStart(cairoYear, cairoMonth, 1);
-    endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
+    startDate = getCairoDayStart(cairoParts.year, cairoParts.month, 1);
+    endDate = getCairoDayEnd(cairoParts.year, cairoParts.month, cairoParts.day);
     periodLabel = 'هذا الشهر';
   } else if (period === 'last_month') {
-    startDate = getCairoDayStart(cairoYear, cairoMonth - 1, 1);
-    const lastDayOfPrevMonth = new Date(Date.UTC(cairoYear, cairoMonth, 0)).getUTCDate();
-    endDate = getCairoDayEnd(cairoYear, cairoMonth - 1, lastDayOfPrevMonth);
+    startDate = getCairoDayStart(cairoParts.year, cairoParts.month - 1, 1);
+    const lastDayOfPrevMonth = new Date(Date.UTC(cairoParts.year, cairoParts.month, 0)).getUTCDate();
+    endDate = getCairoDayEnd(cairoParts.year, cairoParts.month - 1, lastDayOfPrevMonth);
     periodLabel = 'الشهر الماضي';
   } else if (period === 'all') {
     startDate = new Date(0);
-    endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
+    endDate = getCairoDayEnd(cairoParts.year, cairoParts.month, cairoParts.day);
     periodLabel = 'جميع الفترات';
   } else {
-    // Default today
-    startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate);
-    endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
+    // الافتراضي: اليوم
+    startDate = getCairoDayStart(cairoParts.year, cairoParts.month, cairoParts.day);
+    endDate = getCairoDayEnd(cairoParts.year, cairoParts.month, cairoParts.day);
     periodLabel = 'اليوم';
   }
 
@@ -74,7 +165,9 @@ async function getReportData(reportType, queryParams = {}) {
   const eDate = end || qEndDate;
   const { startDate, endDate, periodLabel } = parseReportPeriod(period, sDate, eDate);
 
-  switch (reportType) {
+  const cleanType = String(reportType || 'sales').toLowerCase().trim();
+
+  switch (cleanType) {
     case 'sales': {
       // 1. تقرير المبيعات
       const match = {
@@ -99,11 +192,11 @@ async function getReportData(reportType, queryParams = {}) {
         title: 'تقرير المبيعات والعمليات النهائية (Sales Report)',
         period: { from: startDate.toISOString(), to: endDate.toISOString(), label: periodLabel },
         kpis: [
-          { label: 'إجمالي المبيعات', value: `${totalSales.toLocaleString('ar-EG')} ج.م` },
-          { label: 'عدد الفواتير', value: String(orders.length) },
-          { label: 'مبيعات نقدية (كاش)', value: `${cashSales.toLocaleString('ar-EG')} ج.م` },
-          { label: 'مبيعات إلكترونية (فيزا)', value: `${cardSales.toLocaleString('ar-EG')} ج.م` },
-          { label: 'متوسط الفاتورة', value: `${(orders.length ? (totalSales / orders.length).toFixed(2) : 0)} ج.م` }
+          { label: 'إجمالي المبيعات', value: formatCurrency(totalSales) },
+          { label: 'عدد الفواتير', value: formatNumber(orders.length) },
+          { label: 'مبيعات نقدية (كاش)', value: formatCurrency(cashSales) },
+          { label: 'مبيعات إلكترونية (فيزا)', value: formatCurrency(cardSales) },
+          { label: 'متوسط الفاتورة', value: formatCurrency(orders.length ? (totalSales / orders.length) : 0) }
         ],
         columns: [
           { key: 'index', label: '#', width: 25, align: 'center' },
@@ -115,11 +208,11 @@ async function getReportData(reportType, queryParams = {}) {
         ],
         rows: orders.map((o, idx) => ({
           index: idx + 1,
-          invoiceNumber: o.syncMeta?.lastEventId || o.externalOrderId || String(o._id).slice(-6),
-          createdAt: o.createdAt ? new Date(o.createdAt).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) : '—',
+          invoiceNumber: toEnglishDigits(o.syncMeta?.lastEventId || o.externalOrderId || String(o._id).slice(-6)),
+          createdAt: formatDateTime(o.createdAt),
           customerName: o.userId?.name || o.customerPhone || 'محلي/سفري',
           paymentMethod: o.paymentMethod === 'card' ? 'فيزا/بطاقة' : (o.paymentMethod === 'wallet' ? 'محفظة' : 'نقدي'),
-          total: `${(Number(o.total_price) || 0).toLocaleString('ar-EG')} ج.م`
+          total: formatCurrency(o.total_price)
         }))
       };
     }
@@ -136,10 +229,10 @@ async function getReportData(reportType, queryParams = {}) {
         title: 'قائمة المنتجات والتصنيفات (Menu & Products)',
         period: { from: startDate.toISOString(), to: endDate.toISOString(), label: 'الحالة الحالية للمنيو' },
         kpis: [
-          { label: 'إجمالي الأصناف', value: String(drinks.length) },
-          { label: 'الأصناف المتاحة', value: String(drinks.filter(d => d.is_available).length) },
-          { label: 'الأصناف غير المتاحة', value: String(drinks.filter(d => !d.is_available).length) },
-          { label: 'متوسط السعر', value: `${avgPrice.toFixed(2)} ج.م` }
+          { label: 'إجمالي الأصناف', value: formatNumber(drinks.length) },
+          { label: 'الأصناف المتاحة', value: formatNumber(drinks.filter(d => d.is_available).length) },
+          { label: 'الأصناف غير المتاحة', value: formatNumber(drinks.filter(d => !d.is_available).length) },
+          { label: 'متوسط السعر', value: formatCurrency(avgPrice) }
         ],
         columns: [
           { key: 'index', label: '#', width: 25, align: 'center' },
@@ -154,7 +247,7 @@ async function getReportData(reportType, queryParams = {}) {
           nameAr: d.name_ar || d.name,
           nameEn: d.name || '—',
           category: d.category_id ? (d.category_id.name_ar || d.category_id.name) : 'عام',
-          price: `${(Number(d.price) || 0).toFixed(2)} ج.م`,
+          price: formatCurrency(d.price),
           status: d.is_available ? 'متاح' : 'غير متوفر'
         }))
       };
@@ -172,7 +265,7 @@ async function getReportData(reportType, queryParams = {}) {
       // تجميع حسب الأيام
       const byDay = {};
       orders.forEach(o => {
-        const dayStr = o.createdAt ? new Date(o.createdAt).toISOString().slice(0, 10) : 'غير محدد';
+        const dayStr = o.createdAt ? formatDate(o.createdAt) : 'غير محدد';
         if (!byDay[dayStr]) byDay[dayStr] = { date: dayStr, count: 0, cash: 0, card: 0, wallet: 0, total: 0 };
         const val = Number(o.total_price) || 0;
         const pm = (o.paymentMethod || 'cash').toLowerCase();
@@ -190,9 +283,9 @@ async function getReportData(reportType, queryParams = {}) {
         title: 'تقرير الدخل والإيرادات اليومية (Income & Revenue)',
         period: { from: startDate.toISOString(), to: endDate.toISOString(), label: periodLabel },
         kpis: [
-          { label: 'إجمالي الدخل المحقق', value: `${totalIncome.toLocaleString('ar-EG')} ج.م` },
-          { label: 'عدد أيام المبيعات', value: String(dayRows.length) },
-          { label: 'متوسط الدخل اليومي', value: `${(dayRows.length ? (totalIncome / dayRows.length).toFixed(2) : 0)} ج.م` }
+          { label: 'إجمالي الدخل المحقق', value: formatCurrency(totalIncome) },
+          { label: 'عدد أيام المبيعات', value: formatNumber(dayRows.length) },
+          { label: 'متوسط الدخل اليومي', value: formatCurrency(dayRows.length ? (totalIncome / dayRows.length) : 0) }
         ],
         columns: [
           { key: 'date', label: 'التاريخ', width: 95, align: 'center' },
@@ -204,11 +297,11 @@ async function getReportData(reportType, queryParams = {}) {
         ],
         rows: dayRows.map(r => ({
           date: r.date,
-          count: r.count,
-          cash: `${r.cash.toLocaleString('ar-EG')} ج.م`,
-          card: `${r.card.toLocaleString('ar-EG')} ج.م`,
-          wallet: `${r.wallet.toLocaleString('ar-EG')} ج.م`,
-          total: `${r.total.toLocaleString('ar-EG')} ج.م`
+          count: formatNumber(r.count),
+          cash: formatCurrency(r.cash),
+          card: formatCurrency(r.card),
+          wallet: formatCurrency(r.wallet),
+          total: formatCurrency(r.total)
         }))
       };
     }
@@ -222,21 +315,20 @@ async function getReportData(reportType, queryParams = {}) {
 
       const totalRevenue = orders.reduce((s, o) => s + (Number(o.total_price) || 0), 0);
       const totalExpenses = expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
-      // تقدير تكلفة البضاعة المباعة بنسبة 35% من المبيعات كمعيار كافيهات في حالة عدم توافر تكلفة دقيقة
       const estimatedCogs = Math.round(totalRevenue * 0.35 * 100) / 100;
       const grossProfit = totalRevenue - estimatedCogs;
       const netOperatingProfit = grossProfit - totalExpenses;
-      const profitMargin = totalRevenue > 0 ? ((netOperatingProfit / totalRevenue) * 100).toFixed(1) : 0;
+      const profitMargin = totalRevenue > 0 ? ((netOperatingProfit / totalRevenue) * 100).toFixed(1) : '0.0';
 
       return {
         type: 'profit_loss',
         title: 'قائمة الأرباح والخسائر التشغيلية (Profit & Loss Statement)',
         period: { from: startDate.toISOString(), to: endDate.toISOString(), label: periodLabel },
         kpis: [
-          { label: 'إجمالي الإيرادات (المبيعات)', value: `${totalRevenue.toLocaleString('ar-EG')} ج.م` },
-          { label: 'المصروفات التشغيلية', value: `${totalExpenses.toLocaleString('ar-EG')} ج.م` },
-          { label: 'تكلفة الخامات التقديرية', value: `${estimatedCogs.toLocaleString('ar-EG')} ج.م` },
-          { label: 'صافي الأرباح التشغيلية', value: `${netOperatingProfit.toLocaleString('ar-EG')} ج.م` },
+          { label: 'إجمالي الإيرادات (المبيعات)', value: formatCurrency(totalRevenue) },
+          { label: 'المصروفات التشغيلية', value: formatCurrency(totalExpenses) },
+          { label: 'تكلفة الخامات التقديرية', value: formatCurrency(estimatedCogs) },
+          { label: 'صافي الأرباح التشغيلية', value: formatCurrency(netOperatingProfit) },
           { label: 'هامش الربح التشغيلي', value: `${profitMargin}%` }
         ],
         columns: [
@@ -245,29 +337,30 @@ async function getReportData(reportType, queryParams = {}) {
           { key: 'amount', label: 'القيمة المالية (ج.م)', width: 140, align: 'left' }
         ],
         rows: [
-          { item: 'إجمالي مبيعات المشروبات والطلبات المكتملة', category: 'إيراد تشغيلي (+)', amount: `${totalRevenue.toLocaleString('ar-EG')} ج.م` },
-          { item: 'تكلفة الخامات والمشروبات المباعة (COGS)', category: 'تكلفة مباشرة (-)', amount: `${estimatedCogs.toLocaleString('ar-EG')} ج.م` },
-          { item: 'مجمل الربح التجاري (Gross Profit)', category: 'ربح إجمالي', amount: `${grossProfit.toLocaleString('ar-EG')} ج.م` },
-          { item: 'المصروفات العامة والإدارية والتشغيلية', category: 'مصروفات تشغيل (-)', amount: `${totalExpenses.toLocaleString('ar-EG')} ج.م` },
-          { item: 'صافي الربح التشغيلي النهائي (Net Operating Profit)', category: 'صافي الربح (=)', amount: `${netOperatingProfit.toLocaleString('ar-EG')} ج.م` }
+          { item: 'إجمالي مبيعات المشروبات والطلبات المكتملة', category: 'إيراد تشغيلي (+)', amount: formatCurrency(totalRevenue) },
+          { item: 'تكلفة الخامات والمشروبات المباعة (COGS)', category: 'تكلفة مباشرة (-)', amount: formatCurrency(estimatedCogs) },
+          { item: 'مجمل الربح التجاري (Gross Profit)', category: 'ربح إجمالي', amount: formatCurrency(grossProfit) },
+          { item: 'المصروفات العامة والإدارية والتشغيلية', category: 'مصروفات تشغيل (-)', amount: formatCurrency(totalExpenses) },
+          { item: 'صافي الربح التشغيلي النهائي (Net Operating Profit)', category: 'صافي الربح (=)', amount: formatCurrency(netOperatingProfit) }
         ]
       };
     }
 
-    case 'inventory': {
+    case 'inventory':
+    case 'inventory_stock': {
       // 5. تقرير المخزون وأرصدة الخامات
       const ingredients = await Ingredient.find().sort({ name: 1 }).lean();
       const totalInventoryVal = ingredients.reduce((s, i) => s + ((Number(i.currentStock) || 0) * (Number(i.unitCost) || 0)), 0);
       const lowStockCount = ingredients.filter(i => (Number(i.currentStock) || 0) <= (Number(i.minStock) || 0)).length;
 
       return {
-        type: 'inventory',
+        type: 'inventory_stock',
         title: 'تقرير المخزون وأرصدة الخامات (Inventory & Stock)',
         period: { from: startDate.toISOString(), to: endDate.toISOString(), label: 'الرصيد الفعلي للمخزن' },
         kpis: [
-          { label: 'إجمالي أصناف الخامات', value: String(ingredients.length) },
-          { label: 'القيمة المالية للمخزون', value: `${Math.round(totalInventoryVal).toLocaleString('ar-EG')} ج.م` },
-          { label: 'أصناف بلغت حد الطلب', value: String(lowStockCount) }
+          { label: 'إجمالي أصناف الخامات', value: formatNumber(ingredients.length) },
+          { label: 'القيمة المالية للمخزون', value: formatCurrency(totalInventoryVal) },
+          { label: 'أصناف بلغت حد الطلب', value: formatNumber(lowStockCount) }
         ],
         columns: [
           { key: 'index', label: '#', width: 25, align: 'center' },
@@ -285,10 +378,10 @@ async function getReportData(reportType, queryParams = {}) {
             index: idx + 1,
             name: i.name_ar || i.name,
             unit: i.unit || 'وحدة',
-            stock: `${cur} ${i.unit || ''}`,
-            minStock: `${Number(i.minStock) || 0}`,
-            cost: `${cost.toFixed(2)} ج.م`,
-            totalVal: `${(cur * cost).toFixed(2)} ج.م`
+            stock: `${formatNumber(cur)} ${i.unit || ''}`.trim(),
+            minStock: formatNumber(i.minStock || 0),
+            cost: formatCurrency(cost),
+            totalVal: formatCurrency(cur * cost)
           };
         })
       };
@@ -309,8 +402,8 @@ async function getReportData(reportType, queryParams = {}) {
         title: 'تقرير المستودعات ونقاط التوزيع (Warehouses Report)',
         period: { from: startDate.toISOString(), to: endDate.toISOString(), label: 'حالة المستودعات التشغيلية' },
         kpis: [
-          { label: 'عدد المستودعات المسجلة', value: String(warehousesList.length) },
-          { label: 'إجمالي قيمة البضاعة بالمستودعات', value: `${Math.round(totalInventoryVal).toLocaleString('ar-EG')} ج.م` }
+          { label: 'عدد المستودعات المسجلة', value: formatNumber(warehousesList.length) },
+          { label: 'إجمالي قيمة البضاعة بالمستودعات', value: formatCurrency(totalInventoryVal) }
         ],
         columns: [
           { key: 'name', label: 'اسم المستودع', width: 160, align: 'right' },
@@ -324,8 +417,8 @@ async function getReportData(reportType, queryParams = {}) {
           name: w.name,
           code: w.code,
           location: w.location,
-          items: w.itemsCount,
-          val: `${Math.round(w.val).toLocaleString('ar-EG')} ج.م`,
+          items: formatNumber(w.itemsCount),
+          val: formatCurrency(w.val),
           status: w.status
         }))
       };
@@ -342,7 +435,7 @@ async function getReportData(reportType, queryParams = {}) {
         title: 'تقرير حركة الخامات وسجل العمليات (Stock Movements)',
         period: { from: startDate.toISOString(), to: endDate.toISOString(), label: periodLabel },
         kpis: [
-          { label: 'إجمالي الحركات المسجلة', value: String(transactions.length) }
+          { label: 'إجمالي الحركات المسجلة', value: formatNumber(transactions.length) }
         ],
         columns: [
           { key: 'date', label: 'التاريخ', width: 95, align: 'center' },
@@ -352,11 +445,11 @@ async function getReportData(reportType, queryParams = {}) {
           { key: 'cost', label: 'التكلفة', width: 85, align: 'left' }
         ],
         rows: transactions.map(t => ({
-          date: t.createdAt ? new Date(t.createdAt).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) : '—',
+          date: formatDateTime(t.createdAt),
           ingredient: t.ingredientId ? (t.ingredientId.name_ar || t.ingredientId.name) : 'صنف عام',
           type: t.type === 'consumption' ? 'استهلاك بيع' : (t.type === 'purchase' ? 'شراء وتوريد' : (t.type === 'waste' ? 'هدر وتالف' : 'تسوية')),
-          quantity: `${t.quantity} ${t.ingredientId?.unit || ''}`,
-          cost: `${(Number(t.totalCost) || 0).toFixed(2)} ج.م`
+          quantity: `${formatNumber(t.quantity)} ${t.ingredientId?.unit || ''}`.trim(),
+          cost: formatCurrency(t.totalCost)
         }))
       };
     }
@@ -376,7 +469,7 @@ async function getReportData(reportType, queryParams = {}) {
         const cost = costMap[r._id] || 0;
         const sellPrice = r.drinkId ? (Number(r.drinkId.price) || 0) : 0;
         const profit = sellPrice - cost;
-        const margin = sellPrice > 0 ? ((profit / sellPrice) * 100).toFixed(1) : 0;
+        const margin = sellPrice > 0 ? ((profit / sellPrice) * 100).toFixed(1) : '0.0';
         return {
           name: r.drinkId ? (r.drinkId.name_ar || r.drinkId.name) : r.name,
           sellPrice,
@@ -391,7 +484,7 @@ async function getReportData(reportType, queryParams = {}) {
         title: 'تحليل تكلفة المشروبات والوصفات (Drink Costing & Margin)',
         period: { from: startDate.toISOString(), to: endDate.toISOString(), label: 'تكاليف الإنتاج القياسية' },
         kpis: [
-          { label: 'عدد الوصفات المحسوبة', value: String(costRows.length) }
+          { label: 'عدد الوصفات المحسوبة', value: formatNumber(costRows.length) }
         ],
         columns: [
           { key: 'name', label: 'المشروب / الصنف', width: 170, align: 'right' },
@@ -402,9 +495,9 @@ async function getReportData(reportType, queryParams = {}) {
         ],
         rows: costRows.map(r => ({
           name: r.name,
-          sellPrice: `${r.sellPrice.toFixed(2)} ج.م`,
-          cost: `${r.cost.toFixed(2)} ج.م`,
-          profit: `${r.profit.toFixed(2)} ج.م`,
+          sellPrice: formatCurrency(r.sellPrice),
+          cost: formatCurrency(r.cost),
+          profit: formatCurrency(r.profit),
           margin: `${r.margin}%`
         }))
       };
@@ -423,8 +516,8 @@ async function getReportData(reportType, queryParams = {}) {
         title: 'تقرير المصروفات التشغيلية والنثرية (Operating Expenses)',
         period: { from: startDate.toISOString(), to: endDate.toISOString(), label: periodLabel },
         kpis: [
-          { label: 'إجمالي المصروفات', value: `${totalExp.toLocaleString('ar-EG')} ج.م` },
-          { label: 'عدد إيصالات الصرف', value: String(expenses.length) }
+          { label: 'إجمالي المصروفات', value: formatCurrency(totalExp) },
+          { label: 'عدد إيصالات الصرف', value: formatNumber(expenses.length) }
         ],
         columns: [
           { key: 'index', label: '#', width: 25, align: 'center' },
@@ -437,8 +530,8 @@ async function getReportData(reportType, queryParams = {}) {
           index: idx + 1,
           title: e.title || e.description || 'مصروف عام',
           category: e.category || 'عام',
-          date: e.expenseDate ? new Date(e.expenseDate).toLocaleDateString('ar-EG') : '—',
-          amount: `${(Number(e.amount) || 0).toLocaleString('ar-EG')} ج.م`
+          date: formatDate(e.expenseDate),
+          amount: formatCurrency(e.amount)
         }))
       };
     }
@@ -457,9 +550,9 @@ async function getReportData(reportType, queryParams = {}) {
         title: 'تقرير السيولة النقدية وحركات الخزينة (Cash Flow & Vaults)',
         period: { from: startDate.toISOString(), to: endDate.toISOString(), label: periodLabel },
         kpis: [
-          { label: 'إجمالي المقبوضات (Inflow)', value: `${totalIn.toLocaleString('ar-EG')} ج.م` },
-          { label: 'إجمالي المدفوعات (Outflow)', value: `${totalOut.toLocaleString('ar-EG')} ج.م` },
-          { label: 'صافي التدفق النقدي', value: `${(totalIn - totalOut).toLocaleString('ar-EG')} ج.م` }
+          { label: 'إجمالي المقبوضات (Inflow)', value: formatCurrency(totalIn) },
+          { label: 'إجمالي المدفوعات (Outflow)', value: formatCurrency(totalOut) },
+          { label: 'صافي التدفق النقدي', value: formatCurrency(totalIn - totalOut) }
         ],
         columns: [
           { key: 'date', label: 'التاريخ', width: 95, align: 'center' },
@@ -468,15 +561,16 @@ async function getReportData(reportType, queryParams = {}) {
           { key: 'amount', label: 'المبلغ النقدي', width: 105, align: 'left' }
         ],
         rows: movements.map(m => ({
-          date: m.movementDate ? new Date(m.movementDate).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) : '—',
+          date: formatDateTime(m.movementDate),
           type: m.movementType === 'in' ? 'إيداع نقدي (+)' : 'صرف نقدي (-)',
           reason: m.reason || m.category || 'حركة خزينة',
-          amount: `${(Number(m.amount) || 0).toLocaleString('ar-EG')} ج.م`
+          amount: formatCurrency(m.amount)
         }))
       };
     }
 
-    case 'shifts': {
+    case 'shifts':
+    case 'cashier_shifts': {
       // 11. الكاشير والورديات
       const shifts = await Shift.find({
         $or: [
@@ -489,12 +583,12 @@ async function getReportData(reportType, queryParams = {}) {
       const totalShiftRev = shifts.reduce((s, sh) => s + (Number(sh.totalRevenue) || 0), 0);
 
       return {
-        type: 'shifts',
+        type: 'cashier_shifts',
         title: 'تقرير ورديات الكاشير وإغلاق الدرج (Cashier & Shifts)',
         period: { from: startDate.toISOString(), to: endDate.toISOString(), label: periodLabel },
         kpis: [
-          { label: 'عدد الورديات المسجلة', value: String(shifts.length) },
-          { label: 'إجمالي مبيعات الورديات', value: `${totalShiftRev.toLocaleString('ar-EG')} ج.م` }
+          { label: 'عدد الورديات المسجلة', value: formatNumber(shifts.length) },
+          { label: 'إجمالي مبيعات الورديات', value: formatCurrency(totalShiftRev) }
         ],
         columns: [
           { key: 'id', label: 'رقم الوردية', width: 65, align: 'center' },
@@ -507,15 +601,16 @@ async function getReportData(reportType, queryParams = {}) {
         rows: shifts.map(s => ({
           id: s.posShiftId ? `#${s.posShiftId}` : String(s._id).slice(-4),
           cashier: s.cashierName || 'كاشير السيستم',
-          opened: s.openedAt ? new Date(s.openedAt).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) : '—',
-          closed: s.closedAt ? new Date(s.closedAt).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) : 'نشطة حالياً',
+          opened: formatDateTime(s.openedAt),
+          closed: s.closedAt ? formatDateTime(s.closedAt) : 'نشطة حالياً',
           status: s.status === 'open' ? 'مفتوحة' : 'مغلقة',
-          sales: `${(Number(s.totalRevenue) || 0).toLocaleString('ar-EG')} ج.م`
+          sales: formatCurrency(s.totalRevenue)
         }))
       };
     }
 
     case 'invoices':
+    case 'invoices_orders':
     default: {
       // 12. الفواتير والطلبات الشامل
       const match = { createdAt: { $gte: startDate, $lte: endDate } };
@@ -527,15 +622,15 @@ async function getReportData(reportType, queryParams = {}) {
       const totalAmount = finalized.reduce((s, o) => s + (Number(o.total_price) || 0), 0);
 
       return {
-        type: 'invoices',
+        type: 'invoices_orders',
         title: 'سجل الفواتير والطلبات الشامل (Invoices & Orders)',
         period: { from: startDate.toISOString(), to: endDate.toISOString(), label: periodLabel },
         kpis: [
-          { label: 'إجمالي الفواتير', value: String(orders.length) },
-          { label: 'الفواتير المكتملة', value: String(finalized.length) },
-          { label: 'الفواتير المعلقة', value: String(pending.length) },
-          { label: 'الفواتير الملغاة', value: String(cancelled.length) },
-          { label: 'قيمة المبيعات المحققة', value: `${totalAmount.toLocaleString('ar-EG')} ج.م` }
+          { label: 'إجمالي الفواتير', value: formatNumber(orders.length) },
+          { label: 'الفواتير المكتملة', value: formatNumber(finalized.length) },
+          { label: 'الفواتير المعلقة', value: formatNumber(pending.length) },
+          { label: 'الفواتير الملغاة', value: formatNumber(cancelled.length) },
+          { label: 'قيمة المبيعات المحققة', value: formatCurrency(totalAmount) }
         ],
         columns: [
           { key: 'index', label: '#', width: 25, align: 'center' },
@@ -548,21 +643,21 @@ async function getReportData(reportType, queryParams = {}) {
         ],
         rows: orders.map((o, idx) => ({
           index: idx + 1,
-          invNo: o.syncMeta?.lastEventId || o.externalOrderId || String(o._id).slice(-6),
-          date: o.createdAt ? new Date(o.createdAt).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) : '—',
+          invNo: toEnglishDigits(o.syncMeta?.lastEventId || o.externalOrderId || String(o._id).slice(-6)),
+          date: formatDateTime(o.createdAt),
           customer: o.userId?.name || o.customerPhone || 'محلي/سفري',
           status: o.status === 'paid' || o.status === 'completed' ? 'مدفوعة' : (o.status === 'pending' ? 'معلقة' : 'ملغاة'),
           payment: o.paymentMethod === 'card' ? 'فيزا/بطاقة' : (o.paymentMethod === 'wallet' ? 'محفظة' : 'نقدي'),
-          amount: `${(Number(o.total_price) || 0).toLocaleString('ar-EG')} ج.م`
+          amount: formatCurrency(o.total_price)
         }))
       };
     }
   }
 }
 
-// 2. محرك توليد ملف PDF الموثق والمنسق بخط Tajawal وبدون أي صفحات فارغة
+// 2. محرك توليد ملف PDF الموثق والمنسق بخط Tajawal وبدون أي صفحات فارغة مع فرض الأرقام الإنجليزية
 function generateReportPdfStream(reportData) {
-  const doc = new PDFDocument({ margin: 35, size: 'A4' });
+  const doc = new PDFDocument({ margin: 35, size: 'A4', bufferPages: true });
 
   // تسجيل خط Tajawal الرسمي المعتمد مع ضمان التوفر الكامل لجميع المحارف العربية
   const { getTajawalFonts } = require('./fontProvider');
@@ -580,8 +675,8 @@ function generateReportPdfStream(reportData) {
   }
 
   doc.fontSize(20).font(fontBold).fillColor('#1a1a1a').text('2M CAFE — TWO MILLION CAFE', 35, 30);
-  doc.fontSize(12).font(fontRegular).fillColor('#c29f43').text(reportData.title, 35, 54);
-  doc.fontSize(8.5).font(fontRegular).fillColor('#64748b').text(`الفترة: ${reportData.period.label} | تاريخ الاستخراج: ${new Date().toLocaleString('ar-EG')} بتوقيت القاهرة`, 35, 70);
+  doc.fontSize(12).font(fontRegular).fillColor('#c29f43').text(toEnglishDigits(reportData.title), 35, 54);
+  doc.fontSize(8.5).font(fontRegular).fillColor('#64748b').text(`الفترة: ${toEnglishDigits(reportData.period.label)} | تاريخ الاستخراج: ${formatDateTime(new Date())} بتوقيت القاهرة`, 35, 70);
 
   doc.moveTo(35, 86).lineTo(560, 86).strokeColor('#e2e8f0').lineWidth(1.5).stroke();
 
@@ -594,23 +689,32 @@ function generateReportPdfStream(reportData) {
     reportData.kpis.slice(0, 5).forEach((k, idx) => {
       const boxX = 35 + (idx * (boxWidth + 8));
       doc.rect(boxX, curY, boxWidth, 42).fillAndStroke('#f8fafc', '#cbd5e1');
-      doc.fontSize(7.5).font(fontRegular).fillColor('#64748b').text(k.label, boxX + 4, curY + 6, { width: boxWidth - 8, align: 'center' });
-      doc.fontSize(9.5).font(fontBold).fillColor('#0f172a').text(k.value, boxX + 4, curY + 22, { width: boxWidth - 8, align: 'center' });
+      const labelText = toEnglishDigits(k.label);
+      const valText = toEnglishDigits(k.value);
+      doc.fontSize(7.5).font(fontRegular).fillColor('#64748b').text(labelText, boxX + 4, curY + 6, { width: boxWidth - 8, align: 'center' });
+      doc.fontSize(9.5).font(fontBold).fillColor('#0f172a').text(valText, boxX + 4, curY + 22, { width: boxWidth - 8, align: 'center' });
     });
     curY += 52;
   }
 
   // جدول البيانات (Data Table)
-  const cols = reportData.columns || [];
+  const rawCols = reportData.columns || [];
   const rows = reportData.rows || [];
+  const colCount = Math.max(1, rawCols.length);
+  const defaultWidth = Math.floor(525 / colCount);
+  const cols = rawCols.map(c => ({
+    ...c,
+    width: Number(c.width) > 0 ? Number(c.width) : defaultWidth
+  }));
 
   function drawTableHeader(y) {
     doc.rect(35, y, 525, 20).fill('#0f172a');
     doc.fontSize(8.5).font(fontBold).fillColor('#ffffff');
     let x = 35;
     cols.forEach(c => {
-      doc.text(c.label, x + 3, y + 5, { width: c.width - 6, align: c.align || 'right' });
-      x += c.width;
+      const colWidth = c.width || defaultWidth;
+      doc.text(toEnglishDigits(c.label || ''), x + 3, y + 5, { width: Math.max(10, colWidth - 6), align: c.align || 'right' });
+      x += colWidth;
     });
     return y + 20;
   }
@@ -636,26 +740,44 @@ function generateReportPdfStream(reportData) {
 
       let x = 35;
       cols.forEach(c => {
-        const val = r[c.key] !== undefined && r[c.key] !== null ? String(r[c.key]) : '—';
-        doc.text(val, x + 3, curY + 4, { width: c.width - 6, align: c.align || 'right' });
-        x += c.width;
+        const rawVal = r[c.key] !== undefined && r[c.key] !== null ? String(r[c.key]) : '—';
+        const val = toEnglishDigits(rawVal);
+        const colWidth = c.width || defaultWidth;
+        doc.text(val, x + 3, curY + 4, { width: Math.max(10, colWidth - 6), align: c.align || 'right' });
+        x += colWidth;
       });
       curY += 18;
     });
   }
 
-  // التذييل النهائي (Footer)
-  doc.fontSize(7.5).font(fontRegular).fillColor('#94a3b8').text(
-    '2M CAFE — مركز التقارير والتوثيق الرسمي | تم الاستخراج بالربط مع نظام نقاط البيع (POS)',
-    35,
-    785,
-    { align: 'center', width: 525 }
-  );
+  // التذييل النهائي (Footer) وترقيم الصفحات على جميع الصفحات
+  const pageRange = doc.bufferedPageRange();
+  for (let i = pageRange.start; i < pageRange.start + pageRange.count; i++) {
+    doc.switchToPage(i);
+    doc.fontSize(7.5).font(fontRegular).fillColor('#94a3b8').text(
+      '2M CAFE — مركز التقارير والتوثيق الرسمي | تم الاستخراج بالربط مع نظام نقاط البيع (POS)',
+      35,
+      785,
+      { align: 'center', width: 525 }
+    );
+    // رقم الصفحة بالأرقام الإنجليزية
+    doc.fontSize(7.5).font(fontRegular).fillColor('#94a3b8').text(
+      `صفحة ${i + 1} من ${pageRange.count}`,
+      470,
+      785,
+      { align: 'left', width: 90 }
+    );
+  }
 
   return doc;
 }
 
 module.exports = {
+  toEnglishDigits,
+  formatCurrency,
+  formatNumber,
+  formatDateTime,
+  formatDate,
   parseReportPeriod,
   getReportData,
   generateReportPdfStream

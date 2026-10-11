@@ -27,10 +27,16 @@ const expenseSchema = new mongoose.Schema({
   // ملاحظات
   notes: { type: String, default: '' },
   // من قام بإضافة المصروف
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  // معرف المصروف المحلي بنظام الكاشير
+  posExpenseId: { type: Number, default: null },
+  // مفتاح منع التكرار للمزامنة
+  idempotencyKey: { type: String, default: null }
 }, { timestamps: true, collection: 'expenses' });
 
 expenseSchema.index({ expenseDate: -1 });
 expenseSchema.index({ category: 1, expenseDate: -1 });
+expenseSchema.index({ posExpenseId: 1 }, { sparse: true });
+expenseSchema.index({ idempotencyKey: 1 }, { sparse: true });
 
 module.exports = mongoose.models.Expense || mongoose.model('Expense', expenseSchema);
