@@ -2325,12 +2325,23 @@ body { background-color: var(--bg); color: var(--text); }
       printWin.document.open();
       printWin.document.write(htmlContent);
       printWin.document.close();
-      setTimeout(function() {
-        try {
-          printWin.focus();
-          printWin.print();
-        } catch (_) {}
-      }, 500);
+      if (printWin.document.fonts && printWin.document.fonts.ready) {
+        printWin.document.fonts.ready.then(function() {
+          setTimeout(function() {
+            try {
+              printWin.focus();
+              printWin.print();
+            } catch (_) {}
+          }, 250);
+        });
+      } else {
+        setTimeout(function() {
+          try {
+            printWin.focus();
+            printWin.print();
+          } catch (_) {}
+        }, 500);
+      }
     }
 
 

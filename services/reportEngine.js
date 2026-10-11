@@ -143,8 +143,8 @@ async function getReportData(reportType, queryParams = {}) {
         ],
         columns: [
           { key: 'index', label: '#', width: 25, align: 'center' },
-          { key: 'nameAr', label: 'اسم الصنف (بالعربية)', width: 150, align: 'right' },
-          { key: 'nameEn', label: 'الاسم (English)', width: 140, align: 'left' },
+          { key: 'nameAr', label: 'اسم الصنف (بالعربية)', width: 145, align: 'right' },
+          { key: 'nameEn', label: 'الاسم (English)', width: 135, align: 'left' },
           { key: 'category', label: 'التصنيف', width: 90, align: 'center' },
           { key: 'price', label: 'سعر البيع', width: 70, align: 'left' },
           { key: 'status', label: 'الحالة', width: 60, align: 'center' }
@@ -564,17 +564,14 @@ async function getReportData(reportType, queryParams = {}) {
 function generateReportPdfStream(reportData) {
   const doc = new PDFDocument({ margin: 35, size: 'A4' });
 
-  // خط Tajawal الرسمي
-  const tajawalPath = path.join(__dirname, '../fonts/Tajawal-Regular.ttf');
-  const tajawalBoldPath = path.join(__dirname, '../fonts/Tajawal-Bold.ttf');
-  const hasTajawal = fs.existsSync(tajawalPath) && fs.existsSync(tajawalBoldPath);
+  // تسجيل خط Tajawal الرسمي المعتمد مع ضمان التوفر الكامل لجميع المحارف العربية
+  const { getTajawalFonts } = require('./fontProvider');
+  const tajawalFonts = getTajawalFonts();
+  doc.registerFont('Tajawal', tajawalFonts.regular);
+  doc.registerFont('Tajawal-Bold', tajawalFonts.bold);
 
-  if (hasTajawal) {
-    doc.registerFont('Tajawal', tajawalPath);
-    doc.registerFont('Tajawal-Bold', tajawalBoldPath);
-  }
-  const fontRegular = hasTajawal ? 'Tajawal' : 'Helvetica';
-  const fontBold = hasTajawal ? 'Tajawal-Bold' : 'Helvetica-Bold';
+  const fontRegular = 'Tajawal';
+  const fontBold = 'Tajawal-Bold';
 
   // الرأس (Header)
   const logoPath = path.join(__dirname, '../frontend/imgs/2m-logo.png');

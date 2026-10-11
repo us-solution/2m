@@ -29,8 +29,9 @@ pgdata10/
 .vercel
 .env*
 
-# Fonts Cache & Temp PDF Outputs
-/fonts/
-test_output.pdf
+# Temp PDF Outputs & Dumps
+*.pdf
+scripts/generated_reports_test/
 scratch/
 backups/
+

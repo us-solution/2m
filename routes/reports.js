@@ -461,18 +461,14 @@ router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => 
     res.setHeader('Content-Disposition', `attachment; filename="2M-Cafe-Report-${new Date().toISOString().slice(0,10)}.pdf"`);
     doc.pipe(res);
 
-    // تسجيل الخطوط العربية المتوفرة محلياً
-    const tajawalPath = path.join(__dirname, '../fonts/Tajawal-Regular.ttf');
-    const tajawalBoldPath = path.join(__dirname, '../fonts/Tajawal-Bold.ttf');
-    const hasTajawal = fs.existsSync(tajawalPath) && fs.existsSync(tajawalBoldPath);
+    // تسجيل خط Tajawal الرسمي المعتمد مع ضمان التوفر الكامل لجميع المحارف العربية
+    const { getTajawalFonts } = require('../services/fontProvider');
+    const tajawalFonts = getTajawalFonts();
+    doc.registerFont('Tajawal', tajawalFonts.regular);
+    doc.registerFont('Tajawal-Bold', tajawalFonts.bold);
 
-    if (hasTajawal) {
-      doc.registerFont('Tajawal', tajawalPath);
-      doc.registerFont('Tajawal-Bold', tajawalBoldPath);
-    }
-
-    const fontRegular = hasTajawal ? 'Tajawal' : 'Helvetica';
-    const fontBold = hasTajawal ? 'Tajawal-Bold' : 'Helvetica-Bold';
+    const fontRegular = 'Tajawal';
+    const fontBold = 'Tajawal-Bold';
 
     // الصفحة 1: رأس التقرير + الملخص المالي + طرق الدفع
     const logoPath = path.join(__dirname, '../frontend/imgs/2m-logo.png');
