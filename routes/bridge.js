@@ -16,6 +16,7 @@ const crypto = require('crypto');
 const retryQueue = require('../retry-queue');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 const { v4: uuidv4 } = require('uuid');
+const { cairoLocalToDate, sqliteUtcToDate } = require('../services/cairoTime');
 
 const VALID_BRIDGE_KEYS = [
   process.env.BRIDGE_API_KEY,
@@ -211,6 +212,9 @@ router.post('/invoices/sync', verifyBridgeKey, async (req, res) => {
     return res.status(400).json({ error: 'idempotency_key or invoice_number is required' });
   }
 
+  // The POS shift this invoice belongs to (needed by the duplicate check below)
+  const numShiftId = shift_id !== undefined && shift_id !== null ? Number(shift_id) : null;
+
   try {
     // Check idempotency:
     // If idempotency_key (UUID) is present, it is the authoritative deduplication key for this transaction
@@ -245,7 +249,6 @@ router.post('/invoices/sync', verifyBridgeKey, async (req, res) => {
 
     // ربط الفاتورة بالوردية المقابلة في MongoDB إن وجدت
     let shiftDoc = null;
-    const numShiftId = shift_id !== undefined && shift_id !== null ? Number(shift_id) : null;
     if (numShiftId) {
       shiftDoc = await Shift.findOne({ posShiftId: numShiftId });
     }
@@ -276,7 +279,7 @@ router.post('/invoices/sync', verifyBridgeKey, async (req, res) => {
       shiftId: shiftDoc ? shiftDoc._id : null,
       qrCodeToken: `pos-sync-${invoice_number || idempotency_key}-${eventId}`,
       paymentMethod: paymentMethodMap(payment_method),
-      createdAt: created_at ? new Date(created_at) : new Date(),
+      createdAt: sqliteUtcToDate(created_at) || new Date(),
       syncMeta: {
         lastEventId: invoice_number || idempotency_key,
         lastEventType: 'invoice.sync',
@@ -297,6 +300,35 @@ router.post('/invoices/sync', verifyBridgeKey, async (req, res) => {
     res.json({ success: true, message: 'Invoice synced successfully', eventId, points_earned: 0 });
   } catch (err) {
     console.error('[Bridge] invoices/sync error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// تحديث حالة فاتورة أُلغيت على الكاشير بعد مزامنتها (حتى لا تبقى محسوبة كمبيعات على الموقع)
+const POS_INVOICE_STATUS = { cancelled: 'cancelled', refunded: 'refunded', completed: 'paid', paid: 'paid' };
+router.post('/invoices/status', verifyBridgeKey, async (req, res) => {
+  const { idempotency_key, invoice_number, shift_id, status } = req.body || {};
+  const mapped = POS_INVOICE_STATUS[String(status || '').toLowerCase()];
+  if (!mapped) return res.status(400).json({ error: 'Unsupported invoice status' });
+  if (!idempotency_key && !invoice_number) return res.status(400).json({ error: 'idempotency_key or invoice_number is required' });
+
+  try {
+    let order = idempotency_key ? await Order.findOne({ externalOrderId: idempotency_key }) : null;
+    if (!order && invoice_number) {
+      const numShiftId = shift_id !== undefined && shift_id !== null ? Number(shift_id) : null;
+      order = await Order.findOne({ 'syncMeta.lastEventId': invoice_number, ...(numShiftId ? { posShiftId: numShiftId } : {}) }).sort({ createdAt: -1 });
+    }
+    // Not uploaded yet: the POS keeps the job and tries again after the invoice itself
+    if (!order) return res.status(404).json({ success: false, retry: true, error: 'Invoice not synced yet' });
+
+    if (order.status !== mapped) {
+      order.status = mapped;
+      order.syncMeta = { ...(order.syncMeta || {}), lastEventType: `invoice.${mapped}`, lastSyncedAt: new Date(), syncStatus: 'acked' };
+      await order.save();
+    }
+    res.json({ success: true, status: order.status });
+  } catch (err) {
+    console.error('[Bridge] invoices/status error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -360,7 +392,7 @@ router.post('/expenses/sync', verifyBridgeKey, async (req, res) => {
       mappedCat = 'marketing';
     }
 
-    const expDate = created_at ? new Date(created_at) : new Date();
+    const expDate = sqliteUtcToDate(created_at) || new Date();
     const eventId = uuidv4();
 
     await Expense.create({
@@ -439,8 +471,9 @@ router.post('/shifts/sync', verifyBridgeKey, async (req, res) => {
       notes: notes || ''
     };
 
-    if (opened_at) shiftData.openedAt = new Date(opened_at);
-    if (closed_at) shiftData.closedAt = new Date(closed_at);
+    // The POS keeps shift times as Cairo local time without a zone
+    if (opened_at) shiftData.openedAt = cairoLocalToDate(opened_at);
+    if (closed_at) shiftData.closedAt = cairoLocalToDate(closed_at);
     if (user_id) shiftData.cashierId = user_id;
 
     if (shift) {
@@ -1170,12 +1203,6 @@ router.post('/sync-invoice', verifyBridgeKey, async (req, res) => {
   }
 });
 
-// دالة مساعدة لربط طرق الدفع
-function paymentMethodMap(method) {
-  if (method === 'card') return 'card';
-  if (method === 'wallet') return 'wallet';
-  return 'cash';
-}
 
 // 8. تحديث حالة طلب سحابي من الكاشير المحلي (قبول أو إلغاء الأوردر)
 router.patch('/orders/:id/status', verifyBridgeKey, async (req, res) => {

@@ -16,6 +16,7 @@ const Recipe = require('../models/Recipe');
 const RecipeItem = require('../models/RecipeItem');
 
 const FINALIZED_STATUSES = ['paid', 'completed'];
+const { cairoDayBounds } = require('./cairoTime');
 
 // ─── دوال التنسيق المعتمدة لإجبار الأرقام الإنجليزية 0123456789 في ملفات الـ PDF ───
 
@@ -119,9 +120,13 @@ function parseReportPeriod(period, start, end) {
   let startDate, endDate, periodLabel;
 
   if (start || end) {
-    startDate = start ? new Date(start) : new Date(0);
-    endDate = end ? new Date(end) : getCairoDayEnd(cairoParts.year, cairoParts.month, cairoParts.day);
-    if (endDate.getHours() === 0 && endDate.getMinutes() === 0) endDate.setHours(23, 59, 59, 999);
+    // "YYYY-MM-DD" من حقل التاريخ = يوم كامل بتوقيت القاهرة (وليس منتصف الليل UTC)
+    const startDay = start ? cairoDayBounds(start) : null;
+    const endDay = end ? cairoDayBounds(end) : null;
+    startDate = startDay ? startDay[0] : (start ? new Date(start) : new Date(0));
+    endDate = endDay ? endDay[1] : (end ? new Date(end) : getCairoDayEnd(cairoParts.year, cairoParts.month, cairoParts.day));
+    if (isNaN(startDate.getTime())) startDate = new Date(0);
+    if (isNaN(endDate.getTime())) endDate = getCairoDayEnd(cairoParts.year, cairoParts.month, cairoParts.day);
     periodLabel = `مخصص (${start || ''} إلى ${end || ''})`;
   } else if (period === 'yesterday') {
     startDate = getCairoDayStart(cairoParts.year, cairoParts.month, cairoParts.day - 1);

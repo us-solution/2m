@@ -1546,16 +1546,45 @@ body { background-color: var(--bg); color: var(--text); }
       };
     }
 
-    // طلب fetch مع timeout وتأمين التوكن ضد عمليات إعادة التوجيه
+    // طلب fetch مع timeout — التوكن يُرسل في ترويسة Authorization فقط (وليس في الرابط)
     function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
-      const token = (localStorage.getItem('2m_token') || localStorage.getItem('ozel_token') || '');
-      let finalUrl = url;
-      if (token && typeof url === 'string' && url.includes('/api/') && !url.includes('token=')) {
-        finalUrl += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
+      const headers = { ...getAuthH(), ...(options.headers || {}) };
+      return fetch(url, { ...options, headers, signal: controller.signal }).finally(() => clearTimeout(timer));
+    }
+
+    // جلب ملف PDF من الخادم وفتحه في تبويب جديد للطباعة (أو تحميله إذا مُنع فتح التبويب)
+    async function openPdfReport(url, filename) {
+      // التبويب يُفتح فوراً مع الضغطة حتى لا يحجبه المتصفح كنافذة منبثقة
+      const viewer = window.open('', '_blank');
+      if (viewer) {
+        viewer.document.write('<p style="font-family:Tajawal,Arial,sans-serif;text-align:center;margin-top:3rem;direction:rtl">جاري تجهيز ملف PDF...</p>');
       }
-      return fetch(finalUrl, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+      try {
+        const res = await fetchWithTimeout(url, {}, 60000);
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || `فشل تصدير التقرير (${res.status})`);
+        }
+        const blob = await res.blob();
+        if (blob.type && !blob.type.includes('pdf')) throw new Error('الخادم لم يُرجع ملف PDF');
+        const blobUrl = window.URL.createObjectURL(blob);
+        if (viewer && !viewer.closed) {
+          viewer.location.href = blobUrl;
+        } else {
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 120000);
+      } catch (err) {
+        if (viewer && !viewer.closed) viewer.close();
+        throw err;
+      }
     }
 
     // عرض الصفحة المحددة وتحميل بياناتها
@@ -1667,6 +1696,11 @@ body { background-color: var(--bg); color: var(--text); }
         from = null;
         to = null;
       }
+      // التحديث (يدوياً أو كل 15 ثانية) يحافظ على الفترة المخصصة المختارة
+      if (period === 'custom' && !from) {
+        from = customFromDate || null;
+        to = customToDate || null;
+      }
 
       const badgeText = document.getElementById('cashier-source-text');
       const badgeDot = document.getElementById('cashier-source-dot');
@@ -1754,24 +1788,8 @@ body { background-color: var(--bg); color: var(--text); }
           url += `&startDate=${encodeURIComponent(customFromDate)}`;
           if (customToDate) url += `&endDate=${encodeURIComponent(customToDate)}`;
         }
-        const token = (localStorage.getItem('2m_token') || localStorage.getItem('ozel_token'));
-        const res = await fetch(url, {
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error || `فشل تصدير التقرير (${res.status})`);
-        }
-        const blob = await res.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = `2M-Report-${currentCashierPeriod}-${new Date().toISOString().split('T')[0]}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(blobUrl);
-        a.remove();
-        showToast('تم تحميل تقرير PDF بنجاح', 'success');
+        await openPdfReport(url, `2M-Report-${currentCashierPeriod}-${new Date().toISOString().split('T')[0]}.pdf`);
+        showToast('تم تجهيز تقرير PDF — يمكنك طباعته أو حفظه من التبويب الجديد', 'success');
       } catch (err) {
         showToast('خطأ في تصدير PDF: ' + err.message, 'error');
       }
@@ -3611,21 +3629,25 @@ body { background-color: var(--bg); color: var(--text); }
       }
     }
 
-    function downloadReportPdf() {
+    async function downloadReportPdf() {
       const type = document.getElementById('rc-report-type').value;
       const start = document.getElementById('rc-start-date').value;
       const end = document.getElementById('rc-end-date').value;
-      const token = (localStorage.getItem('2m_token') || localStorage.getItem('ozel_token') || '');
 
-      let url = `/api/reports/engine/pdf?reportType=${encodeURIComponent(type)}&token=${encodeURIComponent(token)}`;
+      let url = `/api/reports/engine/pdf?reportType=${encodeURIComponent(type)}`;
       if (currentReportPreset && currentReportPreset !== 'custom') {
         url += `&period=${encodeURIComponent(currentReportPreset)}`;
       }
       if (start) url += `&startDate=${encodeURIComponent(start)}`;
       if (end) url += `&endDate=${encodeURIComponent(end)}`;
 
-      window.open(url, '_blank');
-      showToast('جاري إنشاء وتحميل تقرير PDF المعتمد...', 'info');
+      showToast('جاري إنشاء تقرير PDF المعتمد...', 'info');
+      try {
+        await openPdfReport(url, `2M-Report-${type}-${new Date().toISOString().slice(0, 10)}.pdf`);
+        showToast('تم تجهيز التقرير — يمكنك طباعته أو حفظه من التبويب الجديد', 'success');
+      } catch (err) {
+        showToast('خطأ في تصدير PDF: ' + err.message, 'error');
+      }
     }
 
     async function triggerImmediateSyncAndRefresh() {
@@ -3666,11 +3688,17 @@ body { background-color: var(--bg); color: var(--text); }
       }
     }
 
-    // مزامنة خلفية حية دورية كل 15 ثانية (Phase 3 Live Sync)
-    setInterval(() => {
+    // مزامنة خلفية حية دورية كل 15 ثانية (Phase 3 Live Sync) — الأرقام فقط، بدون إعادة تحميل
+    // المنيو والعملاء في كل مرة، ولا يبدأ تحديث جديد قبل انتهاء السابق
+    let cashierLiveRefreshBusy = false;
+    setInterval(async () => {
       const isDashboardActive = document.getElementById('page-cashier-dashboard') && document.getElementById('page-cashier-dashboard').classList.contains('active');
-      if (isDashboardActive && !document.hidden) {
-        loadCashierDashboard(currentCashierPeriod, null, null, true);
+      if (!isDashboardActive || document.hidden || cashierLiveRefreshBusy) return;
+      cashierLiveRefreshBusy = true;
+      try {
+        await loadCashierDashboard(currentCashierPeriod);
+      } finally {
+        cashierLiveRefreshBusy = false;
       }
     }, 15000);
 

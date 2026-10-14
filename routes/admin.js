@@ -1283,7 +1283,26 @@ router.get('/cashier-dashboard', authenticateToken, requireRole('admin'), async 
       queries.push(User.find({ role: 'customer' }).select('name phone points total_spent customerStatus').sort({ total_spent: -1 }).limit(100).lean());
     }
 
+    // Totals over the WHOLE period. The lists above are capped for display
+    // (200 invoices, 100 expenses…), so totals must not be summed from them.
+    const asNumber = (field) => ({ $convert: { input: field, to: 'double', onError: 0, onNull: 0 } });
+    const totalsPromise = Promise.all([
+      Order.aggregate([
+        { $match: { createdAt: { $gte: startDate, $lte: endDate } } },
+        { $group: { _id: { status: '$status', pm: { $toLower: { $ifNull: ['$paymentMethod', 'cash'] } } }, total: { $sum: asNumber('$total_price') }, count: { $sum: 1 } } }
+      ]),
+      Expense.aggregate([
+        { $match: { expenseDate: { $gte: startDate, $lte: endDate } } },
+        { $group: { _id: null, total: { $sum: asNumber('$amount') }, count: { $sum: 1 } } }
+      ]),
+      CashMovement.aggregate([
+        { $match: { movementDate: { $gte: startDate, $lte: endDate } } },
+        { $group: { _id: '$movementType', total: { $sum: asNumber('$amount') } } }
+      ])
+    ]);
+
     const results = await Promise.all(queries);
+    const [orderTotals, expenseTotals, movementTotals] = await totalsPromise;
     const orders = results[0];
     const expenses = results[1];
     const shifts = results[2];
@@ -1298,30 +1317,31 @@ router.get('/cashier-dashboard', authenticateToken, requireRole('admin'), async 
     // الحالات المعتمدة كإيرادات مبيعات نهائية
     const FINALIZED_STATUSES = ['paid', 'completed'];
 
-    // حساب المؤشرات المالية بدقة (استبعاد المعلقة والملغاة والمرفوضة)
-    const validOrders = orders.filter(o => FINALIZED_STATUSES.includes(o.status));
-    const pendingOrders = orders.filter(o => o.status === 'pending');
-    const cancelledOrders = orders.filter(o => ['cancelled', 'rejected'].includes(o.status));
-    const refundedOrders = orders.filter(o => o.status === 'refunded');
-
-    const totalSales = validOrders.reduce((sum, o) => sum + (Number(o.total_price) || 0), 0);
-    const ordersCount = validOrders.length;
-    const totalExpenses = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
-    const netProfit = totalSales - totalExpenses;
-    const avgOrder = ordersCount > 0 ? (totalSales / ordersCount) : 0;
-
+    // حساب المؤشرات المالية بدقة على كامل الفترة (استبعاد المعلقة والملغاة والمرفوضة)
+    const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
+    let totalSales = 0, ordersCount = 0, pendingCount = 0, cancelledCount = 0, refundedCount = 0;
     let cashSales = 0, cardSales = 0, walletSales = 0, splitSales = 0;
-    validOrders.forEach(o => {
-      const p = (o.paymentMethod || 'cash').toLowerCase();
-      const val = Number(o.total_price) || 0;
-      if (p === 'card' || p === 'visa') cardSales += val;
-      else if (p === 'wallet') walletSales += val;
-      else if (p === 'split') splitSales += val;
-      else cashSales += val;
+    orderTotals.forEach(g => {
+      const status = g._id.status;
+      if (FINALIZED_STATUSES.includes(status)) {
+        totalSales += g.total;
+        ordersCount += g.count;
+        const p = g._id.pm || 'cash';
+        if (p === 'card' || p === 'visa') cardSales += g.total;
+        else if (p === 'wallet') walletSales += g.total;
+        else if (p === 'split') splitSales += g.total;
+        else cashSales += g.total;
+      } else if (status === 'pending') pendingCount += g.count;
+      else if (['cancelled', 'rejected'].includes(status)) cancelledCount += g.count;
+      else if (status === 'refunded') refundedCount += g.count;
     });
-
-    const inflow = movements.filter(m => m.movementType === 'in').reduce((s, m) => s + (Number(m.amount) || 0), 0);
-    const outflow = movements.filter(m => m.movementType === 'out').reduce((s, m) => s + (Number(m.amount) || 0), 0);
+    totalSales = round2(totalSales);
+    cashSales = round2(cashSales); cardSales = round2(cardSales); walletSales = round2(walletSales); splitSales = round2(splitSales);
+    const totalExpenses = round2(expenseTotals[0]?.total || 0);
+    const netProfit = round2(totalSales - totalExpenses);
+    const avgOrder = ordersCount > 0 ? (totalSales / ordersCount) : 0;
+    const inflow = round2(movementTotals.find(m => m._id === 'in')?.total || 0);
+    const outflow = round2(movementTotals.find(m => m._id === 'out')?.total || 0);
 
     // فحص اتصال أجهزة الكاشير
     const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
@@ -1395,10 +1415,12 @@ router.get('/cashier-dashboard', authenticateToken, requireRole('admin'), async 
       kpis: {
         totalSales,
         ordersCount,
-        finalizedCount: validOrders.length,
-        pendingCount: pendingOrders.length,
-        cancelledCount: cancelledOrders.length,
-        refundedCount: refundedOrders.length,
+        finalizedCount: ordersCount,
+        pendingCount,
+        cancelledCount,
+        refundedCount,
+        // the invoice list below shows the latest 200 of these
+        listedInvoices: orders.length,
         cashSales,
         cardSales,
         walletSales,

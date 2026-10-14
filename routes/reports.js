@@ -364,60 +364,15 @@ router.get('/accounts', authenticateToken, requireRole('admin'), async (req, res
 
 // إنشاء تقرير PDF كامل مع جميع التفاصيل ودعم اللغة العربية
 router.get('/pdf', authenticateToken, requireRole('admin'), async (req, res) => {
-  const { period, start, end } = req.query;
+  const { period } = req.query;
+  const start = req.query.start || req.query.startDate;
+  const end = req.query.end || req.query.endDate;
   try {
     const fs = require('fs');
     const path = require('path');
 
-    // توقيت القاهرة للأنشطة التجارية
-    const now = new Date();
-    const cairoOffsetMs = 2 * 60 * 60 * 1000;
-    const cairoNow = new Date(now.getTime() + cairoOffsetMs);
-    const cairoYear = cairoNow.getUTCFullYear();
-    const cairoMonth = cairoNow.getUTCMonth();
-    const cairoDate = cairoNow.getUTCDate();
-
-    const getCairoDayStart = (y, m, d) => new Date(Date.UTC(y, m, d, 0, 0, 0) - cairoOffsetMs);
-    const getCairoDayEnd = (y, m, d) => new Date(Date.UTC(y, m, d, 23, 59, 59, 999) - cairoOffsetMs);
-
-    let startDate, endDate, periodLabel;
-
-    if (start || end) {
-      startDate = start ? new Date(start) : new Date(0);
-      endDate = end ? new Date(end) : getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
-      if (endDate.getHours() === 0 && endDate.getMinutes() === 0) endDate.setHours(23, 59, 59, 999);
-      periodLabel = `مخصص (${start || ''} إلى ${end || ''})`;
-    } else if (period === 'yesterday') {
-      startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate - 1);
-      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate - 1);
-      periodLabel = 'أمس';
-    } else if (period === 'week') {
-      startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate - 6);
-      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
-      periodLabel = 'آخر 7 أيام';
-    } else if (period === 'last_week') {
-      startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate - 13);
-      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate - 7);
-      periodLabel = 'الأسبوع الماضي';
-    } else if (period === 'month') {
-      startDate = getCairoDayStart(cairoYear, cairoMonth, 1);
-      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
-      periodLabel = 'هذا الشهر';
-    } else if (period === 'last_month') {
-      startDate = getCairoDayStart(cairoYear, cairoMonth - 1, 1);
-      const lastDayOfPrevMonth = new Date(Date.UTC(cairoYear, cairoMonth, 0)).getUTCDate();
-      endDate = getCairoDayEnd(cairoYear, cairoMonth - 1, lastDayOfPrevMonth);
-      periodLabel = 'الشهر الماضي';
-    } else if (period === 'all') {
-      startDate = new Date(0);
-      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
-      periodLabel = 'جميع الفترات';
-    } else {
-      // Default: today
-      startDate = getCairoDayStart(cairoYear, cairoMonth, cairoDate);
-      endDate = getCairoDayEnd(cairoYear, cairoMonth, cairoDate);
-      periodLabel = 'اليوم';
-    }
+    // نفس تعريف الفترات (بتوقيت القاهرة مع التوقيت الصيفي) المستخدم في لوحة التحكم ومركز التقارير
+    const { startDate, endDate, periodLabel } = require('../services/reportEngine').parseReportPeriod(period, start, end);
 
     const match = { createdAt: { $gte: startDate, $lte: endDate } };
 
