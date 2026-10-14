@@ -55,7 +55,7 @@ const CASHIER_REAL_EXTRAS = [
 ];
 
 const SUGAR_LEVELS = [
-  { key: 'Normal', nameEn: 'Normal Sugar', nameAr: 'سكر طبيعي', sortOrder: 0 },
+  { key: 'Normal', nameEn: 'Normal Sugar', nameAr: 'سكر مضبوط', sortOrder: 0 },
   { key: 'Medium', nameEn: 'Medium Sugar', nameAr: 'سكر وسط', sortOrder: 1 },
   { key: 'Less', nameEn: 'Less Sugar', nameAr: 'سكر خفيف', sortOrder: 2 },
   { key: 'No Sugar', nameEn: 'No Sugar', nameAr: 'بدون سكر', sortOrder: 3 },

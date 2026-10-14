@@ -84,7 +84,7 @@ function getAuthHeaders() {
 let currentLang = getStore('lang') || 'ar';
 
 const transMap = {
-  'Normal': { en: 'Normal Sugar', ar: 'سكر طبيعي' },
+  'Normal': { en: 'Normal Sugar', ar: 'سكر مضبوط' },
   'Medium': { en: 'Medium Sugar', ar: 'سكر وسط' },
   'Less': { en: 'Less Sugar', ar: 'سكر خفيف' },
   'No Sugar': { en: 'No Sugar', ar: 'بدون سكر' },
@@ -396,7 +396,7 @@ function getSugarChipsHTML(prefix) {
   const levels = (customizationOptions && customizationOptions.sugarLevels && customizationOptions.sugarLevels.length)
     ? customizationOptions.sugarLevels
     : [
-        { key: 'Normal', nameEn: 'Normal Sugar', nameAr: 'سكر طبيعي' },
+        { key: 'Normal', nameEn: 'Normal Sugar', nameAr: 'سكر مضبوط' },
         { key: 'Medium', nameEn: 'Medium Sugar', nameAr: 'سكر وسط' },
         { key: 'Less', nameEn: 'Less Sugar', nameAr: 'سكر خفيف' },
         { key: 'No Sugar', nameEn: 'No Sugar', nameAr: 'بدون سكر' }

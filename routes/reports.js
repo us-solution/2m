@@ -773,6 +773,11 @@ const reportEngine = require('../services/reportEngine');
 // 1. جلب بيانات التقرير بتنسيق JSON للعرض في لوحة التحكم
 router.get('/engine/data', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
+    try {
+      const { reconcileWithLivePos } = require('../services/posReconciliation');
+      await reconcileWithLivePos({ timeoutMs: 2000 });
+    } catch (_) {}
+
     const reportType = req.query.reportType || req.query.type || 'sales';
     const reportData = await reportEngine.getReportData(reportType, req.query);
     res.json({ success: true, ...reportData, data: reportData });
@@ -785,6 +790,11 @@ router.get('/engine/data', authenticateToken, requireRole('admin'), async (req, 
 // 2. تصدير وتنزيل ملف PDF موثق مع دعم كامل للغة العربية وتصميم A4 احترافي
 router.get('/engine/pdf', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
+    try {
+      const { reconcileWithLivePos } = require('../services/posReconciliation');
+      await reconcileWithLivePos({ timeoutMs: 2000 });
+    } catch (_) {}
+
     const reportType = req.query.reportType || req.query.type || 'sales';
     const reportData = await reportEngine.getReportData(reportType, req.query);
 

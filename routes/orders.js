@@ -40,6 +40,27 @@ function safeParseItems(items) {
   try { return JSON.parse(items || '[]'); } catch (_) { return []; }
 }
 
+// دوال تنظيف الملاحظات وترجمة السكر للعربية
+function mapSugarToCleanArabic(s) {
+  if (!s) return 'مضبوط';
+  const norm = String(s).trim().toLowerCase();
+  if (norm === 'normal' || norm === 'normal sugar' || norm === 'طبيعي' || norm === 'عادي' || norm === 'مضبوط' || norm === 'مظبوط') return 'مضبوط';
+  if (norm === 'medium' || norm === 'medium sugar' || norm === 'وسط') return 'وسط';
+  if (norm === 'less' || norm === 'less sugar' || norm === 'خفيف') return 'خفيف';
+  if (norm === 'no sugar' || norm === 'بدون سكر') return 'بدون سكر';
+  if (norm === 'extra sugar' || norm === 'زيادة' || norm === 'سكر زيادة') return 'زيادة';
+  return s;
+}
+
+function stripEmojisAndEnglishNotes(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/[\u{1F300}-\u{1FAD6}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}]/gu, '')
+    .replace(/\b(Normal\s*Sugar|normal\s*sugar|Normal|normal)\b/gi, 'مضبوط')
+    .replace(/\b(None|none|No\s*Extras|no\s*extras)\b/gi, '')
+    .trim();
+}
+
 // بناء بيانات الطلب للإرسال (للكاشير والجسر)
 function buildOrderPayload(order, user = null) {
   const parsedItems = safeParseItems(order.items);
@@ -51,13 +72,13 @@ function buildOrderPayload(order, user = null) {
       name_ar: item.name_ar || '',
       quantity: item.quantity || 1,
       price: Number(item.price) || 0,
-      sugar: item.sugar || 'Normal',
+      sugar: mapSugarToCleanArabic(item.sugar),
       extra: item.extra || 'None',
-      notes: item.notes || ''
+      notes: stripEmojisAndEnglishNotes(item.notes || '')
     })),
     total_price: order.total_price,
     points_earned: order.points_earned,
-    notes: order.notes,
+    notes: stripEmojisAndEnglishNotes(order.notes || ''),
     status: order.status,
     qr_token: order.qrCodeToken || null,
     customer_name: user ? user.name : (order.customerPhone ? 'Takeaway' : null),
@@ -198,9 +219,9 @@ router.post('/', async (req, res) => {
       menuItemIdInCashier: item.menuItemIdInCashier || '',
       quantity: item.quantity || 1,
       price: isFreeOrderApplied ? 0 : (item.price || 0),
-      sugar: item.sugar || 'Normal',
+      sugar: mapSugarToCleanArabic(item.sugar),
       extras: Array.isArray(item.extras) ? item.extras : [],
-      notes: item.notes || ''
+      notes: stripEmojisAndEnglishNotes(item.notes || '')
     }));
 
     // ──────────────────────────────────────────────

@@ -17,10 +17,17 @@ const JWT_SECRET = process.env.JWT_SECRET || '2m_cafe_secret_2026';
 // ============================
 const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  let token = authHeader && authHeader.split(' ')[1];
+  let token = null;
+  if (authHeader) {
+    token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
+  }
 
-  if (!token && req.query.token) {
-    token = req.query.token;
+  if (!token) {
+    token = req.headers['x-access-token'] || 
+            req.headers['x-auth-token'] || 
+            req.query?.token || 
+            req.cookies?.token || 
+            null;
   }
 
   if (!token) {

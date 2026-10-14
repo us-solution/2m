@@ -1225,6 +1225,14 @@ router.get('/cashier-dashboard', authenticateToken, requireRole('admin'), async 
     const Shift = require('../models/Shift');
     const CashMovement = require('../models/CashMovement');
 
+    // تشغيل المزامنة والتوفيق اللحظي مع سيرفر الكاشير إذا طلب التحديث أو كانت الفترة تشمل اليوم
+    try {
+      const { reconcileWithLivePos } = require('../services/posReconciliation');
+      await reconcileWithLivePos({ timeoutMs: 2500 });
+    } catch (reconcileErr) {
+      console.warn('[Dashboard] Live POS reconcile skipped:', reconcileErr.message);
+    }
+
     // تنفيذ الاستعلامات مع دعم الفصل لتسريع الاستجابة وتفادي مهلة Serverless
     const shouldFetchCatalog = includeCatalog !== 'false';
 
@@ -1465,6 +1473,17 @@ router.get('/cashier-dashboard', authenticateToken, requireRole('admin'), async 
   } catch (err) {
     console.error('[Cashier Dashboard Error]:', err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// مسار المزامنة الفورية مع سيرفر الكاشير المحلي
+router.post('/cashier/sync-now', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const { reconcileWithLivePos } = require('../services/posReconciliation');
+    const result = await reconcileWithLivePos({ timeoutMs: 5000 });
+    res.json({ success: true, message: 'تمت المزامنة مع نظام الكاشير بنجاح', ...result });
+  } catch (err) {
+    res.status(500).json({ error: 'فشل تشغيل المزامنة: ' + err.message });
   }
 });
 

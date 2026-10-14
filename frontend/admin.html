@@ -1537,15 +1537,25 @@ body { background-color: var(--bg); color: var(--text); }
 
     // الحصول على ترويسة المصادقة للطلبات
     function getAuthH() {
-      const token = (localStorage.getItem('2m_token') || localStorage.getItem('ozel_token'));
-      return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
+      const token = (localStorage.getItem('2m_token') || localStorage.getItem('ozel_token') || '');
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+        'x-access-token': token,
+        'x-auth-token': token
+      };
     }
 
-    // طلب fetch مع timeout لمنع التعليق
+    // طلب fetch مع timeout وتأمين التوكن ضد عمليات إعادة التوجيه
     function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
-      return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+      const token = (localStorage.getItem('2m_token') || localStorage.getItem('ozel_token') || '');
+      let finalUrl = url;
+      if (token && typeof url === 'string' && url.includes('/api/') && !url.includes('token=')) {
+        finalUrl += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
+      }
+      return fetch(finalUrl, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
     }
 
     // عرض الصفحة المحددة وتحميل بياناتها
@@ -3626,6 +3636,11 @@ body { background-color: var(--bg); color: var(--text); }
       }
 
       try {
+        await fetchWithTimeout('/api/admin/cashier/sync-now', {
+          method: 'POST',
+          headers: getAuthH()
+        }, 10000).catch(e => console.warn('sync-now post warning:', e));
+
         await loadCashierDashboard(currentCashierPeriod, null, null, true);
         if (document.getElementById('page-reports-center') && document.getElementById('page-reports-center').classList.contains('active')) {
           await fetchReportPreview();

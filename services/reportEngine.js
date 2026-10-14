@@ -155,7 +155,7 @@ function parseReportPeriod(period, start, end) {
     periodLabel = 'اليوم';
   }
 
-  return { startDate, endDate, periodLabel };
+  return { startDate, endDate, label: periodLabel, periodLabel };
 }
 
 // 1. تجميع بيانات التقرير المطلوب برمجياً من قاعدة البيانات

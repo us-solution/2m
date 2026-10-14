@@ -212,22 +212,27 @@ router.post('/invoices/sync', verifyBridgeKey, async (req, res) => {
   }
 
   try {
-    // Dual idempotency check: check BOTH idempotency_key and invoice_number to prevent any duplicate
+    // Check idempotency:
+    // If idempotency_key (UUID) is present, it is the authoritative deduplication key for this transaction
     if (idempotency_key) {
       const existingByKey = await SyncEvent.findOne({ 'payload.idempotency_key': idempotency_key });
       if (existingByKey) {
         return res.json({ success: true, message: 'Already synced (Idempotent — by key)', eventId: existingByKey.eventId });
       }
-    }
-    if (invoice_number) {
-      const existingByInvoice = await SyncEvent.findOne({ 'payload.invoice_number': invoice_number });
-      if (existingByInvoice) {
-        return res.json({ success: true, message: 'Already synced (Idempotent — by invoice_number)', eventId: existingByInvoice.eventId });
+      const existingOrderByKey = await Order.findOne({ externalOrderId: idempotency_key });
+      if (existingOrderByKey) {
+        return res.json({ success: true, message: 'Already synced (Order exists — by key)', eventId: idempotency_key });
       }
-      // Also check Order collection as a safety net
-      const existingOrder = await Order.findOne({ 'syncMeta.lastEventId': invoice_number });
+    } else if (invoice_number) {
+      // Fallback: If no idempotency_key was provided, check invoice_number scoped to shift or recent 24h
+      const timeFilter = { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) };
+      const shiftFilter = numShiftId ? { posShiftId: numShiftId } : { createdAt: timeFilter };
+      const existingOrder = await Order.findOne({
+        'syncMeta.lastEventId': invoice_number,
+        ...shiftFilter
+      });
       if (existingOrder) {
-        return res.json({ success: true, message: 'Already synced (Order exists)', eventId: invoice_number });
+        return res.json({ success: true, message: 'Already synced (Order exists in current shift)', eventId: invoice_number });
       }
     }
 
@@ -266,6 +271,7 @@ router.post('/invoices/sync', verifyBridgeKey, async (req, res) => {
       notes: `تمت المزامنة من الكاشير. طريقة الدفع: ${payment_method || 'cash'}`,
       customerPhone: customer_phone || null,
       posSynced: true,
+      externalOrderId: idempotency_key || `${invoice_number}_${Date.now()}`,
       posShiftId: numShiftId,
       shiftId: shiftDoc ? shiftDoc._id : null,
       qrCodeToken: `pos-sync-${invoice_number || idempotency_key}-${eventId}`,
